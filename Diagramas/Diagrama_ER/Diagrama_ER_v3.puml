@@ -1,0 +1,249 @@
+@startuml Diagrama_Clases_v3
+' --- AJUSTES VISUALES ---
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 60
+skinparam padding 5
+
+' --- 1. ENUMS ---
+package "Enums" {
+  enum EstadoUsuario {
+    - Activo
+    - Inactivo
+    - Suspendido
+  }
+
+  enum EstadoVehiculo {
+    - Activo
+    - Mantenimiento
+    - Inactivo
+  }
+
+  enum TipoCarnet {
+    - Permiso AM // Ciclomotores
+    - Permiso A1 // Motocicletas de hasta 125cc
+    - Permiso A2 // Motocicletas de hasta 35kW
+    - Permiso A // Motocicletas de potencia ilimitada
+    - Permiso B // Automóviles
+    - Permiso B+E // Automóviles con remolque
+    - Permiso B1 // Cuadriciclos y triciclos
+    - Permiso C // Camiones
+    - Permiso C+E // Camiones con remolque
+    - Permiso D // Autobuses
+    - Permiso D+E // Autobuses con remolque
+    - Permiso LVA // Licencia de Vehículos Agrícolas
+  }
+
+  enum TipoRegistro {
+    - Nueva
+    - Renovacion
+  }
+
+  enum TipoTurno {
+    - Mañana
+    - Tarde
+  }
+
+  enum ModalidadMatricula {
+    - TeoricoPractica
+    - Practica
+  }
+
+  enum EstadoSolicitud {
+    - Pendiente
+    - Aceptada
+    - Rechazada
+  }
+
+  enum TipoExamen {
+    - Teorico
+    - Practico
+  }
+
+  enum EstadoIncidencia {
+    - Pendiente
+    - Resuelta
+  }
+
+  enum EstadoConfirmacion {
+    - Pendiente
+    - Confirmada
+  }
+
+}
+
+' --- 2. USUARIOS ---
+package "Usuarios" {
+
+  abstract class Persona {
+    - id: Long
+    - nombreUsuario: String
+    - nombre: String
+    - apellidos: String
+    - dni: String
+    - fechaNacimiento: Date
+    - correo: String
+    - password: String
+    - telefono: String
+    - domicilio: String
+    - estado: EstadoUsuario
+    + recuperarPassword(): String
+  }
+
+  class Administrador {
+
+    + crearUsuario(): void
+    + eliminarUsuario(): void
+    + modificarUsuario(): void
+    + consultarUsuarios(): List<Persona>
+    + asignarRol(): void
+    + modificarEstadoUsuario(): void
+    + crearProfesor(): void
+    + eliminarProfesor(): void
+    + modificarProfesor(): void
+    + consultarProfesores(): List<Profesor>
+    + crearAlumno(): void
+    + eliminarAlumno(): void
+    + modificarAlumno(): void
+    + consultarAlumnos(): List<Alumno>
+    + insertarVehiculo(): void
+    + eliminarVehiculo(): void
+    + modificarVehiculo(): void
+    + consultarVehiculos(): List<Vehiculo>
+    + consultarEstadisticas(): void
+  }
+
+  class Profesor {
+    - fechaContratacion: LocalDate
+    - listaAlumnos: List<Alumno>
+    - listaSolicitudesExamen: List<SolicitudExamen>
+    - listaPermisosCarnet: List<TipoCarnet>
+    - turno: TipoTurno
+    - idVehiculo: Long
+    + consultarCalendario(): void
+    + consultarListadoAlumnos(): List<Alumno>
+    + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
+    + enviarMensajeDifusion(asunto: String, mensaje: String): void
+    + consultarSolicitudesExamen(): List<SolicitudExamen>
+    + establecerFechaExamen(dni: String, fecha: LocalDate): void
+    + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Float): void
+    + reportarIncidenciaVehiculo(descripcion: String): void
+  }
+
+  class Alumno {
+    - historialClases: List<Clase>
+    - historialExamenes: List<Examen>
+    - listaSolicitudesExamen: List<SolicitudExamen>
+    + getHistorialClases(): List<Clase>
+    + getHistorialExamenes(): List<Examen>
+    + solicitarClase(): void
+    + solicitarFechaExamen(): LocalDate
+    + consultarEstadisticas(): void
+  }
+}
+
+' --- 3. AUTOESCUELA (Lógica de Negocio) ---
+package "Autoescuela" {
+
+  class Vehiculo {
+    - id: Long
+    - matricula: String
+    - marca: String
+    - modelo: String
+    - color: String
+    - km: Long
+    - fechaUltimaRevision: LocalDate
+    - fechaProximaRevision: LocalDate
+    - estado: EstadoVehiculo
+    - tipo: TipoCarnet
+  }
+
+  class IncidenciaVehiculo {
+    - id: Long
+    - fecha: LocalDate
+    - descripcion: String
+    - estado: EstadoIncidencia
+    - idVehiculo: Long
+  }
+
+  class Expediente {
+    - id: Long
+  }
+
+  class Matricula {
+    - id: Long
+    - permisoCarnet: TipoCarnet
+    - convocatorias: Integer
+    - saldoClases: Integer
+    - convocatoriasGastadas: Integer
+    - precio: Float
+    - fechaMatriculacion: LocalDate
+    - tipo: TipoRegistro
+    - modalidad: ModalidadMatricula
+    - idExpediente: Long
+    + getSaldoClases(): Integer
+    + getConvocatoriasGastadas(): Integer
+    + estaActiva(): Boolean
+    + pagarMatricula(alumno: Alumno): Boolean
+    + pagarClase(alumno: Alumno): Boolean
+    + pagarExamen(alumno: Alumno): Boolean
+    + comprarClases(cantidad: Integer): Boolean
+  }
+
+  class Clase {
+    - id: Long
+    - fecha: LocalDate
+    - hora: LocalTime
+    - duracion: Integer
+    - puntoRecogida: String
+    - kmInicio: Integer
+    - kmFin: Integer
+    - observaciones: String
+    - estadoConfirmacion: EstadoConfirmacion
+  }
+
+  class SolicitudExamen {
+    - id: Long
+    - estado: EstadoSolicitud
+    - comentarioJustificacion: String
+  }
+
+  class Examen {
+    - id: Long
+    - esApto: Boolean
+    - fecha: LocalDate
+    - hora: LocalTime
+    - duracion: Integer
+    - tipo: TipoExamen
+  }
+}
+
+' --- 4. RELACIONES ORIENTADAS A OBJETOS ---
+
+' Herencia
+Persona <|-down- Administrador
+Persona <|-down- Profesor
+Persona <|-down- Alumno
+
+' Asignaciones de Usuarios
+Profesor "1" -left-> "1" Vehiculo : tiene asignado >
+Profesor "1" -right-> "0..*" Alumno : enseña a >
+
+' Flujo del Alumno (Expediente y Matrícula)
+Alumno "1" *-down- "1" Expediente : posee >
+Expediente "1" *-down- "1..*" Matricula : contiene >
+
+' Gestión de Clases Prácticas
+Clase "0..*" -up-> "1" Alumno : recibida por >
+Clase "0..*" -up-> "1" Profesor : impartida por >
+
+' Gestión de Exámenes
+Matricula "1" -down-> "0..*" SolicitudExamen : genera >
+Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
+SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
+
+' Gestión de Incidencias
+Profesor "1" -down-> "0..*" IncidenciaVehiculo : reporta >
+Vehiculo "1" -down-> "0..*" IncidenciaVehiculo : sufre >
+
+@enduml

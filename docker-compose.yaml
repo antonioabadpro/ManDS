@@ -1,0 +1,41 @@
+services:
+  # -------------------------------------------------------------
+  # SERVICIO 1: Tu Base de Datos PostgreSQL Local
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine # Descarga la imagen oficial de PostgreSQL versión 16 (la versión alpine es ultraligera, pesa ~30MB)
+    container_name: postgres_tfg # El nombre que tendrá el contenedor en tu Docker Desktop
+    restart: unless-stopped # Si se reinicia el PC o Docker, se vuelve a levantar automáticamente a menos que tú lo pares
+
+    environment:
+      # Variables de entorno para configurar la base de datos al arrancar por primera vez
+      POSTGRES_DB: ${DB_DATABASE_DOCKER:-tfg_db} # Nombre de la base de datos que creará automáticamente
+      POSTGRES_USER: ${DB_USERNAME_DOCKER} # Usuario administrador local
+      POSTGRES_PASSWORD: ${DB_PASSWORD_DOCKER} # Contraseña local
+      PGDATA: /var/lib/postgresql/data/pgdata # Ruta dentro del contenedor donde se guardarán los datos de la base de datos
+
+    ports:
+      - "${DB_PORT_DOCKER:-5432}:5432" # Mapeo de puertos: "Puerto_De_Tu_PC : Puerto_Dentro_Del_Contenedor"
+      # Esto hace que cuando Spring Boot conecte a 'localhost:5432', el tráfico entre directo al PostgreSQL del contenedor.
+
+    volumes:
+      - pgdata_tfg:/var/lib/postgresql/data # PERSISTENCIA: Los datos de tus tablas se guardan en un disco virtual de Docker
+      # Gracias a esto, aunque apagues o reinicies el contenedor, tus alumnos, profesores y coches NO se borran.
+
+      # -------------------------------------------------------------
+      # SERVICIO 2: Mailpit (Servidor simulado de correos)
+      # -------------------------------------------------------------
+  mailpit:
+    image: axllent/mailpit:latest # Descarga la herramienta Mailpit
+    container_name: mailpit_tfg # El nombre que tendrá el contenedor en tu Docker Desktop
+    restart: unless-stopped
+    ports:
+      - "${MAIL_PORT:-1025}:1025" # Puerto SMTP: por aquí Spring Boot le enviará los correos (avisos de clases, cancelaciones, recuperación de pass)
+      - "8025:8025" # Puerto WEB: abres http://localhost:8025 en tu navegador y ves una bandeja de entrada tipo Gmail con todos los correos enviados
+
+    environment:
+      MP_MAX_MESSAGES: 500 # Guarda hasta 500 correos en el historial visual
+
+# Definición del volumen de persistencia para que no se pierdan los datos de PostgreSQL
+volumes:
+  pgdata_tfg:

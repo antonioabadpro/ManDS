@@ -1,0 +1,107 @@
+@startuml Diagrama_CU_v1
+' --- AJUSTES VISUALES ---
+skinparam actorStyle hollow
+skinparam linetype ortho
+skinparam packageStyle rectangle
+left to right direction
+
+' --- ACTORES ---
+actor "Administrador" as Admin
+actor "Profesor" as Prof
+actor "Alumno" as Alum
+
+' --- SISTEMA DE AUTOESCUELA ---
+rectangle "Sistema de Gestión de Autoescuela" {
+
+  ' BLOQUE: Autenticación y Perfil (Heredado de Persona)
+  package "Autenticación" {
+    usecase "Iniciar Sesión" as UC_IniciarSesion
+    usecase "Cerrar Sesión" as UC_CerrarSesion
+    usecase "Recuperar Contraseña" as UC_RecuperarPass
+    usecase "Registrarse en el Sistema" as UC_Registrar
+  }
+
+  ' BLOQUE: Gestión Administrativa
+  package "Administración" {
+    usecase "Gestionar Usuarios\n(CRUD y Roles)" as UC_GestionarUsuarios
+    usecase "Gestionar Flota de Vehículos\n(CRUD)" as UC_GestionarVehiculos
+    usecase "Consultar Estadísticas Globales" as UC_EstadisticasAdmin
+  }
+
+  ' BLOQUE: Gestión del Profesor
+  package "Gestión Docente" {
+    usecase "Consultar Calendario de Clases" as UC_ConsultarCalendario
+    usecase "Consultar Listado de Alumnos" as UC_ConsultarAlumnosProf
+    usecase "Enviar Mensajes/Difusión" as UC_EnviarMensaje
+    usecase "Reportar Incidencia de Vehículo" as UC_ReportarIncidencia
+  }
+
+  ' BLOQUE: Área del Alumno
+  package "Área del Alumno" {
+    usecase "Consultar Historiales\n(Clases y Exámenes)" as UC_ConsultarHistoriales
+    usecase "Consultar Estadísticas Locales" as UC_EstadisticasAlumno
+    usecase "Confirmar Clase Recibida" as UC_ConfirmarClase
+  }
+
+  ' BLOQUE: Reservas y Pagos
+  package "Reservas y Finanzas" {
+    usecase "Pagar Matrícula" as UC_PagarMatricula
+    usecase "Comprar Clases / Bonos" as UC_ComprarClases
+    usecase "Reservar Clase Práctica" as UC_ReservarClase
+  }
+
+  ' BLOQUE: Exámenes
+  package "Gestión de Exámenes" {
+    usecase "Solicitar Fecha de Examen" as UC_SolicitarExamen
+    usecase "Pagar Tasa de Examen" as UC_PagarExamen
+    usecase "Gestionar Solicitudes de Examen\n(Aceptar/Rechazar)" as UC_GestionarSolicitudes
+    usecase "Calendarizar Examen" as UC_EstablecerFechaExamen
+    usecase "Calificar Examen" as UC_CalificarExamen
+  }
+}
+
+' --- RELACIONES ---
+
+' Todos los usuarios pueden autenticarse
+Admin --> UC_IniciarSesion
+Admin --> UC_CerrarSesion
+Admin --> UC_RecuperarPass
+
+Prof --> UC_IniciarSesion
+Prof --> UC_CerrarSesion
+Prof --> UC_RecuperarPass
+
+Alum --> UC_IniciarSesion
+Alum --> UC_CerrarSesion
+Alum --> UC_RecuperarPass
+Alum --> UC_Registrar
+
+' Relaciones Administrador
+Admin --> UC_GestionarUsuarios
+Admin --> UC_GestionarVehiculos
+Admin --> UC_EstadisticasAdmin
+
+' Relaciones Profesor
+Prof --> UC_ConsultarCalendario
+Prof --> UC_ConsultarAlumnosProf
+Prof --> UC_EnviarMensaje
+Prof --> UC_ReportarIncidencia
+Prof --> UC_GestionarSolicitudes
+Prof --> UC_EstablecerFechaExamen
+Prof --> UC_CalificarExamen
+
+' Relaciones Alumno
+Alum --> UC_PagarMatricula
+Alum --> UC_ComprarClases
+Alum --> UC_ReservarClase
+Alum --> UC_ConfirmarClase
+Alum --> UC_SolicitarExamen
+Alum --> UC_PagarExamen
+Alum --> UC_ConsultarHistoriales
+Alum --> UC_EstadisticasAlumno
+
+' Dependencias (Includes / Extends opcionales para dar contexto extra)
+UC_GestionarSolicitudes .down.> UC_EstablecerFechaExamen : <<include>>
+UC_ReservarClase .down.> UC_ConfirmarClase : <<precedes>>
+
+@enduml

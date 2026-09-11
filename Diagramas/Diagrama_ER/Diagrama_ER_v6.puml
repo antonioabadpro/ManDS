@@ -1,0 +1,238 @@
+@startuml Diagrama_ER_v6
+' --- AJUSTES VISUALES ---
+skinparam linetype ortho
+skinparam nodesep 70
+skinparam ranksep 70
+skinparam padding 5
+skinparam packageStyle rectangle
+
+' --- 1. ENUMS (Agrupados a la derecha para no molestar) ---
+package "Enums" {
+  enum EstadoUsuario {
+    - ACTIVO
+    - INACTIVO
+  }
+  enum EstadoVehiculo {
+    - DISPONIBLE
+    - OCUPADO
+    - MANTENIMIENTO
+    - INACTIVO
+  }
+  enum TipoCarnet {
+    - PERMISO_AM
+    - PERMISO_A1
+    - PERMISO_A2
+    - PERMISO_A
+    - PERMISO_B
+    - PERMISO_B_E
+    - PERMISO_B1
+    - PERMISO_C
+    - PERMISO_C_E
+    - PERMISO_D
+    - PERMISO_D_E
+    - PERMISO_LVA
+  }
+  enum TipoRegistro {
+    - NUEVA
+    - RENOVACION
+  }
+  enum TipoTurno {
+    - MATINAL
+    - TARDE
+  }
+  enum ModalidadMatricula {
+    - TEORICO_PRACTICA
+    - PRACTICA
+    - INDIVIDUAL
+  }
+  enum EstadoSolicitud {
+    - PENDIENTE
+    - ACEPTADA
+    - RECHAZADA
+  }
+  enum TipoExamen {
+    - TEORICO
+    - PRACTICO
+  }
+  enum EstadoIncidencia {
+    - PENDIENTE
+    - EN_PROCESO
+    - RESUELTA
+  }
+  enum EstadoClase {
+    - RECIBIDA
+    - PENDIENTE
+    - CANCELADA
+  }
+}
+
+' --- 2. USUARIOS (Capa Superior) ---
+package "Usuarios" {
+  abstract class Persona {
+    - id: Long
+    - nombreUsuario: String
+    - nombre: String
+    - apellidos: String
+    - dni: String
+    - fechaNacimiento: Date
+    - correo: String
+    - password: String
+    - telefono: String
+    - domicilio: String
+    - estado: EstadoUsuario
+    + iniciarSesion(): Boolean
+    + cerrarSesion(): void
+  }
+
+  class Administrador {
+    + crearUsuario(): void
+    + eliminarUsuario(): void
+    + modificarUsuario(): void
+    + consultarUsuarios(): List<Persona>
+    + asignarRol(): void
+    + modificarEstadoUsuario(): void
+    + crearProfesor(): void
+    + eliminarProfesor(): void
+    + modificarProfesor(): void
+    + consultarProfesores(): List<Profesor>
+    + crearAlumno(): void
+    + eliminarAlumno(): void
+    + modificarAlumno(): void
+    + consultarAlumnos(): List<Alumno>
+    + insertarVehiculo(): void
+    + eliminarVehiculo(): void
+    + modificarVehiculo(): void
+    + consultarVehiculos(): List<Vehiculo>
+    + consultarEstadisticas(): void
+  }
+
+  class Profesor {
+    - fechaContratacion: LocalDate
+    - listaAlumnos: List<Alumno>
+    - listaSolicitudesExamen: List<SolicitudExamen>
+    - listaPermisosCarnet: List<TipoCarnet>
+    - turno: TipoTurno
+    - idVehiculo: Long
+    + consultarCalendario(): void
+    + consultarListadoAlumnos(): List<Alumno>
+    + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
+    + consultarSolicitudesExamen(): List<SolicitudExamen>
+    + establecerFechaExamen(dni: String, fechaHora: LocalDateTime): void
+    + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
+    + reportarIncidenciaVehiculo(descripcion: String): void
+  }
+
+  class Alumno {
+    - historialClases: List<ClasePractica>
+    - historialExamenes: List<Examen>
+    - listaSolicitudesExamen: List<SolicitudExamen>
+    + getHistorialClases(): List<ClasePractica>
+    + getHistorialExamenes(): List<Examen>
+    + solicitarClase(): void
+    + solicitarFechaExamen(): LocalDateTime
+    + consultarEstadisticas(): void
+  }
+}
+
+' --- 3. AUTOESCUELA (Capa Inferior) ---
+package "Autoescuela" {
+  class Vehiculo {
+    - id: Long
+    - matricula: String
+    - marca: String
+    - modelo: String
+    - color: String
+    - km: Long
+    - fechaUltimaRevision: LocalDate
+    - fechaProximaRevision: LocalDate
+    - estado: EstadoVehiculo
+    - tipo: TipoCarnet
+  }
+
+  class IncidenciaVehiculo {
+    - id: Long
+    - fechaHora: LocalDateTime
+    - descripcion: String
+    - estado: EstadoIncidencia
+    - idVehiculo: Long
+  }
+
+  class Matricula {
+    - id: Long
+    - estaActiva: Boolean
+    - permisoCarnet: TipoCarnet
+    - convocatorias: Integer
+    - saldoClases: Integer
+    - numClasesPendientesConfirmar: Integer
+    - convocatoriasGastadas: Integer
+    - precio: Float
+    - fechaMatriculacion: LocalDate
+    - tipo: TipoRegistro
+    - modalidad: ModalidadMatricula
+    + getSaldoClases(): Integer
+    + getConvocatoriasGastadas(): Integer
+    + estaActiva(): Boolean
+    + pagarMatricula(alumno: Alumno): Boolean
+    + pagarClase(alumno: Alumno): Boolean
+    + pagarExamen(alumno: Alumno): Boolean
+    + comprarClases(cantidad: Integer): Boolean
+  }
+
+  class ClasePractica {
+    - id: Long
+    - fechaHora: LocalDateTime
+    - duracion: Integer
+    - puntoRecogida: String
+    - kmInicio: Integer
+    - kmFin: Integer
+    - observaciones: String
+    - estadoClase: EstadoClase
+    + cambiarEstado(): Boolean
+  }
+
+  class SolicitudExamen {
+    - id: Long
+    - estado: EstadoSolicitud
+    - comentarioJustificacion: String
+  }
+
+  class Examen {
+    - id: Long
+    - esApto: Boolean
+    - fechaHora: LocalDateTime
+    - duracion: Integer
+    - tipo: TipoExamen
+  }
+}
+
+' --- 4. RELACIONES (Optimizadas para visualización) ---
+
+' Trucos de alineación para que quede ordenado horizontalmente
+Administrador -[hidden]right-> Profesor
+Profesor -[hidden]right-> Alumno
+
+' Herencia (El flujo cae limpio hacia abajo)
+Persona <|-down- Administrador
+Persona <|-down- Profesor
+Persona <|-down- Alumno
+
+' Relaciones principales
+Profesor "1" -down-> "1" Vehiculo : tiene asignado >
+Vehiculo "1" -right-> "0..*" IncidenciaVehiculo : sufre >
+Profesor "1" -right-> "0..*" IncidenciaVehiculo : reporta >
+
+Profesor "1" -right-> "0..*" Alumno : enseña a >
+
+Alumno "1" -down-> "1..*" Matricula : posee >
+
+ClasePractica "0..*" -up-> "1" Alumno : recibida por >
+ClasePractica "0..*" -up-> "1" Profesor : impartida por >
+
+Matricula "1" -down-> "0..*" SolicitudExamen : genera >
+Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
+SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
+
+' Separación de los Enums para evitar líneas cruzadas
+Usuarios -[hidden]right-> Enums
+
+@enduml
