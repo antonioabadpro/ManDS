@@ -14,42 +14,49 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class ConfiguracionSeguridad
 {
-    @Bean
-    public PasswordEncoder passwordEncoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder()
+        {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public SecurityFilterChain cadenaFiltroSeguridad(HttpSecurity http) throws Exception
-    {
-        http.authorizeHttpRequests(auth -> auth
-                // Recursos estáticos públicos
-                .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
+        @Bean
+        public SecurityFilterChain cadenaFiltroSeguridad(HttpSecurity http) throws Exception
+        {
+                http.authorizeHttpRequests(auth -> auth
+                                // Recursos estáticos públicos
+                                .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
 
-                // Rutas públicas (Login, registro, recuperación)
-                .requestMatchers("/", "/login", "/registro", "/recuperar-password").permitAll()
+                                // Rutas públicas (Login, registro, recuperación)
+                                .requestMatchers("/", "/login", "/registro", "/recuperar-password").permitAll()
 
-                // Rutas protegidas por Roles
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/profesor/**").hasRole("PROFESOR")
-                .requestMatchers("/alumno/**").hasRole("ALUMNO")
+                                // Consola H2 para desarrollo y pruebas locales
+                                .requestMatchers("/h2-console/**").permitAll()
 
-                // Cualquier otra petición requiere autenticación
-                .anyRequest().authenticated())
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error=true")
-                        .permitAll())
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll());
-        return http.build();
-    }
+                                // Rutas protegidas por Roles
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/profesor/**").hasRole("PROFESOR")
+                                .requestMatchers("/alumno/**").hasRole("ALUMNO")
+
+                                // Cualquier otra petición requiere autenticación
+                                .anyRequest().authenticated())
+                                .csrf(csrf -> csrf
+                                                .ignoringRequestMatchers("/h2-console/**"))
+                                .headers(headers -> headers
+                                                .frameOptions(frame -> frame.sameOrigin()))
+                                .formLogin(form -> form
+                                                .loginPage("/login")
+                                                .loginProcessingUrl("/login")
+                                                .defaultSuccessUrl("/dashboard", true)
+                                                .failureUrl("/login?error=true")
+                                                .permitAll())
+                                .logout(logout -> logout
+                                                .logoutUrl("/logout")
+                                                .logoutSuccessUrl("/login?logout=true")
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID")
+                                                .permitAll());
+                return http.build();
+        }
 
 }
