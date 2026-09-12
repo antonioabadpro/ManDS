@@ -1,8 +1,8 @@
 package com.autoescuela.erp.core.enums;
 
-public enum EstadoIncidencia
+public enum EstadoSolicitud
 {
     PENDIENTE,
-    EN_PROCESO,
-    RESUELTA
+    ACEPTADA,
+    RECHAZADA
 }

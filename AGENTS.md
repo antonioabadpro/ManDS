@@ -215,7 +215,7 @@ src/
 
 # 4. Diagrama Modelo Entidad - Relación (Tablas, Relaciones, Enums) en PlantUML
 ```plantuml
-@startuml Diagrama_ER_v6
+@startuml Diagrama_ER_v7
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -249,7 +249,7 @@ package "Enums" {
     - PERMISO_D_E
     - PERMISO_LVA
   }
-  enum TipoRegistro {
+  enum TipoMatricula {
     - NUEVA
     - RENOVACION
   }
@@ -281,6 +281,11 @@ package "Enums" {
     - PENDIENTE
     - CANCELADA
   }
+  enum Rol {
+    - ADMIN
+    - PROFESOR
+    - ALUMNO
+  }
 }
 
 ' --- 2. USUARIOS (Capa Superior) ---
@@ -291,14 +296,16 @@ package "Usuarios" {
     - nombre: String
     - apellidos: String
     - dni: String
-    - fechaNacimiento: Date
+    - fechaNacimiento: LocalDate
     - correo: String
     - password: String
     - telefono: String
-    - domicilio: String
+    - direccion: String
     - estado: EstadoUsuario
     + iniciarSesion(): Boolean
     + cerrarSesion(): void
+    + actualizarPassword(passwordCodificada: String): void
+    + {abstract} getRol(): Rol
   }
 
   class Administrador {
@@ -321,15 +328,16 @@ package "Usuarios" {
     + modificarVehiculo(): void
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
+    + getRol(): Rol
   }
 
   class Profesor {
     - fechaContratacion: LocalDate
     - listaAlumnos: List<Alumno>
     - listaSolicitudesExamen: List<SolicitudExamen>
-    - listaPermisosCarnet: List<TipoCarnet>
+    - listaTiposCarnet: List<TipoCarnet>
     - turno: TipoTurno
-    - idVehiculo: Long
+    - vehiculo: Vehiculo
     + consultarCalendario(): void
     + consultarListadoAlumnos(): List<Alumno>
     + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
@@ -337,17 +345,21 @@ package "Usuarios" {
     + establecerFechaExamen(dni: String, fechaHora: LocalDateTime): void
     + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
     + reportarIncidenciaVehiculo(descripcion: String): void
+    + getRol(): Rol
   }
 
   class Alumno {
-    - historialClases: List<ClasePractica>
+    - historialClasesPracticas: List<ClasePractica>
     - historialExamenes: List<Examen>
+    - historialMatriculas: List<Matricula>
     - listaSolicitudesExamen: List<SolicitudExamen>
+    - profesor: Profesor
     + getHistorialClases(): List<ClasePractica>
     + getHistorialExamenes(): List<Examen>
     + solicitarClase(): void
     + solicitarFechaExamen(): LocalDateTime
     + consultarEstadisticas(): void
+    + getRol(): Rol
   }
 }
 
@@ -364,6 +376,8 @@ package "Autoescuela" {
     - fechaProximaRevision: LocalDate
     - estado: EstadoVehiculo
     - tipo: TipoCarnet
+    - profesor: Profesor
+    - incidencias: List<IncidenciaVehiculo>
   }
 
   class IncidenciaVehiculo {
@@ -371,7 +385,8 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - descripcion: String
     - estado: EstadoIncidencia
-    - idVehiculo: Long
+    - vehiculo: Vehiculo
+    - profesor: Profesor
   }
 
   class Matricula {
@@ -384,8 +399,10 @@ package "Autoescuela" {
     - convocatoriasGastadas: Integer
     - precio: Float
     - fechaMatriculacion: LocalDate
-    - tipo: TipoRegistro
+    - tipo: TipoMatricula
     - modalidad: ModalidadMatricula
+    - alumno: Alumno
+    - listaSolicitudesExamen: List<SolicitudExamen>
     + getSaldoClases(): Integer
     + getConvocatoriasGastadas(): Integer
     + estaActiva(): Boolean
@@ -404,6 +421,8 @@ package "Autoescuela" {
     - kmFin: Integer
     - observaciones: String
     - estadoClase: EstadoClase
+    - alumno: Alumno
+    - profesor: Profesor
     + cambiarEstado(): Boolean
   }
 
@@ -411,6 +430,10 @@ package "Autoescuela" {
     - id: Long
     - estado: EstadoSolicitud
     - comentarioJustificacion: String
+    - alumno: Alumno
+    - profesor: Profesor
+    - matricula: Matricula
+    - examen: Examen
   }
 
   class Examen {
@@ -419,6 +442,8 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - duracion: Integer
     - tipo: TipoExamen
+    - alumno: Alumno
+    - solicitudExamen: SolicitudExamen
   }
 }
 
@@ -447,7 +472,9 @@ ClasePractica "0..*" -up-> "1" Profesor : impartida por >
 
 Matricula "1" -down-> "0..*" SolicitudExamen : genera >
 Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
+Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
+Alumno "1" -down-> "0..*" Examen : realiza >
 
 ' Separación de los Enums para evitar líneas cruzadas
 Usuarios -[hidden]right-> Enums
