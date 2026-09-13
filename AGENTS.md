@@ -152,13 +152,18 @@ src/
 │   │   │   ├── repository/                     <-- VehiculoRepository, IncidenciaVehiculoRepository
 │   │   │   └── service/                        <-- FlotaService
 │   │   │
-│   │   ├── academico/                          <-- Matrículas y pasarela de pago (CU-038, CU-039, CU-048)
-│   │   │   ├── controller/                     <-- MatriculaController, StripeWebhookController
+│   │   ├── academico/                          <-- Matrículas y expedientes de alumnos (CU-038, CU-039, CU-048)
+│   │   │   ├── controller/                     <-- MatriculaController
 │   │   │   ├── dto/                            <-- MatriculaCheckoutDTO, ComprarClasePracticaDTO
 │   │   │   ├── mapper/                         <-- MatriculaMapper
 │   │   │   ├── model/                          <-- Matricula
 │   │   │   ├── repository/                     <-- MatriculaRepository
-│   │   │   └── service/                        <-- AcademicoService, PagoStripeService
+│   │   │   └── service/                        <-- AcademicoService
+│   │   │
+│   │   ├── pagos/                              <-- Pasarela de pago Stripe desacoplada (CU-038, CU-039, CU-047)
+│   │   │   ├── controller/                     <-- StripeWebhookController
+│   │   │   ├── dto/                            <-- SesionPagoDTO
+│   │   │   └── service/                        <-- PagoStripeService
 │   │   │
 │   │   ├── practicas/                          <-- Clases prácticas y Calendario HTMX (CU-023 a CU-027, CU-040 a CU-043)
 │   │   │   ├── controller/                     <-- ClasePracticaController, CalendarioController
@@ -757,3 +762,4 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **10/09/2026** | Confirmación de Spring Boot 4.1.1 GA e integración de MapStruct 1.6.3 | Verificación de compatibilidad con Java 21 e integración en pom.xml junto a Lombok y lombok-mapstruct-binding. Estructura de DTOs plana por módulo y creación progresiva (Vertical Slice). |
 | **11/09/2026** | Consolidación de la arquitectura Package-by-Feature con subcapas internas (`controller`, `dto`, `mapper`, `model`, `repository`, `service`) y estructura frontend Thymeleaf/HTMX | Corrección de erratas en repositorio (`MatriculaRepository`), controlador de incidencias (`IncidenciaVehiculoController`), modularización de DTOs de autenticación con records Java 21, andamiaje de vistas responsivas (`templates/`) y activos (`static/`), sincronizando Sección 3 de AGENTS.md. |
 | **12/09/2026** | Población de datos semilla (`data.sql`), soporte de consola H2 en seguridad, sincronización de perfiles (H2, Supabase, Docker) y test de carga `DataSqlH2Test` | Implementación de dataset completo respetando la estrategia de herencia `@Inheritance(strategy = InheritanceType.JOINED)` y restricciones referenciales (4 vehículos, 6 personas con hash BCrypt, 3 alumnos, 2 profesores con permisos, 2 incidencias, 3 matrículas, 4 clases prácticas, 3 solicitudes y 3 exámenes). Habilitación de `frameOptions.sameOrigin()` y exclusión CSRF en `/h2-console/**`. Verificación automatizada con JUnit 5 + `JdbcTemplate`. |
+| **13/09/2026** | Desacoplamiento de pasarela de pago (Stripe) al paquete independiente `pagos` (`com.autoescuela.erp.pagos`) | Extracción de `PagoStripeService` y `StripeWebhookController` fuera de `academico`. Justificación arquitectónica: evitar acoplamiento cruzado y duplicidad al requerir cobros para matrículas/bonos (`academico`) y tasas de examen oficial DGT (`examenes`, CU-046/CU-047). Centralización del endpoint webhook global de Stripe y soporte agnóstico de sesiones de Checkout mediante metadatos y eventos. |
