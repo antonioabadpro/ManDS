@@ -22,7 +22,7 @@ class DataSqlH2Test
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    @DisplayName("Verificar que data.sql se ejecuta correctamente e inserta datos en todas las entidades")
+    @DisplayName("Verifica que el fichero 'data.sql' se ejecuta correctamente e inserta datos en todas las entidades")
     void testDataSqlExecutedSuccessfully()
     {
         Integer vehiculos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vehiculo", Integer.class);

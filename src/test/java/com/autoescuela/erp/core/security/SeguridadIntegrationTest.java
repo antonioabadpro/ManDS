@@ -1,0 +1,191 @@
+package com.autoescuela.erp.core.security;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.mock.web.MockHttpSession;
+
+import jakarta.servlet.http.HttpSession;
+import org.junit.jupiter.api.Assertions;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@TestPropertySource(properties =
+{
+                "spring.sql.init.mode=always",
+                "spring.sql.init.data-locations=classpath:data.sql",
+                "spring.jpa.defer-datasource-initialization=true"
+})
+class SeguridadIntegrationTest
+{
+        @Autowired
+        private WebApplicationContext contexto;
+
+        private MockMvc mockMvc;
+
+        /*
+         * Inicializamos el MockMvc con el contexto de la aplicación y aplicamos la configuración de Spring Security.
+         * Se ejecuta antes de cada Test.
+         */
+        @BeforeEach
+        void setUp()
+        {
+                this.mockMvc = MockMvcBuilders
+                                .webAppContextSetup(contexto) // Iniciamos el Mock asociandolo al contexto de la aplicación para que Spring Security pueda interceptar las peticiones
+                                .apply(springSecurity()) // Configuramos Spring Security para que se aplique en las pruebas
+                                .build(); // Construimos el MockMvc
+        }
+
+        @Test
+        @DisplayName("Login exitoso de Administrador con nombre de usuario -> Redirige a /admin/dashboard")
+        void testLoginAdminConUsername() throws Exception
+        {
+                this.mockMvc.perform(post("/login")
+                                .param("username", "admin")
+                                .param("password", "admin123")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/admin/dashboard"));
+        }
+
+        @Test
+        @DisplayName("Login exitoso de Profesor con correo electrónico -> Redirige a /profesor/dashboard")
+        void testLoginProfesorConCorreo() throws Exception
+        {
+                this.mockMvc.perform(post("/login")
+                                .param("username", "laura.profesor@autoescuela.es")
+                                .param("password", "profesor123")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/profesor/dashboard"));
+        }
+
+        @Test
+        @DisplayName("Login exitoso de Alumno con correo electrónico -> Redirige a /alumno/dashboard")
+        void testLoginAlumnoConCorreo() throws Exception
+        {
+                this.mockMvc.perform(post("/login")
+                                .param("username", "elena.alumno@autoescuela.es")
+                                .param("password", "alumno123")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/alumno/dashboard"));
+        }
+
+        @Test
+        @DisplayName("Login fallido con contraseña incorrecta -> Redirige a /login?error=true")
+        void testLoginCredencialesIncorrectas() throws Exception
+        {
+                this.mockMvc.perform(post("/login")
+                                .param("username", "admin")
+                                .param("password", "password_incorrecto")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/login?error=true"));
+        }
+
+        @Test
+        @DisplayName("Acceso no autenticado a ruta protegida -> Redirige a /login (302)")
+        void testAccesoNoAutenticadoRedirigeALogin() throws Exception
+        {
+                this.mockMvc.perform(get("/admin/usuarios"))
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/login"));
+        }
+
+        @Test
+        @DisplayName("Petición HTMX no autenticada -> Responde con HTTP 401 y cabecera HX-Redirect")
+        void testPeticionHtmxNoAutenticadaDevuelveHxRedirect() throws Exception
+        {
+                this.mockMvc.perform(get("/alumno/reservar")
+                                .header("HX-Request", "true"))
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(header().string("HX-Redirect", "/login?sesionExpirada=true"));
+        }
+
+        @Test
+        @WithMockUser(roles = "ALUMNO")
+        @DisplayName("Alumno intentando acceder a ruta de Administrador -> HTTP 403 Forbidden")
+        void testAlumnoAccediendoAAdminForbidden() throws Exception
+        {
+                this.mockMvc.perform(get("/admin/dashboard"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "PROFESOR")
+        @DisplayName("Profesor intentando acceder a ruta de Administrador -> HTTP 403 Forbidden")
+        void testProfesorAccediendoAAdminForbidden() throws Exception
+        {
+                this.mockMvc.perform(get("/admin/dashboard"))
+                                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("Rutas públicas son accesibles sin autenticación")
+        void testRutasPublicasAccesibles() throws Exception
+        {
+                this.mockMvc.perform(get("/login"))
+                                .andExpect(status().isOk());
+
+                this.mockMvc.perform(get("/registro"))
+                                .andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Cierre de sesión -> Invalida y redirige a /login?logout=true")
+        void testLogoutExitoso() throws Exception
+        {
+                this.mockMvc.perform(post("/logout")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/login?logout=true"));
+        }
+
+        @Test
+        @DisplayName("Control de sesiones concurrentes: Máximo 1 sesión activa por usuario (la nueva invalida a la previa)")
+        void testControlSesionesConcurrentesMaximoUnaSesion() throws Exception
+        {
+                // Inicio de sesión del Administrador (Sesión 1)
+                MvcResult primerLogin = this.mockMvc.perform(post("/login")
+                                .param("username", "admin")
+                                .param("password", "admin123")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/admin/dashboard"))
+                                .andReturn(); // Devuelve el resultado de la petición para poder acceder a la sesión creada.
+
+                // Obtenemos el objeto HttpSession de la primera sesión para simular el acceso desde otro navegador
+                HttpSession primeraSesion = primerLogin.getRequest().getSession(false);
+                Assertions.assertNotNull(primeraSesion, "La Sesión 1 se ha creado correctamente."); // Si 'primeraSesion' NO es null, se muestra este mensaje.
+
+                // Inicio de sesión del Administrador (Sesión 2) desde otro navegador -> Se invalida la Sesión 1
+                this.mockMvc.perform(post("/login")
+                                .param("username", "admin")
+                                .param("password", "admin123")
+                                .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/admin/dashboard"));
+
+                // Acceso a la ruta protegida desde la Sesión 1 -> Es redirigido a /login?expirada=true
+                this.mockMvc.perform(get("/admin/dashboard")
+                                .session((MockHttpSession) primeraSesion)) // Simulamos el acceso desde la Sesión 1 (que ha sido invalidada)
+                                .andExpect(status().is3xxRedirection())
+                                .andExpect(redirectedUrl("/login?expirada=true"));
+        }
+}
