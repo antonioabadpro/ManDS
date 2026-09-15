@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Panel del Alumno - ManDS</title>
 </head>
 
-<body>
+<body class="p-6 bg-slate-100 font-sans">
+
+    <!-- Thymeleaf reemplaza el contenido 'Nombre del Alumno' por el valor real evaluado -->
+    <p class="text-xl text-slate-800">
+        Bienvenido/a, <strong th:text="${nombreAlumno}">Nombre del Alumno</strong>
+    </p>
 
 </body>
 

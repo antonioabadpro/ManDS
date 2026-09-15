@@ -16,7 +16,7 @@ import lombok.Getter;
 
 /**
  * Adaptador de seguridad que implementa {@link UserDetails} para Spring Security.
- * Encapsula la entidad {@link Persona} y expone sus credenciales, autoridades y datos de perfil.
+ * Encapsula la entidad {@link Persona} y expone sus credenciales, autoridades y datos de perfil en el ambito de la sesión.
  */
 @Getter
 public class UserDetailsImpl implements UserDetails
@@ -39,7 +39,7 @@ public class UserDetailsImpl implements UserDetails
         this.password = persona.getPassword();
         this.rol = persona.getRol();
         this.estaActivo = persona.getEstado() == EstadoUsuario.ACTIVO;
-        this.roles = List.of(new SimpleGrantedAuthority(persona.getRol().name()));
+        this.roles = List.of(new SimpleGrantedAuthority("ROLE_" + persona.getRol().name()));
     }
 
     /**

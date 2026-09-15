@@ -42,15 +42,15 @@ public class RedireccionPorRolSuccessHandler implements AuthenticationSuccessHan
         for (GrantedAuthority authority : authentication.getAuthorities())
         {
             String rol = authority.getAuthority();
-            if (rol.equals("ADMIN"))
+            if (rol.equals("ROLE_ADMIN"))
             {
                 return "/admin/dashboard";
             }
-            if (rol.equals("PROFESOR"))
+            if (rol.equals("ROLE_PROFESOR"))
             {
                 return "/profesor/dashboard";
             }
-            if (rol.equals("ALUMNO"))
+            if (rol.equals("ROLE_ALUMNO"))
             {
                 return "/alumno/dashboard";
             }
