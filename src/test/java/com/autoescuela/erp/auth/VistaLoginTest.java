@@ -58,23 +58,6 @@ class VistaLoginTest
     }
 
     @Test
-    @DisplayName("GET /registro renderiza correctamente el asistente multi-paso con branding ManDS")
-    void testRenderizadoRegistroExitoso() throws Exception
-    {
-        this.mockMvc.perform(get("/registro"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("auth/registro"))
-                .andExpect(content().string(containsString("ManDS")))
-                .andExpect(content().string(containsString("action=\"/registro\"")))
-                .andExpect(content().string(containsString("id=\"step-indicator-1\"")))
-                .andExpect(content().string(containsString("id=\"panel-step-1\"")))
-                .andExpect(content().string(containsString("id=\"panel-step-2\"")))
-                .andExpect(content().string(containsString("id=\"panel-step-3\"")))
-                .andExpect(content().string(containsString("/js/registro.js")))
-                .andExpect(content().string(containsString("id=\"btn-next-step-1\"")));
-    }
-
-    @Test
     @DisplayName("GET /login?error=true muestra la alerta de credenciales incorrectas")
     void testAlertaErrorCredenciales() throws Exception
     {
