@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Panel de Administración - ManDS</title>
 </head>
 
-<body>
-
+<body class="p-6 bg-slate-100 font-sans">
+    <h1 class="text-2xl font-bold text-slate-900">Panel de Control del Administrador</h1>
+    <p class="text-xl text-slate-800">
+        Bienvenido/a, <strong th:text="${nombreAdmin}">Administrador</strong>
+    </p>
 </body>
 
 </html>

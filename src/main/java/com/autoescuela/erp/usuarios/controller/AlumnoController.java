@@ -19,7 +19,7 @@ public class AlumnoController
      * @return String - Nombre de la plantilla Thymeleaf a renderizar (alumno/dashboard).
      */
     @GetMapping("/dashboard")
-    public String redirectToDashboard(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
+    public String redirigirDashboard(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
     {
         String nomAlumno = userDetails.getNombreCompleto();
         model.addAttribute("nombreAlumno", nomAlumno);

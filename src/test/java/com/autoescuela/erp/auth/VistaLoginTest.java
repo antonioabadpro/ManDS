@@ -10,10 +10,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -82,5 +85,15 @@ class VistaLoginTest
         this.mockMvc.perform(get("/login?expirada=true"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Sesión caducada")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("Usuario autenticado que accede a GET /login -> Cierra sesión y redirige a /login")
+    void testUsuarioAutenticadoAccediendoALoginCierraSesion() throws Exception
+    {
+        this.mockMvc.perform(get("/login"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 }
