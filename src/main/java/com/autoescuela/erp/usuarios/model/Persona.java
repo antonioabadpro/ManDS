@@ -58,7 +58,7 @@ public abstract class Persona
     @Setter(AccessLevel.NONE) // Evita que Lombok genere setPassword() público, protegiendo la integridad y previniendo modificaciones inseguras
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String telefono;
 
     @Column(nullable = false)

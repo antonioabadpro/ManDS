@@ -1,5 +1,6 @@
 package com.autoescuela.erp.auth;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -19,7 +20,9 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.autoescuela.erp.auth.service.AutenticacionService;
+import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
+import com.autoescuela.erp.auth.service.AuthenticationService;
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
@@ -27,6 +30,7 @@ import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -36,14 +40,27 @@ import static org.mockito.Mockito.when;
  * Pruebas unitarias con Mockito para la clase AutenticacionService.
  * AutenticacionServiceTest
  */
+import org.springframework.security.crypto.password.PasswordEncoder;
+import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+
 @ExtendWith(MockitoExtension.class)
 class AutenticacionServiceTest
 {
     @Mock
     private PersonaRepository personaRepository;
 
+    @Mock
+    private AlumnoRepository alumnoRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationMapper authenticationMapper;
+
     @InjectMocks
-    private AutenticacionService autenticacionService;
+    private AuthenticationService autenticacionService;
 
     @BeforeEach
     void setUp()
@@ -156,5 +173,56 @@ class AutenticacionServiceTest
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertNull(request.getSession(false));
+    }
+
+    @Test
+    @DisplayName("'existeTelefono()' devuelve true cuando el teléfono ya existe en PersonaRepository")
+    void testExisteTelefonoExistente()
+    {
+        when(personaRepository.existsByTelefono("600111222")).thenReturn(true);
+
+        assertTrue(autenticacionService.existeTelefono("600111222"));
+        verify(personaRepository).existsByTelefono("600111222");
+    }
+
+    @Test
+    @DisplayName("'existeTelefono()' devuelve false cuando el teléfono no existe o está vacío")
+    void testExisteTelefonoNoExistenteOEnBlanco()
+    {
+        when(personaRepository.existsByTelefono("699888777")).thenReturn(false);
+
+        assertFalse(autenticacionService.existeTelefono("699888777"));
+        assertFalse(autenticacionService.existeTelefono(null));
+        assertFalse(autenticacionService.existeTelefono("   "));
+    }
+
+    @Test
+    @DisplayName("'registrarAlumno()' lanza ReglaNegocioException cuando el teléfono ya existe")
+    void testRegistrarAlumnoTelefonoDuplicado()
+    {
+        RegistroAlumnoDTO dto = new RegistroAlumnoDTO(
+                "alumno_tel_dup",
+                "correo.libre@autoescuela.es",
+                "password123",
+                "password123",
+                "Carlos",
+                "Gómez",
+                "12345678Z",
+                LocalDate.of(2000, 1, 1),
+                "600111222",
+                "Calle Principal 1",
+                true
+        );
+
+        when(personaRepository.existsByNombreUsuario("alumno_tel_dup")).thenReturn(false);
+        when(personaRepository.existsByCorreo("correo.libre@autoescuela.es")).thenReturn(false);
+        when(personaRepository.existsByDni("12345678Z")).thenReturn(false);
+        when(personaRepository.existsByTelefono("600111222")).thenReturn(true);
+
+        ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
+                autenticacionService.registrarAlumno(dto)
+        );
+
+        assertEquals("El teléfono ya está registrado en el sistema.", excepcion.getMessage());
     }
 }

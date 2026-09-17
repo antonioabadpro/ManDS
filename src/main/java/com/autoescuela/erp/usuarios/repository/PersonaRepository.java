@@ -30,4 +30,9 @@ public interface PersonaRepository extends JpaRepository<Persona, Long>
      * Comprueba si ya existe un usuario registrado con el DNI indicado.
      */
     boolean existsByDni(String dni);
+
+    /**
+     * Comprueba si ya existe un usuario registrado con el teléfono indicado.
+     */
+    boolean existsByTelefono(String telefono);
 }

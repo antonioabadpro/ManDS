@@ -39,6 +39,20 @@ function validarPaso(paso) {
         }
     }
 
+    // Comprobar si existen mensajes de error asíncronos activos devueltos por HTMX
+    const errorHTMX = contenedorPaso.querySelector('.mensaje-error-campo');
+    if (errorHTMX) {
+        const feedbackDiv = errorHTMX.closest('[id^="feedback-"]');
+        if (feedbackDiv) {
+            const campoNombre = feedbackDiv.id.replace('feedback-', '');
+            const inputAsociado = document.getElementById(`reg-${campoNombre}`);
+            if (inputAsociado) {
+                inputAsociado.focus();
+            }
+        }
+        return false;
+    }
+
     return true;
 }
 
@@ -191,6 +205,45 @@ function inicializarEventosRegistro() {
             confirmPass.setCustomValidity('');
         });
     }
+
+    // Interceptar envío de formulario (evita submit accidental con Enter en pasos 1 y 2)
+    const formRegistro = document.getElementById('form-registro');
+    if (formRegistro) {
+        formRegistro.addEventListener('submit', (e) => {
+            if (pasoActual < TOTAL_PASOS) {
+                // Prevenir el POST al servidor si aún estamos en pasos preliminares
+                e.preventDefault();
+                const btnSiguiente = document.getElementById(`btn-next-step-${pasoActual}`);
+                if (btnSiguiente) {
+                    btnSiguiente.click();
+                }
+            } else {
+                // En el paso 3, validar los campos antes de permitir el envío nativo
+                if (!validarPaso(TOTAL_PASOS)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+    // Escucha de respuestas HTMX para alternar clases visuales de error/éxito en los inputs
+    document.body.addEventListener('htmx:afterSwap', (event) => {
+        const targetId = event.detail.target?.id;
+        if (targetId && targetId.startsWith('feedback-')) {
+            const campoNombre = targetId.replace('feedback-', '');
+            const input = document.getElementById(`reg-${campoNombre}`);
+            const tieneError = event.detail.target.querySelector('.mensaje-error-campo') !== null;
+
+            if (input) {
+                if (tieneError) {
+                    input.classList.add('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+                    input.classList.remove('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+                } else {
+                    input.classList.remove('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+                    input.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+                }
+            }
+        }
+    });
 }
 
 // Inicializar el asistente al cargar la vista
