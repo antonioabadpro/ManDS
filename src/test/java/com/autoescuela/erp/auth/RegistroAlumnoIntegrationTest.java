@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "spring.jpa.defer-datasource-initialization=true"
 })
 /**
- * Pruebas de integración para el circuito completo de registro público de alumnos (CU-002).
+ * Pruebas de integración para el circuito completo de registro público de alumnos.
  * Cubre peticiones HTTP POST /registro, validaciones declarativas, reglas de negocio de unicidad,
  * encriptación segura de contraseña con BCrypt y persistencia en la base de datos.
  * RegistroAlumnoIntegrationTest contiene pruebas para verificar el registro exitoso de un alumno, así como los casos de error por duplicidad de nombre de usuario, correo, DNI y teléfono.

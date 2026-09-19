@@ -1,0 +1,140 @@
+@startuml Diagrama_CU_v6
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Persona" as Persona
+actor "Administrador" as Admin
+actor "Profesor" as Prof
+actor "Alumno" as Alum
+
+' Generalización de actores
+Persona <|-- Admin
+Persona <|-- Prof
+Persona <|-- Alum
+
+' --- CASOS DE USO GENERALES ---
+usecase "Iniciar sesión" as iniciarSesion << CU-001 >>
+
+' --- CASOS DE USO ADMINISTRADOR ---
+
+usecase "Crear profesor" as crearProfesor << CU-002 >>
+usecase "Modificar profesor" as modificarProfesor << CU-003 >>
+usecase "Eliminar profesor" as eliminarProfesor << CU-004 >>
+usecase "Consultar profesores" as consultarProfesores << CU-005 >>
+
+usecase "Crear alumno" as crearAlumno << CU-006 >>
+usecase "Modificar alumno" as modificarAlumno << CU-007 >>
+usecase "Eliminar alumno" as eliminarAlumno << CU-008 >>
+usecase "Consultar alumnos" as consultarAlumnos << CU-009 >>
+
+usecase "Insertar vehículo" as insertarVehiculo << CU-010 >>
+usecase "Modificar vehículo" as modificarVehiculo << CU-011 >>
+usecase "Eliminar vehículo" as eliminarVehiculo << CU-012 >>
+usecase "Consultar vehículos" as consultarVehiculos << CU-013 >>
+
+usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-014 >>
+
+usecase "Consultar solicitudes examen" as consultarSolicitudExamen << CU-015 >>
+usecase "Aceptar solicitud examen" as aceptarSolicitudExamen << CU-016 >>
+usecase "Bloquear reservas vehículo" as bloquearReservasVehiculo << CU-017 >>
+usecase "Notificar alumno por correo" as notificarAlumno << CU-018 >>
+usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-019 >>
+
+' --- CASOS DE USO PROFESOR ---
+usecase "Establecer credenciales" as establecerCredenciales << CU-020 >>
+usecase "Consultar calendario" as consultarCalendarioProf << CU-021 >>
+usecase "Modificar clase" as modificarClase << CU-022 >>
+usecase "Eliminar clase" as eliminarClase << CU-023 >>
+usecase "Rellenar detalles clase" as rellenarDetalles << CU-024 >>
+usecase "Calificar examen" as calificarExamen << CU-025 >>
+usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-026 >>
+usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-027 >>
+
+' --- CASOS DE USO ALUMNO ---
+usecase "Recuperar contraseña" as recuperarPassword << CU-028 >>
+usecase "Consultar datos personales" as consultarDatos << CU-029 >>
+usecase "Modificar datos personales" as modificarDatos << CU-030 >>
+usecase "Pagar matriculacion / Registrarse" as pagarMatriculacion << CU-031 >>
+note right of pagarMatriculacion : Postcondición: Registro del Alumno\nen la BD en caso de éxito
+
+usecase "Comprar clases" as comprarClases << CU-032 >>
+usecase "Consultar calendario" as consultarCalendarioAlum << CU-033 >>
+usecase "Reservar clase práctica" as reservarClase << CU-034 >>
+usecase "Confirmar clase pendiente" as confirmarClase << CU-035 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-036 >>
+usecase "Consultar notas examen" as consultarNotas << CU-037 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-038 >>
+usecase "Solicitar fecha examen" as solicitarExamen << CU-039 >>
+usecase "Pagar tasas examen" as pagarTasas << CU-040 >>
+usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-041 >>
+
+' --- RELACIONES ACTOR -> CASO DE USO ---
+
+' Persona y base
+Persona -- iniciarSesion
+
+' Administrador
+Admin -- crearProfesor
+Admin -- modificarProfesor
+Admin -- eliminarProfesor
+Admin -- consultarProfesores
+
+Admin -- crearAlumno
+Admin -- modificarAlumno
+Admin -- eliminarAlumno
+Admin -- consultarAlumnos
+
+Admin -- insertarVehiculo
+Admin -- modificarVehiculo
+Admin -- eliminarVehiculo
+Admin -- consultarVehiculos
+
+Admin -- cEstadisticasAdmin
+Admin -- consultarSolicitudExamen
+
+' Profesor
+Prof -- establecerCredenciales
+Prof -- consultarCalendarioProf
+Prof -- calificarExamen
+Prof -- cEstadisticasProf
+Prof -- reportarIncidencia
+
+' Alumno
+Alum -- recuperarPassword
+Alum -- consultarCalendarioAlum
+Alum -- consultarDatos
+Alum -- modificarDatos
+Alum -- pagarMatriculacion
+Alum -- comprarClases
+Alum -- confirmarClase
+Alum -- consultarHistorial
+Alum -- consultarNotas
+Alum -- cEstadisticasAlum
+Alum -- solicitarExamen
+Alum -- solicitarIniciacion
+
+' --- RELACIONES EXTEND E INCLUDE ---
+
+' Extends de Administrador (Gestión Solicitudes)
+consultarSolicitudExamen <.. aceptarSolicitudExamen : <<extend>>
+aceptarSolicitudExamen ..> notificarAlumno : <<include>>
+aceptarSolicitudExamen ..> bloquearReservasVehiculo : <<include>>
+consultarSolicitudExamen <.. rechazarSolicitudExamen : <<extend>>
+rechazarSolicitudExamen ..> notificarAlumno : <<include>>
+
+' Extends de Profesor (Consultar Calendario)
+consultarCalendarioProf <.. modificarClase : <<extend>>
+consultarCalendarioProf <.. eliminarClase : <<extend>>
+consultarCalendarioProf <.. rellenarDetalles : <<extend>>
+
+' Includes de Profesor (Automatizaciones y Obligaciones)
+modificarClase ..> notificarAlumno : <<include>>
+eliminarClase ..> notificarAlumno : <<include>>
+
+' Includes de Alumno
+solicitarExamen ..> pagarTasas : <<include>>
+
+' Extends de Alumno
+consultarCalendarioAlum <.. reservarClase : <<extend>>
+
+@enduml

@@ -4,14 +4,751 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - ManDS</title>
+    <title>Panel de Administración - ManDS ERP</title>
+
+    <!-- Meta etiquetas CSRF para peticiones HTMX/AJAX -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon SVG en línea -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/><circle cx='7.5' cy='14.5' r='1.5'/><circle cx='16.5' cy='14.5' r='1.5'/></svg>">
+
+    <!-- Tipografía Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (Play CDN para entorno de desarrollo ágil) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX para peticiones parciales si se requiere -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <!-- Script de interacción del Dashboard del Admin (Desacoplado y No Intrusivo) -->
+    <script src="../../static/js/admin-dashboard.js" th:src="@{/js/admin-dashboard.js}" defer></script>
 </head>
 
-<body class="p-6 bg-slate-100 font-sans">
-    <h1 class="text-2xl font-bold text-slate-900">Panel de Control del Administrador</h1>
-    <p class="text-xl text-slate-800">
-        Bienvenido/a, <strong th:text="${nombreAdmin}">Administrador</strong>
-    </p>
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <!-- ===================================================================== -->
+    <!-- 1. BACKDROP CON EFECTO BLUR PARA DISPOSITIVOS MÓVILES (< 1024px) -->
+    <!-- ===================================================================== -->
+    <!-- Se muestra por encima del contenido y desenfoca el fondo cuando el sidebar está abierto -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true">
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. MENÚ LATERAL DESPLEGABLE (SIDEBAR / DRAWER RESPONSIVO) -->
+    <!-- ===================================================================== -->
+    <!-- En móvil: Flotante por encima del dashboard (z-50) con animación de entrada -->
+    <!-- En PC: Barra lateral con opción de colapso para visualización cómoda -->
+    <aside id="admin-sidebar" class="fixed lg:sticky top-0 inset-y-0 left-0 z-50 w-72 bg-slate-900 text-slate-200 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-all duration-300 ease-in-out shrink-0 h-screen shadow-2xl lg:shadow-none border-r border-slate-800/80 select-none overflow-y-auto" aria-label="Navegación principal de administración">
+
+        <div>
+            <!-- Cabecera del Menú: Logotipo y Nombre de Marca -->
+            <div class="p-5 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white ring-1 ring-white/10">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                            <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                            <line x1="12" y1="16" x2="12" y2="22"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-xl font-black tracking-tight text-white">ManDS</span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">ADMIN</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium">Gestión de Autoescuelas</p>
+                    </div>
+                </div>
+
+                <!-- Botón de Cierre en Móvil (< 1024px) -->
+                <button id="btn-cerrar-sidebar-movil" type="button" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Cerrar menú lateral">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Listado de Opciones del Menú de Administración -->
+            <nav class="p-4 space-y-6">
+
+                <!-- GRUPO 1: PANEL PRINCIPAL -->
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Principal</span>
+                    <ul class="mt-2 space-y-1">
+                        <li>
+                            <a th:href="@{/admin/dashboard}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 shadow-sm shadow-blue-500/30">
+                                <svg class="w-5 h-5 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                <span>Dashboard General</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- GRUPO 2: GESTIÓN PRINCIPAL (PROFESORES Y FLOTA DESTACADOS) -->
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Gestión Operativa</span>
+                    <ul class="mt-2 space-y-1">
+
+                        <!-- 1. GESTIÓN DE PROFESORES (Solicitado expresamente) -->
+                        <li>
+                            <div class="flex flex-col space-y-1">
+                                <a th:href="@{/admin/profesores}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20 transition">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <span class="font-semibold text-slate-200">Gestión de Profesores</span>
+                                    </div>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300">Docentes</span>
+                                </a>
+
+                                <!-- Sub-opción rápida para dar de alta profesor desde el menú lateral -->
+                                <button id="btn-abrir-modal-profesor-menu" type="button" class="flex items-center space-x-2.5 ml-9 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-blue-300 hover:bg-slate-800/60 transition text-left">
+                                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    <span>Dar de alta profesor</span>
+                                </button>
+                            </div>
+                        </li>
+
+                        <!-- 2. GESTIÓN DE FLOTA (Solicitado expresamente) -->
+                        <li>
+                            <a th:href="@{/admin/flota}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 group-hover:bg-amber-500/20 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-8 4h4m6 0a2 2 0 100-4 2 2 0 000 4zm-14 0a2 2 0 100-4 2 2 0 000 4zM3 9l2.25-4.5A2 2 0 017.03 3.5h9.94a2 2 0 011.78 1l2.25 4.5M3 9v8a2 2 0 002 2h14a2 2 0 002-2V9M3 9h18" />
+                                        </svg>
+                                    </div>
+                                    <span class="font-semibold text-slate-200">Gestión de Flota</span>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">Vehículos</span>
+                            </a>
+                        </li>
+
+                        <!-- 3. GESTIÓN DE ALUMNOS -->
+                        <li>
+                            <a th:href="@{/admin/alumnos}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-200">Gestión de Alumnos</span>
+                                </div>
+                            </a>
+                        </li>
+
+                        <!-- 4. INCIDENCIAS MECÁNICAS -->
+                        <li>
+                            <a th:href="@{/admin/incidencias}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-200">Incidencias de Flota</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- GRUPO 3: FORMACIÓN Y DGT -->
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Formación y Exámenes</span>
+                    <ul class="mt-2 space-y-1">
+                        <li>
+                            <a th:href="@{/admin/examenes}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-200">Solicitudes DGT</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/admin/practicas}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 transition">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <span class="font-medium text-slate-200">Agenda de Prácticas</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- GRUPO 4: ANALÍTICA Y AJUSTES -->
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Estadísticas</span>
+                    <ul class="mt-2 space-y-1">
+                        <li>
+                            <a th:href="@{/admin/estadisticas}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition duration-150 group">
+                                <div class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <span class="font-medium text-slate-200">Estadísticas Globales</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </nav>
+        </div>
+
+        <!-- Pie del Menú Lateral: Administrador y Cerrar Sesión Seguro -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/40">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-blue-500/30 shrink-0">
+                        A
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-semibold text-white truncate" th:text="${nombreAdmin} ?: 'Carlos García'">Carlos García</p>
+                        <p class="text-[11px] text-slate-400 truncate">Administrador Jefe</p>
+                    </div>
+                </div>
+
+                <!-- Formulario POST de cierre de sesión con protección CSRF -->
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition" title="Cerrar sesión segura">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ===================================================================== -->
+    <!-- 3. CONTENEDOR PRINCIPAL (NAVBAR SUPERIOR + DASHBOARD BODY) -->
+    <!-- ===================================================================== -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <!-- Barra Superior de Navegación (Header) -->
+        <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between transition-colors">
+            <div class="flex items-center space-x-3">
+                <!-- Botón Hamburguesa para Móvil (< 1024px) -->
+                <button id="btn-abrir-sidebar-movil" type="button" class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600" aria-label="Abrir menú lateral">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Botón para ocultar/mostrar menú en Escritorio (PC) -->
+                <button id="btn-toggle-sidebar-desktop" type="button" class="hidden lg:flex p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-blue-600" title="Alternar visibilidad del menú lateral">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16" />
+                    </svg>
+                </button>
+
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Panel de Control del Administrador</h1>
+                    <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 font-medium">Control integral de autoescuela</p>
+                </div>
+            </div>
+
+            <!-- Indicadores Rápidos de la Barra Superior -->
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="hidden sm:inline">Sistema Operativo</span>
+                </span>
+
+                <div class="hidden sm:flex items-center pl-3 border-l border-slate-200 dark:border-slate-800 space-x-2">
+                    <span class="text-xs text-slate-500 dark:text-slate-400">Admin:</span>
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200" th:text="${nombreAdmin} ?: 'Carlos García'">Carlos García</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ================================================================= -->
+        <!-- 4. CONTENIDO DEL DASHBOARD -->
+        <!-- ================================================================= -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Banner de Bienvenida -->
+            <div class="rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 shadow-lg shadow-blue-600/15 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative z-10 space-y-2">
+                    <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
+                        <span>Resumen Ejecutivo</span>
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        ¡Bienvenido/a, <span th:text="${nombreAdmin} ?: 'Administrador'">Administrador</span>!
+                    </h2>
+                    <p class="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
+                        Accede de un vistazo a las métricas del centro, supervisa la actividad del profesorado y gestiona la flota de vehículos desde un único lugar.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- 5. RESUMEN DE ESTADÍSTICAS SENCILLAS (KPI CARDS) -->
+            <!-- ============================================================= -->
+            <section aria-labelledby="seccion-kpis">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="seccion-kpis" class="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                        <span>Métricas Clave de la Autoescuela</span>
+                    </h3>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Actualizado en tiempo real</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+                    <!-- KPI 1: Alumnos Activos -->
+                    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Alumnos Activos</p>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalAlumnos} ?: '3'">3</h4>
+                            <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                                <span>Matrículas en vigor</span>
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Profesores en Plantilla -->
+                    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profesores en Plantilla</p>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalProfesores} ?: '2'">2</h4>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Turno Matinal y Tarde</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Flota de Vehículos -->
+                    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Flota de Vehículos</p>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalVehiculos} ?: '4'">4</h4>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Turismos, motos y camión</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-8 4h4m6 0a2 2 0 100-4 2 2 0 000 4zm-14 0a2 2 0 100-4 2 2 0 000 4zM3 9l2.25-4.5A2 2 0 017.03 3.5h9.94a2 2 0 011.78 1l2.25 4.5M3 9v8a2 2 0 002 2h14a2 2 0 002-2V9M3 9h18" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- KPI 4: Solicitudes DGT Pendientes -->
+                    <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Solicitudes DGT</p>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400" th:text="${estadisticas?.solicitudesExamenPendientes} ?: '1'">1</h4>
+                            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Pendiente de revisión</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- 6. ACCIÓN RÁPIDA DESTACADA: ALTA DE PROFESOR (SOLICITADO) -->
+            <!-- ============================================================= -->
+            <section class="rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30 p-6 sm:p-7 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div class="space-y-1.5 max-w-2xl">
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-blue-600 text-white">
+                                Acción Rápida
+                            </span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Regla de Negocio 7.1</span>
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                            Dar de Alta a un Nuevo Profesor
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Registra un nuevo docente en la plantilla. El profesor recibirá automáticamente un correo electrónico con un enlace seguro de un solo uso para configurar su nombre de usuario y contraseña iniciales.
+                        </p>
+                    </div>
+
+                    <!-- Botón Destacado que abre el Modal Accesible -->
+                    <button id="btn-abrir-modal-profesor" type="button" class="inline-flex items-center justify-center space-x-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-500/25 transition duration-200 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 group">
+                        <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>Dar de Alta Profesor</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- 7. MÓDULOS DE GESTIÓN PRINCIPAL (ACCESOS DIRECTOS EN GRID) -->
+            <!-- ============================================================= -->
+            <section aria-labelledby="seccion-modulos">
+                <h3 id="seccion-modulos" class="text-base font-bold text-slate-900 dark:text-white mb-4">
+                    Módulos de Gestión
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Módulo 1: Gestión de Profesores -->
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                    2 en activo
+                                </span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-900 dark:text-white">Gestión de Profesores</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Supervisa el equipo docente, asigna vehículos de prácticas (relación 1 a 1), turnos y tipos de carnet autorizados.
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <a th:href="@{/admin/profesores}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1">
+                                <span>Ver listado completo</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 2: Gestión de Flota de Vehículos -->
+                    <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-8 4h4m6 0a2 2 0 100-4 2 2 0 000 4zm-14 0a2 2 0 100-4 2 2 0 000 4zM3 9l2.25-4.5A2 2 0 017.03 3.5h9.94a2 2 0 011.78 1l2.25 4.5M3 9v8a2 2 0 002 2h14a2 2 0 002-2V9M3 9h18" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                    4 registrados
+                                </span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-900 dark:text-white">Gestión de Flota de Vehículos</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Control de revisiones periódicas, vencimiento de ITV, kilometraje de prácticas e incidencias reportadas.
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <a th:href="@{/admin/flota}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1">
+                                <span>Ver flota de vehículos</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- 8. ESTADO DE LA FLOTA Y SOLICITUDES RECIENTES (TABLAS RESPONSIVAS) -->
+            <!-- ============================================================= -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Tabla 1: Estado Rápido de Vehículos -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Vehículos en Circulación</h4>
+                        <a th:href="@{/admin/flota}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Ver todos</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                            <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                                <tr>
+                                    <th class="py-2.5 px-3">Matrícula</th>
+                                    <th class="py-2.5 px-3">Modelo</th>
+                                    <th class="py-2.5 px-3">Tipo</th>
+                                    <th class="py-2.5 px-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">1234-LMN</td>
+                                    <td class="py-2.5 px-3">SEAT Ibiza 1.0 TSI</td>
+                                    <td class="py-2.5 px-3">Permiso B</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">5678-KPR</td>
+                                    <td class="py-2.5 px-3">Renault Clio E-Tech</td>
+                                    <td class="py-2.5 px-3">Permiso B</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">3456-FGH</td>
+                                    <td class="py-2.5 px-3">Mercedes Actros 1845</td>
+                                    <td class="py-2.5 px-3">Permiso C</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabla 2: Solicitudes de Examen DGT Recientes -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Últimas Solicitudes de Examen</h4>
+                        <a th:href="@{/admin/examenes}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Ver todas</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                            <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                                <tr>
+                                    <th class="py-2.5 px-3">Alumno</th>
+                                    <th class="py-2.5 px-3">Profesor</th>
+                                    <th class="py-2.5 px-3">Tipo Carnet</th>
+                                    <th class="py-2.5 px-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">Elena Martínez López</td>
+                                    <td class="py-2.5 px-3">Laura Sánchez</td>
+                                    <td class="py-2.5 px-3">Permiso B</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACEPTADA</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">David Ruiz Gómez</td>
+                                    <td class="py-2.5 px-3">Laura Sánchez</td>
+                                    <td class="py-2.5 px-3">Permiso B</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">PENDIENTE</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">Sofía Fernández</td>
+                                    <td class="py-2.5 px-3">Manuel Navarro</td>
+                                    <td class="py-2.5 px-3">Permiso A2</td>
+                                    <td class="py-2.5 px-3">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">RECHAZADA</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 9. MODAL ACCESIBLE: DAR DE ALTA A UN NUEVO PROFESOR -->
+    <!-- ===================================================================== -->
+    <!-- Conforme a Regla 7.1: el admin introduce datos y el profesor recibe invitación con enlace -->
+    <div id="modal-alta-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-profesor" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+
+        <!-- Fondo Oscuro Desenfocado para el Modal -->
+        <div id="modal-profesor-backdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+
+        <!-- Tarjeta del Modal -->
+        <div class="relative z-10 w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+
+            <!-- Cabecera del Modal -->
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                        </span>
+                        <h3 id="titulo-modal-profesor" class="text-lg font-bold text-slate-900 dark:text-white">
+                            Alta de Nuevo Profesor
+                        </h3>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        El docente recibirá un correo con un token de acceso seguro para crear su usuario.
+                    </p>
+                </div>
+
+                <!-- Botón de Cerrar Modal -->
+                <button id="btn-cerrar-modal-profesor" type="button" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" aria-label="Cerrar ventana">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario de Alta -->
+            <form id="form-alta-profesor" action="#" method="post" class="space-y-4" novalidate>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Nombre -->
+                    <div>
+                        <label for="profesor-nombre" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre *</label>
+                        <input type="text" id="profesor-nombre" name="nombre" required placeholder="Ej. Roberto" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    </div>
+
+                    <!-- Apellidos -->
+                    <div>
+                        <label for="profesor-apellidos" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellidos *</label>
+                        <input type="text" id="profesor-apellidos" name="apellidos" required placeholder="Ej. Morales Gómez" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- DNI / NIE -->
+                    <div>
+                        <label for="profesor-dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE *</label>
+                        <input type="text" id="profesor-dni" name="dni" required placeholder="12345678Z" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase" />
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div>
+                        <label for="profesor-telefono" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono *</label>
+                        <input type="tel" id="profesor-telefono" name="telefono" required placeholder="600123456" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    </div>
+                </div>
+
+                <!-- Correo Electrónico -->
+                <div>
+                    <label for="profesor-correo" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Correo Electrónico (Para envío de invitación) *</label>
+                    <input type="email" id="profesor-correo" name="correo" required placeholder="roberto.profesor@autoescuela.es" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Turno Laboral -->
+                    <div>
+                        <label for="profesor-turno" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Turno Asignado *</label>
+                        <select id="profesor-turno" name="turno" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600">
+                            <option value="MATINAL">Turno Matinal</option>
+                            <option value="TARDE">Turno de Tarde</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha de Contratación -->
+                    <div>
+                        <label for="profesor-fecha" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Contratación *</label>
+                        <input type="date" id="profesor-fecha" name="fechaContratacion" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    </div>
+                </div>
+
+                <!-- Permisos de Carnet Autorizados -->
+                <div>
+                    <span class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Permisos de Conducción Autorizados *</span>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                            <input type="checkbox" name="permisos" value="PERMISO_B" checked class="rounded text-blue-600 focus:ring-blue-500">
+                            <span>Permiso B</span>
+                        </label>
+                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                            <input type="checkbox" name="permisos" value="PERMISO_A2" class="rounded text-blue-600 focus:ring-blue-500">
+                            <span>Permiso A2</span>
+                        </label>
+                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+                            <input type="checkbox" name="permisos" value="PERMISO_C" class="rounded text-blue-600 focus:ring-blue-500">
+                            <span>Permiso C</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Alerta Informativa de Seguridad -->
+                <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-xs flex items-start space-x-2.5">
+                    <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p>
+                        Por motivos de seguridad, el administrador no asigna contraseñas directas. Se enviará un enlace transaccional al correo facilitado con una validez temporal.
+                    </p>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-3">
+                    <button id="btn-cancelar-modal-profesor" type="button" class="px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl shadow-md shadow-blue-500/20 transition">
+                        Enviar Invitación y Crear
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
 </body>
 
 </html>

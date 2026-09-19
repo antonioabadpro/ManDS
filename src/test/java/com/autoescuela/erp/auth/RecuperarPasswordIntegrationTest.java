@@ -41,7 +41,7 @@ import java.util.List;
     "spring.jpa.defer-datasource-initialization=true"
 })
 /**
- * Pruebas de integración del circuito completo de recuperación y restablecimiento de contraseña (CU-022).
+ * Pruebas de integración del circuito completo de recuperación y restablecimiento de contraseña.
  * RecuperarPasswordIntegrationTest contiene pruebas para verificar el flujo completo de recuperación de contraseña, incluyendo la generación de tokens, validación de tokens, restablecimiento de contraseña y verificación de acceso con la nueva contraseña.
  * Se utilizan Mocks para simular solicitudes HTTP y se verifican los resultados esperados en cada paso del flujo.
  */

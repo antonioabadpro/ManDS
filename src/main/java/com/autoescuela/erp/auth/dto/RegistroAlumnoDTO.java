@@ -1,8 +1,5 @@
 package com.autoescuela.erp.auth.dto;
 
-/**
- * DTO para el registro público de nuevos alumnos.
- */
 import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,7 +13,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO para el registro público de nuevos alumnos (CU-002).
+ * DTO para el registro público de nuevos alumnos.
  * Captura y valida los datos de los 3 pasos del asistente de registro.
  */
 public record RegistroAlumnoDTO(

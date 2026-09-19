@@ -143,7 +143,7 @@ public class AuthenticationService
     }
 
     /**
-     * Registra a un nuevo alumno en el sistema a partir del formulario público (CU-002).
+     * Registra a un nuevo alumno en el sistema a partir del formulario público.
      * Valida reglas de negocio de unicidad (nombre de usuario, correo y DNI),
      * comprueba la coincidencia de contraseñas, codifica la credencial mediante BCrypt
      * y persiste la entidad Alumno con estado ACTIVO.
@@ -274,7 +274,7 @@ public class AuthenticationService
     }
 
     /**
-     * Inicia el proceso de recuperación de contraseña (CU-022).
+     * Inicia el proceso de recuperación de contraseña.
      * Si el correo electrónico corresponde a una Persona con estado ACTIVO, se genera un
      * token temporal efímero (15 minutos) y se envía el correo transaccional con el enlace de recuperación.
      *

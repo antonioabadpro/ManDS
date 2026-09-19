@@ -50,7 +50,7 @@ public class AuthenticationController
     }
 
     /**
-     * Muestra el formulario público de registro de alumnos en 3 pasos (CU-002).
+     * Muestra el formulario público de registro de alumnos en 3 pasos.
      * Si el usuario ya está autenticado, se le redirige a la página principal.
      */
     @GetMapping("/registro")

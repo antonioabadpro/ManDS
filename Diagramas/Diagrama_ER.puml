@@ -1,4 +1,4 @@
-@startuml Diagrama_Clases_v5
+@startuml Diagrama_ER_v9
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -9,62 +9,86 @@ skinparam packageStyle rectangle
 ' --- 1. ENUMS (Agrupados a la derecha para no molestar) ---
 package "Enums" {
   enum EstadoUsuario {
-    - Activo
-    - Inactivo
-    - Traspasado
+    - ACTIVO
+    - INACTIVO
   }
   enum EstadoVehiculo {
-    - Activo
-    - Mantenimiento
-    - Inactivo
+    - DISPONIBLE
+    - OCUPADO
+    - MANTENIMIENTO
+    - INACTIVO
   }
   enum TipoCarnet {
-    - Permiso AM
-    - Permiso A1
-    - Permiso A2
-    - Permiso A
-    - Permiso B
-    - Permiso B+E
-    - Permiso B1
-    - Permiso C
-    - Permiso C+E
-    - Permiso D
-    - Permiso D+E
-    - Permiso LVA
+    - PERMISO_AM
+    - PERMISO_A1
+    - PERMISO_A2
+    - PERMISO_A
+    - PERMISO_B
+    - PERMISO_B_E
+    - PERMISO_B1
+    - PERMISO_C
+    - PERMISO_C_E
+    - PERMISO_D
+    - PERMISO_D_E
+    - PERMISO_LVA
   }
-  enum TipoRegistro {
-    - Nueva
-    - Renovacion
+  enum TipoMatricula {
+    - NUEVA
+    - RENOVACION
   }
   enum TipoTurno {
-    - Mañana
-    - Tarde
+    - MATINAL
+    - TARDE
   }
   enum ModalidadMatricula {
-    - TeoricoPractica
-    - Practica
+    - TEORICO_PRACTICA
+    - PRACTICA
+    - INDIVIDUAL
   }
   enum EstadoSolicitud {
-    - Pendiente
-    - Aceptada
-    - Rechazada
+    - PENDIENTE
+    - ACEPTADA
+    - RECHAZADA
   }
   enum TipoExamen {
-    - Teorico
-    - Practico
+    - TEORICO
+    - PRACTICO
   }
   enum EstadoIncidencia {
-    - Pendiente
-    - En Proceso
-    - Resuelta
+    - PENDIENTE
+    - EN_PROCESO
+    - RESUELTA
   }
-  enum EstadoConfirmacion {
-    - Pendiente
-    - Confirmada
+  enum EstadoClase {
+    - RECIBIDA
+    - PENDIENTE
+    - CANCELADA
+  }
+  enum Rol {
+    - ADMIN
+    - PROFESOR
+    - ALUMNO
   }
 }
 
 ' --- 2. USUARIOS (Capa Superior) ---
+' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
+package "Autenticación" {
+  class TokenVerificacion {
+    - id: Long
+    - token: String
+    - fechaExpiracion: LocalDateTime
+    - usado: Boolean
+    - fechaCreacion: LocalDateTime
+    - persona: Persona
+    + isExpirado(): Boolean
+    + isValido(): Boolean
+    + isUsado(): Boolean
+    + marcarComoUsado(): void
+  }
+}
+
+' --- 3. USUARIOS (Capa Superior) ---
 package "Usuarios" {
   abstract class Persona {
     - id: Long
@@ -72,15 +96,16 @@ package "Usuarios" {
     - nombre: String
     - apellidos: String
     - dni: String
-    - fechaNacimiento: Date
+    - fechaNacimiento: LocalDate
     - correo: String
     - password: String
     - telefono: String
-    - domicilio: String
+    - direccion: String
     - estado: EstadoUsuario
     + iniciarSesion(): Boolean
     + cerrarSesion(): void
-    + recuperarPassword(): String
+    + actualizarPassword(passwordCodificada: String): void
+    + {abstract} getRol(): Rol
   }
 
   class Administrador {
@@ -103,38 +128,45 @@ package "Usuarios" {
     + modificarVehiculo(): void
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
+    + getRol(): Rol
+    + generarFechasExamenMes(anio: Integer, mes: Integer): List<LocalDate>
+    + consultarSolicitudesExamen(): List<SolicitudExamen>
+    + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
+    + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
   }
 
   class Profesor {
     - fechaContratacion: LocalDate
     - listaAlumnos: List<Alumno>
     - listaSolicitudesExamen: List<SolicitudExamen>
-    - listaPermisosCarnet: List<TipoCarnet>
+    - listaTiposCarnet: List<TipoCarnet>
     - turno: TipoTurno
-    - idVehiculo: Long
+    - vehiculo: Vehiculo
     + consultarCalendario(): void
     + consultarListadoAlumnos(): List<Alumno>
     + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
-    + enviarMensajeDifusion(asunto: String, mensaje: String): void
     + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + establecerFechaExamen(dni: String, fechaHora: LocalDateTime): void
     + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
     + reportarIncidenciaVehiculo(descripcion: String): void
+    + getRol(): Rol
   }
 
   class Alumno {
-    - historialClases: List<ClasePractica>
+    - historialClasesPracticas: List<ClasePractica>
     - historialExamenes: List<Examen>
+    - historialMatriculas: List<Matricula>
     - listaSolicitudesExamen: List<SolicitudExamen>
+    - profesor: Profesor
     + getHistorialClases(): List<ClasePractica>
     + getHistorialExamenes(): List<Examen>
     + solicitarClase(): void
     + solicitarFechaExamen(): LocalDateTime
     + consultarEstadisticas(): void
+    + getRol(): Rol
   }
 }
 
-' --- 3. AUTOESCUELA (Capa Inferior) ---
+' --- 4. AUTOESCUELA (Capa Inferior) ---
 package "Autoescuela" {
   class Vehiculo {
     - id: Long
@@ -147,6 +179,8 @@ package "Autoescuela" {
     - fechaProximaRevision: LocalDate
     - estado: EstadoVehiculo
     - tipo: TipoCarnet
+    - profesor: Profesor
+    - incidencias: List<IncidenciaVehiculo>
   }
 
   class IncidenciaVehiculo {
@@ -154,24 +188,24 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - descripcion: String
     - estado: EstadoIncidencia
-    - idVehiculo: Long
-  }
-
-  class Expediente {
-    - id: Long
+    - vehiculo: Vehiculo
+    - profesor: Profesor
   }
 
   class Matricula {
     - id: Long
+    - estaActiva: Boolean
     - permisoCarnet: TipoCarnet
     - convocatorias: Integer
     - saldoClases: Integer
+    - numClasesPendientesConfirmar: Integer
     - convocatoriasGastadas: Integer
     - precio: Float
     - fechaMatriculacion: LocalDate
-    - tipo: TipoRegistro
+    - tipo: TipoMatricula
     - modalidad: ModalidadMatricula
-    - idExpediente: Long
+    - alumno: Alumno
+    - listaSolicitudesExamen: List<SolicitudExamen>
     + getSaldoClases(): Integer
     + getConvocatoriasGastadas(): Integer
     + estaActiva(): Boolean
@@ -189,13 +223,20 @@ package "Autoescuela" {
     - kmInicio: Integer
     - kmFin: Integer
     - observaciones: String
-    - estadoConfirmacion: EstadoConfirmacion
+    - estadoClase: EstadoClase
+    - alumno: Alumno
+    - profesor: Profesor
+    + cambiarEstado(): Boolean
   }
 
   class SolicitudExamen {
     - id: Long
     - estado: EstadoSolicitud
     - comentarioJustificacion: String
+    - alumno: Alumno
+    - profesor: Profesor
+    - matricula: Matricula
+    - examen: Examen
   }
 
   class Examen {
@@ -204,12 +245,17 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - duracion: Integer
     - tipo: TipoExamen
+    - alumno: Alumno
+    - solicitudExamen: SolicitudExamen
   }
 }
 
-' --- 4. RELACIONES (Optimizadas para visualización) ---
+' --- 5. RELACIONES (Optimizadas para visualización) ---
 
 ' Trucos de alineación para que quede ordenado horizontalmente
+Autenticación -[hidden]right-> Usuarios
+Usuarios -[hidden]right-> Enums
+
 Administrador -[hidden]right-> Profesor
 Profesor -[hidden]right-> Alumno
 
@@ -218,6 +264,9 @@ Persona <|-down- Administrador
 Persona <|-down- Profesor
 Persona <|-down- Alumno
 
+' Relaciones de autenticación
+Persona "1" -left-> "0..*" TokenVerificacion : posee >
+
 ' Relaciones principales
 Profesor "1" -down-> "1" Vehiculo : tiene asignado >
 Vehiculo "1" -right-> "0..*" IncidenciaVehiculo : sufre >
@@ -225,15 +274,16 @@ Profesor "1" -right-> "0..*" IncidenciaVehiculo : reporta >
 
 Profesor "1" -right-> "0..*" Alumno : enseña a >
 
-Alumno "1" -down-> "1" Expediente : posee >
-Expediente "1" -down-> "1..*" Matricula : contiene >
+Alumno "1" -down-> "1..*" Matricula : posee >
 
 ClasePractica "0..*" -up-> "1" Alumno : recibida por >
 ClasePractica "0..*" -up-> "1" Profesor : impartida por >
 
 Matricula "1" -down-> "0..*" SolicitudExamen : genera >
-Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
+Administrador "1" -down-> "0..*" SolicitudExamen : gestiona >
+Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
+Alumno "1" -down-> "0..*" Examen : realiza >
 
 ' Separación de los Enums para evitar líneas cruzadas
 Usuarios -[hidden]right-> Enums

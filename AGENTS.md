@@ -128,7 +128,7 @@ src/
 │   │   │   ├── excepciones/                    <-- GlobalExceptionHandler, ReglaNegocioException, RecursoNoEncontradoException
 │   │   │   └── security/                       <-- UserDetailsServiceImpl, UserDetailsImpl, RedireccionPorRolSuccessHandler, HtmxAuthenticationEntryPoint
 │   │   │
-│   │   ├── auth/                               <-- Autenticación, registro y recuperación (CU-001, CU-002, CU-022)
+│   │   ├── auth/                               <-- Autenticación, registro y recuperación
 │   │   │   ├── controller/                     <-- AuthenticationController (/login, /registro, /recuperar)
 │   │   │   ├── dto/                            <-- LoginDTO, RegistroAlumnoDTO, RecuperarPasswordDTO, RestablecerPasswordDTO
 │   │   │   ├── mapper/                         <-- AuthenticationMapper
@@ -136,7 +136,7 @@ src/
 │   │   │   ├── repository/                     <-- TokenVerificacionRepository
 │   │   │   └── service/                        <-- AuthenticationService, TokenVerificacionService
 │   │   │
-│   │   ├── usuarios/                           <-- Gestión de usuarios y perfiles (CU-003 a CU-014, CU-036, CU-037)
+│   │   ├── usuarios/                           <-- Gestión de usuarios y perfiles
 │   │   │   ├── controller/                     <-- AdministradorController, ProfesorController, AlumnoController
 │   │   │   ├── dto/                            <-- AltaProfesorDTO, AlumnoDetalleDTO, EditarPerfilAlumnoDTO, EditarProfesorDTO, ReasignarAlumnoDTO, CambiarPasswordDTO, etc.
 │   │   │   ├── mapper/                         <-- AlumnoMapper, ProfesorMapper
@@ -144,7 +144,7 @@ src/
 │   │   │   ├── repository/                     <-- PersonaRepository, ProfesorRepository, AlumnoRepository
 │   │   │   └── service/                        <-- UsuarioService, ProfesorService, AlumnoService
 │   │   │
-│   │   ├── flota/                              <-- Vehículos e incidencias mecánicas (CU-015 a CU-018, CU-035)
+│   │   ├── flota/                              <-- Vehículos e incidencias mecánicas
 │   │   │   ├── controller/                     <-- VehiculoController, IncidenciaVehiculoController
 │   │   │   ├── dto/                            <-- VehiculoFormularioDTO, VehiculoResumenDTO
 │   │   │   ├── mapper/                         <-- VehiculoMapper, IncidenciaVehiculoMapper
@@ -152,7 +152,7 @@ src/
 │   │   │   ├── repository/                     <-- VehiculoRepository, IncidenciaVehiculoRepository
 │   │   │   └── service/                        <-- FlotaService
 │   │   │
-│   │   ├── academico/                          <-- Matrículas y expedientes de alumnos (CU-038, CU-039, CU-048)
+│   │   ├── academico/                          <-- Matrículas y expedientes de alumnos
 │   │   │   ├── controller/                     <-- MatriculaController
 │   │   │   ├── dto/                            <-- MatriculaCheckoutDTO, ComprarClasePracticaDTO
 │   │   │   ├── mapper/                         <-- MatriculaMapper
@@ -160,12 +160,12 @@ src/
 │   │   │   ├── repository/                     <-- MatriculaRepository
 │   │   │   └── service/                        <-- AcademicoService
 │   │   │
-│   │   ├── pagos/                              <-- Pasarela de pago Stripe desacoplada (CU-038, CU-039, CU-047)
+│   │   ├── pagos/                              <-- Pasarela de pago Stripe desacoplada
 │   │   │   ├── controller/                     <-- StripeWebhookController
 │   │   │   ├── dto/                            <-- SesionPagoDTO
 │   │   │   └── service/                        <-- PagoStripeService
 │   │   │
-│   │   ├── practicas/                          <-- Clases prácticas y Calendario HTMX (CU-023 a CU-027, CU-040 a CU-043)
+│   │   ├── practicas/                          <-- Clases prácticas y Calendario HTMX
 │   │   │   ├── controller/                     <-- ClasePracticaController, CalendarioController
 │   │   │   ├── dto/                            <-- ReservaClasePracticaDTO, EventoCalendarioDTO
 │   │   │   ├── mapper/                         <-- ClasePracticaMapper
@@ -173,7 +173,7 @@ src/
 │   │   │   ├── repository/                     <-- ClasePracticaRepository
 │   │   │   └── service/                        <-- ClasePracticaService, CalendarioService
 │   │   │
-│   │   ├── examenes/                           <-- Solicitudes, cupos y notas DGT (CU-028 a CU-032, CU-044, CU-046, CU-047)
+│   │   ├── examenes/                           <-- Solicitudes, cupos y notas DGT
 │   │   │   ├── controller/                     <-- ExamenController, SolicitudExamenController
 │   │   │   ├── dto/                            <-- SolicitudExamenDTO, CalificarExamenDTO
 │   │   │   ├── events/                         <-- ExamenAceptadoEvent (desacoplamiento mediante eventos)
@@ -182,7 +182,7 @@ src/
 │   │   │   ├── repository/                     <-- SolicitudExamenRepository, ExamenRepository
 │   │   │   └── service/                        <-- ExamenService
 │   │   │
-│   │   └── estadisticas/                       <-- Analítica y métricas (CU-019, CU-021, CU-033, CU-045)
+│   │   └── estadisticas/                       <-- Analítica y métricas
 │   │       ├── controller/                     <-- EstadisticaController
 │   │       ├── dto/                            <-- EstadisticasAutoescuelaDTO, EstadisticasAlumnoDTO
 │   │       ├── mapper/                         <-- EstadisticaMapper
@@ -510,7 +510,7 @@ Alumno "1" -down-> "0..*" Examen : realiza >
 
 # 5. Diagrama de Casos de Uso (CU) en PlantUML
 ```plantuml
-@startuml Diagrama_CU_v5
+@startuml Diagrama_CU_v6
 left to right direction
 skinparam packageStyle rectangle
 
@@ -528,59 +528,57 @@ Persona <|-- Alum
 usecase "Iniciar sesión" as iniciarSesion << CU-001 >>
 
 ' --- CASOS DE USO ADMINISTRADOR ---
-usecase "Crear usuario" as crearUsuario << CU-003 >>
-usecase "Modificar usuario" as modificarUsuario << CU-004 >>
-usecase "Eliminar usuario" as eliminarUsuario << CU-005 >>
-usecase "Consultar usuarios" as consultarUsuarios << CU-006 >>
 
-usecase "Crear profesor" as crearProfesor << CU-007 >>
-usecase "Modificar profesor" as modificarProfesor << CU-008 >>
-usecase "Eliminar profesor" as eliminarProfesor << CU-009 >>
-usecase "Consultar profesores" as consultarProfesores << CU-010 >>
+usecase "Crear profesor" as crearProfesor << CU-002 >>
+usecase "Modificar profesor" as modificarProfesor << CU-003 >>
+usecase "Eliminar profesor" as eliminarProfesor << CU-004 >>
+usecase "Consultar profesores" as consultarProfesores << CU-005 >>
 
-usecase "Crear alumno" as crearAlumno << CU-011 >>
-usecase "Modificar alumno" as modificarAlumno << CU-012 >>
-usecase "Eliminar alumno" as eliminarAlumno << CU-013 >>
-usecase "Consultar alumnos" as consultarAlumnos << CU-014 >>
+usecase "Crear alumno" as crearAlumno << CU-006 >>
+usecase "Modificar alumno" as modificarAlumno << CU-007 >>
+usecase "Eliminar alumno" as eliminarAlumno << CU-008 >>
+usecase "Consultar alumnos" as consultarAlumnos << CU-009 >>
 
-usecase "Insertar vehículo" as insertarVehiculo << CU-015 >>
-usecase "Modificar vehículo" as modificarVehiculo << CU-016 >>
-usecase "Eliminar vehículo" as eliminarVehiculo << CU-017 >>
-usecase "Consultar vehículos" as consultarVehiculos << CU-018 >>
+usecase "Insertar vehículo" as insertarVehiculo << CU-010 >>
+usecase "Modificar vehículo" as modificarVehiculo << CU-011 >>
+usecase "Eliminar vehículo" as eliminarVehiculo << CU-012 >>
+usecase "Consultar vehículos" as consultarVehiculos << CU-013 >>
 
-usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-019 >>
+usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-014 >>
+
+usecase "Consultar solicitudes examen" as consultarSolicitudExamen << CU-015 >>
+usecase "Aceptar solicitud examen" as aceptarSolicitudExamen << CU-016 >>
+usecase "Bloquear reservas vehículo" as bloquearReservasVehiculo << CU-017 >>
+usecase "Notificar alumno por correo" as notificarAlumno << CU-018 >>
+usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-019 >>
 
 ' --- CASOS DE USO PROFESOR ---
-usecase "Establecer credenciales" as establecerCredenciales << CU-022 >>
-usecase "Consultar calendario" as consultarCalendarioProf << CU-023 >>
-usecase "Modificar clase" as modificarClase << CU-024 >>
-usecase "Eliminar clase" as eliminarClase << CU-025 >>
-usecase "Rellenar detalles clase" as rellenarDetalles << CU-026 >>
-usecase "Notificar alumno por correo" as notificarAlumno << CU-027 >>
-usecase "Consultar solicitudes examen" as cSolExamenProf << CU-028 >>
-usecase "Aceptar solicitud examen" as aceptarExamen << CU-029 >>
-usecase "Rechazar solicitud examen" as rechazarExamen << CU-030 >>
-usecase "Bloquear reservas vehículo" as bloquearVehiculo << CU-031 >>
-usecase "Calificar examen" as calificarExamen << CU-032 >>
-usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-033 >>
-usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-035 >>
+usecase "Establecer credenciales" as establecerCredenciales << CU-020 >>
+usecase "Consultar calendario" as consultarCalendarioProf << CU-021 >>
+usecase "Modificar clase" as modificarClase << CU-022 >>
+usecase "Eliminar clase" as eliminarClase << CU-023 >>
+usecase "Rellenar detalles clase" as rellenarDetalles << CU-024 >>
+usecase "Calificar examen" as calificarExamen << CU-025 >>
+usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-026 >>
+usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-027 >>
 
 ' --- CASOS DE USO ALUMNO ---
-usecase "Consultar datos personales" as consultarDatos << CU-036 >>
-usecase "Modificar datos personales" as modificarDatos << CU-037 >>
-usecase "Pagar matriculacion" as pagarMatriculacion << CU-038 >>
+usecase "Recuperar contraseña" as recuperarPassword << CU-028 >>
+usecase "Consultar datos personales" as consultarDatos << CU-029 >>
+usecase "Modificar datos personales" as modificarDatos << CU-030 >>
+usecase "Pagar matriculacion / Registrarse" as pagarMatriculacion << CU-031 >>
 note right of pagarMatriculacion : Postcondición: Registro del Alumno\nen la BD en caso de éxito
 
-usecase "Comprar clases" as comprarClases << CU-039 >>
-usecase "Consultar calendario" as consultarCalendarioAlum << CU-040 >>
-usecase "Reservar clase práctica" as reservarClase << CU-041 >>
-usecase "Confirmar clase pendiente" as confirmarClase << CU-042 >>
-usecase "Consultar historial clases" as consultarHistorial << CU-043 >>
-usecase "Consultar notas examen" as consultarNotas << CU-044 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-045 >>
-usecase "Solicitar fecha examen" as solicitarExamen << CU-046 >>
-usecase "Pagar tasas examen" as pagarTasas << CU-047 >>
-usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-048 >>
+usecase "Comprar clases" as comprarClases << CU-032 >>
+usecase "Consultar calendario" as consultarCalendarioAlum << CU-033 >>
+usecase "Reservar clase práctica" as reservarClase << CU-034 >>
+usecase "Confirmar clase pendiente" as confirmarClase << CU-035 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-036 >>
+usecase "Consultar notas examen" as consultarNotas << CU-037 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-038 >>
+usecase "Solicitar fecha examen" as solicitarExamen << CU-039 >>
+usecase "Pagar tasas examen" as pagarTasas << CU-040 >>
+usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-041 >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
@@ -588,11 +586,6 @@ usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-048 >>
 Persona -- iniciarSesion
 
 ' Administrador
-Admin -- crearUsuario
-Admin -- modificarUsuario
-Admin -- eliminarUsuario
-Admin -- consultarUsuarios
-
 Admin -- crearProfesor
 Admin -- modificarProfesor
 Admin -- eliminarProfesor
@@ -609,16 +602,17 @@ Admin -- eliminarVehiculo
 Admin -- consultarVehiculos
 
 Admin -- cEstadisticasAdmin
+Admin -- consultarSolicitudExamen
 
 ' Profesor
 Prof -- establecerCredenciales
 Prof -- consultarCalendarioProf
-Prof -- cSolExamenProf
 Prof -- calificarExamen
 Prof -- cEstadisticasProf
 Prof -- reportarIncidencia
 
 ' Alumno
+Alum -- recuperarPassword
 Alum -- consultarCalendarioAlum
 Alum -- consultarDatos
 Alum -- modificarDatos
@@ -633,20 +627,21 @@ Alum -- solicitarIniciacion
 
 ' --- RELACIONES EXTEND E INCLUDE ---
 
+' Extends de Administrador (Gestión Solicitudes)
+consultarSolicitudExamen <.. aceptarSolicitudExamen : <<extend>>
+aceptarSolicitudExamen ..> notificarAlumno : <<include>>
+aceptarSolicitudExamen ..> bloquearReservasVehiculo : <<include>>
+consultarSolicitudExamen <.. rechazarSolicitudExamen : <<extend>>
+rechazarSolicitudExamen ..> notificarAlumno : <<include>>
+
 ' Extends de Profesor (Consultar Calendario)
 consultarCalendarioProf <.. modificarClase : <<extend>>
 consultarCalendarioProf <.. eliminarClase : <<extend>>
 consultarCalendarioProf <.. rellenarDetalles : <<extend>>
 
-' Extends de Profesor (Gestión Solicitudes)
-cSolExamenProf <.. aceptarExamen : <<extend>>
-cSolExamenProf <.. rechazarExamen : <<extend>>
-
 ' Includes de Profesor (Automatizaciones y Obligaciones)
 modificarClase ..> notificarAlumno : <<include>>
 eliminarClase ..> notificarAlumno : <<include>>
-aceptarExamen ..> notificarAlumno : <<include>>
-aceptarExamen ..> bloquearVehiculo : <<include>>
 
 ' Includes de Alumno
 solicitarExamen ..> pagarTasas : <<include>>
@@ -668,6 +663,7 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 - Al eliminar un vehículo, se aplica borrado lógico (INACTIVO) y se desvincula el vehículo de su respectivo profesor.
 - **Panel de Estadísticas Globales:** Métricas de tasas de aprobados/suspensos, rendimiento de profesores y estado de la flota.
 - **Gestión de Incidencias de Vehículos:** Visualización de incidencias reportadas por los profesores.
+- **Gestión Centralizada de Solicitudes de Examen (DGT):** Panel exclusivo para consultar el listado de solicitudes pendientes ordenadas por antigüedad (FIFO), asignar las 2 fechas mensuales oficiales de examen DGT, y aceptar (respetando el cupo de máx. 4 alumnos por profesor y carnet) o rechazar solicitudes (con justificación obligatoria).
 
 ## 6.2. Profesor
 - **Calendario Exclusivo:** Vista y CRUD únicamente sobre su propio calendario de clases prácticas.
@@ -678,6 +674,7 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 - **Gestión de Solicitudes de Examen:** Revisión de solicitudes (PENDIENTE) con posibilidad de RECHAZAR la solicitud indicando obligatoriamente el motivo de rechazo, o ACEPTAR, asignando la fecha del examen a sus alumnos (máximo estricto de **4 alumnos por profesor en un mismo día para el examen práctico**).
 - **Calificación del Examen:** Registro de resultado (APTO/ NO APTO) con link a la página oficial de la DGT para consultar el desglose de la nota detallada.
 - **Estadísticas Locales:** Tasa personal de aprobados/suspensos y datos del vehículo asignado.
+- **Consulta de Solicitudes y Convocatorias:** El profesor únicamente puede consultar el estado de las solicitudes y la lista de alumnos asignados a examen en su vehículo/turno. No tiene privilegios para aceptar, rechazar ni fijar fechas de examen.
 
 ## 6.3. Alumno
 - **Matriculación Inicial y Pagos (Stripe):** Matricularse en 1 carnet simultáneo. Pago de matrícula, clases sueltas, bonos de clases y tasas de examen.
@@ -739,14 +736,34 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
     - **Nivel de Servicio / JPA:** El método `reservarClase()` debe ejecutarse bajo `@Transactional(isolation = Isolation.READ_COMMITTED)` empleando bloqueo pesimista (`LockModeType.PESSIMISTIC_WRITE`) o verificación atómica previa inserción.
     - **Resolución de Conflicto:** La transacción que complete el *commit* en primer lugar consolida la reserva; cualquier intento concurrente posterior captura la excepción de colisión (`DataIntegrityViolationException` / `OptimisticLockException` / excepción de negocio `HuecoNoDisponibleException`) y devuelve inmediatamente al segundo usuario un fragmento HTMX (HTTP 409 Conflict / 200 con alerta visual) indicando: *"El tramo horario seleccionado acaba de ser ocupado por otro alumno. Por favor, elige otro hueco en el calendario"*.
 
-## 7.5. Circuito de Solicitudes de Examen
-- **Tipos de Examen:** Teórico y Práctico. Las opciones deben ocultarse o mostrarse en la UI según el estado académico del alumno (ej. si ya tiene el teórico aprobado, solo puede solicitar el práctico). Estado de solicitud inicial `PENDIENTE`
+## 7.5. Circuito y Gestión de Solicitudes de Examen (DGT)
+- **Gestión Centralizada por el Administrador:**
+  - El **Administrador** es la **ÚNICA** figura autorizada para visualizar, aceptar o rechazar las solicitudes de examen presentadas por los alumnos. Queda terminantemente prohibido que el rol `PROFESOR` acepte, rechace o asigne fechas a dichas solicitudes.
 - **Estados de Solicitud:** `PENDIENTE`, `RECHAZADA`, `ACEPTADA`.
-- **Resolución:**
-  - Si el profesor **rechaza** la solicitud: debe incluir obligatoriamente un texto de justificación (`CU-030`).
-  - Si el profesor **acepta** la solicitud: selecciona la fecha de examen (respetando el cupo de máximo 4 alumnos/día) y el sistema envía un correo al alumno con la citación oficial (`CU-029`).
-  - Si el profesor **acepta** la solicitud y ya hay 4 solicitudes aceptadas por ese profesor en ese día, el sistema muestra un mensaje de error, indicándole de que NO es posible aceptar más clases para ese día.
-- **Calificación del Examen:** Registro de resultado (APTO/ NO APTO) con link a la página oficial de la DGT para consultar el desglose de la nota detallada.
+- **Tipos de Examen y Solicitud Inicial:**
+  - Tipos: Teórico y Práctico. Las opciones deben habilitarse u ocultarse en la vista del alumno según su estado académico previo.
+  - Toda solicitud creada por el alumno nace en estado `PENDIENTE`.
+- **Ordenación Estricta por Antigüedad (FIFO):**
+  - En el panel de gestión del Administrador, el listado de solicitudes pendientes debe presentarse **ordenado cronológicamente por fecha/hora de petición de forma ascendente** (`ORDER BY fecha_solicitud ASC`), garantizando que la solicitud más antigua se sitúe siempre en primer lugar.
+- **Calendario Oficial de Exámenes DGT (Ciclo Bisemanal / 2 Fechas al Mes):**
+  - La autoescuela dispone exclusivamente de **2 jornadas oficiales de examen al mes** fijadas por la DGT (frecuencia aproximada de cada 2 semanas / 10 días hábiles).
+  - El día de la semana asignado rota mensualmente (p. ej., en septiembre lunes 7 y 21[cite: 3]; en octubre jueves 8 y 22). Las fechas oficiales de cada mes deben estar parametrizadas en el sistema por el Administrador antes de procesar las asignaciones.
+- **Cupo Máximo por Convocatoria:**
+  - Límite estricto de **máximo 4 alumnos por profesor y tipo de carnet en una misma fecha de examen práctico**.
+- **Resolución de Solicitudes:**
+  - **Rechazo:** Si el Administrador rechaza la solicitud, el estado pasa a `RECHAZADA` y es **estrictamente obligatorio registrar un texto de justificación/motivo**. El alumno recibe un correo con dicha justificación (`CU-018`).
+  - **Aceptación:**
+    - El Administrador selecciona una de las 2 fechas oficiales habilitadas para ese mes.
+    - El sistema valida que no se sobrepase el cupo de 4 alumnos para el profesor del alumno y tipo de carnet asignado. Si se ha alcanzado el límite, la transacción se bloquea mostrando un error explícito.
+    - Al confirmarse, el estado pasa a `ACEPTADA`, se dispara la citación oficial por correo al alumno (`CU-018`) y, si es examen práctico, se ejecuta el bloqueo automático de clases y reservas en el vehículo asignado para esa fecha (`CU-017`).
+- **Calificación del Examen:**
+  - El registro del resultado (`APTO` / `NO APTO`) se mantiene vinculado a la citación, facilitando al alumno el enlace externo oficial a la web de la DGT para la consulta del desglose detallado de su prueba.
+- **Algoritmo de Generación de Fechas de Examen DGT (Aleatoriedad Mensual):**
+  - Para cada mes natural, el sistema (o el Administrador al pulsar "Generar Convocatorias del Mes") selecciona aleatoriamente un día lectivo de la semana (Lunes a Viernes, es decir, de `DayOfWeek.MONDAY` a `DayOfWeek.FRIDAY` mediante un generador pseudoaleatorio o selector configurable).
+  - Una vez seleccionado el día de la semana para ese mes (por ejemplo, *Lunes*):
+    - **Primera fecha de examen:** Se calcula el primer día lectivo de ese tipo del mes (o de la primera quincena).
+    - **Segunda fecha de examen:** Se calcula sumando exactamente 14 días (2 semanas / ciclo de 10 días hábiles) a la primera fecha.
+  - Estas 2 fechas quedan fijadas en el sistema para ese mes como las únicas convocatorias oficiales disponibles para que el Administrador asigne a los alumnos.
 ---
 
 # 8. Reglas de Diseño
@@ -792,16 +809,17 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **10/09/2026** | Confirmación de Spring Boot 4.1.1 GA e integración de MapStruct 1.6.3 | Verificación de compatibilidad con Java 21 e integración en pom.xml junto a Lombok y lombok-mapstruct-binding. Estructura de DTOs plana por módulo y creación progresiva (Vertical Slice). |
 | **11/09/2026** | Consolidación de la arquitectura Package-by-Feature con subcapas internas (`controller`, `dto`, `mapper`, `model`, `repository`, `service`) y estructura frontend Thymeleaf/HTMX | Corrección de erratas en repositorio (`MatriculaRepository`), controlador de incidencias (`IncidenciaVehiculoController`), modularización de DTOs de autenticación con records Java 21, andamiaje de vistas responsivas (`templates/`) y activos (`static/`), sincronizando Sección 3 de AGENTS.md. |
 | **12/09/2026** | Población de datos semilla (`data.sql`), soporte de consola H2 en seguridad, sincronización de perfiles (H2, Supabase, Docker) y test de carga `DataSqlH2Test` | Implementación de dataset completo respetando la estrategia de herencia `@Inheritance(strategy = InheritanceType.JOINED)` y restricciones referenciales (4 vehículos, 6 personas con hash BCrypt, 3 alumnos, 2 profesores con permisos, 2 incidencias, 3 matrículas, 4 clases prácticas, 3 solicitudes y 3 exámenes). Habilitación de `frameOptions.sameOrigin()` y exclusión CSRF en `/h2-console/**`. Verificación automatizada con JUnit 5 + `JdbcTemplate`. |
-| **13/09/2026** | Desacoplamiento de pasarela de pago (Stripe) al paquete independiente `pagos` (`com.autoescuela.erp.pagos`) | Extracción de `PagoStripeService` y `StripeWebhookController` fuera de `academico`. Justificación arquitectónica: evitar acoplamiento cruzado y duplicidad al requerir cobros para matrículas/bonos (`academico`) y tasas de examen oficial DGT (`examenes`, CU-046/CU-047). Centralización del endpoint webhook global de Stripe y soporte agnóstico de sesiones de Checkout mediante metadatos y eventos. |
+| **13/09/2026** | Desacoplamiento de pasarela de pago (Stripe) al paquete independiente `pagos` (`com.autoescuela.erp.pagos`) | Extracción de `PagoStripeService` y `StripeWebhookController` fuera de `academico`. Justificación arquitectónica: evitar acoplamiento cruzado y duplicidad al requerir cobros para matrículas/bonos (`academico`) y tasas de examen oficial DGT (`examenes`). Centralización del endpoint webhook global de Stripe y soporte agnóstico de sesiones de Checkout mediante metadatos y eventos. |
 | **13/09/2026** | Configuración integral de Spring Security con JSESSIONID y soporte HTMX | Adopción de sesiones basadas en cookies seguras (`JSESSIONID`) con `HttpOnly` y `SameSite=Lax`. Implementación de login dual (nombre de usuario o correo según Regla 7.1), `UsuarioDetalles`, redirección post-login dinámica por rol (`RedireccionPorRolSuccessHandler`), manejo transparente de expiración de sesión en HTMX (`HX-Redirect`), exclusión segura de CSRF para consola H2 y webhooks de Stripe, y control de concurrencia limitando estrictamente a 1 sesión activa por usuario con `HttpSessionEventPublisher`. Verificación con 11 tests de integración en `SeguridadIntegrationTest`. |
 | **14/09/2026** | Frontend de autenticación *split-screen* (Login/Registro) con Tailwind CSS, Flowbite y conmutación instantánea reactiva | Maquetación responsiva en 2 columnas: panel izquierdo con identidad de marca, logotipo vectorial ManDS, propuesta de valor y slot desacoplado para imagen de flota; panel derecho con selector de pestañas accesible para alternar instantáneamente mediante JS nativo entre inicio de sesión y registro de alumnos, integración con endpoints Spring Security (`/login`, `/registro`), soporte dual username/correo, visibilidad dinámica de contraseñas y alertas contextuales (`error`, `logout`, `expirada`). Verificación con `LoginViewTest` (4 tests) y `SeguridadIntegrationTest` (11 tests). |
 | **15/09/2026** | Diseño e implementación de las vistas completas de Login y Registro de Alumnos | Implementación integral del frontend de autenticación: maquetación de `login.html` y `registro.html` con Tailwind CSS y componentes Flowbite, desacoplamiento de interactividad cliente en `login.js` y `registro.js` (validaciones en tiempo real, alternancia de visibilidad de contraseñas), soporte transversal de tokens CSRF para HTMX mediante `htmx-config.js` y suites de pruebas automatizadas con MockMvc (`VistaLoginTest` y `VistaRegistroTest`). |
 | **15/09/2026** | Alineación de roles en Spring Security con prefijo `ROLE_` y habilitación del Dashboard de Alumno | Corrección de autorización en Spring Security: adopción de autoridades con prefijo canónico `ROLE_` (`ROLE_` + `persona.getRol().name()`) en `UserDetailsImpl` para satisfacer los matchers `.hasRole(...)` de `ConfiguracionSeguridad`. Sincronización en `RedireccionPorRolSuccessHandler` evaluando `"ROLE_ADMIN"`, `"ROLE_PROFESOR"` y `"ROLE_ALUMNO"`. Implementación del controlador `AlumnoController.redirectToDashboard` inyectando `@AuthenticationPrincipal UserDetailsImpl` para propagar el `nombreAlumno` al modelo y renderizarlo dinámicamente en `alumno/dashboard.html`. |
-| **15/09/2026** | Diseño e implementación integral de la Vista de Recuperación y Restablecimiento de Contraseña (`CU-022`) | Creación de la vista `auth/recuperar-password.html` con diseño *split-screen* responsivo y gestión multiestado en una sola plantilla (solicitud por email, restablecimiento con token criptográfico temporal y confirmación de éxito). Integración en `AutenticacionController` (`GET /recuperar-password`), lógica cliente en `recuperar-password.js` bajo JavaScript no intrusivo (`addEventListener`, validación en tiempo real de requisitos de complejidad de clave y coincidencia, alternancia accesible de visibilidad) y suite de pruebas automatizadas `VistaRecuperarPasswordTest` (5 tests MockMvc verificando estados, alertas contextuales y branding). |
+| **15/09/2026** | Diseño e implementación integral de la Vista de Recuperación y Restablecimiento de Contraseña (`CU-028`) | Creación de la vista `auth/recuperar-password.html` con diseño *split-screen* responsivo y gestión multiestado en una sola plantilla (solicitud por email, restablecimiento con token criptográfico temporal y confirmación de éxito). Integración en `AutenticacionController` (`GET /recuperar-password`), lógica cliente en `recuperar-password.js` bajo JavaScript no intrusivo (`addEventListener`, validación en tiempo real de requisitos de complejidad de clave y coincidencia, alternancia accesible de visibilidad) y suite de pruebas automatizadas `VistaRecuperarPasswordTest` (5 tests MockMvc verificando estados, alertas contextuales y branding). |
 | **16/09/2026** | Consolidación del Backend para el Formulario de Login (`CU-001`) y Cierre de Sesión Automático en `/login` | Definición de `LoginDTO` como record inmutable de Java 21 con validaciones Bean Validation (`@NotBlank`). Implementación de `AutenticacionService` con métodos de consulta del estado de autenticación (`estaAutenticado`), recuperación segura de `UserDetailsImpl` y `Persona`, e invalidación controlada de sesión (`cerrarSesion`). Optimización de `AutenticacionController` para cerrar sesión automáticamente e invalidar cookies cuando un usuario autenticado navega a `/login`, previniendo sesiones inconsistentes. Verificación con suite unitaria `AutenticacionServiceTest` (5 tests) y ampliación de `VistaLoginTest` (total 36 tests superados). |
 | **17/09/2026** | Actualización de nomenclatura del módulo `auth` a inglés (`Authentication*`) en la documentación | Sincronización del punto 3 de AGENTS.md sustituyendo `AutenticacionController`, `AutenticacionMapper` y `AutenticacionService` por sus nombres reales en el código fuente (`AuthenticationController`, `AuthenticationMapper` y `AuthenticationService`). |
-| **17/09/2026** | Backend integral para el Formulario de Registro de Alumnos (`CU-002`) | Implementación del flujo de alta pública: `RegistroAlumnoDTO` como record con Bean Validation (DNI español/NIE, email, contraseñas, fecha de nacimiento, teléfono y términos RGPD), `AuthenticationMapper` con MapStruct, conversión de `AlumnoRepository` a interfaz JPA (`findByDni`, `findByNombreUsuario`, `findByCorreo`), método `AuthenticationService.registrarAlumno` con validación de unicidad en `PersonaRepository`, encriptación BCrypt y estado `ACTIVO`. Manejo de peticiones `POST /registro` en `AuthenticationController`, alertas en `registro.html` y `login.html`, y preservación de valores de entrada. Cobertura con `RegistroAlumnoIntegrationTest` (7 tests) y 50 tests globales superados. |
-| **17/09/2026** | Restricción de unicidad del teléfono en la entidad `Persona` y validación integral del campo teléfono en el registro de alumnos (`CU-002`) | Incorporación de `@Column(nullable = false, unique = true)` en `Persona.telefono`, adición del método `existsByTelefono` en `PersonaRepository` y `AuthenticationService`. Implementación de validación asíncrona temprana HTMX en `AuthenticationController` (`POST /registro/validar-telefono`) y control estricto de negocio en `AuthenticationService.registrarAlumno` lanzando `ReglaNegocioException` para evitar violaciones de restricción de base de datos no controladas. Limpieza de atributos en `registro.html` (`maxlength="9"`). Cobertura con 3 tests unitarios en `AutenticacionServiceTest` y 4 tests de integración en `RegistroAlumnoIntegrationTest` (totalizando 65 tests globales superados). |
-| **18/09/2026** | Implementación integral del flujo de recuperación de contraseña con tokens efímeros y Mailpit (`CU-022`) | Implementación de extremo a extremo del flujo de restablecimiento de contraseña: entidad JPA `TokenVerificacion` con caducidad a 15 min y un solo uso, interfaz JPA `TokenVerificacionRepository`, servicio `TokenVerificacionService`, cliente de correo HTML transaccional `EmailService` / `EmailServiceImpl` y configuración explícita `MailConfig` vinculada al servidor local Mailpit (puerto SMTP 1025). Integración en `AuthenticationService` con política de privacidad Anti-User Enumeration y codificación BCrypt, endpoints `POST /recuperar-password` y `POST /recuperar-password/restablecer` en `AuthenticationController`, DTOs inmutables `RecuperarPasswordDTO` y `RestablecerPasswordDTO` (validación de mínimo 8 caracteres sin forzar caracteres especiales a petición del desarrollador), y manejo resiliente ante desconexiones SMTP. Cobertura con 6 tests unitarios en `TokenVerificacionServiceTest`, 6 tests unitarios ampliados en `AutenticacionServiceTest` y 6 tests de integración de extremo a extremo en `RecuperarPasswordIntegrationTest` (totalizando 87 tests globales superados). |
+| **17/09/2026** | Backend integral para el Formulario de Registro de Alumnos | Implementación del flujo de alta pública: `RegistroAlumnoDTO` como record con Bean Validation (DNI español/NIE, email, contraseñas, fecha de nacimiento, teléfono y términos RGPD), `AuthenticationMapper` con MapStruct, conversión de `AlumnoRepository` a interfaz JPA (`findByDni`, `findByNombreUsuario`, `findByCorreo`), método `AuthenticationService.registrarAlumno` con validación de unicidad en `PersonaRepository`, encriptación BCrypt y estado `ACTIVO`. Manejo de peticiones `POST /registro` en `AuthenticationController`, alertas en `registro.html` y `login.html`, y preservación de valores de entrada. Cobertura con `RegistroAlumnoIntegrationTest` (7 tests) y 50 tests globales superados. |
+| **17/09/2026** | Restricción de unicidad del teléfono en la entidad `Persona` y validación integral del campo teléfono en el registro de alumnos | Incorporación de `@Column(nullable = false, unique = true)` en `Persona.telefono`, adición del método `existsByTelefono` en `PersonaRepository` y `AuthenticationService`. Implementación de validación asíncrona temprana HTMX en `AuthenticationController` (`POST /registro/validar-telefono`) y control estricto de negocio en `AuthenticationService.registrarAlumno` lanzando `ReglaNegocioException` para evitar violaciones de restricción de base de datos no controladas. Limpieza de atributos en `registro.html` (`maxlength="9"`). Cobertura con 3 tests unitarios en `AutenticacionServiceTest` y 4 tests de integración en `RegistroAlumnoIntegrationTest` (totalizando 65 tests globales superados). |
+| **18/09/2026** | Implementación integral del flujo de recuperación de contraseña con tokens efímeros y Mailpit (`CU-028`) | Implementación de extremo a extremo del flujo de restablecimiento de contraseña: entidad JPA `TokenVerificacion` con caducidad a 15 min y un solo uso, interfaz JPA `TokenVerificacionRepository`, servicio `TokenVerificacionService`, cliente de correo HTML transaccional `EmailService` / `EmailServiceImpl` y configuración explícita `MailConfig` vinculada al servidor local Mailpit (puerto SMTP 1025). Integración en `AuthenticationService` con política de privacidad Anti-User Enumeration y codificación BCrypt, endpoints `POST /recuperar-password` y `POST /recuperar-password/restablecer` en `AuthenticationController`, DTOs inmutables `RecuperarPasswordDTO` y `RestablecerPasswordDTO` (validación de mínimo 8 caracteres sin forzar caracteres especiales a petición del desarrollador), y manejo resiliente ante desconexiones SMTP. Cobertura con 6 tests unitarios en `TokenVerificacionServiceTest`, 6 tests unitarios ampliados en `AutenticacionServiceTest` y 6 tests de integración de extremo a extremo en `RecuperarPasswordIntegrationTest` (totalizando 87 tests globales superados). |
 | **19/09/2026** | Estandarización obligatoria del operador `this` para el acceso a atributos de clase en backend y tests | Incorporación de la regla en el apartado 10 y refactorización sistemática en todas las clases de servicio, controladores, configuraciones y suites de pruebas unitarias e integradas para garantizar distinción visual inequívoca entre atributos y variables/parámetros locales, previniendo el *shadowing*. Soporte de fallback por defecto en `@Value("${app_base_url:http://localhost:8080}")` y definición en `application.properties` de test. Verificación con 87 tests superados (100% verde). |
 | **19/09/2026** | Sincronización integral del Diagrama Modelo Entidad - Relación (ER v8) y actualización estructural del proyecto en `AGENTS.md` y `Diagrama_ER.puml` | Inclusión de la entidad `TokenVerificacion` (`com.autoescuela.erp.auth.model`) en el paquete `Autenticación` y su relación `@ManyToOne` unidireccional con `Persona`. Disposición optimizada ortogonal a la izquierda de `Usuarios` para evitar cruces con la jerarquía de herencia y el módulo `Autoescuela`. Actualización del inventario de clases en Sección 3 (`RestablecerPasswordDTO`, `MailConfig`, componentes de seguridad, scripts JS cliente de autenticación y tests de consistencia H2/seguridad transversal). Sincronización simétrica en el archivo independiente `Diagramas/Diagrama_ER/Diagrama_ER.puml` para previsualización inmediata en el IDE. |
+| **19/09/2026** | Reenumeración secuencial de Casos de Uso (CU-001 a CU-041) en `Diagrama_CU.puml` y desacoplamiento de comentarios en Backend | Adopción de numeración secuencial continua (1 a 41) en el diagrama de casos de uso v6 alineada con la centralización de solicitudes de examen DGT en el Administrador y sincronizada en Sección 5 de AGENTS.md. Eliminación completa de identificadores rígidos de casos de uso (`CU-xxx`) en comentarios y Javadoc del backend Java (`AuthenticationController`, `RegistroAlumnoDTO`, `AuthenticationService`, suites de test) para evitar acoplamientos innecesarios. |
