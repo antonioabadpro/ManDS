@@ -16,6 +16,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+
+import com.autoescuela.erp.auth.model.TokenVerificacion;
+import com.autoescuela.erp.auth.service.TokenVerificacionService;
+import com.autoescuela.erp.usuarios.model.Persona;
+import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
 @SpringBootTest
 @TestPropertySource(properties =
@@ -24,10 +30,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.sql.init.data-locations=classpath:data.sql",
         "spring.jpa.defer-datasource-initialization=true"
 })
+/**
+ * Pruebas de unidad para la vista de recuperación de contraseña.
+ * VistaRecuperarPasswordTest contiene pruebas para verificar el renderizado correcto de la vista de recuperación de contraseña en diferentes escenarios (sin token, con token válido, con token inválido, etc.).
+ * Se utilizan Mocks para simular solicitudes HTTP y verificar el contenido de la respuesta.
+ */
 class VistaRecuperarPasswordTest
 {
     @Autowired
     private WebApplicationContext contexto;
+
+    @Autowired
+    private TokenVerificacionService tokenVerificacionService;
+
+    @Autowired
+    private PersonaRepository personaRepository;
 
     private MockMvc mockMvc;
 
@@ -66,19 +83,31 @@ class VistaRecuperarPasswordTest
     }
 
     @Test
-    @DisplayName("GET /recuperar-password con parámetro token renderiza el formulario de restablecimiento de contraseña")
+    @DisplayName("GET /recuperar-password con parámetro token válido renderiza el formulario de restablecimiento de contraseña")
     void testRenderizadoFormularioConToken() throws Exception
     {
-        this.mockMvc.perform(get("/recuperar-password?token=token_seguro_xyz_123"))
+        Persona persona = personaRepository.findByCorreo("admin@autoescuela.es").orElseThrow();
+        TokenVerificacion token = tokenVerificacionService.generarTokenRecuperacion(persona);
+
+        this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"))
                 .andExpect(content().string(containsString("id=\"panel-restablecer\"")))
-                .andExpect(content().string(containsString("token_seguro_xyz_123")))
+                .andExpect(content().string(containsString(token.getToken())))
                 .andExpect(content().string(containsString("id=\"nueva-password\"")))
                 .andExpect(content().string(containsString("id=\"confirmar-password\"")))
                 .andExpect(content().string(containsString("action=\"/recuperar-password/restablecer\"")))
                 .andExpect(content().string(containsString("id=\"btn-toggle-nueva-pass\"")))
                 .andExpect(content().string(containsString("id=\"btn-toggle-confirmar-pass\"")));
+    }
+
+    @Test
+    @DisplayName("GET /recuperar-password con token inexistente redirige a ?tokenInvalido=true")
+    void testTokenInexistenteRedirige() throws Exception
+    {
+        this.mockMvc.perform(get("/recuperar-password?token=token_falso_inexistente"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/recuperar-password?tokenInvalido=true"));
     }
 
     @Test

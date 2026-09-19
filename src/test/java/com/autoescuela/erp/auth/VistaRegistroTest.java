@@ -17,18 +17,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-/**
- * Pruebas de integración de vista para el asistente multi-paso de registro de alumnos (registro.html).
- * Verifica la resolución de la plantilla Thymeleaf, branding corporativo, metaetiquetas de seguridad,
- * componentes del stepper y estructura íntegra de los tres paneles del formulario.
- */
 @SpringBootTest
 @TestPropertySource(properties =
-{
+    {
         "spring.sql.init.mode=always",
         "spring.sql.init.data-locations=classpath:data.sql",
         "spring.jpa.defer-datasource-initialization=true"
-})
+    })
+    /**
+     * Pruebas de integración de vista para el asistente multi-paso de registro de alumnos (registro.html).
+     * Verifica la resolución de la plantilla Thymeleaf, branding corporativo, metaetiquetas de seguridad,
+     * componentes del stepper y estructura íntegra de los tres paneles del formulario.
+     * VistaReistroTest contiene pruebas para verificar el renderizado correcto de la vista de registro en diferentes escenarios (sin token, con token válido, con token inválido, etc.).
+     * Se utilizan Mocks para simular solicitudes HTTP y verificar el contenido de la respuesta.
+     */
 class VistaRegistroTest
 {
     @Autowired

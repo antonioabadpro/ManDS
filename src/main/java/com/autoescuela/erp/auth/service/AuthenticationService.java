@@ -9,9 +9,13 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
+import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
+import com.autoescuela.erp.auth.model.TokenVerificacion;
+import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
@@ -37,6 +41,11 @@ public class AuthenticationService
     private final AlumnoRepository alumnoRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationMapper authenticationMapper;
+    private final TokenVerificacionService tokenVerificacionService;
+    private final EmailService emailService;
+
+    @Value("${app_base_url}")
+    private String appBaseUrlConfigurada;
 
     /**
      * Comprueba si una instancia de {@link Authentication} pertenece a un usuario autenticado legítimo.
@@ -262,5 +271,93 @@ public class AuthenticationService
             return false;
         }
         return personaRepository.existsByTelefono(telefono.trim());
+    }
+
+    /**
+     * Inicia el proceso de recuperación de contraseña (CU-022).
+     * Si el correo electrónico corresponde a una Persona con estado ACTIVO, se genera un
+     * token temporal efímero (15 minutos) y se envía el correo transaccional con el enlace de recuperación.
+     *
+     * PRINCIPIO DE SEGURIDAD (Anti-User Enumeration): Si el correo no existe o el usuario está inactivo,
+     * el método finaliza silenciosamente sin arrojar excepciones para impedir la enumeración de cuentas.
+     *
+     * @param correo Correo electrónico proporcionado en la solicitud.
+     * @param baseUrl Base URL dinámica de la petición HTTP (o null para utilizar la configurada).
+     */
+    @Transactional
+    public void solicitarRecuperacionPassword(String correo, String baseUrl)
+    {
+        if (correo == null || correo.isBlank())
+        {
+            return;
+        }
+
+        String correoLimpio = correo.trim().toLowerCase();
+        Optional<Persona> personaOpt = personaRepository.findByCorreo(correoLimpio);
+
+        if (personaOpt.isPresent())
+        {
+            Persona persona = personaOpt.get();
+            if (persona.getEstado() == EstadoUsuario.ACTIVO)
+            {
+                TokenVerificacion token = tokenVerificacionService.generarTokenRecuperacion(persona);
+                String baseUrlFinal = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl : appBaseUrlConfigurada;
+                if (baseUrlFinal.endsWith("/"))
+                {
+                    baseUrlFinal = baseUrlFinal.substring(0, baseUrlFinal.length() - 1);
+                }
+                String enlace = baseUrlFinal + "/recuperar-password?token=" + token.getToken();
+                emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace);
+            }
+        }
+    }
+
+    /**
+     * Verifica la validez y vigencia de un token de recuperación.
+     *
+     * @param token Cadena UUID del token.
+     * @return true si el token existe, no ha sido consumido y no ha expirado; false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean validarTokenRecuperacion(String token)
+    {
+        return tokenVerificacionService.esTokenValido(token);
+    }
+
+    /**
+     * Restablece la contraseña de un usuario a partir de un token de verificación válido.
+     * Valida la coincidencia de claves, codifica la nueva contraseña mediante BCrypt,
+     * actualiza la entidad Persona y marca el token como consumido para evitar reutilizaciones.
+     *
+     * @param dto DTO con el token, la nueva contraseña y su confirmación.
+     * @throws ReglaNegocioException Si el token es inválido o expirado, o las contraseñas no coinciden.
+     */
+    @Transactional
+    public void restablecerPassword(RestablecerPasswordDTO dto)
+    {
+        if (dto == null)
+        {
+            throw new ReglaNegocioException("Los datos de restablecimiento no pueden ser nulos.");
+        }
+
+        if (dto.password() == null || !dto.password().equals(dto.confirmPassword()))
+        {
+            throw new ReglaNegocioException("Las contraseñas introducidas no coinciden.");
+        }
+
+        if (dto.password().trim().length() < 8)
+        {
+            throw new ReglaNegocioException("La contraseña debe tener al menos 8 caracteres.");
+        }
+
+        TokenVerificacion tokenVerificacion = this.tokenVerificacionService.obtenerTokenValido(dto.token())
+                .orElseThrow(() -> new ReglaNegocioException("El enlace de recuperación es inválido o ha caducado."));
+
+        Persona persona = tokenVerificacion.getPersona();
+        String passwordCodificada = this.passwordEncoder.encode(dto.password());
+        persona.actualizarPassword(passwordCodificada);
+        this.personaRepository.save(persona);
+
+        this.tokenVerificacionService.marcarComoUsado(tokenVerificacion);
     }
 }

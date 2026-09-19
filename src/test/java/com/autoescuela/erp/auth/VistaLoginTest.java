@@ -27,6 +27,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.sql.init.data-locations=classpath:data.sql",
         "spring.jpa.defer-datasource-initialization=true"
 })
+/**
+ * Pruebas de unidad para la vista de login.
+ * VistaLoginTest contiene pruebas para verificar el renderizado correcto de la vista de login en diferentes escenarios (login exitoso, error de credenciales, cierre de sesión, sesión expirada, etc.).
+ * Se utilizan Mocks para simular solicitudes HTTP y verificar el contenido de la respuesta.
+ */
 class VistaLoginTest
 {
     @Autowired

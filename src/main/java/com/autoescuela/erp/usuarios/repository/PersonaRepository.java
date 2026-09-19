@@ -17,6 +17,13 @@ public interface PersonaRepository extends JpaRepository<Persona, Long>
     Optional<Persona> findByNombreUsuarioOrCorreo(String nombreUsuario, String correo);
 
     /**
+     * Busca una persona por su dirección de correo electrónico.
+     * @param correo Dirección de correo electrónico.
+     * @return Optional con la persona encontrada o vacío si no existe.
+     */
+    Optional<Persona> findByCorreo(String correo);
+
+    /**
      * Comprueba si ya existe un usuario registrado con el nombre de usuario indicado.
      */
     boolean existsByNombreUsuario(String nombreUsuario);

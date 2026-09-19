@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
+import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 
@@ -19,7 +20,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 /**
@@ -103,14 +103,69 @@ public class AuthenticationController
         }
     }
 
+    /**
+     * Muestra la vista de recuperación o restablecimiento de contraseña.
+     * Si se recibe un parámetro "token", se verifica su validez y vigencia.
+     * Si el token es inválido o ha expirado, se redirige inmediatamente con la alerta correspondiente.
+     */
     @GetMapping("/recuperar-password")
     public String recuperarPassword(@RequestParam(name = "token", required = false) String token, Model model)
     {
         if (token != null && !token.isBlank())
         {
             model.addAttribute("token", token);
+            String tokenLimpio = token.trim();
+            if (autenticacionService.validarTokenRecuperacion(tokenLimpio)==false)
+            {
+                return "redirect:/recuperar-password?tokenInvalido=true";
+            }
+            model.addAttribute("token", tokenLimpio);
         }
         return "auth/recuperar-password";
+    }
+
+    /**
+     * Procesa la solicitud pública de recuperación de contraseña enviando el correo con el enlace y token efímero.
+     * Por motivos de seguridad y privacidad (Anti-User Enumeration), siempre redirige a ?enviado=true.
+     */
+    @PostMapping("/recuperar-password")
+    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request)
+    {
+        String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+        this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
+        return "redirect:/recuperar-password?enviado=true";
+    }
+
+    /**
+     * Procesa el cambio efectivo de contraseña a partir del token criptográfico temporal.
+     * Si la operación tiene éxito, redirige a la vista con el estado de éxito (?exito=true).
+     */
+    @PostMapping("/recuperar-password/restablecer")
+    public String procesarRestablecimientoPassword(@Valid @ModelAttribute("restablecerDTO") RestablecerPasswordDTO dto, BindingResult bindingResult, Model model)
+    {
+        if (bindingResult.hasErrors())
+        {
+            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", mensajeError);
+            return "auth/recuperar-password";
+        }
+
+        try
+        {
+            this.autenticacionService.restablecerPassword(dto);
+            return "redirect:/recuperar-password?exito=true";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            if (ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"))
+            {
+                return "redirect:/recuperar-password?tokenInvalido=true";
+            }
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", ex.getMessage());
+            return "auth/recuperar-password";
+        }
     }
 
     /**
