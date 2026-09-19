@@ -43,7 +43,7 @@ public class TokenVerificacionService
         LocalDateTime fechaExpiracion = LocalDateTime.now().plusMinutes(DURACION_TOKEN_MINUTOS);
 
         TokenVerificacion nuevoToken = new TokenVerificacion(uuid, persona, fechaExpiracion);
-        return tokenVerificacionRepository.save(nuevoToken);
+        return this.tokenVerificacionRepository.save(nuevoToken);
     }
 
     /**
@@ -61,7 +61,7 @@ public class TokenVerificacionService
             return Optional.empty();
         }
 
-        return tokenVerificacionRepository.findByTokenAndUsadoFalse(token.trim())
+        return this.tokenVerificacionRepository.findByTokenAndUsadoFalse(token.trim())
                 .filter(t -> t.isValido());
     }
 
@@ -88,7 +88,7 @@ public class TokenVerificacionService
         if (tokenVerificacion != null)
         {
             tokenVerificacion.marcarComoUsado();
-            tokenVerificacionRepository.save(tokenVerificacion);
+            this.tokenVerificacionRepository.save(tokenVerificacion);
         }
     }
 }

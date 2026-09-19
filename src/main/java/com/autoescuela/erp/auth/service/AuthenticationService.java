@@ -44,7 +44,7 @@ public class AuthenticationService
     private final TokenVerificacionService tokenVerificacionService;
     private final EmailService emailService;
 
-    @Value("${app_base_url}")
+    @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrlConfigurada;
 
     /**
@@ -121,7 +121,7 @@ public class AuthenticationService
         }
 
         Long usuarioId = userDetailsOpt.get().getId();
-        return personaRepository.findById(usuarioId);
+        return this.personaRepository.findById(usuarioId);
     }
 
     /**
@@ -172,28 +172,28 @@ public class AuthenticationService
         String telefonoLimpio = dto.telefono().trim();
 
         // Validaciones de unicidad en el repositorio global de personas
-        if (personaRepository.existsByNombreUsuario(nombreUsuarioLimpio))
+        if (this.personaRepository.existsByNombreUsuario(nombreUsuarioLimpio))
         {
             throw new ReglaNegocioException("El nombre de usuario ya está registrado en el sistema.");
         }
 
-        if (personaRepository.existsByCorreo(correoLimpio))
+        if (this.personaRepository.existsByCorreo(correoLimpio))
         {
             throw new ReglaNegocioException("El correo electrónico ya está registrado en el sistema.");
         }
 
-        if (personaRepository.existsByDni(dniLimpio))
+        if (this.personaRepository.existsByDni(dniLimpio))
         {
             throw new ReglaNegocioException("El DNI/NIE ya está registrado en el sistema.");
         }
 
-        if (personaRepository.existsByTelefono(telefonoLimpio))
+        if (this.personaRepository.existsByTelefono(telefonoLimpio))
         {
             throw new ReglaNegocioException("El teléfono ya está registrado en el sistema.");
         }
 
         // Mapeo inicial con MapStruct
-        Alumno alumno = authenticationMapper.toAlumno(dto);
+        Alumno alumno = this.authenticationMapper.toAlumno(dto);
         alumno.setNombreUsuario(nombreUsuarioLimpio);
         alumno.setCorreo(correoLimpio);
         alumno.setDni(dniLimpio);
@@ -204,9 +204,9 @@ public class AuthenticationService
         alumno.setEstado(EstadoUsuario.ACTIVO);
 
         // Encriptación segura de contraseña con BCrypt
-        alumno.actualizarPassword(passwordEncoder.encode(dto.password()));
+        alumno.actualizarPassword(this.passwordEncoder.encode(dto.password()));
 
-        return alumnoRepository.save(alumno);
+        return this.alumnoRepository.save(alumno);
     }
 
     /**
@@ -222,7 +222,7 @@ public class AuthenticationService
         {
             return false;
         }
-        return personaRepository.existsByNombreUsuario(nombreUsuario.trim());
+        return this.personaRepository.existsByNombreUsuario(nombreUsuario.trim());
     }
 
     /**
@@ -238,7 +238,7 @@ public class AuthenticationService
         {
             return false;
         }
-        return personaRepository.existsByCorreo(correo.trim().toLowerCase());
+        return this.personaRepository.existsByCorreo(correo.trim().toLowerCase());
     }
 
     /**
@@ -254,7 +254,7 @@ public class AuthenticationService
         {
             return false;
         }
-        return personaRepository.existsByDni(dni.trim().toUpperCase());
+        return this.personaRepository.existsByDni(dni.trim().toUpperCase());
     }
 
     /**
@@ -270,7 +270,7 @@ public class AuthenticationService
         {
             return false;
         }
-        return personaRepository.existsByTelefono(telefono.trim());
+        return this.personaRepository.existsByTelefono(telefono.trim());
     }
 
     /**
@@ -293,21 +293,21 @@ public class AuthenticationService
         }
 
         String correoLimpio = correo.trim().toLowerCase();
-        Optional<Persona> personaOpt = personaRepository.findByCorreo(correoLimpio);
+        Optional<Persona> personaOpt = this.personaRepository.findByCorreo(correoLimpio);
 
         if (personaOpt.isPresent())
         {
             Persona persona = personaOpt.get();
             if (persona.getEstado() == EstadoUsuario.ACTIVO)
             {
-                TokenVerificacion token = tokenVerificacionService.generarTokenRecuperacion(persona);
-                String baseUrlFinal = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl : appBaseUrlConfigurada;
+                TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+                String baseUrlFinal = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl : this.appBaseUrlConfigurada;
                 if (baseUrlFinal.endsWith("/"))
                 {
                     baseUrlFinal = baseUrlFinal.substring(0, baseUrlFinal.length() - 1);
                 }
                 String enlace = baseUrlFinal + "/recuperar-password?token=" + token.getToken();
-                emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace);
+                this.emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace);
             }
         }
     }
@@ -321,7 +321,7 @@ public class AuthenticationService
     @Transactional(readOnly = true)
     public boolean validarTokenRecuperacion(String token)
     {
-        return tokenVerificacionService.esTokenValido(token);
+        return this.tokenVerificacionService.esTokenValido(token);
     }
 
     /**

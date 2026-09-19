@@ -47,6 +47,6 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
             return;
         }
 
-        delegate.commence(request, response, authException);
+        this.delegate.commence(request, response, authException);
     }
 }

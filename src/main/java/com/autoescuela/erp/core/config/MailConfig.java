@@ -48,24 +48,24 @@ public class MailConfig
     public JavaMailSender javaMailSender()
     {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(host);
-        mailSender.setPort(port);
+        mailSender.setHost(this.host);
+        mailSender.setPort(this.port);
 
-        if (username != null && !username.isBlank())
+        if (this.username != null && !this.username.isBlank())
         {
-            mailSender.setUsername(username);
+            mailSender.setUsername(this.username);
         }
-        if (password != null && !password.isBlank())
+        if (this.password != null && !this.password.isBlank())
         {
-            mailSender.setPassword(password);
+            mailSender.setPassword(this.password);
         }
 
         mailSender.setDefaultEncoding("UTF-8");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", String.valueOf(esAutenticado));
-        props.put("mail.smtp.starttls.enable", String.valueOf(starttls));
+        props.put("mail.smtp.auth", String.valueOf(this.esAutenticado));
+        props.put("mail.smtp.starttls.enable", String.valueOf(this.starttls));
 
         return mailSender;
     }

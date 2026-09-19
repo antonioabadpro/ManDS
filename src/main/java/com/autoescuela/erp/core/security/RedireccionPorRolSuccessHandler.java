@@ -33,7 +33,7 @@ public class RedireccionPorRolSuccessHandler implements AuthenticationSuccessHan
             return;
         }
 
-        redirectStrategy.sendRedirect(request, response, urlDestino);
+        this.redirectStrategy.sendRedirect(request, response, urlDestino);
     }
 
     private String determinarUrlDestino(Authentication authentication)

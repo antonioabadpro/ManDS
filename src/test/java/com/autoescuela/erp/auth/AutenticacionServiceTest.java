@@ -98,8 +98,8 @@ class AutenticacionServiceTest
     @DisplayName("'estaAutenticado()' devuelve false cuando Authentication es null")
     void testEstaAutenticadoConAuthNull()
     {
-        assertFalse(autenticacionService.estaAutenticado((Authentication) null));
-        assertFalse(autenticacionService.estaAutenticado());
+        assertFalse(this.autenticacionService.estaAutenticado((Authentication) null));
+        assertFalse(this.autenticacionService.estaAutenticado());
     }
 
     @Test
@@ -113,8 +113,8 @@ class AutenticacionServiceTest
         context.setAuthentication(anonimo);
         SecurityContextHolder.setContext(context);
 
-        assertFalse(autenticacionService.estaAutenticado(anonimo));
-        assertFalse(autenticacionService.estaAutenticado());
+        assertFalse(this.autenticacionService.estaAutenticado(anonimo));
+        assertFalse(this.autenticacionService.estaAutenticado());
     }
 
     @Test
@@ -128,8 +128,8 @@ class AutenticacionServiceTest
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
 
-        assertTrue(autenticacionService.estaAutenticado(auth));
-        assertTrue(autenticacionService.estaAutenticado());
+        assertTrue(this.autenticacionService.estaAutenticado(auth));
+        assertTrue(this.autenticacionService.estaAutenticado());
     }
 
     @Test
@@ -144,7 +144,7 @@ class AutenticacionServiceTest
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
 
-        Optional<UserDetailsImpl> resultado = autenticacionService.obtenerUserDetails();
+        Optional<UserDetailsImpl> resultado = this.autenticacionService.obtenerUserDetails();
 
         assertTrue(resultado.isPresent());
         assertEquals(userDetailsMock, resultado.get());
@@ -158,7 +158,7 @@ class AutenticacionServiceTest
         when(userDetailsMock.getId()).thenReturn(1L);
 
         Persona personaMock = mock(Persona.class);
-        when(personaRepository.findById(1L)).thenReturn(Optional.of(personaMock));
+        when(this.personaRepository.findById(1L)).thenReturn(Optional.of(personaMock));
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 userDetailsMock, "password", AuthorityUtils.createAuthorityList("ROLE_ADMIN"));
@@ -167,11 +167,11 @@ class AutenticacionServiceTest
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
 
-        Optional<Persona> resultado = autenticacionService.obtenerPersonaAutenticada();
+        Optional<Persona> resultado = this.autenticacionService.obtenerPersonaAutenticada();
 
         assertTrue(resultado.isPresent());
         assertEquals(personaMock, resultado.get());
-        verify(personaRepository).findById(1L);
+        verify(this.personaRepository).findById(1L);
     }
 
     @Test
@@ -189,7 +189,7 @@ class AutenticacionServiceTest
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
 
-        autenticacionService.cerrarSesion(request, response, auth);
+        this.autenticacionService.cerrarSesion(request, response, auth);
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertNull(request.getSession(false));
@@ -199,21 +199,21 @@ class AutenticacionServiceTest
     @DisplayName("'existeTelefono()' devuelve true cuando el teléfono ya existe en PersonaRepository")
     void testExisteTelefonoExistente()
     {
-        when(personaRepository.existsByTelefono("600111222")).thenReturn(true);
+        when(this.personaRepository.existsByTelefono("600111222")).thenReturn(true);
 
-        assertTrue(autenticacionService.existeTelefono("600111222"));
-        verify(personaRepository).existsByTelefono("600111222");
+        assertTrue(this.autenticacionService.existeTelefono("600111222"));
+        verify(this.personaRepository).existsByTelefono("600111222");
     }
 
     @Test
     @DisplayName("'existeTelefono()' devuelve false cuando el teléfono no existe o está vacío")
     void testExisteTelefonoNoExistenteOEnBlanco()
     {
-        when(personaRepository.existsByTelefono("699888777")).thenReturn(false);
+        when(this.personaRepository.existsByTelefono("699888777")).thenReturn(false);
 
-        assertFalse(autenticacionService.existeTelefono("699888777"));
-        assertFalse(autenticacionService.existeTelefono(null));
-        assertFalse(autenticacionService.existeTelefono("   "));
+        assertFalse(this.autenticacionService.existeTelefono("699888777"));
+        assertFalse(this.autenticacionService.existeTelefono(null));
+        assertFalse(this.autenticacionService.existeTelefono("   "));
     }
 
     @Test
@@ -234,13 +234,13 @@ class AutenticacionServiceTest
                 true
         );
 
-        when(personaRepository.existsByNombreUsuario("alumno_tel_dup")).thenReturn(false);
-        when(personaRepository.existsByCorreo("correo.libre@autoescuela.es")).thenReturn(false);
-        when(personaRepository.existsByDni("12345678Z")).thenReturn(false);
-        when(personaRepository.existsByTelefono("600111222")).thenReturn(true);
+        when(this.personaRepository.existsByNombreUsuario("alumno_tel_dup")).thenReturn(false);
+        when(this.personaRepository.existsByCorreo("correo.libre@autoescuela.es")).thenReturn(false);
+        when(this.personaRepository.existsByDni("12345678Z")).thenReturn(false);
+        when(this.personaRepository.existsByTelefono("600111222")).thenReturn(true);
 
         ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
-                autenticacionService.registrarAlumno(dto)
+                this.autenticacionService.registrarAlumno(dto)
         );
 
         assertEquals("El teléfono ya está registrado en el sistema.", excepcion.getMessage());
@@ -250,23 +250,23 @@ class AutenticacionServiceTest
     @DisplayName("'solicitarRecuperacionPassword()' no hace nada si el correo es nulo o vacío")
     void testSolicitarRecuperacionCorreoVacio()
     {
-        autenticacionService.solicitarRecuperacionPassword(null, "http://localhost:8080");
-        autenticacionService.solicitarRecuperacionPassword("   ", "http://localhost:8080");
+        this.autenticacionService.solicitarRecuperacionPassword(null, "http://localhost:8080");
+        this.autenticacionService.solicitarRecuperacionPassword("   ", "http://localhost:8080");
 
-        verify(personaRepository, never()).findByCorreo(any());
-        verify(emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.personaRepository, never()).findByCorreo(any());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
     }
 
     @Test
     @DisplayName("'solicitarRecuperacionPassword()' no lanza excepción ni envía correo si el correo no existe en BD (Anti-User Enumeration)")
     void testSolicitarRecuperacionCorreoNoExiste()
     {
-        when(personaRepository.findByCorreo("desconocido@autoescuela.es")).thenReturn(Optional.empty());
+        when(this.personaRepository.findByCorreo("desconocido@autoescuela.es")).thenReturn(Optional.empty());
 
-        autenticacionService.solicitarRecuperacionPassword("desconocido@autoescuela.es", "http://localhost:8080");
+        this.autenticacionService.solicitarRecuperacionPassword("desconocido@autoescuela.es", "http://localhost:8080");
 
-        verify(tokenVerificacionService, never()).generarTokenRecuperacion(any());
-        verify(emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
     }
 
     @Test
@@ -278,15 +278,15 @@ class AutenticacionServiceTest
         when(persona.getCorreo()).thenReturn("alumno@autoescuela.es");
         when(persona.getNombre()).thenReturn("Juan");
 
-        when(personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
+        when(this.personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
 
         TokenVerificacion token = new TokenVerificacion("token-uuid-123", persona, LocalDateTime.now().plusMinutes(15));
-        when(tokenVerificacionService.generarTokenRecuperacion(persona)).thenReturn(token);
+        when(this.tokenVerificacionService.generarTokenRecuperacion(persona)).thenReturn(token);
 
-        autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "http://localhost:8080");
+        this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "http://localhost:8080");
 
-        verify(tokenVerificacionService).generarTokenRecuperacion(persona);
-        verify(emailService).enviarCorreoRecuperacion(
+        verify(this.tokenVerificacionService).generarTokenRecuperacion(persona);
+        verify(this.emailService).enviarCorreoRecuperacion(
                 eq("alumno@autoescuela.es"),
                 eq("Juan"),
                 contains("token=token-uuid-123")
@@ -300,23 +300,23 @@ class AutenticacionServiceTest
         Persona persona = mock(Persona.class);
         when(persona.getEstado()).thenReturn(EstadoUsuario.INACTIVO);
 
-        when(personaRepository.findByCorreo("baja@autoescuela.es")).thenReturn(Optional.of(persona));
+        when(this.personaRepository.findByCorreo("baja@autoescuela.es")).thenReturn(Optional.of(persona));
 
-        autenticacionService.solicitarRecuperacionPassword("baja@autoescuela.es", "http://localhost:8080");
+        this.autenticacionService.solicitarRecuperacionPassword("baja@autoescuela.es", "http://localhost:8080");
 
-        verify(tokenVerificacionService, never()).generarTokenRecuperacion(any());
-        verify(emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
     }
 
     @Test
     @DisplayName("'validarTokenRecuperacion()' delega en TokenVerificacionService")
     void testValidarTokenRecuperacion()
     {
-        when(tokenVerificacionService.esTokenValido("token-ok")).thenReturn(true);
-        when(tokenVerificacionService.esTokenValido("token-bad")).thenReturn(false);
+        when(this.tokenVerificacionService.esTokenValido("token-ok")).thenReturn(true);
+        when(this.tokenVerificacionService.esTokenValido("token-bad")).thenReturn(false);
 
-        assertTrue(autenticacionService.validarTokenRecuperacion("token-ok"));
-        assertFalse(autenticacionService.validarTokenRecuperacion("token-bad"));
+        assertTrue(this.autenticacionService.validarTokenRecuperacion("token-ok"));
+        assertFalse(this.autenticacionService.validarTokenRecuperacion("token-bad"));
     }
 
     @Test
@@ -324,18 +324,18 @@ class AutenticacionServiceTest
     void testRestablecerPasswordValidaciones()
     {
         assertThrows(ReglaNegocioException.class, () ->
-                autenticacionService.restablecerPassword(null)
+                this.autenticacionService.restablecerPassword(null)
         );
 
         RestablecerPasswordDTO dtoDistintas = new RestablecerPasswordDTO("token-123", "password123", "otraPassword");
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
-                autenticacionService.restablecerPassword(dtoDistintas)
+                this.autenticacionService.restablecerPassword(dtoDistintas)
         );
         assertEquals("Las contraseñas introducidas no coinciden.", ex.getMessage());
 
         RestablecerPasswordDTO dtoCorta = new RestablecerPasswordDTO("token-123", "corta", "corta");
         ReglaNegocioException exCorta = assertThrows(ReglaNegocioException.class, () ->
-                autenticacionService.restablecerPassword(dtoCorta)
+                this.autenticacionService.restablecerPassword(dtoCorta)
         );
         assertEquals("La contraseña debe tener al menos 8 caracteres.", exCorta.getMessage());
     }
@@ -345,10 +345,10 @@ class AutenticacionServiceTest
     void testRestablecerPasswordTokenInvalido()
     {
         RestablecerPasswordDTO dto = new RestablecerPasswordDTO("token-invalido", "nuevaPassword123", "nuevaPassword123");
-        when(tokenVerificacionService.obtenerTokenValido("token-invalido")).thenReturn(Optional.empty());
+        when(this.tokenVerificacionService.obtenerTokenValido("token-invalido")).thenReturn(Optional.empty());
 
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
-                autenticacionService.restablecerPassword(dto)
+                this.autenticacionService.restablecerPassword(dto)
         );
         assertTrue(ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"));
     }
@@ -360,14 +360,14 @@ class AutenticacionServiceTest
         Persona persona = mock(Persona.class);
         TokenVerificacion token = new TokenVerificacion("token-valido", persona, LocalDateTime.now().plusMinutes(15));
 
-        when(tokenVerificacionService.obtenerTokenValido("token-valido")).thenReturn(Optional.of(token));
-        when(passwordEncoder.encode("nuevaPassword123")).thenReturn("$2a$10$encodedHashPassword");
+        when(this.tokenVerificacionService.obtenerTokenValido("token-valido")).thenReturn(Optional.of(token));
+        when(this.passwordEncoder.encode("nuevaPassword123")).thenReturn("$2a$10$encodedHashPassword");
 
         RestablecerPasswordDTO dto = new RestablecerPasswordDTO("token-valido", "nuevaPassword123", "nuevaPassword123");
-        autenticacionService.restablecerPassword(dto);
+        this.autenticacionService.restablecerPassword(dto);
 
         verify(persona).actualizarPassword("$2a$10$encodedHashPassword");
-        verify(personaRepository).save(persona);
-        verify(tokenVerificacionService).marcarComoUsado(token);
+        verify(this.personaRepository).save(persona);
+        verify(this.tokenVerificacionService).marcarComoUsado(token);
     }
 }

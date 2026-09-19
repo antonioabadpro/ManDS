@@ -32,19 +32,19 @@ public class EmailServiceImpl implements EmailService
     {
         try
         {
-            Boolean multipart = true; // Permite adjuntar archivos si se requiere en el futuro
+            Boolean multipart = true; // Permite adjuntar archivos en el correo
 
-            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
 
-            helper.setFrom(correoRemitente);
+            helper.setFrom(this.correoRemitente);
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - Recuperación de contraseña");
 
             String cuerpoHtml = construirHtmlRecuperacion(nombreDestinatario, enlaceRecuperacion);
             helper.setText(cuerpoHtml, true);
 
-            mailSender.send(mensaje);
+            this.mailSender.send(mensaje);
             log.info("Correo de recuperación enviado con éxito a {}", correoDestinatario);
         }
         catch (MessagingException | MailException ex)

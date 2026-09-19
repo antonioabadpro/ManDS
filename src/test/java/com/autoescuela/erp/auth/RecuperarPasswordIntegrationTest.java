@@ -69,7 +69,7 @@ class RecuperarPasswordIntegrationTest
     void setUp()
     {
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(contexto)
+                .webAppContextSetup(this.contexto)
                 .apply(springSecurity())
                 .build();
     }
@@ -196,7 +196,7 @@ class RecuperarPasswordIntegrationTest
 
         // Verificamos que la contraseña de la Persona se actualizó correctamente con BCrypt
         Persona personaActualizada = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
-        assertTrue(passwordEncoder.matches("nuevaPasswordSegura123", personaActualizada.getPassword()),
+        assertTrue(this.passwordEncoder.matches("nuevaPasswordSegura123", personaActualizada.getPassword()),
                 "El hash de la contraseña en base de datos debe coincidir con la nueva clave.");
 
         // Intentamos reutilizar el mismo token debe fallar

@@ -122,15 +122,15 @@ src/
 │   │   ├── ErpApplication.java
 │   │   │
 │   │   ├── core/                               <-- Infraestructura transversal compartida
-│   │   │   ├── config/                         <-- Configuraciones Spring (@Configuration, Seguridad, etc.)
-│   │   │   ├── email/                          <-- Servicio y clientes de correo transaccional (JavaMailSender)
+│   │   │   ├── config/                         <-- Configuraciones Spring (@Configuration, Seguridad, Mail, etc.)
+│   │   │   ├── email/                          <-- EmailService, EmailServiceImpl (JavaMailSender)
 │   │   │   ├── enums/                          <-- Enumerados de dominio (EstadoUsuario, TipoCarnet, Rol, etc.)
-│   │   │   ├── excepciones/                    <-- Excepciones de negocio y @ControllerAdvice global
-│   │   │   └── security/                       <-- UserDetailsService, evaluadores y filtros de seguridad
+│   │   │   ├── excepciones/                    <-- GlobalExceptionHandler, ReglaNegocioException, RecursoNoEncontradoException
+│   │   │   └── security/                       <-- UserDetailsServiceImpl, UserDetailsImpl, RedireccionPorRolSuccessHandler, HtmxAuthenticationEntryPoint
 │   │   │
 │   │   ├── auth/                               <-- Autenticación, registro y recuperación (CU-001, CU-002, CU-022)
 │   │   │   ├── controller/                     <-- AuthenticationController (/login, /registro, /recuperar)
-│   │   │   ├── dto/                            <-- LoginDTO, RegistroAlumnoDTO, RecuperarPasswordDTO
+│   │   │   ├── dto/                            <-- LoginDTO, RegistroAlumnoDTO, RecuperarPasswordDTO, RestablecerPasswordDTO
 │   │   │   ├── mapper/                         <-- AuthenticationMapper
 │   │   │   ├── model/                          <-- TokenVerificacion
 │   │   │   ├── repository/                     <-- TokenVerificacionRepository
@@ -138,7 +138,7 @@ src/
 │   │   │
 │   │   ├── usuarios/                           <-- Gestión de usuarios y perfiles (CU-003 a CU-014, CU-036, CU-037)
 │   │   │   ├── controller/                     <-- AdministradorController, ProfesorController, AlumnoController
-│   │   │   ├── dto/                            <-- DTOs específicos por perfil (AltaProfesor, AlumnoDetalle, etc.)
+│   │   │   ├── dto/                            <-- AltaProfesorDTO, AlumnoDetalleDTO, EditarPerfilAlumnoDTO, EditarProfesorDTO, ReasignarAlumnoDTO, CambiarPasswordDTO, etc.
 │   │   │   ├── mapper/                         <-- AlumnoMapper, ProfesorMapper
 │   │   │   ├── model/                          <-- Persona (Abstract), Administrador, Profesor, Alumno
 │   │   │   ├── repository/                     <-- PersonaRepository, ProfesorRepository, AlumnoRepository
@@ -191,7 +191,7 @@ src/
 │   └── resources/                              <-- Recursos, configuración y vistas HTML-over-the-wire
 │       ├── static/                             <-- Activos estáticos públicos
 │       │   ├── css/                            <-- styles.css (Tailwind compilado / utilidades)
-│       │   ├── js/                             <-- htmx-config.js (CSRF automático) y scripts de soporte
+│       │   ├── js/                             <-- htmx-config.js, login.js, registro.js, recuperar-password.js
 │       │   └── imagenes/                       <-- Logotipos, avatares e iconos
 │       ├── templates/                          <-- Vistas y componentes Thymeleaf
 │       │   ├── layouts/                        <-- layout.html (plantilla base responsiva con navbar y drawer)
@@ -209,18 +209,20 @@ src/
 │
 └── test/java/com/autoescuela/erp/              <-- Pruebas automatizadas (espejo de los paquetes de dominio)
     ├── academico/
-    ├── auth/
+    ├── auth/                                   <-- Tests unitarios y de integración de auth y tokens
+    ├── core/                                   <-- Tests de seguridad transversal (SeguridadIntegrationTest)
     ├── estadisticas/
     ├── examenes/
     ├── flota/
     ├── practicas/
     ├── usuarios/
+    ├── DataSqlH2Test.java                      <-- Verificación de consistencia del dataset semilla
     └── ErpApplicationTests.java
 ```
 
 # 4. Diagrama Modelo Entidad - Relación (Tablas, Relaciones, Enums) en PlantUML
 ```plantuml
-@startuml Diagrama_ER_v7
+@startuml Diagrama_ER_v8
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -293,7 +295,23 @@ package "Enums" {
   }
 }
 
-' --- 2. USUARIOS (Capa Superior) ---
+' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
+package "Autenticación" {
+  class TokenVerificacion {
+    - id: Long
+    - token: String
+    - fechaExpiracion: LocalDateTime
+    - usado: Boolean
+    - fechaCreacion: LocalDateTime
+    - persona: Persona
+    + isExpirado(): Boolean
+    + isValido(): Boolean
+    + isUsado(): Boolean
+    + marcarComoUsado(): void
+  }
+}
+
+' --- 3. USUARIOS (Capa Superior) ---
 package "Usuarios" {
   abstract class Persona {
     - id: Long
@@ -368,7 +386,7 @@ package "Usuarios" {
   }
 }
 
-' --- 3. AUTOESCUELA (Capa Inferior) ---
+' --- 4. AUTOESCUELA (Capa Inferior) ---
 package "Autoescuela" {
   class Vehiculo {
     - id: Long
@@ -452,9 +470,12 @@ package "Autoescuela" {
   }
 }
 
-' --- 4. RELACIONES (Optimizadas para visualización) ---
+' --- 5. RELACIONES (Optimizadas para visualización) ---
 
 ' Trucos de alineación para que quede ordenado horizontalmente
+Autenticación -[hidden]right-> Usuarios
+Usuarios -[hidden]right-> Enums
+
 Administrador -[hidden]right-> Profesor
 Profesor -[hidden]right-> Alumno
 
@@ -462,6 +483,9 @@ Profesor -[hidden]right-> Alumno
 Persona <|-down- Administrador
 Persona <|-down- Profesor
 Persona <|-down- Alumno
+
+' Relaciones de autenticación
+Persona "1" -left-> "0..*" TokenVerificacion : posee >
 
 ' Relaciones principales
 Profesor "1" -down-> "1" Vehiculo : tiene asignado >
@@ -480,9 +504,6 @@ Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
 Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
 Alumno "1" -down-> "0..*" Examen : realiza >
-
-' Separación de los Enums para evitar líneas cruzadas
-Usuarios -[hidden]right-> Enums
 
 @enduml
 ```
@@ -762,6 +783,7 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
   - Control de Concurrencia en Reservas: Prohibido realizar comprobaciones de disponibilidad en memoria sin sincronización o bloqueo en la base de datos (evitar condiciones de carrera / *race conditions* tipo *Check-Then-Act*). Toda reserva debe asegurarse a nivel transaccional y mediante restricciones de unicidad relacional en PostgreSQL.
 - Prohibición de manejadores de eventos inline en HTML (`onclick`, `onsubmit`, `onchange`, etc.): Todo comportamiento JavaScript debe desacoplarse siguiendo el patrón de JavaScript No Intrusivo (*Unobtrusive JS*). Los eventos deben vincularse exclusivamente mediante `addEventListener` en scripts dedicados (o atributos declarativos `hx-*` de HTMX) aprovechando identificadores (`id`) o atributos de datos (`data-*`), garantizando la separación de responsabilidades (SoC) y total conformidad con políticas de seguridad estrictas de cabeceras CSP (*Content Security Policy* sin `unsafe-inline`).
 - **Prioridad Absoluta de Legibilidad sobre Concisión (Anti-One-Liners):** Se prohíbe compactar lógica compleja en pocas líneas o abusar de expresiones lambda encadenadas y Streams intrincados de difícil interpretación. Se debe priorizar SIEMPRE un código limpio, autoexplicativo, modular y legible (bucles imperativos claros, estructuras de control explícitas o métodos auxiliares bien nombrados) frente al código comprimido o de alta densidad sintáctica.
+- **Uso Obligatorio de `this` para Acceso a Atributos de Clase:** En todo el código Java del backend, es obligatorio anteponer la referencia `this.` a cualquier acceso (lectura o asignación) a los atributos de instancia de la clase (p. ej., `this.nombre = nombre;`, `return this.estado;`). Esto garantiza una distinción nítida e inequívoca entre los campos propios del objeto y las variables locales o parámetros de los métodos, maximizando la legibilidad y previniendo errores de *shadowing*.
 
 # 11. Memoria Activa y Registro de Decisiones
 | Fecha (DD/MM/YYYY) | Decisión / Regla Registrada | Contexto / Motivo |
@@ -781,3 +803,5 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **17/09/2026** | Backend integral para el Formulario de Registro de Alumnos (`CU-002`) | Implementación del flujo de alta pública: `RegistroAlumnoDTO` como record con Bean Validation (DNI español/NIE, email, contraseñas, fecha de nacimiento, teléfono y términos RGPD), `AuthenticationMapper` con MapStruct, conversión de `AlumnoRepository` a interfaz JPA (`findByDni`, `findByNombreUsuario`, `findByCorreo`), método `AuthenticationService.registrarAlumno` con validación de unicidad en `PersonaRepository`, encriptación BCrypt y estado `ACTIVO`. Manejo de peticiones `POST /registro` en `AuthenticationController`, alertas en `registro.html` y `login.html`, y preservación de valores de entrada. Cobertura con `RegistroAlumnoIntegrationTest` (7 tests) y 50 tests globales superados. |
 | **17/09/2026** | Restricción de unicidad del teléfono en la entidad `Persona` y validación integral del campo teléfono en el registro de alumnos (`CU-002`) | Incorporación de `@Column(nullable = false, unique = true)` en `Persona.telefono`, adición del método `existsByTelefono` en `PersonaRepository` y `AuthenticationService`. Implementación de validación asíncrona temprana HTMX en `AuthenticationController` (`POST /registro/validar-telefono`) y control estricto de negocio en `AuthenticationService.registrarAlumno` lanzando `ReglaNegocioException` para evitar violaciones de restricción de base de datos no controladas. Limpieza de atributos en `registro.html` (`maxlength="9"`). Cobertura con 3 tests unitarios en `AutenticacionServiceTest` y 4 tests de integración en `RegistroAlumnoIntegrationTest` (totalizando 65 tests globales superados). |
 | **18/09/2026** | Implementación integral del flujo de recuperación de contraseña con tokens efímeros y Mailpit (`CU-022`) | Implementación de extremo a extremo del flujo de restablecimiento de contraseña: entidad JPA `TokenVerificacion` con caducidad a 15 min y un solo uso, interfaz JPA `TokenVerificacionRepository`, servicio `TokenVerificacionService`, cliente de correo HTML transaccional `EmailService` / `EmailServiceImpl` y configuración explícita `MailConfig` vinculada al servidor local Mailpit (puerto SMTP 1025). Integración en `AuthenticationService` con política de privacidad Anti-User Enumeration y codificación BCrypt, endpoints `POST /recuperar-password` y `POST /recuperar-password/restablecer` en `AuthenticationController`, DTOs inmutables `RecuperarPasswordDTO` y `RestablecerPasswordDTO` (validación de mínimo 8 caracteres sin forzar caracteres especiales a petición del desarrollador), y manejo resiliente ante desconexiones SMTP. Cobertura con 6 tests unitarios en `TokenVerificacionServiceTest`, 6 tests unitarios ampliados en `AutenticacionServiceTest` y 6 tests de integración de extremo a extremo en `RecuperarPasswordIntegrationTest` (totalizando 87 tests globales superados). |
+| **19/09/2026** | Estandarización obligatoria del operador `this` para el acceso a atributos de clase en backend y tests | Incorporación de la regla en el apartado 10 y refactorización sistemática en todas las clases de servicio, controladores, configuraciones y suites de pruebas unitarias e integradas para garantizar distinción visual inequívoca entre atributos y variables/parámetros locales, previniendo el *shadowing*. Soporte de fallback por defecto en `@Value("${app_base_url:http://localhost:8080}")` y definición en `application.properties` de test. Verificación con 87 tests superados (100% verde). |
+| **19/09/2026** | Sincronización integral del Diagrama Modelo Entidad - Relación (ER v8) y actualización estructural del proyecto en `AGENTS.md` y `Diagrama_ER.puml` | Inclusión de la entidad `TokenVerificacion` (`com.autoescuela.erp.auth.model`) en el paquete `Autenticación` y su relación `@ManyToOne` unidireccional con `Persona`. Disposición optimizada ortogonal a la izquierda de `Usuarios` para evitar cruces con la jerarquía de herencia y el módulo `Autoescuela`. Actualización del inventario de clases en Sección 3 (`RestablecerPasswordDTO`, `MailConfig`, componentes de seguridad, scripts JS cliente de autenticación y tests de consistencia H2/seguridad transversal). Sincronización simétrica en el archivo independiente `Diagramas/Diagrama_ER/Diagrama_ER.puml` para previsualización inmediata en el IDE. |

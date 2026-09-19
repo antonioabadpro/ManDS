@@ -74,13 +74,13 @@ public class ConfiguracionSeguridad
 
                 // Manejo de excepciones con soporte específico para peticiones HTMX
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(htmxAuthenticationEntryPoint))
+                        .authenticationEntryPoint(this.htmxAuthenticationEntryPoint))
 
                 // Formulario de login con soporte dual (username o correo) y redirección dinámica por rol
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .successHandler(redireccionPorRolSuccessHandler)
+                        .successHandler(this.redireccionPorRolSuccessHandler)
                         .failureUrl("/login?error=true")
                         .permitAll())
 

@@ -64,7 +64,7 @@ class TokenVerificacionServiceTest
     void testGenerarTokenPersonaNula()
     {
         assertThrows(IllegalArgumentException.class, () ->
-                tokenVerificacionService.generarTokenRecuperacion(null)
+                this.tokenVerificacionService.generarTokenRecuperacion(null)
         );
     }
 

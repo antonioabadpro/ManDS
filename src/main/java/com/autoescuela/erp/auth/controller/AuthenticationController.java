@@ -41,9 +41,9 @@ public class AuthenticationController
     @GetMapping("/login")
     public String iniciarSesion(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
     {
-        if (autenticacionService.estaAutenticado(authentication))
+        if (this.autenticacionService.estaAutenticado(authentication))
         {
-            autenticacionService.cerrarSesion(request, response, authentication);
+            this.autenticacionService.cerrarSesion(request, response, authentication);
             return "redirect:/login";
         }
         return "auth/login";
@@ -56,7 +56,7 @@ public class AuthenticationController
     @GetMapping("/registro")
     public String registro(Model model, Authentication authentication)
     {
-        if (autenticacionService.estaAutenticado(authentication))
+        if (this.autenticacionService.estaAutenticado(authentication))
         {
             return "redirect:/";
         }
@@ -92,7 +92,7 @@ public class AuthenticationController
 
         try
         {
-            autenticacionService.registrarAlumno(registroDTO);
+            this.autenticacionService.registrarAlumno(registroDTO);
             redirectAttributes.addFlashAttribute("mensajeExito", "Registro completado con éxito.");
             return "redirect:/login?registrado=true";
         }
@@ -115,7 +115,7 @@ public class AuthenticationController
         {
             model.addAttribute("token", token);
             String tokenLimpio = token.trim();
-            if (autenticacionService.validarTokenRecuperacion(tokenLimpio)==false)
+            if (this.autenticacionService.validarTokenRecuperacion(tokenLimpio) == false)
             {
                 return "redirect:/recuperar-password?tokenInvalido=true";
             }
@@ -194,7 +194,7 @@ public class AuthenticationController
             return "auth/registro :: mensaje-error";
         }
 
-        if (autenticacionService.existeNombreUsuario(limpio))
+        if (this.autenticacionService.existeNombreUsuario(limpio))
         {
             model.addAttribute("mensaje", "El nombre de usuario ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
@@ -222,7 +222,7 @@ public class AuthenticationController
             return "auth/registro :: mensaje-error";
         }
 
-        if (autenticacionService.existeCorreo(limpio))
+        if (this.autenticacionService.existeCorreo(limpio))
         {
             model.addAttribute("mensaje", "El correo electrónico ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
@@ -250,7 +250,7 @@ public class AuthenticationController
             return "auth/registro :: mensaje-error";
         }
 
-        if (autenticacionService.existeDni(limpio))
+        if (this.autenticacionService.existeDni(limpio))
         {
             model.addAttribute("mensaje", "El DNI/NIE ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
@@ -275,7 +275,7 @@ public class AuthenticationController
             return "auth/registro :: mensaje-error";
         }
 
-        if (autenticacionService.existeTelefono(limpio))
+        if (this.autenticacionService.existeTelefono(limpio))
         {
             model.addAttribute("mensaje", "El teléfono ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";

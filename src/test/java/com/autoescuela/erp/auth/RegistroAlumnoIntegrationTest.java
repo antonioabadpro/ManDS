@@ -66,7 +66,7 @@ class RegistroAlumnoIntegrationTest
     void setUp()
     {
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(contexto)
+                .webAppContextSetup(this.contexto)
                 .apply(springSecurity())
                 .build();
     }
@@ -75,7 +75,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro con datos válidos registra al alumno en BD, hashea su clave y redirige a login")
     void testRegistroAlumnoExitoso() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "nuevo_alumno")
                 .param("correo", "nuevo.alumno@autoescuela.es")
@@ -93,7 +93,7 @@ class RegistroAlumnoIntegrationTest
                 .andExpect(flash().attributeExists("mensajeExito"));
 
         // Comprobación de persistencia y propiedades en el repositorio
-        Optional<Alumno> alumnoOpt = alumnoRepository.findByNombreUsuario("nuevo_alumno");
+        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByNombreUsuario("nuevo_alumno");
         assertTrue(alumnoOpt.isPresent(), "El alumno recién registrado debe encontrarse en el repositorio");
 
         Alumno alumno = alumnoOpt.get();
@@ -109,14 +109,14 @@ class RegistroAlumnoIntegrationTest
 
         // Comprobación de seguridad: la contraseña NO debe guardarse en texto plano y debe verificar con BCrypt
         assertNotEquals("claveSecreta123", alumno.getPassword());
-        assertTrue(passwordEncoder.matches("claveSecreta123", alumno.getPassword()));
+        assertTrue(this.passwordEncoder.matches("claveSecreta123", alumno.getPassword()));
     }
 
     @Test
     @DisplayName("POST /registro con nombre de usuario existente rechaza el registro con mensaje amigable")
     void testRegistroNombreUsuarioDuplicado() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "alumno1") // Existe en data.sql
                 .param("correo", "correo.unico@autoescuela.es")
@@ -139,7 +139,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro con correo existente rechaza el registro con mensaje descriptivo")
     void testRegistroCorreoDuplicado() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "usuario_unico")
                 .param("correo", "elena.alumno@autoescuela.es") // Existe en data.sql
@@ -162,7 +162,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro con DNI existente rechaza el registro por colisión de identidad")
     void testRegistroDniDuplicado() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "usuario_distinto")
                 .param("correo", "correo.distinto@autoescuela.es")
@@ -185,7 +185,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro con contraseñas no coincidentes muestra error de validación")
     void testRegistroPasswordNoCoincide() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "alumno_pass_err")
                 .param("correo", "pass.err@autoescuela.es")
@@ -208,7 +208,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro sin aceptar los términos de uso es rechazado por Bean Validation")
     void testRegistroTerminosNoAceptados() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "alumno_sin_terminos")
                 .param("correo", "sin.terminos@autoescuela.es")
@@ -231,7 +231,7 @@ class RegistroAlumnoIntegrationTest
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
     void testGetRegistroParaUsuarioAutenticado() throws Exception
     {
-        mockMvc.perform(get("/registro"))
+        this.mockMvc.perform(get("/registro"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
     }
@@ -240,7 +240,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-usuario con usuario duplicado devuelve fragmento de error")
     void testValidarUsuarioDuplicadoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/registro/validar-usuario")
                 .with(csrf())
                 .param("nombreUsuario", "alumno1"))
                 .andExpect(status().isOk())
@@ -253,7 +253,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-usuario con formato inválido devuelve mensaje descriptivo")
     void testValidarUsuarioInvalidoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/registro/validar-usuario")
                 .with(csrf())
                 .param("nombreUsuario", "ab"))
                 .andExpect(status().isOk())
@@ -265,7 +265,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-usuario con usuario libre devuelve fragmento vacío")
     void testValidarUsuarioDisponibleHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/registro/validar-usuario")
                 .with(csrf())
                 .param("nombreUsuario", "alumno_nuevo_totalmente_libre"))
                 .andExpect(status().isOk())
@@ -276,7 +276,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-correo con correo duplicado devuelve fragmento de error")
     void testValidarCorreoDuplicadoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-correo")
+        this.mockMvc.perform(post("/registro/validar-correo")
                 .with(csrf())
                 .param("correo", "elena.alumno@autoescuela.es"))
                 .andExpect(status().isOk())
@@ -289,7 +289,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-correo con correo libre devuelve fragmento vacío")
     void testValidarCorreoDisponibleHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-correo")
+        this.mockMvc.perform(post("/registro/validar-correo")
                 .with(csrf())
                 .param("correo", "nuevo_correo_libre@autoescuela.es"))
                 .andExpect(status().isOk())
@@ -300,7 +300,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-dni con DNI duplicado devuelve fragmento de error")
     void testValidarDniDuplicadoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/registro/validar-dni")
                 .with(csrf())
                 .param("dni", "45678901D"))
                 .andExpect(status().isOk())
@@ -313,7 +313,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-dni con formato no válido devuelve fragmento de error")
     void testValidarDniFormatoInvalidoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/registro/validar-dni")
                 .with(csrf())
                 .param("dni", "123456"))
                 .andExpect(status().isOk())
@@ -325,7 +325,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-dni con DNI válido y libre devuelve fragmento vacío")
     void testValidarDniDisponibleHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/registro/validar-dni")
                 .with(csrf())
                 .param("dni", "99887766K"))
                 .andExpect(status().isOk())
@@ -336,7 +336,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro con teléfono existente rechaza el registro por número de contacto duplicado")
     void testRegistroTelefonoDuplicado() throws Exception
     {
-        mockMvc.perform(post("/registro")
+        this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "alumno_nuevo_tel_dup")
                 .param("correo", "correo.nuevo.tel@autoescuela.es")
@@ -359,7 +359,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-telefono con teléfono duplicado devuelve fragmento de error")
     void testValidarTelefonoDuplicadoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/registro/validar-telefono")
                 .with(csrf())
                 .param("telefono", "600444555")) // Teléfono de alumno1 en data.sql
                 .andExpect(status().isOk())
@@ -372,7 +372,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-telefono con formato no válido devuelve fragmento de error")
     void testValidarTelefonoInvalidoHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/registro/validar-telefono")
                 .with(csrf())
                 .param("telefono", "12345"))
                 .andExpect(status().isOk())
@@ -384,7 +384,7 @@ class RegistroAlumnoIntegrationTest
     @DisplayName("POST /registro/validar-telefono con teléfono válido y libre devuelve fragmento vacío")
     void testValidarTelefonoDisponibleHtmx() throws Exception
     {
-        mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/registro/validar-telefono")
                 .with(csrf())
                 .param("telefono", "699112233"))
                 .andExpect(status().isOk())

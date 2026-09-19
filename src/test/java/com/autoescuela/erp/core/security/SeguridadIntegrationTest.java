@@ -49,7 +49,7 @@ class SeguridadIntegrationTest
     void setUp()
     {
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(contexto) // Iniciamos el Mock asociandolo al contexto de la aplicación para que Spring Security pueda interceptar las peticiones
+                .webAppContextSetup(this.contexto) // Iniciamos el Mock asociandolo al contexto de la aplicación para que Spring Security pueda interceptar las peticiones
                 .apply(springSecurity()) // Configuramos Spring Security para que se aplique en las pruebas
                 .build(); // Construimos el MockMvc
     }

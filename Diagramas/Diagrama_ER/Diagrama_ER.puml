@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v7
+@startuml Diagrama_ER_v8
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -72,6 +72,23 @@ package "Enums" {
 }
 
 ' --- 2. USUARIOS (Capa Superior) ---
+' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
+package "Autenticación" {
+  class TokenVerificacion {
+    - id: Long
+    - token: String
+    - fechaExpiracion: LocalDateTime
+    - usado: Boolean
+    - fechaCreacion: LocalDateTime
+    - persona: Persona
+    + isExpirado(): Boolean
+    + isValido(): Boolean
+    + isUsado(): Boolean
+    + marcarComoUsado(): void
+  }
+}
+
+' --- 3. USUARIOS (Capa Superior) ---
 package "Usuarios" {
   abstract class Persona {
     - id: Long
@@ -146,7 +163,7 @@ package "Usuarios" {
   }
 }
 
-' --- 3. AUTOESCUELA (Capa Inferior) ---
+' --- 4. AUTOESCUELA (Capa Inferior) ---
 package "Autoescuela" {
   class Vehiculo {
     - id: Long
@@ -230,9 +247,12 @@ package "Autoescuela" {
   }
 }
 
-' --- 4. RELACIONES (Optimizadas para visualización) ---
+' --- 5. RELACIONES (Optimizadas para visualización) ---
 
 ' Trucos de alineación para que quede ordenado horizontalmente
+Autenticación -[hidden]right-> Usuarios
+Usuarios -[hidden]right-> Enums
+
 Administrador -[hidden]right-> Profesor
 Profesor -[hidden]right-> Alumno
 
@@ -240,6 +260,9 @@ Profesor -[hidden]right-> Alumno
 Persona <|-down- Administrador
 Persona <|-down- Profesor
 Persona <|-down- Alumno
+
+' Relaciones de autenticación
+Persona "1" -left-> "0..*" TokenVerificacion : posee >
 
 ' Relaciones principales
 Profesor "1" -down-> "1" Vehiculo : tiene asignado >

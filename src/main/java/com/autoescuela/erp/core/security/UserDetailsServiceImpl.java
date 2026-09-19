@@ -31,7 +31,7 @@ public class UserDetailsServiceImpl implements UserDetailsService
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String identificador) throws UsernameNotFoundException
     {
-        Persona persona = personaRepository.findByNombreUsuarioOrCorreo(identificador, identificador)
+        Persona persona = this.personaRepository.findByNombreUsuarioOrCorreo(identificador, identificador)
                 .orElseThrow(() -> new UsernameNotFoundException("No se encontró ningún usuario con el identificador: " + identificador));
 
         return new UserDetailsImpl(persona);

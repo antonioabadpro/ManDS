@@ -52,7 +52,7 @@ class VistaRecuperarPasswordTest
     void setUp()
     {
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(contexto)
+                .webAppContextSetup(this.contexto)
                 .apply(springSecurity())
                 .build();
     }
@@ -86,8 +86,8 @@ class VistaRecuperarPasswordTest
     @DisplayName("GET /recuperar-password con parámetro token válido renderiza el formulario de restablecimiento de contraseña")
     void testRenderizadoFormularioConToken() throws Exception
     {
-        Persona persona = personaRepository.findByCorreo("admin@autoescuela.es").orElseThrow();
-        TokenVerificacion token = tokenVerificacionService.generarTokenRecuperacion(persona);
+        Persona persona = this.personaRepository.findByCorreo("admin@autoescuela.es").orElseThrow();
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
 
         this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))
                 .andExpect(status().isOk())

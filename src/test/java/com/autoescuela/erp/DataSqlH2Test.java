@@ -25,17 +25,17 @@ class DataSqlH2Test
     @DisplayName("Verifica que el fichero 'data.sql' se ejecuta correctamente e inserta datos en todas las entidades")
     void testDataSqlExecutedSuccessfully()
     {
-        Integer vehiculos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vehiculo", Integer.class);
-        Integer personas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM persona", Integer.class);
-        Integer admins = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM administrador", Integer.class);
-        Integer profesores = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM profesor", Integer.class);
-        Integer permisos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM profesor_permisos", Integer.class);
-        Integer alumnos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM alumno", Integer.class);
-        Integer incidencias = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM incidencia_vehiculo", Integer.class);
-        Integer matriculas = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM matricula", Integer.class);
-        Integer clases = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM clase_practica", Integer.class);
-        Integer solicitudes = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM solicitud_examen", Integer.class);
-        Integer examenes = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM examen", Integer.class);
+        Integer vehiculos = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vehiculo", Integer.class);
+        Integer personas = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM persona", Integer.class);
+        Integer admins = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM administrador", Integer.class);
+        Integer profesores = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM profesor", Integer.class);
+        Integer permisos = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM profesor_permisos", Integer.class);
+        Integer alumnos = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM alumno", Integer.class);
+        Integer incidencias = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM incidencia_vehiculo", Integer.class);
+        Integer matriculas = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM matricula", Integer.class);
+        Integer clases = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM clase_practica", Integer.class);
+        Integer solicitudes = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM solicitud_examen", Integer.class);
+        Integer examenes = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM examen", Integer.class);
 
         assertEquals(4, vehiculos, "Debe haber 4 vehículos");
         assertEquals(6, personas, "Debe haber 6 personas registradas");

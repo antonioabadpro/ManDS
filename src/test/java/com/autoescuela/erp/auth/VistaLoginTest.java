@@ -43,7 +43,7 @@ class VistaLoginTest
     void setUp()
     {
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(contexto)
+                .webAppContextSetup(this.contexto)
                 .apply(springSecurity())
                 .build();
     }
