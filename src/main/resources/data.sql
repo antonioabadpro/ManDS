@@ -33,7 +33,7 @@ VALUES (4, '3456-FGH', 'Mercedes-Benz', 'Actros 1845', 'Rojo Carmesí', 180000, 
 -- ------------------------------------------------------------------------------
 -- 2.1 Administrador (id = 1)
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (1, 'Carlos', 'García Moreno', '12345678A', '1985-04-12', 'admin', 'admin@autoescuela.es', '$2a$10$umISk5UJjoOGrFmQXaaANernpH1OxhBA/NHx.TpkKBCNfau0s4uUi', '600111222', 'Calle Gran Vía 28, Madrid', 'ACTIVO');
+VALUES (1, 'Antonio Abad', 'Hernández Gálvez', '12345678A', '1985-04-12', 'admin', 'admin@autoescuela.es', '$2a$10$umISk5UJjoOGrFmQXaaANernpH1OxhBA/NHx.TpkKBCNfau0s4uUi', '600111222', 'Calle Gran Vía 28, Madrid', 'ACTIVO');
 
 -- 2.2 Profesores (id = 2, 3)
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
