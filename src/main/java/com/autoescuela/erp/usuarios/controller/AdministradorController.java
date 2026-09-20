@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,6 +25,24 @@ import lombok.RequiredArgsConstructor;
 public class AdministradorController
 {
     private final UsuarioService usuarioService;
+
+    /**
+     * Proporciona el nombre corto/de pila del Administrador a todas las vistas para evitar
+     * desbordamientos horizontales en el pie de la barra lateral.
+     */
+    @ModelAttribute("nomUsuario")
+    public String mostrarNombreUsuario(@AuthenticationPrincipal Object principal)
+    {
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            return userDetails.getNombreUsuario();
+        }
+        else if (principal instanceof UserDetails user)
+        {
+            return user.getUsername();
+        }
+        return "nomUsuario";
+    }
 
     /**
      * Muestra el panel de control (dashboard) del Administrador.
@@ -145,7 +164,7 @@ public class AdministradorController
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
             dto = this.usuarioService.obtenerPerfilAdmin(userDetails.getId());
         }
-        else if (principal instanceof org.springframework.security.core.userdetails.UserDetails user)
+        else if (principal instanceof UserDetails user)
         {
             model.addAttribute("nombreAdmin", user.getUsername());
             dto = this.usuarioService.obtenerPerfilAdminPorUsername(user.getUsername());
@@ -177,7 +196,7 @@ public class AdministradorController
             usuarioId = userDetails.getId();
             nombreAdmin = userDetails.getNombreCompleto();
         }
-        else if (principal instanceof org.springframework.security.core.userdetails.UserDetails user)
+        else if (principal instanceof UserDetails user)
         {
             EditarPerfilAdminDTO existente = this.usuarioService.obtenerPerfilAdminPorUsername(user.getUsername());
             usuarioId = existente != null ? existente.getId() : null;

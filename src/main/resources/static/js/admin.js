@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const textElements = sidebar.querySelectorAll('.sidebar-text-element');
         const navLinks = sidebar.querySelectorAll('.nav-link');
         const sidebarFooter = document.getElementById('sidebar-footer');
+        const sidebarFooterContent = document.getElementById('sidebar-footer-content');
 
         if (esCompacto) {
             // Contraer a 80px (w-20)
@@ -42,9 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.classList.add('justify-center', 'px-2');
             });
 
-            // Ocultar por completo el pie de la barra lateral (avatar y botón de logout)
-            if (sidebarFooter) {
-                sidebarFooter.classList.add('hidden');
+            // Adaptar el pie en modo compacto (apilado centrado con logout accesible)
+            if (sidebarFooter && sidebarFooterContent) {
+                sidebarFooter.classList.remove('p-4');
+                sidebarFooter.classList.add('p-2', 'py-3');
+
+                sidebarFooterContent.classList.remove('flex', 'items-center', 'justify-between');
+                sidebarFooterContent.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'gap-2');
             }
         } else {
             // Expandir a 288px (w-72)
@@ -62,8 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Restaurar el pie de la barra lateral al expandir
-            if (sidebarFooter) {
-                sidebarFooter.classList.remove('hidden');
+            if (sidebarFooter && sidebarFooterContent) {
+                sidebarFooter.classList.remove('p-2', 'py-3');
+                sidebarFooter.classList.add('p-4');
+
+                sidebarFooterContent.classList.remove('flex-col', 'justify-center', 'gap-2');
+                sidebarFooterContent.classList.add('flex', 'items-center', 'justify-between');
             }
         }
     }

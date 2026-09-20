@@ -22,6 +22,7 @@ import lombok.Getter;
 public class UserDetailsImpl implements UserDetails
 {
     private final Long id;
+    private final String nombre;
     private final String nombreCompleto;
     private final String nombreUsuario;
     private final String correo;
@@ -33,6 +34,7 @@ public class UserDetailsImpl implements UserDetails
     public UserDetailsImpl(Persona persona)
     {
         this.id = persona.getId();
+        this.nombre = persona.getNombre();
         this.nombreCompleto = persona.getNombre() + " " + persona.getApellidos();
         this.nombreUsuario = persona.getNombreUsuario();
         this.correo = persona.getCorreo();
