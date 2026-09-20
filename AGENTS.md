@@ -137,9 +137,9 @@ src/
 │   │   │   └── service/                        <-- AuthenticationService, TokenVerificacionService
 │   │   │
 │   │   ├── usuarios/                           <-- Gestión de usuarios y perfiles
-│   │   │   ├── controller/                     <-- AdministradorController, ProfesorController, AlumnoController
-│   │   │   ├── dto/                            <-- AltaProfesorDTO, AlumnoDetalleDTO, EditarPerfilAlumnoDTO, EditarProfesorDTO, ReasignarAlumnoDTO, CambiarPasswordDTO, etc.
-│   │   │   ├── mapper/                         <-- AlumnoMapper, ProfesorMapper
+│   │   │   ├── controller/                     <-- AdministradorController, PerfilController, ProfesorController, AlumnoController
+│   │   │   ├── dto/                            <-- AltaProfesorDTO, AlumnoDetalleDTO, EditarPerfilAlumnoDTO, EditarPerfilAdminDTO, EditarProfesorDTO, ReasignarAlumnoDTO, CambiarPasswordDTO, etc.
+│   │   │   ├── mapper/                         <-- AlumnoMapper, ProfesorMapper, UsuarioMapper
 │   │   │   ├── model/                          <-- Persona (Abstract), Administrador, Profesor, Alumno
 │   │   │   ├── repository/                     <-- PersonaRepository, ProfesorRepository, AlumnoRepository
 │   │   │   └── service/                        <-- UsuarioService, ProfesorService, AlumnoService
@@ -191,13 +191,13 @@ src/
 │   └── resources/                              <-- Recursos, configuración y vistas HTML-over-the-wire
 │       ├── static/                             <-- Activos estáticos públicos
 │       │   ├── css/                            <-- styles.css (Tailwind compilado / utilidades)
-│       │   ├── js/                             <-- htmx-config.js, login.js, registro.js, recuperar-password.js
+│       │   ├── js/                             <-- htmx-config.js, login.js, registro.js, recuperar-password.js, layout.js, admin.js
 │       │   └── imagenes/                       <-- Logotipos, avatares e iconos
 │       ├── templates/                          <-- Vistas y componentes Thymeleaf
 │       │   ├── layouts/                        <-- layout.html (plantilla base responsiva con navbar y drawer)
-│       │   ├── fragments/                      <-- Componentes parciales HTMX (alertas, modales, tablas)
+│       │   ├── fragments/                      <-- Componentes parciales HTMX (alertas, modales, tablas) y navegación (admin-nav.html)
 │       │   ├── auth/                           <-- login.html, registro.html, recuperar-password.html
-│       │   ├── admin/                          <-- dashboard.html y vistas CRUD de administración
+│       │   ├── admin/                          <-- dashboard.html, perfil.html y vistas maestras de administración (alumnos, profesores, flota, incidencias, practicas, examenes, estadisticas)
 │       │   ├── profesor/                       <-- dashboard.html, agenda y ficha de clase
 │       │   ├── alumno/                         <-- dashboard.html, compra de saldo y reservas
 │       │   └── error/                          <-- 403.html, 404.html, 500.html, error-negocio.html
@@ -823,3 +823,4 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **19/09/2026** | Estandarización obligatoria del operador `this` para el acceso a atributos de clase en backend y tests | Incorporación de la regla en el apartado 10 y refactorización sistemática en todas las clases de servicio, controladores, configuraciones y suites de pruebas unitarias e integradas para garantizar distinción visual inequívoca entre atributos y variables/parámetros locales, previniendo el *shadowing*. Soporte de fallback por defecto en `@Value("${app_base_url:http://localhost:8080}")` y definición en `application.properties` de test. Verificación con 87 tests superados (100% verde). |
 | **19/09/2026** | Sincronización integral del Diagrama Modelo Entidad - Relación (ER v8) y actualización estructural del proyecto en `AGENTS.md` y `Diagrama_ER.puml` | Inclusión de la entidad `TokenVerificacion` (`com.autoescuela.erp.auth.model`) en el paquete `Autenticación` y su relación `@ManyToOne` unidireccional con `Persona`. Disposición optimizada ortogonal a la izquierda de `Usuarios` para evitar cruces con la jerarquía de herencia y el módulo `Autoescuela`. Actualización del inventario de clases en Sección 3 (`RestablecerPasswordDTO`, `MailConfig`, componentes de seguridad, scripts JS cliente de autenticación y tests de consistencia H2/seguridad transversal). Sincronización simétrica en el archivo independiente `Diagramas/Diagrama_ER/Diagrama_ER.puml` para previsualización inmediata en el IDE. |
 | **19/09/2026** | Reenumeración secuencial de Casos de Uso (CU-001 a CU-041) en `Diagrama_CU.puml` y desacoplamiento de comentarios en Backend | Adopción de numeración secuencial continua (1 a 41) en el diagrama de casos de uso v6 alineada con la centralización de solicitudes de examen DGT en el Administrador y sincronizada en Sección 5 de AGENTS.md. Eliminación completa de identificadores rígidos de casos de uso (`CU-xxx`) en comentarios y Javadoc del backend Java (`AuthenticationController`, `RegistroAlumnoDTO`, `AuthenticationService`, suites de test) para evitar acoplamientos innecesarios. |
+| **20/09/2026** | Navegación responsiva del Administrador (TopBar y SideBar), edición de Perfil de Administrador, vistas maestras y suite de pruebas (#13) | Implementación integral del entorno de administración: diseño y maquetación de componentes reutilizables en `fragments/admin-nav.html` (`sidebar` con modo compacto/expandido para PC y drawer lateral con backdrop para móvil, y `topbar` con breadcrumbs dinámicos, selector de tema claro/oscuro persistente en `localStorage`, dropdown de notificaciones y menú de perfil). Interactividad frontend desacoplada en `layout.js` y `admin.js`. Adaptación de la barra lateral para renderizar el nombre de usuario (`nombreUsuario`) obtenido desde `UserDetailsImpl`. Módulo de edición de perfil: record Java 21 `EditarPerfilAdminDTO` con Bean Validation, mapper MapStruct `UsuarioMapper`, método `existsByTelefonoAndIdNot` en `PersonaRepository` para control de unicidad de teléfono excluyendo al propio usuario, servicio de negocio `UsuarioService`, controlador `PerfilController` (`GET`/`POST /admin/perfil`) y vista `admin/perfil.html`. Estructuración y enrutamiento en `AdministradorController` para el panel principal (`dashboard.html`) y las secciones de administración (`alumnos.html`, `profesores.html`, `flota.html`, `incidencias.html`, `practicas.html`, `examenes.html`, `estadisticas.html`). Verificación automatizada con `UsuarioMapperTest` (2 tests), `UsuarioServiceTest` (4 tests) y `VistaAdminTest` (13 tests con MockMvc), totalizando 106 tests superados en la suite global (100% verde). |

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Flota de Vehículos - ManDS ERP</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/><circle cx='7.5' cy='14.5' r='1.5'/><circle cx='16.5' cy='14.5' r='1.5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a', 950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{fragments/admin-nav :: sidebar(activeSection='flota')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Gestión de Flota de Vehículos', subtituloSeccion='Control del parque móvil, ITV, revisiones y kilometraje acumulado')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gestión de Flota de Vehículos</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Control del parque móvil, ITV, revisiones y kilometraje acumulado</p>
+            </div>
+
+            <!-- Cabecera de Página con Métricas de Flota y Botón de Alta -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Parque Móvil de la Autoescuela</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">4 vehículos registrados · 2 turismos, 1 motocicleta y 1 camión pesado</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </span>
+                        <input type="text" data-table-search="tabla-flota" placeholder="Buscar por matrícula o modelo..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <button type="button" data-modal-target="modal-alta-vehiculo" class="inline-flex items-center space-x-2 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/20 transition shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Alta Vehículo</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de Flota de Vehículos -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table id="tabla-flota" class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Vehículo</th>
+                                <th class="py-3 px-4">Permiso</th>
+                                <th class="py-3 px-4">Profesor Asignado</th>
+                                <th class="py-3 px-4">Kilometraje</th>
+                                <th class="py-3 px-4">Próxima ITV / Revisión</th>
+                                <th class="py-3 px-4">Estado</th>
+                                <th class="py-3 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+
+                            <!-- Vehículo 1 -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                            1234
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-white">1234-LMN</p>
+                                            <p class="text-[11px] text-slate-400">SEAT Ibiza 1.0 TSI · Blanco Nevada</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">Permiso B</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <p class="font-medium text-slate-900 dark:text-white">Laura Sánchez Romero</p>
+                                    <p class="text-[10px] text-slate-400">Turno Matinal</p>
+                                </td>
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                    45.000 km
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200">10/01/2027</span>
+                                    </div>
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
+                                </td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Vehículo 2 -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                            5678
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-white">5678-KPR</p>
+                                            <p class="text-[11px] text-slate-400">Renault Clio E-Tech · Azul Rayo</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">Permiso B</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <p class="font-medium text-slate-900 dark:text-white">Manuel Navarro Torres</p>
+                                    <p class="text-[10px] text-slate-400">Turno Tarde</p>
+                                </td>
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                    32.000 km
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200">20/11/2026</span>
+                                    </div>
+                                    <p class="text-[10px] text-amber-600 dark:text-amber-400">Próxima revisión (< 60 días)</p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
+                                </td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Vehículo 3 -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                            9012
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-white">9012-HJK</p>
+                                            <p class="text-[11px] text-slate-400">Yamaha MT-07 · Negro Midnight</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400">Permiso A2</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
+                                </td>
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                    12.000 km
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200">15/02/2027</span>
+                                    </div>
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
+                                </td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Vehículo 4 (En Taller / Mantenimiento) -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                            3456
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-white">3456-FGH</p>
+                                            <p class="text-[11px] text-slate-400">Mercedes-Benz Actros 1845 · Rojo</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">Permiso C</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
+                                </td>
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                    180.000 km
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                        <span class="font-medium text-red-600 dark:text-red-400">05/09/2026</span>
+                                    </div>
+                                    <p class="text-[10px] text-red-600 dark:text-red-400 font-bold">¡Revisión Vencida!</p>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
+                                </td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal 1: Alta de Nuevo Vehículo -->
+    <div id="modal-alta-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-alta-vehiculo" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 id="titulo-alta-vehiculo" class="text-lg font-bold text-slate-900 dark:text-white">Alta de Nuevo Vehículo en Flota</h3>
+                <button type="button" data-modal-close="modal-alta-vehiculo" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form action="#" method="post" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Matrícula *</label>
+                        <input type="text" name="matricula" required placeholder="0000-XYZ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white uppercase" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipo de Carnet *</label>
+                        <select name="tipo" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white">
+                            <option value="PERMISO_B">Permiso B (Turismo)</option>
+                            <option value="PERMISO_A2">Permiso A2 (Motocicleta)</option>
+                            <option value="PERMISO_C">Permiso C (Camión)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Marca *</label>
+                        <input type="text" name="marca" required placeholder="Ej. SEAT" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Modelo *</label>
+                        <input type="text" name="modelo" required placeholder="Ej. Ibiza 1.0 TSI" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Color *</label>
+                        <input type="text" name="color" required placeholder="Blanco" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kilometraje Inicial *</label>
+                        <input type="number" name="km" required min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Próxima Revisión / ITV *</label>
+                        <input type="date" name="fechaProximaRevision" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-alta-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Registrar Vehículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Modificar Vehículo -->
+    <div id="modal-editar-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-vehiculo" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 id="titulo-editar-vehiculo" class="text-lg font-bold text-slate-900 dark:text-white">Modificar Datos del Vehículo</h3>
+                <button type="button" data-modal-close="modal-editar-vehiculo" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form action="#" method="post" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kilometraje Actual (km) *</label>
+                        <input type="number" name="km" value="45000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estado Operativo *</label>
+                        <select name="estado" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white">
+                            <option value="DISPONIBLE" selected>DISPONIBLE</option>
+                            <option value="OCUPADO">OCUPADO</option>
+                            <option value="MANTENIMIENTO">MANTENIMIENTO (Taller)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Última Revisión Pasada</label>
+                        <input type="date" name="fechaUltimaRevision" value="2026-01-10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Próxima Revisión / ITV *</label>
+                        <input type="date" name="fechaProximaRevision" value="2027-01-10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-editar-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Guardar Modificaciones</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Baja Lógica de Vehículo -->
+    <div id="modal-baja-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-baja-vehiculo" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
+            <div class="flex items-center space-x-3 text-red-600">
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="titulo-baja-vehiculo" class="text-base font-bold text-slate-900 dark:text-white">Baja de Vehículo</h3>
+                    <p class="text-xs text-slate-500">Se aplicará borrado lógico (INACTIVO).</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                El vehículo no se eliminará físicamente para preservar el historial de clases e incidencias. Si tiene un profesor asignado, quedará automáticamente desvinculado.
+            </p>
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                <button type="button" data-modal-close="modal-baja-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
+                <button type="button" class="px-5 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm">Confirmar Baja</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

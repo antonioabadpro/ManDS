@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas Globales - ManDS ERP</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/><circle cx='7.5' cy='14.5' r='1.5'/><circle cx='16.5' cy='14.5' r='1.5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a', 950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{fragments/admin-nav :: sidebar(activeSection='estadisticas')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Estadísticas y Rendimiento Global', subtituloSeccion='Analítica de aprobados, rendimiento docente, horas prácticas y facturación')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Estadísticas y Rendimiento Global</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Analítica de aprobados, rendimiento docente, horas prácticas y facturación</p>
+            </div>
+
+            <!-- 1. Cuadrícula de KPIs Clave Financieros y Pedagógicos -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- KPI 1: Tasa de Aprobados -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tasa de Aprobados</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">75.0%</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Media DGT Provincial: 58%</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Total Horas de Conducción -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Horas de Prácticas</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">3.25 h</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">195 min en vehículos</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Facturación Estimada -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Facturación Bruta</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">1.160 €</h3>
+                        <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">3 matrículas abonadas</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Alumnos en Proceso -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Alumnos Formándose</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">3</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Bolsa total: 13 clases</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2. Desglose de Rendimiento por Profesor y Tipo de Examen -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Rendimiento Docente -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Rendimiento por Profesor</h3>
+                        <span class="text-xs text-slate-400">Tasa de Aptos DGT</span>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <!-- Profesor 1 -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                <span>Laura Sánchez Romero (Turno Matinal)</span>
+                                <span class="text-emerald-600">66.7% Aptos (2 de 3)</span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-emerald-500 rounded-full" style="width: 66.7%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>3 clases impartidas · 2 alumnos asignados</span>
+                                <span>Vehículo: SEAT Ibiza</span>
+                            </div>
+                        </div>
+
+                        <!-- Profesor 2 -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                <span>Manuel Navarro Torres (Turno Tarde)</span>
+                                <span class="text-blue-600">100% Aptos (1 de 1)</span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-blue-600 rounded-full" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>1 clase impartida · 1 alumno asignado</span>
+                                <span>Vehículo: Renault Clio</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparativa Teórico vs Práctico -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Efectividad por Tipo de Examen</h3>
+                        <span class="text-xs text-slate-400">DGT Oficial</span>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                <span>Exámenes Teóricos Oficiales</span>
+                                <span class="text-emerald-600">100% (1/1 Apto)</span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Media de fallos por examen: 1.0 (Límite: 3)</p>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                <span>Exámenes Prácticos en Vía Abierta</span>
+                                <span class="text-amber-600">50.0% (1/2 Apto)</span>
+                            </div>
+                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-amber-500 rounded-full" style="width: 50%"></div>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Duración media de prueba práctica: 30 minutos</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 3. Resumen Financiero de Matrículas e Ingresos -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Desglose de Ingresos Estimados</h3>
+                        <p class="text-xs text-slate-400">Ingresos por tipo de matrícula y venta de bonos</p>
+                    </div>
+                    <span class="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-xl">
+                        Total Facturado: 1.160,00 €
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Teórico + Prácticas</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white">450,00 €</p>
+                        <p class="text-[11px] text-slate-500">1 matrícula (Elena Martínez)</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Sólo Prácticas (Renovación)</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white">320,00 €</p>
+                        <p class="text-[11px] text-slate-500">1 matrícula (David Ruiz)</p>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Individual (Prácticas Sueltas)</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white">390,00 €</p>
+                        <p class="text-[11px] text-slate-500">1 matrícula (Sofía Fernández)</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

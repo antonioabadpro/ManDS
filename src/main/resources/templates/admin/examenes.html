@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convocatorias y Solicitudes DGT - ManDS ERP</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/><circle cx='7.5' cy='14.5' r='1.5'/><circle cx='16.5' cy='14.5' r='1.5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a', 950: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{fragments/admin-nav :: sidebar(activeSection='examenes')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Convocatorias y Solicitudes DGT', subtituloSeccion='Gestión exclusiva de exámenes oficiales, cola FIFO y control de cupos')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Convocatorias y Solicitudes DGT</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gestión exclusiva de exámenes oficiales, cola FIFO y control de cupos</p>
+            </div>
+
+            <!-- 1. JORNADAS OFICIALES DGT DEL MES (Generación Automática / Bloqueo en Calendario) -->
+            <section class="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30 p-5 sm:p-6 shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-blue-100 dark:border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-blue-600 text-white">
+                                DGT Oficial
+                            </span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Ciclo Bisemanal Automático (Regla 7.5)</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1">
+                            Convocatorias Oficiales del Mes en Curso (Septiembre 2026)
+                        </h3>
+                    </div>
+                    <div class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Días bloqueados para clases prácticas</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Jornada 1 -->
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
+                            <h4 class="text-base font-extrabold text-slate-900 dark:text-white">Jueves, 10 de Septiembre de 2026</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Hora de examen: 08:30h · Jefatura Provincial</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                Cupo: 2/4 asignados
+                            </span>
+                            <p class="text-[10px] text-slate-400 mt-1">Máx. 4 por profesor</p>
+                        </div>
+                    </div>
+
+                    <!-- Jornada 2 -->
+                    <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual (+14 días)</span>
+                            <h4 class="text-base font-extrabold text-slate-900 dark:text-white">Jueves, 24 de Septiembre de 2026</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Hora de examen: 08:30h · Jefatura Provincial</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                Cupo: 1/4 asignados
+                            </span>
+                            <p class="text-[10px] text-slate-400 mt-1">Máx. 4 por profesor</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400 italic">
+                    * Conforme a la normativa DGT, al completarse la última jornada del mes, el sistema generará automáticamente las 2 fechas del mes siguiente y aplicará el bloqueo preventivo en la agenda de prácticas de los vehículos implicados.
+                </p>
+            </section>
+
+            <!-- 2. COLA DE SOLICITUDES FIFO (PENDIENTES) -->
+            <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Cola de Solicitudes FIFO (Pendientes)</h3>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                1 en espera
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Orden estricto cronológico por fecha de petición ascendente (Regla 7.5)</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Prioridad FIFO</th>
+                                <th class="py-3 px-4">Alumno Solicitante</th>
+                                <th class="py-3 px-4">Profesor Asignado</th>
+                                <th class="py-3 px-4">Permiso</th>
+                                <th class="py-3 px-4">Comentario / Estado Académico</th>
+                                <th class="py-3 px-4 text-right">Resolución (Admin)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <!-- Solicitud FIFO #1 -->
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3.5 px-4 font-extrabold text-blue-600 text-sm whitespace-nowrap">
+                                    #1 en cola
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <p class="font-bold text-slate-900 dark:text-white">David Ruiz Gómez</p>
+                                    <p class="text-[11px] text-slate-400">DNI: 56789012E · Solicitado hace 2 días</p>
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <p class="font-medium text-slate-900 dark:text-white">Laura Sánchez Romero</p>
+                                    <p class="text-[10px] text-slate-400">Vehículo: SEAT Ibiza (1234-LMN)</p>
+                                </td>
+                                <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                                        Permiso B (Práctico)
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 max-w-xs">
+                                    <p class="text-slate-700 dark:text-slate-300">
+                                        Solicitud para la próxima convocatoria práctica de la DGT en Móstoles.
+                                    </p>
+                                </td>
+                                <td class="py-3.5 px-4 text-right space-x-2 whitespace-nowrap">
+                                    <!-- Botón Aceptar (Abre Modal de Selección de Convocatoria y Cupo) -->
+                                    <button type="button" data-modal-target="modal-aceptar-solicitud" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition">
+                                        Aceptar y Citar
+                                    </button>
+                                    <!-- Botón Rechazar (Abre Modal con Justificación Obligatoria) -->
+                                    <button type="button" data-modal-target="modal-rechazar-solicitud" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900 transition">
+                                        Rechazar
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. HISTÓRICO DE EXÁMENES Y NOTAS DGT -->
+            <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Histórico de Convocatorias y Calificaciones DGT</h3>
+                    <p class="text-xs text-slate-500">Exámenes tramitados con enlaces directos a la plataforma de notas de la DGT</p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Fecha y Hora</th>
+                                <th class="py-3 px-4">Alumno</th>
+                                <th class="py-3 px-4">Tipo Examen</th>
+                                <th class="py-3 px-4">Duración</th>
+                                <th class="py-3 px-4">Calificación</th>
+                                <th class="py-3 px-4 text-right">Consulta Oficial</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">25/09/2026 09:00</td>
+                                <td class="py-3 px-4 font-medium text-slate-900 dark:text-white">Elena Martínez López</td>
+                                <td class="py-3 px-4">Práctico (Permiso B)</td>
+                                <td class="py-3 px-4">35 min</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600">PENDIENTE</span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <span class="text-[11px] text-slate-400">Prueba programada</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">05/08/2026 10:30</td>
+                                <td class="py-3 px-4 font-medium text-slate-900 dark:text-white">David Ruiz Gómez</td>
+                                <td class="py-3 px-4">Práctico (Permiso B)</td>
+                                <td class="py-3 px-4">25 min</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-600">NO APTO</span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <a href="https://sedeclave.dgt.gob.es/WEB_NOTAS_INTER/notasConsulta.faces" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline inline-flex items-center space-x-1">
+                                        <span>Consultar en Sede DGT</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">20/07/2026 09:00</td>
+                                <td class="py-3 px-4 font-medium text-slate-900 dark:text-white">Elena Martínez López</td>
+                                <td class="py-3 px-4">Teórico (Permiso B)</td>
+                                <td class="py-3 px-4">30 min</td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600">APTO</span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <a href="https://sedeclave.dgt.gob.es/WEB_NOTAS_INTER/notasConsulta.faces" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline inline-flex items-center space-x-1">
+                                        <span>Consultar en Sede DGT</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal 1: Aceptar Solicitud de Examen DGT (Gestión de Cupo máx. 4 y Citación) -->
+    <div id="modal-aceptar-solicitud" role="dialog" aria-modal="true" aria-labelledby="titulo-aceptar" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                    <h3 id="titulo-aceptar" class="text-base font-bold text-slate-900 dark:text-white">Aceptar Solicitud y Asignar Convocatoria</h3>
+                    <p class="text-xs text-slate-500">Alumno: David Ruiz Gómez · Permiso B</p>
+                </div>
+                <button type="button" data-modal-close="modal-aceptar-solicitud" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="#" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Seleccionar Convocatoria Oficial DGT (Cupo máx. 4 alumnos por profesor):
+                    </label>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-start justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" name="convocatoriaFecha" value="2026-09-10" checked class="text-blue-600" />
+                                <div>
+                                    <span class="font-bold text-slate-900 dark:text-white">Jueves, 10 de Septiembre de 2026</span>
+                                    <p class="text-[11px] text-slate-500">08:30h · Convocatoria 1 de 2</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600">2 huecos libres</span>
+                        </label>
+                        <label class="flex items-start justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" name="convocatoriaFecha" value="2026-09-24" class="text-blue-600" />
+                                <div>
+                                    <span class="font-bold text-slate-900 dark:text-white">Jueves, 24 de Septiembre de 2026</span>
+                                    <p class="text-[11px] text-slate-500">08:30h · Convocatoria 2 de 2</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600">3 huecos libres</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/60 text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                    <p class="font-bold">Acciones automáticas tras confirmar:</p>
+                    <p>• Se emitirá la citación oficial por correo electrónico al alumno.</p>
+                    <p>• Se cancelarán las clases prácticas de ese día en el vehículo asignado y se bloqueará el calendario (Regla 7.3).</p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-aceptar-solicitud" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm">Confirmar y Citar Oficialmente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Rechazar Solicitud de Examen DGT (Motivo Obligatorio) -->
+    <div id="modal-rechazar-solicitud" role="dialog" aria-modal="true" aria-labelledby="titulo-rechazar" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                    <h3 id="titulo-rechazar" class="text-base font-bold text-slate-900 dark:text-white">Rechazar Solicitud de Examen</h3>
+                    <p class="text-xs text-slate-500">Alumno: David Ruiz Gómez</p>
+                </div>
+                <button type="button" data-modal-close="modal-rechazar-solicitud" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form action="#" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Motivo / Justificación Pedagógica Obligatoria (Regla 7.5) *
+                    </label>
+                    <textarea name="motivoRechazo" required rows="4" placeholder="Indica el motivo técnico o pedagógico que fundamenta la denegación de la fecha..." class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500"></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Este texto será notificado íntegramente al alumno por correo electrónico.</p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-rechazar-solicitud" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm">Confirmar Denegación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>
