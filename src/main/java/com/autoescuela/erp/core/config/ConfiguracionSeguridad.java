@@ -47,8 +47,8 @@ public class ConfiguracionSeguridad
                 // Recursos estáticos públicos
                 .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
 
-                // Rutas públicas (Login, registro, recuperación de contraseña)
-                .requestMatchers("/", "/login", "/registro/**", "/recuperar-password/**").permitAll()
+                // Rutas públicas (Login, registro, recuperación de contraseña, activación de cuenta)
+                .requestMatchers("/", "/login", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**").permitAll()
 
                 // Webhook de Stripe (verificado criptográficamente por firma en el controlador)
                 .requestMatchers("/pagos/webhook/**").permitAll()

@@ -84,6 +84,16 @@ public abstract class Persona
     }
 
     /**
+     * Valida si la persona es mayor de edad (al menos 18 años cumplidos).
+     *
+     * @return true si la fecha de nacimiento no es nula y han transcurrido al menos 18 años, false en caso contrario.
+     */
+    public boolean esMayorDeEdad()
+    {
+        return this.fechaNacimiento != null && !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+    }
+
+    /**
      * Metodo abstracto y polimofrico que cada subclase debe implementar este método para devolver su rol correspondiente.
      * @return Devuelve el rol de la persona (Alumno, Profesor o Administrador) sin que el JPA lo persista en la base de datos.
      */

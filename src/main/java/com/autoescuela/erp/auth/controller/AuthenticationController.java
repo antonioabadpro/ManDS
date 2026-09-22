@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
@@ -165,6 +166,48 @@ public class AuthenticationController
             model.addAttribute("token", dto.token());
             model.addAttribute("mensajeError", ex.getMessage());
             return "auth/recuperar-password";
+        }
+    }
+
+    /**
+     * Muestra la vista de activación de cuenta para el nuevo profesor (Regla 7.1).
+     */
+    @GetMapping("/activar-cuenta")
+    public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model)
+    {
+        if (token == null || token.isBlank() || !this.autenticacionService.validarTokenRecuperacion(token.trim()))
+        {
+            return "redirect:/login?tokenInvalido=true";
+        }
+        model.addAttribute("token", token.trim());
+        model.addAttribute("activarDTO", new ActivarCuentaProfesorDTO(token.trim(), null, null, null));
+        return "auth/activar-cuenta";
+    }
+
+    /**
+     * Procesa la activación de cuenta del profesor, configurando su nombre de usuario y contraseña definitivos.
+     */
+    @PostMapping("/activar-cuenta")
+    public String procesarActivacionCuenta(@Valid @ModelAttribute("activarDTO") ActivarCuentaProfesorDTO dto, BindingResult bindingResult, Model model)
+    {
+        if (bindingResult.hasErrors())
+        {
+            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", mensajeError);
+            return "auth/activar-cuenta";
+        }
+
+        try
+        {
+            this.autenticacionService.activarCuentaProfesor(dto);
+            return "redirect:/login?activado=true";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", ex.getMessage());
+            return "auth/activar-cuenta";
         }
     }
 

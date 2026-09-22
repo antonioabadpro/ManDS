@@ -1,5 +1,6 @@
 package com.autoescuela.erp.auth.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,14 @@ public interface TokenVerificacionRepository extends JpaRepository<TokenVerifica
      * @return Optional con el TokenVerificacion activo si existe.
      */
     Optional<TokenVerificacion> findByTokenAndUsadoFalse(String token);
+
+    /**
+     * Obtiene todos los tokens de verificación asociados a una persona.
+     *
+     * @param persona Entidad persona titular de los tokens.
+     * @return Lista de tokens encontrados.
+     */
+    List<TokenVerificacion> findByPersona(Persona persona);
 
     /**
      * Elimina todos los tokens previos asociados a una persona.

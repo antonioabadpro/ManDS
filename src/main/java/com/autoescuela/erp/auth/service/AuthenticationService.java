@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
@@ -354,6 +356,48 @@ public class AuthenticationService
                 .orElseThrow(() -> new ReglaNegocioException("El enlace de recuperación es inválido o ha caducado."));
 
         Persona persona = tokenVerificacion.getPersona();
+        String passwordCodificada = this.passwordEncoder.encode(dto.password());
+        persona.actualizarPassword(passwordCodificada);
+        this.personaRepository.save(persona);
+
+        this.tokenVerificacionService.marcarComoUsado(tokenVerificacion);
+    }
+
+    /**
+     * Activa la cuenta de un nuevo profesor permitiéndole definir su nombre de usuario y contraseña iniciales.
+     * Valida el token de activación, la coincidencia de contraseñas y la longitud mínima de la clave.
+     * @dto DTO con el token de activación, nombre de usuario, contraseña y confirmación.
+     * @throws ReglaNegocioException Si el token es inválido o expirado, si las contraseñas no coinciden, o si el nombre de usuario ya está en uso.
+     */
+    @Transactional
+    public void activarCuentaProfesor(ActivarCuentaProfesorDTO dto)
+    {
+        if (dto == null)
+        {
+            throw new ReglaNegocioException("Los datos de activación no pueden ser nulos.");
+        }
+
+        if (dto.password() == null || !dto.password().equals(dto.confirmPassword()))
+        {
+            throw new ReglaNegocioException("Las contraseñas introducidas no coinciden.");
+        }
+
+        if (dto.password().trim().length() < 8)
+        {
+            throw new ReglaNegocioException("La contraseña debe tener al menos 8 caracteres.");
+        }
+
+        String usernameLimpio = dto.nombreUsuario().trim();
+        TokenVerificacion tokenVerificacion = this.tokenVerificacionService.obtenerTokenValido(dto.token())
+                .orElseThrow(() -> new ReglaNegocioException("El enlace de activación es inválido o ha caducado."));
+
+        Persona persona = tokenVerificacion.getPersona();
+        if (this.personaRepository.existsByNombreUsuario(usernameLimpio) && !usernameLimpio.equalsIgnoreCase(persona.getNombreUsuario()))
+        {
+            throw new ReglaNegocioException("El nombre de usuario '" + usernameLimpio + "' ya está en uso. Por favor, elige otro.");
+        }
+
+        persona.setNombreUsuario(usernameLimpio);
         String passwordCodificada = this.passwordEncoder.encode(dto.password());
         persona.actualizarPassword(passwordCodificada);
         this.personaRepository.save(persona);

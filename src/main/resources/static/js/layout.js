@@ -361,6 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Bloquear scroll si un modal viene abierto desde el servidor (errores de validación)
+    if (document.querySelector('[role="dialog"].flex')) {
+        document.body.classList.add('overflow-hidden');
+    }
+
     // =========================================================================
     // 6. ACCESIBILIDAD POR TECLADO (TECLA ESCAPE)
     // =========================================================================
