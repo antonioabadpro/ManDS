@@ -69,6 +69,10 @@ class VistaRecuperarPasswordTest
                 .andExpect(content().string(containsString("id=\"panel-solicitud\"")))
                 .andExpect(content().string(containsString("id=\"recuperar-correo\"")))
                 .andExpect(content().string(containsString("action=\"/recuperar-password\"")))
+                .andExpect(content().string(containsString("hx-post=\"/recuperar-password\"")))
+                .andExpect(content().string(containsString("hx-disabled-elt=\"#btn-solicitar-recuperacion\"")))
+                .andExpect(content().string(containsString("id=\"btn-solicitar-recuperacion\"")))
+                .andExpect(content().string(containsString("htmx-indicator")))
                 .andExpect(content().string(containsString("href=\"/login\"")))
                 .andExpect(content().string(containsString("/js/recuperar-password.js")));
     }
