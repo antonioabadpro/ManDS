@@ -1,13 +1,140 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>404 - Página no encontrada · ManDS ERP</title>
+
+    <!-- Favicon SVG -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.08 3.11H5.77L6.85 7zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z'/><circle cx='7.5' cy='14.5' r='1.5'/><circle cx='16.5' cy='14.5' r='1.5'/></svg>">
+
+    <!-- Tipografía Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body>
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased flex flex-col justify-between selection:bg-blue-600 selection:text-white overflow-x-hidden">
+
+    <!-- Cabecera Superior Minimalista -->
+    <header class="w-full border-b border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white ring-1 ring-white/10 group-hover:scale-105 transition-transform">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                        <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                        <line x1="12" y1="16" x2="12" y2="22"></line>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-lg font-black tracking-tight text-slate-900 dark:text-white">ManDS</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 ml-1.5">ERP</span>
+                </div>
+            </a>
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Sistema para Autoescuelas</span>
+        </div>
+    </header>
+
+    <!-- Contenido Central de Error -->
+    <main class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div class="w-full max-w-xl text-center space-y-6">
+
+            <!-- Ilustración e Indicador 404 -->
+            <div class="relative inline-flex items-center justify-center">
+                <div class="absolute -inset-4 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:sem-28 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <!-- Icono de Ruta Perdida / Mapa -->
+                    <svg class="w-12 h-12 sm:w-14 sm:h-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Código y Título -->
+            <div class="space-y-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    Error 404 · No encontrado
+                </span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                    Página no encontrada
+                </h1>
+                <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed" th:text="${message} ?: 'La ruta o recurso al que intentas acceder no existe, ha sido trasladado o ha expirado.'">
+                    La ruta o recurso al que intentas acceder no existe, ha sido trasladado o ha expirado.
+                </p>
+            </div>
+
+            <!-- Ficha Técnica de la Petición -->
+            <div th:if="${path}" class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 max-w-md mx-auto flex items-center justify-between">
+                <span class="text-slate-400 dark:text-slate-500">Ruta solicitada:</span>
+                <span class="font-semibold text-slate-900 dark:text-slate-200 truncate ml-2" th:text="${path}">/ruta</span>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="/" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-500/20 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Volver al Inicio</span>
+                </a>
+                <button type="button" onclick="history.back()" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Página Anterior</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="w-full text-center py-4 text-xs text-slate-400 dark:text-slate-600">
+        <span>© 2026 ManDS ERP · Todos los derechos reservados.</span>
+    </footer>
 
 </body>
 

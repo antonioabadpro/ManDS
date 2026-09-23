@@ -128,20 +128,25 @@ public class AdministradorController
                     + " ha sido dado de alta correctamente. Se ha enviado una invitación a "
                     + altaProfesorDTO.getCorreo() + " para que configure su usuario y contraseña.";
 
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
             if (esPeticionHtmx)
             {
                 FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                flashMap.put("mensajeExito", mensajeExito);
-                FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                if (flashMapManager != null)
+                if (flashMap != null)
                 {
-                    flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
                 }
-                response.setHeader("HX-Redirect", request.getContextPath() + "/admin/dashboard");
+                String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+                response.setHeader("HX-Redirect", contextPath + "/admin/dashboard");
                 return null;
             }
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
             return "redirect:/admin/dashboard";
         }
         catch (ReglaNegocioException ex)
