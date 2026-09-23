@@ -67,4 +67,18 @@ public record RegistroAlumnoDTO(
     {
         this(null, null, null, null, null, null, null, null, null, null, null);
     }
+
+    /**
+     * Validación en el Backend de que la contraseña y la confirmación de contraseña coincidan.
+     * @return true si coinciden, false en caso contrario.
+     */
+    @AssertTrue (message = "Las contraseñas no coinciden")
+    public Boolean isPasswordCoincidente()
+    {
+        if (this.password == null || this.confirmPassword == null)
+        {
+            return true; // Delegamos el valor null a @NotBlank para que genere el mensaje de error correspondiente.
+        }
+        return this.password.equals(this.confirmPassword);
+    }
 }

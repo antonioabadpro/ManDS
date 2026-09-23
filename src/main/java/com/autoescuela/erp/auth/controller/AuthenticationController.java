@@ -105,113 +105,6 @@ public class AuthenticationController
     }
 
     /**
-     * Muestra la vista de recuperación o restablecimiento de contraseña.
-     * Si se recibe un parámetro "token", se verifica su validez y vigencia.
-     * Si el token es inválido o ha expirado, se redirige inmediatamente con la alerta correspondiente.
-     */
-    @GetMapping("/recuperar-password")
-    public String recuperarPassword(@RequestParam(name = "token", required = false) String token, Model model)
-    {
-        if (token != null && !token.isBlank())
-        {
-            model.addAttribute("token", token);
-            String tokenLimpio = token.trim();
-            if (this.autenticacionService.validarTokenRecuperacion(tokenLimpio) == false)
-            {
-                return "redirect:/recuperar-password?tokenInvalido=true";
-            }
-            model.addAttribute("token", tokenLimpio);
-        }
-        return "auth/recuperar-password";
-    }
-
-    /**
-     * Procesa la solicitud pública de recuperación de contraseña enviando el correo con el enlace y token efímero.
-     * Por motivos de seguridad y privacidad (Anti-User Enumeration), siempre redirige a ?enviado=true.
-     */
-    @PostMapping("/recuperar-password")
-    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request)
-    {
-        String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
-        this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
-        return "redirect:/recuperar-password?enviado=true";
-    }
-
-    /**
-     * Procesa el cambio efectivo de contraseña a partir del token criptográfico temporal.
-     * Si la operación tiene éxito, redirige a la vista con el estado de éxito (?exito=true).
-     */
-    @PostMapping("/recuperar-password/restablecer")
-    public String procesarRestablecimientoPassword(@Valid @ModelAttribute("restablecerDTO") RestablecerPasswordDTO dto, BindingResult bindingResult, Model model)
-    {
-        if (bindingResult.hasErrors())
-        {
-            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
-            model.addAttribute("token", dto.token());
-            model.addAttribute("mensajeError", mensajeError);
-            return "auth/recuperar-password";
-        }
-
-        try
-        {
-            this.autenticacionService.restablecerPassword(dto);
-            return "redirect:/recuperar-password?exito=true";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            if (ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"))
-            {
-                return "redirect:/recuperar-password?tokenInvalido=true";
-            }
-            model.addAttribute("token", dto.token());
-            model.addAttribute("mensajeError", ex.getMessage());
-            return "auth/recuperar-password";
-        }
-    }
-
-    /**
-     * Muestra la vista de activación de cuenta para el nuevo profesor (Regla 7.1).
-     */
-    @GetMapping("/activar-cuenta")
-    public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model)
-    {
-        if (token == null || token.isBlank() || !this.autenticacionService.validarTokenRecuperacion(token.trim()))
-        {
-            return "redirect:/login?tokenInvalido=true";
-        }
-        model.addAttribute("token", token.trim());
-        model.addAttribute("activarDTO", new ActivarCuentaProfesorDTO(token.trim(), null, null, null));
-        return "auth/activar-cuenta";
-    }
-
-    /**
-     * Procesa la activación de cuenta del profesor, configurando su nombre de usuario y contraseña definitivos.
-     */
-    @PostMapping("/activar-cuenta")
-    public String procesarActivacionCuenta(@Valid @ModelAttribute("activarDTO") ActivarCuentaProfesorDTO dto, BindingResult bindingResult, Model model)
-    {
-        if (bindingResult.hasErrors())
-        {
-            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
-            model.addAttribute("token", dto.token());
-            model.addAttribute("mensajeError", mensajeError);
-            return "auth/activar-cuenta";
-        }
-
-        try
-        {
-            this.autenticacionService.activarCuentaProfesor(dto);
-            return "redirect:/login?activado=true";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            model.addAttribute("token", dto.token());
-            model.addAttribute("mensajeError", ex.getMessage());
-            return "auth/activar-cuenta";
-        }
-    }
-
-    /**
      * Endpoint HTMX para validar de forma temprana la disponibilidad y formato del nombre de usuario.
      * Devuelve un fragmento Thymeleaf con el mensaje de error o un fragmento vacío si es válido.
      */
@@ -325,6 +218,113 @@ public class AuthenticationController
         }
 
         return "auth/registro :: fragmento-vacio";
+    }
+
+    /**
+     * Muestra la vista de recuperación o restablecimiento de contraseña.
+     * Si se recibe un parámetro "token", se verifica su validez y vigencia.
+     * Si el token es inválido o ha expirado, se redirige inmediatamente con la alerta correspondiente.
+     */
+    @GetMapping("/recuperar-password")
+    public String recuperarPassword(@RequestParam(name = "token", required = false) String token, Model model)
+    {
+        if (token != null && !token.isBlank())
+        {
+            model.addAttribute("token", token);
+            String tokenLimpio = token.trim();
+            if (this.autenticacionService.validarTokenRecuperacion(tokenLimpio) == false)
+            {
+                return "redirect:/recuperar-password?tokenInvalido=true";
+            }
+            model.addAttribute("token", tokenLimpio);
+        }
+        return "auth/recuperar-password";
+    }
+
+    /**
+     * Procesa la solicitud pública de recuperación de contraseña enviando el correo con el enlace y token efímero.
+     * Por motivos de seguridad y privacidad (Anti-User Enumeration), siempre redirige a ?enviado=true.
+     */
+    @PostMapping("/recuperar-password")
+    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request)
+    {
+        String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+        this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
+        return "redirect:/recuperar-password?enviado=true";
+    }
+
+    /**
+     * Procesa el cambio efectivo de contraseña a partir del token criptográfico temporal.
+     * Si la operación tiene éxito, redirige a la vista con el estado de éxito (?exito=true).
+     */
+    @PostMapping("/recuperar-password/restablecer")
+    public String procesarRestablecimientoPassword(@Valid @ModelAttribute("restablecerDTO") RestablecerPasswordDTO dto, BindingResult bindingResult, Model model)
+    {
+        if (bindingResult.hasErrors())
+        {
+            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", mensajeError);
+            return "auth/recuperar-password";
+        }
+
+        try
+        {
+            this.autenticacionService.restablecerPassword(dto);
+            return "redirect:/recuperar-password?exito=true";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            if (ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"))
+            {
+                return "redirect:/recuperar-password?tokenInvalido=true";
+            }
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", ex.getMessage());
+            return "auth/recuperar-password";
+        }
+    }
+
+    /**
+     * Muestra la vista de activación de cuenta para el nuevo profesor (Regla 7.1).
+     */
+    @GetMapping("/activar-cuenta")
+    public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model)
+    {
+        if (token == null || token.isBlank() || !this.autenticacionService.validarTokenRecuperacion(token.trim()))
+        {
+            return "redirect:/login?tokenInvalido=true";
+        }
+        model.addAttribute("token", token.trim());
+        model.addAttribute("activarDTO", new ActivarCuentaProfesorDTO(token.trim(), null, null, null));
+        return "auth/activar-cuenta";
+    }
+
+    /**
+     * Procesa la activación de cuenta del profesor, configurando su nombre de usuario y contraseña definitivos.
+     */
+    @PostMapping("/activar-cuenta")
+    public String procesarActivacionCuenta(@Valid @ModelAttribute("activarDTO") ActivarCuentaProfesorDTO dto, BindingResult bindingResult, Model model)
+    {
+        if (bindingResult.hasErrors())
+        {
+            String mensajeError = bindingResult.getAllErrors().getFirst().getDefaultMessage();
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", mensajeError);
+            return "auth/activar-cuenta";
+        }
+
+        try
+        {
+            this.autenticacionService.activarCuentaProfesor(dto);
+            return "redirect:/login?activado=true";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            model.addAttribute("token", dto.token());
+            model.addAttribute("mensajeError", ex.getMessage());
+            return "auth/activar-cuenta";
+        }
     }
 
 }
