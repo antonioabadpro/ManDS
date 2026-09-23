@@ -337,7 +337,7 @@ class AutenticacionServiceTest
         ReglaNegocioException exCorta = assertThrows(ReglaNegocioException.class, () ->
                 this.autenticacionService.restablecerPassword(dtoCorta)
         );
-        assertEquals("La contraseña debe tener al menos 8 caracteres.", exCorta.getMessage());
+        assertEquals("La contraseña debe tener al menos 6 caracteres.", exCorta.getMessage());
     }
 
     @Test

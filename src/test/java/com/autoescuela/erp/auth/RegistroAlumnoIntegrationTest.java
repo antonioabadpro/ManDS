@@ -142,10 +142,10 @@ class RegistroAlumnoIntegrationTest
         this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "usuario_unico")
-                .param("correo", "elena.alumno@autoescuela.es") // Existe en data.sql
+                .param("correo", "jose.alumno@autoescuela.es") // Existe en data.sql
                 .param("password", "claveSecreta123")
                 .param("confirmPassword", "claveSecreta123")
-                .param("nombre", "Elena")
+                .param("nombre", "Jose")
                 .param("apellidos", "Martínez")
                 .param("dni", "99112233B")
                 .param("fechaNacimiento", "2000-01-01")
@@ -278,7 +278,7 @@ class RegistroAlumnoIntegrationTest
     {
         this.mockMvc.perform(post("/registro/validar-correo")
                 .with(csrf())
-                .param("correo", "elena.alumno@autoescuela.es"))
+                .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
                 .andExpect(model().attribute("mensaje", "El correo electrónico ya está registrado en el sistema."))

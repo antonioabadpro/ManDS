@@ -44,7 +44,7 @@ VALUES (3, 'Manuel', 'Navarro Torres', '34567890C', '1990-11-05', 'profesor2', '
 
 -- 2.3 Alumnos (id = 4, 5, 6)
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (4, 'Elena', 'Martínez López', '45678901D', '2004-03-15', 'alumno1', 'elena.alumno@autoescuela.es', '$2a$10$/xpN9C29wP5117wEJm/3UOxAfvgSMyV78Zm2B48o27KEZ4FMnc5Ma', '600444555', 'Calle Princesa 42, Madrid', 'ACTIVO');
+VALUES (4, 'Jose', 'López Martínez', '45678901D', '2004-03-15', 'alumno1', 'jose.alumno@autoescuela.es', '$2a$10$/xpN9C29wP5117wEJm/3UOxAfvgSMyV78Zm2B48o27KEZ4FMnc5Ma', '600444555', 'Calle Princesa 42, Madrid', 'ACTIVO');
 
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (5, 'David', 'Ruiz Gómez', '56789012E', '2003-07-28', 'alumno2', 'david.alumno@autoescuela.es', '$2a$10$/xpN9C29wP5117wEJm/3UOxAfvgSMyV78Zm2B48o27KEZ4FMnc5Ma', '600555666', 'Paseo de la Castellana 80, Madrid', 'ACTIVO');

@@ -26,6 +26,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -80,11 +81,11 @@ class RecuperarPasswordIntegrationTest
     {
         this.mockMvc.perform(post("/recuperar-password")
                         .with(csrf())
-                        .param("correo", "elena.alumno@autoescuela.es"))
+                        .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/recuperar-password?enviado=true"));
 
-        Persona persona = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
+        Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
 
         // Comprobamos si existe el token
         List<TokenVerificacion> listaTokens = this.tokenVerificacionRepository.findAll();
@@ -100,6 +101,18 @@ class RecuperarPasswordIntegrationTest
         }
 
         assertTrue(tieneToken, "Debe existir un token activo generado para el usuario.");
+    }
+
+    @Test
+    @DisplayName("POST /recuperar-password con cabecera HX-Request devuelve cabecera HX-Redirect")
+    void testSolicitudRecuperacionHtmxDevuelveHxRedirect() throws Exception
+    {
+        this.mockMvc.perform(post("/recuperar-password")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("correo", "jose.alumno@autoescuela.es"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Redirect", "/recuperar-password?enviado=true"));
     }
 
     @Test
@@ -122,7 +135,7 @@ class RecuperarPasswordIntegrationTest
     @DisplayName("POST /recuperar-password/restablecer con contraseñas no coincidentes muestra error")
     void testRestablecerPasswordNoCoinciden() throws Exception
     {
-        Persona persona = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
+        Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
         TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
 
         this.mockMvc.perform(post("/recuperar-password/restablecer")
@@ -137,10 +150,10 @@ class RecuperarPasswordIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /recuperar-password/restablecer con clave de menos de 8 caracteres muestra error")
+    @DisplayName("POST /recuperar-password/restablecer con clave de menos de 6 caracteres muestra error")
     void testRestablecerPasswordCorta() throws Exception
     {
-        Persona persona = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
+        Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
         TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
 
         this.mockMvc.perform(post("/recuperar-password/restablecer")
@@ -151,7 +164,7 @@ class RecuperarPasswordIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"))
                 .andExpect(model().attributeExists("mensajeError"))
-                .andExpect(content().string(containsString("debe tener al menos 8 caracteres")));
+                .andExpect(content().string(containsString("debe tener al menos 6 caracteres")));
     }
 
     @Test
@@ -171,7 +184,7 @@ class RecuperarPasswordIntegrationTest
     @DisplayName("Flujo completo: restablecimiento exitoso de contraseña, token consumido y nuevo acceso en login")
     void testFlujoCompletoRestablecimientoExitoso() throws Exception
     {
-        Persona persona = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
+        Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
         TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
 
         // Accedemos al enlace con el token
@@ -195,7 +208,7 @@ class RecuperarPasswordIntegrationTest
         assertFalse(tokenEnBd.isValido(), "El token ya no debe ser válido.");
 
         // Verificamos que la contraseña de la Persona se actualizó correctamente con BCrypt
-        Persona personaActualizada = this.personaRepository.findByCorreo("elena.alumno@autoescuela.es").orElseThrow();
+        Persona personaActualizada = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
         assertTrue(this.passwordEncoder.matches("nuevaPasswordSegura123", personaActualizada.getPassword()),
                 "El hash de la contraseña en base de datos debe coincidir con la nueva clave.");
 

@@ -83,7 +83,7 @@ class SeguridadIntegrationTest
     void testLoginAlumnoConCorreo() throws Exception
     {
         this.mockMvc.perform(post("/login")
-                .param("username", "elena.alumno@autoescuela.es")
+                .param("username", "jose.alumno@autoescuela.es")
                 .param("password", "alumno123")
                 .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
                 .andExpect(status().is3xxRedirection())
