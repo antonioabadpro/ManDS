@@ -16,6 +16,15 @@ function validarPaso(paso) {
     const contenedorPaso = document.getElementById(`panel-step-${paso}`);
     if (!contenedorPaso) return true;
 
+    // Validación específica del Paso 2: Fecha de nacimiento (mayoría de edad)
+    if (paso === 2) {
+        if (!validarFechaNacimiento()) {
+            const inputFecha = document.getElementById('reg-fechaNacimiento');
+            if (inputFecha) inputFecha.focus();
+            return false;
+        }
+    }
+
     // Obtener todos los inputs obligatorios o con reglas del paso actual
     const inputs = contenedorPaso.querySelectorAll('input, select, textarea');
     for (const input of inputs) {
@@ -27,15 +36,8 @@ function validarPaso(paso) {
 
     // Validación específica del Paso 1: Coincidencia de contraseñas
     if (paso === 1) {
-        const pass = document.getElementById('reg-password');
-        const confirmPass = document.getElementById('reg-confirmPassword');
-
-        if (pass && confirmPass && pass.value !== confirmPass.value) {
-            confirmPass.setCustomValidity('Las contraseñas introducidas no coinciden.');
-            confirmPass.reportValidity();
+        if (!validarCoincidenciaPasswords()) {
             return false;
-        } else if (confirmPass) {
-            confirmPass.setCustomValidity('');
         }
     }
 
@@ -53,6 +55,158 @@ function validarPaso(paso) {
         return false;
     }
 
+    return true;
+}
+
+/**
+ * Valida que la confirmación de contraseña coincida exactamente con la contraseña.
+ * Utiliza la Constraint Validation API nativa de HTML5.
+ * @returns {boolean} - true si ambas claves coinciden.
+ */
+function validarCoincidenciaPasswords() {
+    const passInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirmPassword');
+
+    if (!passInput || !confirmInput) return true;
+
+    if (confirmInput.value && passInput.value !== confirmInput.value) {
+        confirmInput.setCustomValidity('Las contraseñas no coinciden.');
+        confirmInput.reportValidity();
+        return false;
+    } else {
+        confirmInput.setCustomValidity('');
+        return true;
+    }
+}
+
+/**
+ * Configura los límites de fecha (min y max) en el selector nativo de fecha de nacimiento.
+ * Restringe la fecha máxima a hoy hace 18 años (mayoría de edad) y mínima a hace 100 años.
+ */
+function configurarRestriccionFechaNacimiento() {
+    const inputFecha = document.getElementById('reg-fechaNacimiento');
+    if (!inputFecha) return;
+
+    const hoy = new Date();
+    const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+    const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
+
+    const formatearFecha = (d) => {
+        const anio = d.getFullYear();
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const dia = String(d.getDate()).padStart(2, '0');
+        return `${anio}-${mes}-${dia}`;
+    };
+
+    inputFecha.setAttribute('max', formatearFecha(hace18Anios));
+    inputFecha.setAttribute('min', formatearFecha(hace100Anios));
+}
+
+/**
+ * Muestra el mensaje de error visual para el campo de fecha de nacimiento,
+ * respetando el formato SVG y las clases Tailwind usadas en los componentes HTMX.
+ * @param {string} mensaje - Texto explicativo del error.
+ */
+function mostrarErrorFechaNacimiento(mensaje) {
+    const input = document.getElementById('reg-fechaNacimiento');
+    const feedback = document.getElementById('feedback-fechaNacimiento');
+
+    if (input) {
+        input.classList.add('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+        input.classList.remove('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+    }
+
+    if (feedback) {
+        feedback.innerHTML = `
+            <div class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>${mensaje}</span>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Limpia el mensaje de error y restablece el estilo estándar del campo de fecha de nacimiento.
+ */
+function limpiarErrorFechaNacimiento() {
+    const input = document.getElementById('reg-fechaNacimiento');
+    const feedback = document.getElementById('feedback-fechaNacimiento');
+
+    if (input) {
+        input.classList.remove('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+        input.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+    }
+
+    if (feedback) {
+        feedback.innerHTML = '';
+    }
+}
+
+/**
+ * Valida la fecha de nacimiento en el frontend:
+ * - Debe ser obligatoria.
+ * - Debe ser una fecha pasada.
+ * - El alumno debe ser mayor de edad (al menos 18 años cumplidos).
+ * - La edad no debe exceder un límite razonable (100 años).
+ * @returns {boolean} true si la fecha es válida y cumple con la mayoría de edad.
+ */
+function validarFechaNacimiento() {
+    const input = document.getElementById('reg-fechaNacimiento');
+    if (!input) return true;
+
+    const valor = input.value?.trim();
+    if (!valor) {
+        mostrarErrorFechaNacimiento('La fecha de nacimiento es obligatoria.');
+        input.setCustomValidity('La fecha de nacimiento es obligatoria.');
+        return false;
+    }
+
+    const partes = valor.split('-');
+    if (partes.length !== 3) {
+        mostrarErrorFechaNacimiento('El formato de la fecha no es válido.');
+        input.setCustomValidity('El formato de la fecha no es válido.');
+        return false;
+    }
+
+    const anio = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1;
+    const dia = parseInt(partes[2], 10);
+    const fechaNac = new Date(anio, mes, dia);
+
+    if (isNaN(fechaNac.getTime())) {
+        mostrarErrorFechaNacimiento('Introduce una fecha de nacimiento válida.');
+        input.setCustomValidity('Introduce una fecha de nacimiento válida.');
+        return false;
+    }
+
+    const hoy = new Date();
+    const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
+    if (fechaNac > hoySinHora) {
+        mostrarErrorFechaNacimiento('La fecha de nacimiento debe ser una fecha pasada.');
+        input.setCustomValidity('La fecha de nacimiento debe ser una fecha pasada.');
+        return false;
+    }
+
+    const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
+    if (fechaNac < hace100Anios) {
+        mostrarErrorFechaNacimiento('Introduce una fecha de nacimiento válida.');
+        input.setCustomValidity('Introduce una fecha de nacimiento válida.');
+        return false;
+    }
+
+    const fechaMinima18 = new Date(anio + 18, mes, dia);
+    if (hoySinHora < fechaMinima18) {
+        mostrarErrorFechaNacimiento('El alumno debe ser mayor de edad (al menos 18 años).');
+        input.setCustomValidity('El alumno debe ser mayor de edad (al menos 18 años).');
+        return false;
+    }
+
+    limpiarErrorFechaNacimiento();
+    input.setCustomValidity('');
     return true;
 }
 
@@ -198,11 +352,36 @@ function inicializarEventosRegistro() {
         btnOcultarConfirm.addEventListener('click', () => togglePasswordVisibility('reg-confirmPassword', 'eye-icon-confirm'));
     }
 
-    // Limpiar mensaje de no coincidencia en confirmPassword al teclear
-    const confirmPass = document.getElementById('reg-confirmPassword');
-    if (confirmPass) {
-        confirmPass.addEventListener('input', () => {
-            confirmPass.setCustomValidity('');
+    // Validación reactiva en tiempo real de coincidencia de contraseñas
+    const passInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirmPassword');
+
+    if (passInput) {
+        passInput.addEventListener('input', () => {
+            // Si ya se ha escrito en la confirmación, revalidamos al modificar la clave principal
+            if (confirmInput && confirmInput.value) {
+                validarCoincidenciaPasswords();
+            }
+        });
+    }
+
+    if (confirmInput) {
+        confirmInput.addEventListener('input', validarCoincidenciaPasswords);
+    }
+
+    // Validación reactiva de fecha de nacimiento (mayoría de edad)
+    const fechaNacInput = document.getElementById('reg-fechaNacimiento');
+    if (fechaNacInput) {
+        fechaNacInput.addEventListener('change', validarFechaNacimiento);
+        fechaNacInput.addEventListener('input', () => {
+            if (fechaNacInput.value) {
+                validarFechaNacimiento();
+            }
+        });
+        fechaNacInput.addEventListener('blur', () => {
+            if (fechaNacInput.value) {
+                validarFechaNacimiento();
+            }
         });
     }
 
@@ -248,7 +427,9 @@ function inicializarEventosRegistro() {
 
 // Inicializar el asistente al cargar la vista
 document.addEventListener('DOMContentLoaded', () => {
+    configurarRestriccionFechaNacimiento();
     inicializarEventosRegistro();
     irAPaso(1);
 });
+
 

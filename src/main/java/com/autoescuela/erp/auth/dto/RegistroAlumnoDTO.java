@@ -27,11 +27,12 @@ public record RegistroAlumnoDTO(
         @Size(max = 50, message = "El correo electrónico no puede superar los 50 caracteres")
         String correo,
 
-        @NotBlank(message = "La contraseña es obligatoria")
-        @Size(min = 6, max = 100, message = "La contraseña debe tener al menos 6 caracteres")
+        @NotBlank(message = "La confirmación de la contraseña es obligatoria.")
+        @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
         String password,
 
         @NotBlank(message = "Debe confirmar la contraseña")
+        @Size(min = 6, message = "La contraseña de confirmación debe tener al menos 6 caracteres.")
         String confirmPassword,
 
         @NotBlank(message = "El nombre es obligatorio")
@@ -80,5 +81,18 @@ public record RegistroAlumnoDTO(
             return true; // Delegamos el valor null a @NotBlank para que genere el mensaje de error correspondiente.
         }
         return this.password.equals(this.confirmPassword);
+    }
+
+    /**
+     * Valida que el alumno sea mayor de edad (al menos 18 años).
+     */
+    @AssertTrue(message = "El alumno debe ser mayor de edad (al menos 18 años).")
+    public boolean isMayorDeEdad()
+    {
+        if (this.fechaNacimiento == null)
+        {
+            return true; // Se valida con @NotNull
+        }
+        return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
     }
 }

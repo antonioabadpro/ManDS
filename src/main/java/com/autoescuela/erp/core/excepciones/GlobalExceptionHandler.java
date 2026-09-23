@@ -60,7 +60,7 @@ public class GlobalExceptionHandler
      * Gestiona infracciones de reglas de negocio globales no interceptadas en formularios locales (422).
      */
     @ExceptionHandler(ReglaNegocioException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_CONTENT)
     public String manejarReglaNegocio(ReglaNegocioException ex, HttpServletRequest request, Model model)
     {
         log.warn("Infracción de regla de negocio en {}: {}", request.getRequestURI(), ex.getMessage());

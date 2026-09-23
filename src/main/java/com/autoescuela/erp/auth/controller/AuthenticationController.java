@@ -230,13 +230,12 @@ public class AuthenticationController
     {
         if (token != null && !token.isBlank())
         {
-            model.addAttribute("token", token);
-            String tokenLimpio = token.trim();
-            if (this.autenticacionService.validarTokenRecuperacion(tokenLimpio) == false)
+            model.addAttribute("token", token.trim());
+            if (this.autenticacionService.validarTokenRecuperacion(token.trim()) == false)
             {
                 return "redirect:/recuperar-password?tokenInvalido=true";
             }
-            model.addAttribute("token", tokenLimpio);
+            model.addAttribute("token", token.trim());
         }
         return "auth/recuperar-password";
     }
@@ -244,12 +243,22 @@ public class AuthenticationController
     /**
      * Procesa la solicitud pública de recuperación de contraseña enviando el correo con el enlace y token efímero.
      * Por motivos de seguridad y privacidad (Anti-User Enumeration), siempre redirige a ?enviado=true.
+     * Soporta peticiones reactivas HTMX emitiendo el encabezado HX-Redirect.
      */
     @PostMapping("/recuperar-password")
-    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request)
+    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request, HttpServletResponse response)
     {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
         String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
         this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
+
+        if (esPeticionHtmx)
+        {
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            response.setHeader("HX-Redirect", contextPath + "/recuperar-password?enviado=true");
+            return null;
+        }
+
         return "redirect:/recuperar-password?enviado=true";
     }
 

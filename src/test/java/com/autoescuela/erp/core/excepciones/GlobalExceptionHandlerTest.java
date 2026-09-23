@@ -116,7 +116,7 @@ class GlobalExceptionHandlerTest
     void testReglaNegocioException() throws Exception
     {
         this.standaloneMockMvc.perform(get("/test-error-negocio"))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(view().name("error/error-negocio"))
                 .andExpect(model().attribute("status", 422))
                 .andExpect(model().attribute("message", "No se pueden cancelar prácticas con menos de 24 horas de antelación."));

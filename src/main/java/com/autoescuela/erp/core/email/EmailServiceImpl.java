@@ -24,7 +24,7 @@ public class EmailServiceImpl implements EmailService
 {
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:no-reply@mands-autoescuela.es}")
+    @Value("${spring.mail.username:no-reply-mands@autoescuela.es}")
     private String correoRemitente;
 
     /**
@@ -41,6 +41,7 @@ public class EmailServiceImpl implements EmailService
         {
             Boolean multipart = true; // Permite adjuntar archivos en el correo
 
+            // Creamos el mensaje MIME con soporte para HTML y codificación UTF-8
             MimeMessage mensaje = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
 

@@ -347,15 +347,18 @@ public class AuthenticationService
             throw new ReglaNegocioException("Las contraseñas introducidas no coinciden.");
         }
 
-        if (dto.password().trim().length() < 8)
+        if (dto.password().trim().length() < 6)
         {
-            throw new ReglaNegocioException("La contraseña debe tener al menos 8 caracteres.");
+            throw new ReglaNegocioException("La contraseña debe tener al menos 6 caracteres.");
         }
 
+        // Comprobamos la validez del token de recuperación y obtenemos la persona asociada
         TokenVerificacion tokenVerificacion = this.tokenVerificacionService.obtenerTokenValido(dto.token())
                 .orElseThrow(() -> new ReglaNegocioException("El enlace de recuperación es inválido o ha caducado."));
 
         Persona persona = tokenVerificacion.getPersona();
+
+        // Codificamos la nueva contraseña y actualizamos la entidad Persona
         String passwordCodificada = this.passwordEncoder.encode(dto.password());
         persona.actualizarPassword(passwordCodificada);
         this.personaRepository.save(persona);
@@ -382,9 +385,9 @@ public class AuthenticationService
             throw new ReglaNegocioException("Las contraseñas introducidas no coinciden.");
         }
 
-        if (dto.password().trim().length() < 8)
+        if (dto.password().trim().length() < 6)
         {
-            throw new ReglaNegocioException("La contraseña debe tener al menos 8 caracteres.");
+            throw new ReglaNegocioException("La contraseña debe tener al menos 6 caracteres.");
         }
 
         String usernameLimpio = dto.nombreUsuario().trim();

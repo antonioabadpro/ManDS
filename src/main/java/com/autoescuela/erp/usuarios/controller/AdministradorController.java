@@ -96,13 +96,7 @@ public class AdministradorController
      * Procesa el formulario de alta de nuevo profesor desde el Dashboard general del Administrador.
      */
     @PostMapping("/profesores/alta")
-    public String darAltaProfesor(@AuthenticationPrincipal Object principal,
-                                  @Valid @ModelAttribute("altaProfesorDTO") AltaProfesorDTO altaProfesorDTO,
-                                  BindingResult bindingResult,
-                                  Model model,
-                                  HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  RedirectAttributes redirectAttributes)
+    public String darAltaProfesor(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("altaProfesorDTO") AltaProfesorDTO altaProfesorDTO, BindingResult bindingResult, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
     {
         boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
 
