@@ -37,6 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -234,7 +235,7 @@ class AutenticacionServiceTest
         this.autenticacionService.solicitarRecuperacionPassword("   ", "http://localhost:8080");
 
         verify(this.personaRepository, never()).findByCorreo(any());
-        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any(), any());
     }
 
     @Test
@@ -245,8 +246,8 @@ class AutenticacionServiceTest
 
         this.autenticacionService.solicitarRecuperacionPassword("desconocido@autoescuela.es", "http://localhost:8080");
 
-        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any());
-        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any(), anyInt());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any(), any());
     }
 
     @Test
@@ -261,15 +262,16 @@ class AutenticacionServiceTest
         when(this.personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
 
         TokenVerificacion token = new TokenVerificacion("token-uuid-123", persona, LocalDateTime.now().plusMinutes(15));
-        when(this.tokenVerificacionService.generarTokenRecuperacion(persona)).thenReturn(token);
+        when(this.tokenVerificacionService.generarTokenRecuperacion(persona, 15)).thenReturn(token);
 
         this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "http://localhost:8080");
 
-        verify(this.tokenVerificacionService).generarTokenRecuperacion(persona);
+        verify(this.tokenVerificacionService).generarTokenRecuperacion(persona, 15);
         verify(this.emailService).enviarCorreoRecuperacion(
                 eq("alumno@autoescuela.es"),
                 eq("Juan"),
-                contains("token=token-uuid-123")
+                contains("token=token-uuid-123"),
+                eq("15")
         );
     }
 
@@ -284,8 +286,8 @@ class AutenticacionServiceTest
 
         this.autenticacionService.solicitarRecuperacionPassword("baja@autoescuela.es", "http://localhost:8080");
 
-        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any());
-        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any());
+        verify(this.tokenVerificacionService, never()).generarTokenRecuperacion(any(), anyInt());
+        verify(this.emailService, never()).enviarCorreoRecuperacion(any(), any(), any(), any());
     }
 
     @Test

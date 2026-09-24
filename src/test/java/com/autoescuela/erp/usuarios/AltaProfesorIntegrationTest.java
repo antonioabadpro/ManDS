@@ -103,6 +103,7 @@ class AltaProfesorIntegrationTest
                 .andExpect(content().string(containsString("Turno Matinal")))
                 .andExpect(content().string(containsString("Turno de Tarde")))
                 .andExpect(content().string(containsString("Permisos de Conducción Autorizados")))
+                .andExpect(content().string(containsString("Permiso B+E")))
                 .andExpect(content().string(containsString("Vehículo Asignado")));
     }
 
@@ -123,6 +124,7 @@ class AltaProfesorIntegrationTest
                 .andExpect(content().string(containsString("Turno Matinal")))
                 .andExpect(content().string(containsString("Turno de Tarde")))
                 .andExpect(content().string(containsString("Permisos de Conducción Autorizados")))
+                .andExpect(content().string(containsString("Permiso B+E")))
                 .andExpect(content().string(containsString("Vehículo Asignado")));
     }
 
@@ -321,5 +323,74 @@ class AltaProfesorIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/activar-cuenta"))
                 .andExpect(model().attributeExists("mensajeError"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con fecha de nacimiento anterior a 100 años falla por validación de backend")
+    void testAltaProfesorFechaNacimientoMasDe100Anios() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Anciano")
+                .param("apellidos", "Docente")
+                .param("dni", "98765432X")
+                .param("fechaNacimiento", "1920-01-01") // Más de 100 años
+                .param("correo", "anciano@autoescuela.es")
+                .param("telefono", "611222333")
+                .param("direccion", "Calle Antigua 1")
+                .param("fechaContratacion", "2026-09-15")
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con fecha de contratación fuera del rango +- 1 mes falla por validación de backend")
+    void testAltaProfesorFechaContratacionFueraDeRango() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Futuro")
+                .param("apellidos", "Docente")
+                .param("dni", "98765431Y")
+                .param("fechaNacimiento", "1990-05-15")
+                .param("correo", "futuro@autoescuela.es")
+                .param("telefono", "611222334")
+                .param("direccion", "Calle Futura 2")
+                .param("fechaContratacion", "2027-01-01") // Meses en el futuro
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con vehículo incompatible con los permisos del profesor falla con alerta de negocio")
+    void testAltaProfesorVehiculoIncompatibleConPermisos() throws Exception
+    {
+        // Vehículo 3 es Yamaha MT-07 que requiere PERMISO_A2, pero solo se pasa PERMISO_B
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Incompatible")
+                .param("apellidos", "Docente")
+                .param("dni", "98765430Z")
+                .param("fechaNacimiento", "1990-05-15")
+                .param("correo", "incompatible@autoescuela.es")
+                .param("telefono", "611222335")
+                .param("direccion", "Calle Incompatible 3")
+                .param("fechaContratacion", "2026-09-15")
+                .param("turno", "MATINAL")
+                .param("vehiculoId", "3")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true))
+                .andExpect(model().attribute("errorAltaProfesor", containsString("El profesor no cuenta con el Permiso A2 requerido")));
     }
 }

@@ -13,8 +13,9 @@ public interface EmailService
      * @param correoDestinatario Dirección de correo del destinatario.
      * @param nombreDestinatario Nombre del usuario para personalizar el saludo.
      * @param enlaceRecuperacion URL completa con el token para restablecer la contraseña.
+     * @param duracionTokenMinutos Duración del token en minutos.
      */
-    void enviarCorreoRecuperacion(String correoDestinatario, String nombreDestinatario, String enlaceRecuperacion);
+    void enviarCorreoRecuperacion(String correoDestinatario, String nombreDestinatario, String enlaceRecuperacion, String duracionTokenMinutos);
 
     /**
      * Envía un correo electrónico de invitación formal a un nuevo profesor.
@@ -23,6 +24,7 @@ public interface EmailService
      * @param correoDestinatario Dirección de correo del profesor.
      * @param nombreDestinatario Nombre de pila del profesor.
      * @param enlaceActivacion URL completa con el token criptográfico para activar su cuenta.
+     * @param duracionTokenMinutos Duración del token en minutos.
      */
-    void enviarInvitacionProfesor(String correoDestinatario, String nombreDestinatario, String enlaceActivacion);
+    void enviarInvitacionProfesor(String correoDestinatario, String nombreDestinatario, String enlaceActivacion, String duracionTokenMinutos);
 }

@@ -113,8 +113,8 @@ public class AdministradorController
             String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
             this.profesorService.darAltaProfesor(altaProfesorDTO, baseUrl);
             String mensajeExito = "El profesor " + altaProfesorDTO.getNombre() + " " + altaProfesorDTO.getApellidos()
-                    + " ha sido dado de alta correctamente. Se ha enviado una invitación a "
-                    + altaProfesorDTO.getCorreo() + " para que configure su usuario y contraseña.";
+                    + " ha sido dado de alta correctamente. Se ha enviado un correo electrónico a "
+                    + altaProfesorDTO.getCorreo() + " para que configure sus credenciales de acceso.";
 
             redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
 

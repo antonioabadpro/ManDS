@@ -52,6 +52,7 @@ public class ProfesorService
     @Transactional
     public Profesor darAltaProfesor(AltaProfesorDTO dto, String baseUrl)
     {
+        final int duracionTokenMinutos = 60; // Duración del token de activación en minutos (1 hora)
         if (dto == null)
         {
             throw new ReglaNegocioException("Los datos para el alta del profesor no pueden ser nulos.");
@@ -95,6 +96,13 @@ public class ProfesorService
             {
                 throw new ReglaNegocioException("El vehículo con matrícula " + vehiculo.getMatricula() + " ya se encuentra asignado a otro docente.");
             }
+
+            if (dto.getPermisos() == null || !dto.getPermisos().contains(vehiculo.getTipo()))
+            {
+                throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculo.getTipo().getDescripcion()
+                        + " requerido para conducir el vehículo asignado (" + vehiculo.getMatricula() + ").");
+            }
+
             vehiculo.setEstado(EstadoVehiculo.OCUPADO);
         }
 
@@ -127,9 +135,9 @@ public class ProfesorService
         }
 
         // Emisión de token criptográfico temporal para activación (Regla 7.1)
-        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(profesor);
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(profesor, duracionTokenMinutos);
         String enlaceActivacion = (baseUrl != null ? baseUrl : "") + "/activar-cuenta?token=" + token.getToken();
-        this.emailService.enviarInvitacionProfesor(profesor.getCorreo(), profesor.getNombre(), enlaceActivacion);
+        this.emailService.enviarInvitacionProfesor(profesor.getCorreo(), profesor.getNombre(), enlaceActivacion, String.valueOf(duracionTokenMinutos));
 
         return profesor;
     }

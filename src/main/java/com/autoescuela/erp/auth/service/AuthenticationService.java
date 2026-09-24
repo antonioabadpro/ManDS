@@ -225,6 +225,8 @@ public class AuthenticationService
     @Transactional
     public void solicitarRecuperacionPassword(String correo, String baseUrl)
     {
+        final int duracionTokenMinutos = 15; // Duración del token de recuperación en minutos (15 minutos)
+
         if (correo == null || correo.isBlank())
         {
             return;
@@ -238,14 +240,14 @@ public class AuthenticationService
             Persona persona = personaOpt.get();
             if (persona.getEstado() == EstadoUsuario.ACTIVO)
             {
-                TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+                TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, duracionTokenMinutos);
                 String baseUrlFinal = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl : this.appBaseUrlConfigurada;
                 if (baseUrlFinal.endsWith("/"))
                 {
                     baseUrlFinal = baseUrlFinal.substring(0, baseUrlFinal.length() - 1);
                 }
                 String enlace = baseUrlFinal + "/recuperar-password?token=" + token.getToken();
-                this.emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace);
+                this.emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace, String.valueOf(duracionTokenMinutos));
             }
         }
     }

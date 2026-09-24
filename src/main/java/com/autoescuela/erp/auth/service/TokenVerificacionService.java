@@ -20,27 +20,30 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TokenVerificacionService
 {
-    private static final int DURACION_TOKEN_MINUTOS = 15;
-
     private final TokenVerificacionRepository tokenVerificacionRepository;
 
     /**
-     * Genera un nuevo token criptográfico efímero de recuperación para la persona indicada.
-     * Establece una expiración estricta de 15 minutos.
+     * Genera un nuevo token criptográfico efímero de verificación para la persona indicada.
+     * Establece la expiración según los minutos indicados (p. ej. 15 minutos para recuperación o 60 minutos para activación docente).
      *
      * @param persona Persona destinataria del token.
+     * @param duracionMinutos Duración en minutos antes de que el token caduque.
      * @return TokenVerificacion persistido en base de datos.
      */
     @Transactional
-    public TokenVerificacion generarTokenRecuperacion(Persona persona)
+    public TokenVerificacion generarTokenRecuperacion(Persona persona, int duracionMinutos)
     {
         if (persona == null)
         {
             throw new IllegalArgumentException("No se puede generar un token para una persona nula.");
         }
+        if (duracionMinutos <= 0)
+        {
+            throw new IllegalArgumentException("La duración del token debe ser un valor positivo.");
+        }
 
         String uuid = UUID.randomUUID().toString();
-        LocalDateTime fechaExpiracion = LocalDateTime.now().plusMinutes(DURACION_TOKEN_MINUTOS);
+        LocalDateTime fechaExpiracion = LocalDateTime.now().plusMinutes(duracionMinutos);
 
         TokenVerificacion nuevoToken = new TokenVerificacion(uuid, persona, fechaExpiracion);
         return this.tokenVerificacionRepository.save(nuevoToken);

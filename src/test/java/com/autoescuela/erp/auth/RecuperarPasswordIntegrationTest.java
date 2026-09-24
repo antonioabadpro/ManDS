@@ -136,7 +136,7 @@ class RecuperarPasswordIntegrationTest
     void testRestablecerPasswordNoCoinciden() throws Exception
     {
         Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
-        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, 15);
 
         this.mockMvc.perform(post("/recuperar-password/restablecer")
                         .with(csrf())
@@ -154,7 +154,7 @@ class RecuperarPasswordIntegrationTest
     void testRestablecerPasswordCorta() throws Exception
     {
         Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
-        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, 15);
 
         this.mockMvc.perform(post("/recuperar-password/restablecer")
                         .with(csrf())
@@ -185,7 +185,7 @@ class RecuperarPasswordIntegrationTest
     void testFlujoCompletoRestablecimientoExitoso() throws Exception
     {
         Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
-        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, 15);
 
         // Accedemos al enlace con el token
         this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))

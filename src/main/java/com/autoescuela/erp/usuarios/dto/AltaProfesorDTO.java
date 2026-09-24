@@ -41,17 +41,16 @@ public class AltaProfesorDTO
     private String apellidos;
 
     @NotBlank(message = "El DNI/NIE es obligatorio.")
-    @Pattern(regexp = "^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$",
-             message = "Formato de DNI/NIE inválido (ej. 12345678Z o X1234567A).")
+    @Pattern(regexp = "^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$", message = "Formato de DNI/NIE inválido (ej. 12345678Z o X1234567A).")
     private String dni;
 
     @NotBlank(message = "El teléfono móvil es obligatorio.")
-    @Pattern(regexp = "^[6-9][0-9]{8}$",
-             message = "El teléfono debe contener 9 dígitos y comenzar por 6, 7, 8 o 9.")
+    @Pattern(regexp = "^[6-9][0-9]{8}$", message = "El teléfono debe contener 9 dígitos y comenzar por 6, 7, 8 o 9.")
     private String telefono;
 
     @NotBlank(message = "El correo electrónico es obligatorio.")
     @Email(message = "El correo electrónico no tiene un formato válido.")
+    @Size(max = 50, message = "El correo electrónico no puede superar los 50 caracteres.")
     private String correo;
 
     @NotNull(message = "La fecha de nacimiento es obligatoria.")
@@ -95,6 +94,19 @@ public class AltaProfesorDTO
     }
 
     /**
+     * Valida que la edad del profesor no exceda un límite razonable (no más de 100 años).
+     */
+    @AssertTrue(message = "La fecha de nacimiento no puede ser anterior a hace 100 años.")
+    public boolean isEdadRazonable()
+    {
+        if (this.fechaNacimiento == null)
+        {
+            return true;
+        }
+        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+    }
+
+    /**
      * Valida que la fecha de contratación no sea previa a la mayoría de edad del profesor.
      */
     @AssertTrue(message = "La fecha de contratación no puede ser anterior a la fecha en que el profesor cumplió la mayoría de edad.")
@@ -105,5 +117,20 @@ public class AltaProfesorDTO
             return true;
         }
         return !this.fechaContratacion.isBefore(this.fechaNacimiento.plusYears(18));
+    }
+
+    /**
+     * Valida que la fecha de contratación esté acotada a +- 1 mes respecto a la fecha actual.
+     */
+    @AssertTrue(message = "La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.")
+    public boolean isFechaContratacionEnRango()
+    {
+        if (this.fechaContratacion == null)
+        {
+            return true;
+        }
+        LocalDate haceUnMes = LocalDate.now().minusMonths(1);
+        LocalDate enUnMes = LocalDate.now().plusMonths(1);
+        return !this.fechaContratacion.isBefore(haceUnMes) && !this.fechaContratacion.isAfter(enUnMes);
     }
 }

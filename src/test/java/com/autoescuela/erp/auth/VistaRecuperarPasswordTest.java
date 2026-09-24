@@ -91,7 +91,7 @@ class VistaRecuperarPasswordTest
     void testRenderizadoFormularioConToken() throws Exception
     {
         Persona persona = this.personaRepository.findByCorreo("admin@autoescuela.es").orElseThrow();
-        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+        TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, 15);
 
         this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))
                 .andExpect(status().isOk())

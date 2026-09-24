@@ -48,7 +48,7 @@ class TokenVerificacionServiceTest
         when(this.tokenVerificacionRepository.save(any(TokenVerificacion.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        TokenVerificacion resultado = this.tokenVerificacionService.generarTokenRecuperacion(persona);
+        TokenVerificacion resultado = this.tokenVerificacionService.generarTokenRecuperacion(persona, 15);
 
         assertNotNull(resultado);
         assertNotNull(resultado.getToken());
@@ -64,7 +64,40 @@ class TokenVerificacionServiceTest
     void testGenerarTokenPersonaNula()
     {
         assertThrows(IllegalArgumentException.class, () ->
-                this.tokenVerificacionService.generarTokenRecuperacion(null)
+                this.tokenVerificacionService.generarTokenRecuperacion(null, 15)
+        );
+    }
+
+    @Test
+    @DisplayName("generarTokenRecuperacion() con duración de 60 minutos asigna correctamente el tiempo de expiración")
+    void testGenerarTokenRecuperacionDuracion60Minutos()
+    {
+        Persona persona = mock(Persona.class);
+        when(this.tokenVerificacionRepository.save(any(TokenVerificacion.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        TokenVerificacion resultado = this.tokenVerificacionService.generarTokenRecuperacion(persona, 60);
+
+        assertNotNull(resultado);
+        assertEquals(persona, resultado.getPersona());
+        assertFalse(resultado.isUsado());
+        assertTrue(resultado.getFechaExpiracion().isAfter(LocalDateTime.now().plusMinutes(59)));
+        assertTrue(resultado.getFechaExpiracion().isBefore(LocalDateTime.now().plusMinutes(61)));
+        assertTrue(resultado.isValido());
+    }
+
+    @Test
+    @DisplayName("generarTokenRecuperacion() con duración menor o igual a cero lanza IllegalArgumentException")
+    void testGenerarTokenDuracionInvalida()
+    {
+        Persona persona = mock(Persona.class);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                this.tokenVerificacionService.generarTokenRecuperacion(persona, 0)
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+                this.tokenVerificacionService.generarTokenRecuperacion(persona, -10)
         );
     }
 

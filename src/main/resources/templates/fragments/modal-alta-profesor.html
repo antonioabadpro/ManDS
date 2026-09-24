@@ -1,6 +1,6 @@
-<div id="modal-alta-profesor" th:fragment="modal-alta-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-profesor" th:classappend="${abrirModalAltaProfesor} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-4">
+<div id="modal-alta-profesor" th:fragment="modal-alta-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-profesor" th:classappend="${abrirModalAltaProfesor} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
     <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
-    <div class="relative z-10 w-full max-w-7xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-5 lg:p-7 space-y-3 max-h-[95vh] overflow-y-auto lg:overflow-visible lg:max-h-none">
+    <div class="relative z-10 w-full max-w-7xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-5 lg:p-7 space-y-3 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden lg:max-h-none lg:overflow-visible">
 
         <!-- Cabecera del Modal -->
         <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -35,7 +35,7 @@
         </div>
 
         <!-- Formulario Principal -->
-        <form th:action="@{/admin/profesores/alta}" th:attr="hx-post=@{/admin/profesores/alta}" hx-target="#modal-alta-profesor" hx-swap="outerHTML" hx-disabled-elt="#btn-submit-alta-profesor" th:object="${altaProfesorDTO}" method="post" class="space-y-3" novalidate>
+        <form id="form-alta-profesor" th:action="@{/admin/profesores/alta}" th:attr="hx-post=@{/admin/profesores/alta}" hx-target="#modal-alta-profesor" hx-swap="outerHTML" hx-disabled-elt="#btn-submit-alta-profesor" th:object="${altaProfesorDTO}" method="post" class="space-y-3" novalidate>
 
             <!-- GRID PRINCIPAL: 1 col (móvil) → 2 col (md) → 3 col (lg+) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3">
@@ -52,21 +52,21 @@
                     <!-- Nombre -->
                     <div>
                         <label for="profesor-nombre" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre *</label>
-                        <input type="text" id="profesor-nombre" th:field="*{nombre}" required placeholder="Ej. Roberto" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <input type="text" id="profesor-nombre" th:field="*{nombre}" required maxlength="50" placeholder="Ej. Roberto" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                     </div>
 
                     <!-- Apellidos -->
                     <div>
                         <label for="profesor-apellidos" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellidos *</label>
-                        <input type="text" id="profesor-apellidos" th:field="*{apellidos}" required placeholder="Ej. Morales Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <input type="text" id="profesor-apellidos" th:field="*{apellidos}" required maxlength="100" placeholder="Ej. Morales Gómez" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('apellidos')}" th:errors="*{apellidos}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                     </div>
 
                     <!-- DNI / NIE -->
                     <div>
                         <label for="profesor-dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE *</label>
-                        <input type="text" id="profesor-dni" th:field="*{dni}" required placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-mono transition" />
+                        <input type="text" id="profesor-dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-mono transition" />
                         <p th:if="${#fields.hasErrors('dni')}" th:errors="*{dni}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                         <div id="feedback-dni"></div>
                     </div>
@@ -82,7 +82,7 @@
                     <!-- Correo -->
                     <div>
                         <label for="profesor-correo" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Correo Electrónico *</label>
-                        <input type="email" id="profesor-correo" th:field="*{correo}" required placeholder="roberto.morales@autoescuela.es" hx-post="/usuario/validar-correo" hx-trigger="blur, change delay:300ms" hx-target="#feedback-correo" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <input type="email" id="profesor-correo" th:field="*{correo}" required maxlength="50" placeholder="roberto.morales@autoescuela.es" hx-post="/usuario/validar-correo" hx-trigger="blur, change delay:300ms" hx-target="#feedback-correo" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                         <div id="feedback-correo"></div>
                     </div>
@@ -92,12 +92,13 @@
                         <label for="profesor-nacimiento" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Nacimiento *</label>
                         <input type="date" id="profesor-nacimiento" th:field="*{fechaNacimiento}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-nacimiento"></div>
                     </div>
 
                     <!-- Dirección -->
                     <div>
                         <label for="profesor-direccion" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dirección de Residencia *</label>
-                        <input type="text" id="profesor-direccion" th:field="*{direccion}" required placeholder="Calle Ejemplo 12, Madrid" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <input type="text" id="profesor-direccion" th:field="*{direccion}" required maxlength="150" placeholder="Calle Ejemplo 12, Madrid" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                     </div>
                 </div>
@@ -118,6 +119,7 @@
                         <label for="profesor-fecha" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Contratación *</label>
                         <input type="date" id="profesor-fecha" th:field="*{fechaContratacion}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('fechaContratacion')}" th:errors="*{fechaContratacion}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-fecha-contratacion"></div>
                     </div>
 
                     <!-- Vehículo Asignado -->
@@ -126,8 +128,8 @@
                         <div class="relative">
                             <select id="profesor-vehiculo" th:field="*{vehiculoId}" class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
                                 <option value="">-- Sin Vehículo Asignado --</option>
-                                <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo})|">
-                                    1234-LMN · SEAT Ibiza (PERMISO_B)
+                                <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipo},data-tipo-nombre=${v.tipo.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})|">
+                                    1234-LMN · SEAT Ibiza (Permiso B)
                                 </option>
                             </select>
                             <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
@@ -137,6 +139,7 @@
                             </span>
                         </div>
                         <span class="text-[10px] text-slate-400 mt-0.5 block">Solo vehículos disponibles sin docente asignado.</span>
+                        <div id="feedback-vehiculo-compatibilidad"></div>
                     </div>
 
                     <!-- Turno Laboral -->
@@ -199,8 +202,8 @@
                         <span>3. Permisos de Conducción Autorizados</span>
                     </h4>
 
-                    <!-- Grid de permisos: 3 col (móvil) → 4 col (md) → 2 col (lg, dentro de su columna) -->
-                    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-2 gap-1.5">
+                    <!-- Grid de permisos: 2 col (móvil) → 3 col (sm) → 4 col (md) → 2 col (lg, dentro de su columna) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2 gap-1.5">
                         <label th:each="carnet : ${tiposCarnet}" class="relative flex items-center space-x-1.5 px-2.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 dark:has-[:checked]:bg-blue-950/40 has-[:checked]:ring-1 has-[:checked]:ring-blue-500 select-none group">
                             <input type="checkbox" name="permisos" th:value="${carnet}" th:field="*{permisos}" class="sr-only peer" />
                             <div class="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 flex items-center justify-center transition-all group-has-[:checked]:bg-blue-600 group-has-[:checked]:border-blue-600 shrink-0">
@@ -208,42 +211,43 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight" th:text="${#strings.replace(carnet.name(), '_', ' ')}">Permiso B</span>
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-tight" th:text="${carnet.descripcion}">Permiso B</span>
                         </label>
                     </div>
-
-                    <!-- Alerta Informativa -->
-                    <div class="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-[11px] flex items-start space-x-2 mt-2">
-                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p class="leading-tight">
-                            Se enviará un enlace de activación al correo facilitado con validez de <strong>15 minutos</strong> para que el profesor configure su cuenta.
-                        </p>
-                    </div>
+                    <p th:if="${#fields.hasErrors('permisos')}" th:errors="*{permisos}" class="text-[11px] text-red-600 dark:text-red-400 mt-1"></p>
+                    <div id="feedback-permisos"></div>
                 </div>
 
             </div>
 
-            <!-- Botones de Acción Inferiores -->
-            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-3">
-                <button type="button" data-modal-close="modal-alta-profesor" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
-                    Cancelar
-                </button>
-                <button id="btn-submit-alta-profesor" type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center space-x-2">
-                    <!-- Icono y texto en reposo (ocultos durante la petición) -->
-                    <svg class="w-4 h-4 htmx-indicator-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            <!-- Botones de Acción Inferiores y Aviso Informativo -->
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <!-- Alerta Informativa a la izquierda -->
+                <div class="flex items-start sm:items-center space-x-2 p-2 sm:p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-[11px] leading-tight">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span class="htmx-indicator-none">Dar de Alta y Enviar Invitación</span>
+                    <span>
+                        Se enviará un enlace de activación al correo facilitado con validez de <strong>60 minutos</strong> para que el profesor configure su cuenta.
+                    </span>
+                </div>
 
-                    <!-- Spinner animado y texto reactivo de carga durante la petición HTMX -->
-                    <svg class="w-4 h-4 animate-spin htmx-indicator" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                    </svg>
-                    <span class="htmx-indicator">Registrando y enviando invitación...</span>
-                </button>
+                <!-- Botones a la derecha -->
+                <div class="flex items-center justify-end space-x-3 shrink-0 w-full sm:w-auto">
+                    <button type="button" data-modal-close="modal-alta-profesor" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="btn-submit-alta-profesor" type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center space-x-2 shrink-0">
+                        <span class="htmx-indicator-none">Dar de Alta y Enviar Invitación</span>
+
+                        <!-- Spinner animado y texto reactivo de carga durante la petición HTMX -->
+                        <svg class="w-4 h-4 animate-spin htmx-indicator" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span class="htmx-indicator">Registrando y enviando invitación...</span>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
