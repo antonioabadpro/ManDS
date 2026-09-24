@@ -23,6 +23,70 @@ public class UsuarioService
     private final UsuarioMapper usuarioMapper;
 
     /**
+     * Comprueba si un nombre de usuario ya está registrado en el sistema.
+     *
+     * @param nombreUsuario Nombre de usuario a comprobar.
+     * @return true si ya existe, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean existeNombreUsuario(String nombreUsuario)
+    {
+        if (nombreUsuario == null || nombreUsuario.isBlank())
+        {
+            return false;
+        }
+        return this.personaRepository.existsByNombreUsuario(nombreUsuario.trim());
+    }
+
+    /**
+     * Comprueba si una dirección de correo electrónico ya está registrada en el sistema.
+     *
+     * @param correo Correo electrónico a comprobar.
+     * @return true si ya existe, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean existeCorreo(String correo)
+    {
+        if (correo == null || correo.isBlank())
+        {
+            return false;
+        }
+        return this.personaRepository.existsByCorreo(correo.trim().toLowerCase());
+    }
+
+    /**
+     * Comprueba si un DNI/NIE ya está registrado en el sistema.
+     *
+     * @param dni DNI/NIE a comprobar.
+     * @return true si ya existe, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean existeDni(String dni)
+    {
+        if (dni == null || dni.isBlank())
+        {
+            return false;
+        }
+        return this.personaRepository.existsByDni(dni.trim().toUpperCase());
+    }
+
+    /**
+     * Comprueba si un número de teléfono ya está registrado en el sistema.
+     *
+     * @param telefono Número de teléfono a comprobar.
+     * @return true si ya existe, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean existeTelefono(String telefono)
+    {
+        if (telefono == null || telefono.isBlank())
+        {
+            return false;
+        }
+        return this.personaRepository.existsByTelefono(telefono.trim());
+    }
+
+    /**
      * Obtiene los datos del perfil de un usuario para su edición o visualización.
      *
      * @param personaId Identificador único del usuario.

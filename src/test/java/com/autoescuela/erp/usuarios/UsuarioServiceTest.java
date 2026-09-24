@@ -113,5 +113,57 @@ class UsuarioServiceTest
         assertThat(admin.getNombre()).isEqualTo("Carlos Modificado");
         assertThat(admin.getTelefono()).isEqualTo("611223344");
     }
+
+    @Test
+    @DisplayName("existeNombreUsuario comprueba existencia y maneja nulos o blancos")
+    void testExisteNombreUsuario()
+    {
+        when(this.personaRepository.existsByNombreUsuario("carlos")).thenReturn(true);
+        when(this.personaRepository.existsByNombreUsuario("pedro")).thenReturn(false);
+
+        assertThat(this.usuarioService.existeNombreUsuario("carlos")).isTrue();
+        assertThat(this.usuarioService.existeNombreUsuario("pedro")).isFalse();
+        assertThat(this.usuarioService.existeNombreUsuario(null)).isFalse();
+        assertThat(this.usuarioService.existeNombreUsuario("   ")).isFalse();
+    }
+
+    @Test
+    @DisplayName("existeCorreo comprueba existencia y maneja nulos o blancos")
+    void testExisteCorreo()
+    {
+        when(this.personaRepository.existsByCorreo("carlos@correo.es")).thenReturn(true);
+        when(this.personaRepository.existsByCorreo("nuevo@correo.es")).thenReturn(false);
+
+        assertThat(this.usuarioService.existeCorreo("carlos@correo.es")).isTrue();
+        assertThat(this.usuarioService.existeCorreo("nuevo@correo.es")).isFalse();
+        assertThat(this.usuarioService.existeCorreo(null)).isFalse();
+        assertThat(this.usuarioService.existeCorreo("   ")).isFalse();
+    }
+
+    @Test
+    @DisplayName("existeDni comprueba existencia y maneja nulos o blancos")
+    void testExisteDni()
+    {
+        when(this.personaRepository.existsByDni("12345678Z")).thenReturn(true);
+        when(this.personaRepository.existsByDni("87654321A")).thenReturn(false);
+
+        assertThat(this.usuarioService.existeDni("12345678Z")).isTrue();
+        assertThat(this.usuarioService.existeDni("87654321A")).isFalse();
+        assertThat(this.usuarioService.existeDni(null)).isFalse();
+        assertThat(this.usuarioService.existeDni("   ")).isFalse();
+    }
+
+    @Test
+    @DisplayName("existeTelefono comprueba existencia y maneja nulos o blancos")
+    void testExisteTelefono()
+    {
+        when(this.personaRepository.existsByTelefono("600111222")).thenReturn(true);
+        when(this.personaRepository.existsByTelefono("699888777")).thenReturn(false);
+
+        assertThat(this.usuarioService.existeTelefono("600111222")).isTrue();
+        assertThat(this.usuarioService.existeTelefono("699888777")).isFalse();
+        assertThat(this.usuarioService.existeTelefono(null)).isFalse();
+        assertThat(this.usuarioService.existeTelefono("   ")).isFalse();
+    }
 }
 

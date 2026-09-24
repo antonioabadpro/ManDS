@@ -195,26 +195,6 @@ class AutenticacionServiceTest
         assertNull(request.getSession(false));
     }
 
-    @Test
-    @DisplayName("'existeTelefono()' devuelve true cuando el teléfono ya existe en PersonaRepository")
-    void testExisteTelefonoExistente()
-    {
-        when(this.personaRepository.existsByTelefono("600111222")).thenReturn(true);
-
-        assertTrue(this.autenticacionService.existeTelefono("600111222"));
-        verify(this.personaRepository).existsByTelefono("600111222");
-    }
-
-    @Test
-    @DisplayName("'existeTelefono()' devuelve false cuando el teléfono no existe o está vacío")
-    void testExisteTelefonoNoExistenteOEnBlanco()
-    {
-        when(this.personaRepository.existsByTelefono("699888777")).thenReturn(false);
-
-        assertFalse(this.autenticacionService.existeTelefono("699888777"));
-        assertFalse(this.autenticacionService.existeTelefono(null));
-        assertFalse(this.autenticacionService.existeTelefono("   "));
-    }
 
     @Test
     @DisplayName("'registrarAlumno()' lanza ReglaNegocioException cuando el teléfono ya existe")

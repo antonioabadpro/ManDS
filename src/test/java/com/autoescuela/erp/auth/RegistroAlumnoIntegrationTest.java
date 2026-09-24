@@ -237,10 +237,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-usuario con usuario duplicado devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-username con usuario duplicado devuelve fragmento de error")
     void testValidarUsuarioDuplicadoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/usuario/validar-username")
                 .with(csrf())
                 .param("nombreUsuario", "alumno1"))
                 .andExpect(status().isOk())
@@ -250,10 +250,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-usuario con formato inválido devuelve mensaje descriptivo")
+    @DisplayName("POST /usuario/validar-username con formato inválido devuelve mensaje descriptivo")
     void testValidarUsuarioInvalidoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/usuario/validar-username")
                 .with(csrf())
                 .param("nombreUsuario", "ab"))
                 .andExpect(status().isOk())
@@ -262,10 +262,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-usuario con usuario libre devuelve fragmento vacío")
+    @DisplayName("POST /usuario/validar-username con usuario libre devuelve fragmento vacío")
     void testValidarUsuarioDisponibleHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-usuario")
+        this.mockMvc.perform(post("/usuario/validar-username")
                 .with(csrf())
                 .param("nombreUsuario", "alumno_nuevo_totalmente_libre"))
                 .andExpect(status().isOk())
@@ -273,10 +273,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-correo con correo duplicado devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-correo con correo duplicado devuelve fragmento de error")
     void testValidarCorreoDuplicadoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-correo")
+        this.mockMvc.perform(post("/usuario/validar-correo")
                 .with(csrf())
                 .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().isOk())
@@ -286,10 +286,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-correo con correo libre devuelve fragmento vacío")
+    @DisplayName("POST /usuario/validar-correo con correo libre devuelve fragmento vacío")
     void testValidarCorreoDisponibleHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-correo")
+        this.mockMvc.perform(post("/usuario/validar-correo")
                 .with(csrf())
                 .param("correo", "nuevo_correo_libre@autoescuela.es"))
                 .andExpect(status().isOk())
@@ -297,10 +297,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-dni con DNI duplicado devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-dni con DNI duplicado devuelve fragmento de error")
     void testValidarDniDuplicadoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
                 .param("dni", "45678901D"))
                 .andExpect(status().isOk())
@@ -310,10 +310,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-dni con formato no válido devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-dni con formato no válido devuelve fragmento de error")
     void testValidarDniFormatoInvalidoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
                 .param("dni", "123456"))
                 .andExpect(status().isOk())
@@ -322,10 +322,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-dni con DNI válido y libre devuelve fragmento vacío")
+    @DisplayName("POST /usuario/validar-dni con DNI válido y libre devuelve fragmento vacío")
     void testValidarDniDisponibleHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-dni")
+        this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
                 .param("dni", "99887766K"))
                 .andExpect(status().isOk())
@@ -356,10 +356,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-telefono con teléfono duplicado devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-telefono con teléfono duplicado devuelve fragmento de error")
     void testValidarTelefonoDuplicadoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/usuario/validar-telefono")
                 .with(csrf())
                 .param("telefono", "600444555")) // Teléfono de alumno1 en data.sql
                 .andExpect(status().isOk())
@@ -369,10 +369,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-telefono con formato no válido devuelve fragmento de error")
+    @DisplayName("POST /usuario/validar-telefono con formato no válido devuelve fragmento de error")
     void testValidarTelefonoInvalidoHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/usuario/validar-telefono")
                 .with(csrf())
                 .param("telefono", "12345"))
                 .andExpect(status().isOk())
@@ -381,10 +381,10 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro/validar-telefono con teléfono válido y libre devuelve fragmento vacío")
+    @DisplayName("POST /usuario/validar-telefono con teléfono válido y libre devuelve fragmento vacío")
     void testValidarTelefonoDisponibleHtmx() throws Exception
     {
-        this.mockMvc.perform(post("/registro/validar-telefono")
+        this.mockMvc.perform(post("/usuario/validar-telefono")
                 .with(csrf())
                 .param("telefono", "699112233"))
                 .andExpect(status().isOk())
