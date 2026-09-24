@@ -1,4 +1,4 @@
-﻿package com.autoescuela.erp.usuarios;
+package com.autoescuela.erp.usuarios;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -94,6 +94,26 @@ class AltaProfesorIntegrationTest
         this.mockMvc.perform(get("/admin/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attributeExists("altaProfesorDTO"))
+                .andExpect(model().attributeExists("vehiculosDisponibles"))
+                .andExpect(model().attributeExists("turnos"))
+                .andExpect(model().attributeExists("tiposCarnet"))
+                .andExpect(content().string(containsString("id=\"modal-alta-profesor\"")))
+                .andExpect(content().string(containsString("action=\"/admin/profesores/alta\"")))
+                .andExpect(content().string(containsString("Turno Matinal")))
+                .andExpect(content().string(containsString("Turno de Tarde")))
+                .andExpect(content().string(containsString("Permisos de Conducción Autorizados")))
+                .andExpect(content().string(containsString("Vehículo Asignado")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores renderiza el modal reutilizable de Alta de Profesor con campos y catálogos")
+    void testProfesoresRenderizaModalAltaProfesor() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
                 .andExpect(model().attributeExists("altaProfesorDTO"))
                 .andExpect(model().attributeExists("vehiculosDisponibles"))
                 .andExpect(model().attributeExists("turnos"))

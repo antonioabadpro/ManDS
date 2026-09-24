@@ -75,30 +75,22 @@ public class AdministradorController
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
 
-        // Inicializa el DTO de alta de profesor si no está presente en el modelo (ej: después de un error de validación).
-        if (!model.containsAttribute("altaProfesorDTO"))
-        {
-            AltaProfesorDTO dto = new AltaProfesorDTO();
-            dto.setFechaContratacion(LocalDate.now());
-            dto.setTurno(TipoTurno.MATINAL);
-            dto.setPermisos(List.of(TipoCarnet.PERMISO_B));
-            model.addAttribute("altaProfesorDTO", dto);
-        }
-
-        model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-        model.addAttribute("turnos", TipoTurno.values());
+        cargarCatalogosAltaProfesor(model);
 
         return "admin/dashboard";
     }
 
     /**
-     * Procesa el formulario de alta de nuevo profesor desde el Dashboard general del Administrador.
+     * Procesa el formulario de alta de nuevo profesor desde el Dashboard general o desde Gestión de Profesores.
      */
     @PostMapping("/profesores/alta")
     public String darAltaProfesor(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("altaProfesorDTO") AltaProfesorDTO altaProfesorDTO, BindingResult bindingResult, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
     {
         boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+        String hxCurrentUrl = request.getHeader("HX-Current-URL");
+        String referer = request.getHeader("Referer");
+        boolean esDesdeProfesores = (hxCurrentUrl != null && hxCurrentUrl.contains("/admin/profesores"))
+                || (referer != null && referer.contains("/admin/profesores"));
 
         if (principal instanceof UserDetailsImpl userDetails)
         {
@@ -107,11 +99,13 @@ public class AdministradorController
 
         if (bindingResult.hasErrors())
         {
-            model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("turnos", TipoTurno.values());
+            cargarCatalogosAltaProfesor(model);
             model.addAttribute("abrirModalAltaProfesor", true);
-            return esPeticionHtmx ? "admin/dashboard :: #modal-alta-profesor" : "admin/dashboard";
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-alta-profesor :: #modal-alta-profesor";
+            }
+            return esDesdeProfesores ? "admin/profesores" : "admin/dashboard";
         }
 
         try
@@ -123,6 +117,9 @@ public class AdministradorController
                     + altaProfesorDTO.getCorreo() + " para que configure su usuario y contraseña.";
 
             redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + (esDesdeProfesores ? "/admin/profesores" : "/admin/dashboard");
 
             if (esPeticionHtmx)
             {
@@ -136,21 +133,22 @@ public class AdministradorController
                         flashMapManager.saveOutputFlashMap(flashMap, request, response);
                     }
                 }
-                String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-                response.setHeader("HX-Redirect", contextPath + "/admin/dashboard");
+                response.setHeader("HX-Redirect", destinoRedireccion);
                 return null;
             }
 
-            return "redirect:/admin/dashboard";
+            return esDesdeProfesores ? "redirect:/admin/profesores" : "redirect:/admin/dashboard";
         }
         catch (ReglaNegocioException ex)
         {
-            model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("turnos", TipoTurno.values());
+            cargarCatalogosAltaProfesor(model);
             model.addAttribute("errorAltaProfesor", ex.getMessage());
             model.addAttribute("abrirModalAltaProfesor", true);
-            return esPeticionHtmx ? "admin/dashboard :: #modal-alta-profesor" : "admin/dashboard";
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-alta-profesor :: #modal-alta-profesor";
+            }
+            return esDesdeProfesores ? "admin/profesores" : "admin/dashboard";
         }
     }
 
@@ -164,7 +162,29 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+
+        cargarCatalogosAltaProfesor(model);
+
         return "admin/profesores";
+    }
+
+    /**
+     * Carga en el modelo los catálogos y el DTO necesarios para renderizar el modal de alta de profesor.
+     */
+    private void cargarCatalogosAltaProfesor(Model model)
+    {
+        if (!model.containsAttribute("altaProfesorDTO"))
+        {
+            AltaProfesorDTO dto = new AltaProfesorDTO();
+            dto.setFechaContratacion(LocalDate.now());
+            dto.setTurno(TipoTurno.MATINAL);
+            dto.setPermisos(List.of(TipoCarnet.PERMISO_B));
+            model.addAttribute("altaProfesorDTO", dto);
+        }
+
+        model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
+        model.addAttribute("turnos", TipoTurno.values());
     }
 
     /**
