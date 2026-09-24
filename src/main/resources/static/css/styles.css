@@ -1,0 +1,25 @@
+/* ==========================================================================
+   ManDS ERP - Estilos Globales y Escalado Tipográfico Responsivo
+   ========================================================================== */
+
+/*
+ * Opción A: Escalado Progresivo por Breakpoints en Raíz (html)
+ * - Móviles y Tablets (< 1280px): 100% (16px base) para garantizar 0 desbordamientos.
+ * - Escritorio 1080p (>= 1280px - xl): 105% (~16.8px) para optimizar proporciones.
+ * - Pantallas Grandes y 2K (>= 1536px - 2xl): 110% (17.6px) para máxima legibilidad.
+ */
+html {
+    font-size: 100%;
+}
+
+@media (min-width: 1280px) {
+    html {
+        font-size: 105%;
+    }
+}
+
+@media (min-width: 1536px) {
+    html {
+        font-size: 110%;
+    }
+}
