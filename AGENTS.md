@@ -222,7 +222,7 @@ src/
 
 # 4. Diagrama Modelo Entidad - Relación (Tablas, Relaciones, Enums) en PlantUML
 ```plantuml
-@startuml Diagrama_ER_v10
+@startuml Diagrama_ER_v11
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -353,7 +353,7 @@ package "Usuarios" {
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
     + getRol(): Rol
-    + generarFechasExamenMes(anio: Integer, mes: Integer): List<LocalDate>
+    + fijarFechasExamenMes(anio: Integer, mes: Integer, fecha1: LocalDate, fecha2: LocalDate): void
     + consultarSolicitudesExamen(): List<SolicitudExamen>
     + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
     + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
@@ -667,7 +667,7 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 - Al eliminar un vehículo, se aplica borrado lógico (INACTIVO) y se desvincula el vehículo de su respectivo profesor.
 - **Panel de Estadísticas Globales:** Métricas de tasas de aprobados/suspensos, rendimiento de profesores y estado de la flota.
 - **Gestión de Incidencias de Vehículos:** Visualización de incidencias reportadas por los profesores.
-- **Gestión Centralizada de Solicitudes de Examen (DGT):** Panel exclusivo para consultar el listado de solicitudes pendientes ordenadas por antigüedad (FIFO), asignar las 2 fechas mensuales oficiales de examen DGT, y aceptar (respetando el cupo de máx. 4 alumnos por profesor y carnet) o rechazar solicitudes (con justificación obligatoria).
+- **Gestión Centralizada de Solicitudes y Convocatorias de Examen (DGT):** Panel exclusivo para parametrizar y fijar manualmente las 2 fechas mensuales oficiales de examen DGT, consultar el listado de solicitudes pendientes ordenadas por antigüedad (FIFO), y aceptar (asignando una de las 2 fechas y respetando el cupo de máx. 4 alumnos por profesor y carnet) o rechazar solicitudes (con justificación obligatoria).
 
 ## 6.2. Profesor
 - **Calendario Exclusivo:** Vista y CRUD únicamente sobre su propio calendario de clases prácticas.
@@ -748,25 +748,23 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
   - Toda solicitud creada por el alumno nace en estado `PENDIENTE`.
 - **Ordenación Estricta por Antigüedad (FIFO):**
   - En el panel de gestión del Administrador, el listado de solicitudes pendientes debe presentarse **ordenado cronológicamente por fecha/hora de petición de forma ascendente** (`ORDER BY fecha_solicitud ASC`), garantizando que la solicitud más antigua se sitúe siempre en primer lugar.
-- **Calendario Oficial de Exámenes DGT (Ciclo Bisemanal / 2 Fechas al Mes):**
-  - La autoescuela dispone exclusivamente de **2 jornadas oficiales de examen al mes** fijadas por la DGT (frecuencia aproximada de cada 2 semanas / 10 días hábiles).
-  - El día de la semana asignado rota mensualmente (p. ej., en septiembre lunes 7 y 21[cite: 3]; en octubre jueves 8 y 22). Las fechas oficiales de cada mes deben estar parametrizadas en el sistema por el Administrador antes de procesar las asignaciones.
+- **Calendario Oficial de Exámenes DGT (2 Fechas al Mes fijadas manualmente):**
+  - La autoescuela dispone habitualmente de **2 jornadas oficiales de examen al mes** notificadas por la Jefatura Provincial de la DGT (frecuencia quincenal habitual).
+  - **Selección y Parametrización Manual por el Administrador:**
+    - El **Administrador** es el único responsable de configurar y fijar manualmente en el sistema las 2 fechas oficiales de examen para cada mes natural (1ª y 2ª convocatoria quincenal), especificando la fecha exacta, hora de citación y jefatura/centro examinador.
+    - Se elimina expresamente cualquier cálculo algorítmico o generación pseudoaleatoria de fechas.
+    - Las fechas deben quedar registradas por el Administrador en el panel de gestión antes de procesar las aceptaciones de solicitudes de los alumnos para ese periodo.
+    - Al guardar las fechas oficiales, el sistema aplica preventivamente el bloqueo de calendario en los vehículos y profesores correspondientes para evitar reservas de clases prácticas en dichas jornadas (`CU-017`).
 - **Cupo Máximo por Convocatoria:**
   - Límite estricto de **máximo 4 alumnos por profesor y tipo de carnet en una misma fecha de examen práctico**.
 - **Resolución de Solicitudes:**
   - **Rechazo:** Si el Administrador rechaza la solicitud, el estado pasa a `RECHAZADA` y es **estrictamente obligatorio registrar un texto de justificación/motivo**. El alumno recibe un correo con dicha justificación (`CU-018`).
   - **Aceptación:**
-    - El Administrador selecciona una de las 2 fechas oficiales habilitadas para ese mes.
+    - El Administrador selecciona una de las 2 fechas oficiales habilitadas manualmente para ese mes.
     - El sistema valida que no se sobrepase el cupo de 4 alumnos para el profesor del alumno y tipo de carnet asignado. Si se ha alcanzado el límite, la transacción se bloquea mostrando un error explícito.
-    - Al confirmarse, el estado pasa a `ACEPTADA`, se dispara la citación oficial por correo al alumno (`CU-018`) y, si es examen práctico, se ejecuta el bloqueo automático de clases y reservas en el vehículo asignado para esa fecha (`CU-017`).
+    - Al confirmarse, el estado pasa a `ACEPTADA`, se dispara la citación oficial por correo al alumno (`CU-018`) y, si es examen práctico, se consolida el bloqueo automático de clases y reservas en el vehículo asignado para esa fecha (`CU-017`).
 - **Calificación del Examen:**
   - El registro del resultado (`APTO` / `NO APTO`) se mantiene vinculado a la citación, facilitando al alumno el enlace externo oficial a la web de la DGT para la consulta del desglose detallado de su prueba.
-- **Algoritmo de Generación de Fechas de Examen DGT (Aleatoriedad Mensual):**
-  - Para cada mes natural, el sistema (o el Administrador al pulsar "Generar Convocatorias del Mes") selecciona aleatoriamente un día lectivo de la semana (Lunes a Viernes, es decir, de `DayOfWeek.MONDAY` a `DayOfWeek.FRIDAY` mediante un generador pseudoaleatorio o selector configurable).
-  - Una vez seleccionado el día de la semana para ese mes (por ejemplo, *Lunes*):
-    - **Primera fecha de examen:** Se calcula el primer día lectivo de ese tipo del mes (o de la primera quincena).
-    - **Segunda fecha de examen:** Se calcula sumando exactamente 14 días (2 semanas / ciclo de 10 días hábiles) a la primera fecha.
-  - Estas 2 fechas quedan fijadas en el sistema para ese mes como las únicas convocatorias oficiales disponibles para que el Administrador asigne a los alumnos.
 ---
 
 # 8. Reglas de Diseño
@@ -840,3 +838,4 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **25/09/2026** | Ajustes visuales de maquetación, reubicación de aviso y corrección de bordes redondeados cortados en móvil (`modal-alta-profesor.html`) | Reubicación estratégica de la alerta informativa de activación desde la columna 3 al pie del formulario, posicionada a la izquierda junto a los botones de acción (`Cancelar` y `Dar de Alta y Enviar Invitación`) a la derecha mediante `justify-between` (apilado fluido vertical en móvil). Corrección integral del recorte de bordes redondeados (`rounded-2xl`) en pantallas móviles mediante: 1) sustitución de `max-h-[95vh]` por `max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]` con `my-auto` adaptado al Dynamic Viewport real de navegadores móviles para evitar que el centrado flexbox expulse los vértices fuera de pantalla; 2) transición de la rejilla de permisos a 2 columnas en móvil (`grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2`), erradicando desbordamientos horizontales por longitud de texto en terminales estrechos (< 390px); 3) contención estricta mediante `overflow-x-hidden` y ajuste de padding perimetral a `p-2.5 sm:p-4`. Verificación con suite de integración aprobada. |
 | **25/09/2026** | Parametrización de expiración de tokens (`TokenVerificacionService`) y sincronización en plantillas transaccionales de correo (`EmailService`) | Parametrización del método `generarTokenRecuperacion(Persona persona, int duracionMinutos)` incorporando validación de duración estrictamente positiva (`duracionMinutos > 0`). Diferenciación de ventanas de expiración: 15 minutos para recuperación de contraseña (`AuthenticationService`) y 60 minutos (1 hora) para el establecimiento inicial de credenciales de profesor (`ProfesorService`). Propagación de `duracionTokenMinutos` como parámetro dinámico hacia `EmailService` (`enviarCorreoRecuperacion` y `enviarInvitacionProfesor`), renderizado en cuerpos HTML transaccionales y ajuste de Javadoc explicativo. Corrección del matcher de Mockito en `AutenticacionServiceTest` mediante `anyInt()` para erradicar `NullPointerException` por auto-desempaquetado de tipos primitivos Java, y adición de pruebas unitarias en `TokenVerificacionServiceTest` (verificación de ventana de 60 min y rechazo con `IllegalArgumentException` para duraciones <= 0). Suite global de pruebas al 100% verde (129 tests superados). |
 | **25/09/2026** | Simplificación del ciclo de vida de clases prácticas: confirmación directa por reporte docente (Opción C) | Supresión de la validación manual intermedia por parte del alumno (`CU-035` "Confirmar clase pendiente"). Centralización de la regularización y deducción en el reporte de clase cumplimentado por el profesor (`CU-024` "Rellenar detalles clase"): al registrar los datos técnicos (`kmInicio`, `kmFin`, `observaciones`), la clase pasa de forma atómica a `RECIBIDA` y se descuenta una unidad de `saldoClases`. Eliminación del atributo transitorio `numClasesPendientesConfirmar` en la entidad JPA `Matricula`, diagramas ER y dataset semilla `data.sql`. Redefinición de la fórmula de capacidad de reserva como `CapacidadReserva = saldoClases - clasesReservadasPendientes`, eliminando bloqueos innecesarios en el calendario del alumno. |
+| **25/09/2026** | Selección y fijación manual de fechas de examen DGT por el Administrador (Regla 7.5) | Sustitución del algoritmo de generación automática/pseudoaleatoria de fechas de examen por un control manual exclusivo del Administrador. La Jefatura Provincial de Tráfico publica fechas específicas que no siguen fórmulas matemáticas fijas; por tanto, el Administrador parametrizará manualmente las 2 convocatorias oficiales de cada mes (1ª y 2ª convocatoria quincenal) desde el panel de gestión. Actualización del método en la entidad conceptual/ER (`fijarFechasExamenMes`), depuración de inconsistencias en el rol profesor (Sección 6.2) y diseño del modal de configuración manual en `admin/examenes.html`. |

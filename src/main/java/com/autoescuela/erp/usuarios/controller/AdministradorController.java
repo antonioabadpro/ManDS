@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -237,6 +238,14 @@ public class AdministradorController
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
         return "admin/examenes";
+    }
+
+    @PostMapping("/examenes/fijar-fechas-examen")
+    public String guardarConvocatoriasDgt(@RequestParam("mesAnio") String mesAnio, @RequestParam("fechaConvocatoria1") LocalDate fecha1, @RequestParam("horaConvocatoria1") String hora1, @RequestParam("fechaConvocatoria2") LocalDate fecha2, @RequestParam("horaConvocatoria2") String hora2, RedirectAttributes redirectAttributes)
+    {
+        // Lógica de servicio: fijar fechas y bloquear agendas de vehículos
+        redirectAttributes.addFlashAttribute("mensajeExito", "Convocatorias DGT fijadas correctamente.");
+        return "redirect:/admin/examenes";
     }
 
     /**

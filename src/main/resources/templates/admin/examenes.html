@@ -51,7 +51,7 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gestión exclusiva de exámenes oficiales, cola FIFO y control de cupos</p>
             </div>
 
-            <!-- 1. JORNADAS OFICIALES DGT DEL MES (Generación Automática / Bloqueo en Calendario) -->
+            <!-- 1. JORNADAS OFICIALES DGT DEL MES (Parametrización Manual por Administrador / Bloqueo en Calendario) -->
             <section class="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30 p-5 sm:p-6 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-blue-100 dark:border-slate-800 pb-4">
                     <div>
@@ -59,15 +59,23 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-blue-600 text-white">
                                 DGT Oficial
                             </span>
-                            <span class="text-xs text-slate-500 dark:text-slate-400">Ciclo Bisemanal Automático (Regla 7.5)</span>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Parametrización Manual Administrador (Regla 7.5)</span>
                         </div>
                         <h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1">
                             Convocatorias Oficiales del Mes en Curso (Septiembre 2026)
                         </h3>
                     </div>
-                    <div class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                        <span>Días bloqueados para clases prácticas</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" data-modal-target="modal-fijar-fechas-dgt" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Fijar Fechas del Mes</span>
+                        </button>
+                        <div class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span>Días bloqueados para clases prácticas</span>
+                        </div>
                     </div>
                 </div>
 
@@ -90,7 +98,7 @@
                     <!-- Jornada 2 -->
                     <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
                         <div class="space-y-1">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual (+14 días)</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
                             <h4 class="text-base font-extrabold text-slate-900 dark:text-white">Jueves, 24 de Septiembre de 2026</h4>
                             <p class="text-xs text-slate-500 dark:text-slate-400">Hora de examen: 08:30h · Jefatura Provincial</p>
                         </div>
@@ -104,7 +112,7 @@
                 </div>
 
                 <p class="text-xs text-slate-500 dark:text-slate-400 italic">
-                    * Conforme a la normativa DGT, al completarse la última jornada del mes, el sistema generará automáticamente las 2 fechas del mes siguiente y aplicará el bloqueo preventivo en la agenda de prácticas de los vehículos implicados.
+                    * Las convocatorias oficiales son fijadas manualmente por el Administrador según el calendario notificado por la Jefatura Provincial de Tráfico, aplicando el bloqueo preventivo de reservas de prácticas para los vehículos y profesores afectados.
                 </p>
             </section>
 
@@ -331,6 +339,75 @@
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
                     <button type="button" data-modal-close="modal-rechazar-solicitud" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
                     <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-sm">Confirmar Denegación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Fijar Fechas de Examen DGT del Mes (Selección Manual por Administrador) -->
+    <div id="modal-fijar-fechas-dgt" role="dialog" aria-modal="true" aria-labelledby="titulo-fijar-fechas" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                    <h3 id="titulo-fijar-fechas" class="text-base font-bold text-slate-900 dark:text-white">Fijar Fechas Oficiales DGT del Mes</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Configuración manual de las 2 convocatorias asignadas por Tráfico</p>
+                </div>
+                <button type="button" data-modal-close="modal-fijar-fechas-dgt" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form th:action="@{/admin/examenes/fijar-fechas-examen}" method="post" class="space-y-4">
+                <!-- Mes y Año -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Mes y Año de Aplicación *
+                    </label>
+                    <input type="month" name="mesAnio" required value="2026-09" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <!-- 1ª Convocatoria -->
+                <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de Examen *</label>
+                            <input type="date" name="fechaConvocatoria1" required value="2026-09-10" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Hora de Citación *</label>
+                            <input type="time" name="horaConvocatoria1" required value="08:30" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2ª Convocatoria -->
+                <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de Examen *</label>
+                            <input type="date" name="fechaConvocatoria2" required value="2026-09-24" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Hora de Citación *</label>
+                            <input type="time" name="horaConvocatoria2" required value="08:30" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/60 text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                    <p class="font-bold">Efecto en el sistema:</p>
+                    <p>• Las fechas seleccionadas quedarán disponibles como opciones oficiales para citar a los alumnos en espera.</p>
+                    <p>• Se aplicará el bloqueo preventivo en la agenda de prácticas de los vehículos durante esas jornadas.</p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-fijar-fechas-dgt" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Guardar Convocatorias DGT</button>
                 </div>
             </form>
         </div>

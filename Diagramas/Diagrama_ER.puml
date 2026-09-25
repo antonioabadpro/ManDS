@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v10
+@startuml Diagrama_ER_v11
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -129,7 +129,7 @@ package "Usuarios" {
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
     + getRol(): Rol
-    + generarFechasExamenMes(anio: Integer, mes: Integer): List<LocalDate>
+    + fijarFechasExamenMes(anio: Integer, mes: Integer, fecha1: LocalDate, fecha2: LocalDate): void
     + consultarSolicitudesExamen(): List<SolicitudExamen>
     + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
     + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
