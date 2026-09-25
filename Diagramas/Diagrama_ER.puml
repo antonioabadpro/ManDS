@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v9
+@startuml Diagrama_ER_v10
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -198,7 +198,6 @@ package "Autoescuela" {
     - permisoCarnet: TipoCarnet
     - convocatorias: Integer
     - saldoClases: Integer
-    - numClasesPendientesConfirmar: Integer
     - convocatoriasGastadas: Integer
     - precio: Float
     - fechaMatriculacion: LocalDate

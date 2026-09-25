@@ -51,8 +51,6 @@ public class Matricula
 
     private Integer saldoClases = 0;
 
-    private Integer numClasesPendientesConfirmar = 0;
-
     private Integer convocatoriasGastadas = 0;
 
     @Column(nullable = false)

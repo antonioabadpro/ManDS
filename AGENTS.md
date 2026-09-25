@@ -222,7 +222,7 @@ src/
 
 # 4. Diagrama Modelo Entidad - Relación (Tablas, Relaciones, Enums) en PlantUML
 ```plantuml
-@startuml Diagrama_ER_v8
+@startuml Diagrama_ER_v10
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -295,6 +295,7 @@ package "Enums" {
   }
 }
 
+' --- 2. USUARIOS (Capa Superior) ---
 ' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
 package "Autenticación" {
   class TokenVerificacion {
@@ -352,6 +353,10 @@ package "Usuarios" {
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
     + getRol(): Rol
+    + generarFechasExamenMes(anio: Integer, mes: Integer): List<LocalDate>
+    + consultarSolicitudesExamen(): List<SolicitudExamen>
+    + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
+    + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
   }
 
   class Profesor {
@@ -365,7 +370,6 @@ package "Usuarios" {
     + consultarListadoAlumnos(): List<Alumno>
     + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
     + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + establecerFechaExamen(dni: String, fechaHora: LocalDateTime): void
     + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
     + reportarIncidenciaVehiculo(descripcion: String): void
     + getRol(): Rol
@@ -418,7 +422,6 @@ package "Autoescuela" {
     - permisoCarnet: TipoCarnet
     - convocatorias: Integer
     - saldoClases: Integer
-    - numClasesPendientesConfirmar: Integer
     - convocatoriasGastadas: Integer
     - precio: Float
     - fechaMatriculacion: LocalDate
@@ -500,17 +503,20 @@ ClasePractica "0..*" -up-> "1" Alumno : recibida por >
 ClasePractica "0..*" -up-> "1" Profesor : impartida por >
 
 Matricula "1" -down-> "0..*" SolicitudExamen : genera >
-Profesor "1" -down-> "0..*" SolicitudExamen : gestiona >
+Administrador "1" -down-> "0..*" SolicitudExamen : gestiona >
 Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
 Alumno "1" -down-> "0..*" Examen : realiza >
+
+' Separación de los Enums para evitar líneas cruzadas
+Usuarios -[hidden]right-> Enums
 
 @enduml
 ```
 
 # 5. Diagrama de Casos de Uso (CU) en PlantUML
 ```plantuml
-@startuml Diagrama_CU_v6
+@startuml Diagrama_CU_v7
 left to right direction
 skinparam packageStyle rectangle
 
@@ -572,13 +578,12 @@ note right of pagarMatriculacion : Postcondición: Registro del Alumno\nen la BD
 usecase "Comprar clases" as comprarClases << CU-032 >>
 usecase "Consultar calendario" as consultarCalendarioAlum << CU-033 >>
 usecase "Reservar clase práctica" as reservarClase << CU-034 >>
-usecase "Confirmar clase pendiente" as confirmarClase << CU-035 >>
-usecase "Consultar historial clases" as consultarHistorial << CU-036 >>
-usecase "Consultar notas examen" as consultarNotas << CU-037 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-038 >>
-usecase "Solicitar fecha examen" as solicitarExamen << CU-039 >>
-usecase "Pagar tasas examen" as pagarTasas << CU-040 >>
-usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-041 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-035 >>
+usecase "Consultar notas examen" as consultarNotas << CU-036 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-037 >>
+usecase "Solicitar fecha examen" as solicitarExamen << CU-038 >>
+usecase "Pagar tasas examen" as pagarTasas << CU-039 >>
+usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-040 >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
@@ -618,7 +623,6 @@ Alum -- consultarDatos
 Alum -- modificarDatos
 Alum -- pagarMatriculacion
 Alum -- comprarClases
-Alum -- confirmarClase
 Alum -- consultarHistorial
 Alum -- consultarNotas
 Alum -- cEstadisticasAlum
@@ -679,8 +683,7 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 ## 6.3. Alumno
 - **Matriculación Inicial y Pagos (Stripe):** Matricularse en 1 carnet simultáneo. Pago de matrícula, clases sueltas, bonos de clases y tasas de examen.
 - **Reserva de Clases en el Calendario:** Visualización interactiva mediante FullCalendar **únicamente del calendario de su profesor asignado**.
-- **Confirmación de Clases Dadas:** En la vista principal se listan las clases impartidas pendientes de validación por parte del alumno. El alumno debe confirmarlas para regularizar su saldo.
-- **Histórico de Clases:** Detalle completo de clases realizadas (duración, Km inicial/final y observaciones del profesor).
+- **Histórico de Clases:** Detalle completo de clases realizadas y consolidadas (duración, Km inicial/final y observaciones del profesor registradas tras la clase).
 - **Datos Personales:** Consulta y actualización de su perfil (Nombre, dirección, fecha de nacimiento, ...).
 - **Consulta de Notas de Examen:** Visualización del resultado (APTO/ NO APTO) con un link a la web oficial de la DGT para consultar el desglose de la nota detallada.
 - **Estadísticas Personales:** Nº de clases recibidas, convocatorias gastadas, horas de conducción, gasto acumulado e información del vehículo de prácticas.
@@ -720,16 +723,16 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 - **Bloqueo por Examen Práctico:** Si se calendariza un examen práctico en un vehículo concreto, el sistema cancela automáticamente todas las clases prácticas previstas para ese día en dicho vehículo, bloquea cualquier intento de reserva en esa fecha y se envía un correo a todos los alumnos que tenían clase ese día explicándoles el motivo de la cancelación de la clase.
 
 ## 7.4. Algoritmo y Control de Reserva de Clases
-- **Fórmula de Control de Reservas:** $$\text{CapacidadReserva} = \text{saldoClases} - \text{numClasesPendientesPorConfirmar}$$
+- **Fórmula de Control de Reservas:** $$\text{CapacidadReserva} = \text{saldoClases} - \text{clasesReservadasPendientes}$$
 - **Condición de Compra:** Un alumno solo puede comprar clases sueltas o bonos cuando su saldo de clases restantes sea igual a `0` $\text{(saldoClases=0)}$
   - Comprar una clase individual o un bono incrementa el contador de clases disponibles del alumno mediante pago simulado o checkout de Stripe. ($\text{saldoClases } += \text{ cantidadComprada}$)
 - **Condición de Reserva de Clases:**
   - El alumno solo puede reservar una clase si $\text{CapacidadReserva} \gt 0$
-- **Condición de Bloqueo de Reserva (Fórmula de Control):**
-  - Si $\text{CapacidadReserva} \le 0$ && $\text{numClasesPendientesPorConfirmar} \gt 0$:
-    - **NO se muestra el calendario de FullCalendar** en la vista principal del alumno.
-    - Se muestra un aviso bloqueante obligándole a confirmar las clases ya recibidas antes de poder reservar una nueva clase.
-- **Deducción de Clases:** Al confirmar la clase impartida, se descuenta de forma definitiva del contador de clases restantes del alumno (`saldoClases`).
+  - Si $\text{CapacidadReserva} \le 0$:
+    - **NO se permite realizar nuevas reservas** en el calendario de FullCalendar hasta que finalicen/se cancelen clases reservadas o adquiera más clases (en caso de agotar saldo).
+- **Deducción y Regularización de Clases:**
+  - Al impartir la clase, el profesor cumplimenta la ficha técnica (`CU-024`: `kmInicio`, `kmFin`, `observaciones`). Al registrar dicho formulario, la clase pasa automáticamente a estado `RECIBIDA` y se descuenta definitivamente una unidad de `saldoClases` (`saldoClases -= 1`).
+  - No se requiere confirmación manual intermedia por parte del alumno (`CU-035` suprimido). Si una clase reservada no llega a impartirse por cualquier imprevisto del profesor o vehículo, el profesor la cancela desde su panel (`CANCELADA`), liberando la reserva y preservando el saldo íntegro para que el alumno reserve otro día.
 - **Control de Acceso Concurrente e Integridad de Reservas (Política First-Come, First-Served):**
   - Para garantizar equidad cuando dos o más alumnos intentan reservar simultáneamente el mismo tramo horario con el mismo profesor:
     - **Nivel de Base de Datos:** Se aplica una restricción única compuesta `UNIQUE(profesor_id, fecha_hora)` en la tabla `clase_practica` para aquellos estados activos o reservados.
@@ -836,3 +839,4 @@ consultarCalendarioAlum <.. reservarClase : <<extend>>
 | **25/09/2026** | Homogeneización de seguridad y experiencia interactiva en Activación de Cuenta de Profesor | Actualización de `ActivarCuentaProfesorDTO` estableciendo la longitud mínima de contraseña en 6 caracteres (alineada con el estándar global del ERP) e incorporación de validación cruzada en backend `@AssertTrue isPasswordCoincidente()`. En `EmailServiceImpl`, desacoplamiento y especialización de la plantilla HTML transaccional para invitaciones docentes (`construirHtmlInvitacionProfesor`) diferenciada del restablecimiento de claves, manteniendo diseño corporativo responsive. Rediseño completo de la vista `auth/activar-cuenta.html` y desarrollo de `activar-cuenta.js`: control interactivo de visibilidad de contraseñas (mostrar/ocultar con SVG dinámico), medidor reactivo de requisitos de seguridad en tiempo real (mínimo 6 caracteres, número y mayúscula), validación cliente de coincidencia de claves y formato de nombre de usuario. |
 | **25/09/2026** | Ajustes visuales de maquetación, reubicación de aviso y corrección de bordes redondeados cortados en móvil (`modal-alta-profesor.html`) | Reubicación estratégica de la alerta informativa de activación desde la columna 3 al pie del formulario, posicionada a la izquierda junto a los botones de acción (`Cancelar` y `Dar de Alta y Enviar Invitación`) a la derecha mediante `justify-between` (apilado fluido vertical en móvil). Corrección integral del recorte de bordes redondeados (`rounded-2xl`) en pantallas móviles mediante: 1) sustitución de `max-h-[95vh]` por `max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]` con `my-auto` adaptado al Dynamic Viewport real de navegadores móviles para evitar que el centrado flexbox expulse los vértices fuera de pantalla; 2) transición de la rejilla de permisos a 2 columnas en móvil (`grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-2`), erradicando desbordamientos horizontales por longitud de texto en terminales estrechos (< 390px); 3) contención estricta mediante `overflow-x-hidden` y ajuste de padding perimetral a `p-2.5 sm:p-4`. Verificación con suite de integración aprobada. |
 | **25/09/2026** | Parametrización de expiración de tokens (`TokenVerificacionService`) y sincronización en plantillas transaccionales de correo (`EmailService`) | Parametrización del método `generarTokenRecuperacion(Persona persona, int duracionMinutos)` incorporando validación de duración estrictamente positiva (`duracionMinutos > 0`). Diferenciación de ventanas de expiración: 15 minutos para recuperación de contraseña (`AuthenticationService`) y 60 minutos (1 hora) para el establecimiento inicial de credenciales de profesor (`ProfesorService`). Propagación de `duracionTokenMinutos` como parámetro dinámico hacia `EmailService` (`enviarCorreoRecuperacion` y `enviarInvitacionProfesor`), renderizado en cuerpos HTML transaccionales y ajuste de Javadoc explicativo. Corrección del matcher de Mockito en `AutenticacionServiceTest` mediante `anyInt()` para erradicar `NullPointerException` por auto-desempaquetado de tipos primitivos Java, y adición de pruebas unitarias en `TokenVerificacionServiceTest` (verificación de ventana de 60 min y rechazo con `IllegalArgumentException` para duraciones <= 0). Suite global de pruebas al 100% verde (129 tests superados). |
+| **25/09/2026** | Simplificación del ciclo de vida de clases prácticas: confirmación directa por reporte docente (Opción C) | Supresión de la validación manual intermedia por parte del alumno (`CU-035` "Confirmar clase pendiente"). Centralización de la regularización y deducción en el reporte de clase cumplimentado por el profesor (`CU-024` "Rellenar detalles clase"): al registrar los datos técnicos (`kmInicio`, `kmFin`, `observaciones`), la clase pasa de forma atómica a `RECIBIDA` y se descuenta una unidad de `saldoClases`. Eliminación del atributo transitorio `numClasesPendientesConfirmar` en la entidad JPA `Matricula`, diagramas ER y dataset semilla `data.sql`. Redefinición de la fórmula de capacidad de reserva como `CapacidadReserva = saldoClases - clasesReservadasPendientes`, eliminando bloqueos innecesarios en el calendario del alumno. |

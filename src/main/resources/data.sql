@@ -88,14 +88,14 @@ VALUES (2, '2026-08-10 16:15:00', 'Sustitución rutinaria de neumático delanter
 -- ------------------------------------------------------------------------------
 -- 5. MATRÍCULAS ACADÉMICAS (matricula)
 -- ------------------------------------------------------------------------------
-INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, num_clases_pendientes_confirmar, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
-VALUES (1, TRUE, 'PERMISO_B', 2, 5, 1, 0, 450.00, '2026-05-10', 'NUEVA', 'TEORICO_PRACTICA', 4);
+INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
+VALUES (1, TRUE, 'PERMISO_B', 2, 5, 0, 450.00, '2026-05-10', 'NUEVA', 'TEORICO_PRACTICA', 4);
 
-INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, num_clases_pendientes_confirmar, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
-VALUES (2, TRUE, 'PERMISO_B', 1, 0, 0, 1, 320.00, '2026-04-01', 'RENOVACION', 'PRACTICA', 5);
+INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
+VALUES (2, TRUE, 'PERMISO_B', 1, 0, 1, 320.00, '2026-04-01', 'RENOVACION', 'PRACTICA', 5);
 
-INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, num_clases_pendientes_confirmar, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
-VALUES (3, TRUE, 'PERMISO_A2', 2, 8, 0, 0, 390.00, '2026-06-15', 'NUEVA', 'INDIVIDUAL', 6);
+INSERT INTO matricula (id, esta_activa, permiso_carnet, convocatorias, saldo_clases, convocatorias_gastadas, precio, fecha_matriculacion, tipo, modalidad, alumno_id)
+VALUES (3, TRUE, 'PERMISO_A2', 2, 8, 0, 390.00, '2026-06-15', 'NUEVA', 'INDIVIDUAL', 6);
 
 -- ------------------------------------------------------------------------------
 -- 6. CLASES PRÁCTICAS (clase_practica)

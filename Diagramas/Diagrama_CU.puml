@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v6
+@startuml Diagrama_CU_v7
 left to right direction
 skinparam packageStyle rectangle
 
@@ -60,13 +60,12 @@ note right of pagarMatriculacion : Postcondición: Registro del Alumno\nen la BD
 usecase "Comprar clases" as comprarClases << CU-032 >>
 usecase "Consultar calendario" as consultarCalendarioAlum << CU-033 >>
 usecase "Reservar clase práctica" as reservarClase << CU-034 >>
-usecase "Confirmar clase pendiente" as confirmarClase << CU-035 >>
-usecase "Consultar historial clases" as consultarHistorial << CU-036 >>
-usecase "Consultar notas examen" as consultarNotas << CU-037 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-038 >>
-usecase "Solicitar fecha examen" as solicitarExamen << CU-039 >>
-usecase "Pagar tasas examen" as pagarTasas << CU-040 >>
-usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-041 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-035 >>
+usecase "Consultar notas examen" as consultarNotas << CU-036 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-037 >>
+usecase "Solicitar fecha examen" as solicitarExamen << CU-038 >>
+usecase "Pagar tasas examen" as pagarTasas << CU-039 >>
+usecase "Solicitar clases iniciación" as solicitarIniciacion << CU-040 >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
@@ -106,7 +105,6 @@ Alum -- consultarDatos
 Alum -- modificarDatos
 Alum -- pagarMatriculacion
 Alum -- comprarClases
-Alum -- confirmarClase
 Alum -- consultarHistorial
 Alum -- consultarNotas
 Alum -- cEstadisticasAlum
