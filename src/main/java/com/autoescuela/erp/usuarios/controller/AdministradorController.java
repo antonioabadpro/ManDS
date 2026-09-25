@@ -113,9 +113,9 @@ public class AdministradorController
         {
             String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
             this.profesorService.darAltaProfesor(altaProfesorDTO, baseUrl);
-            String mensajeExito = "El profesor " + altaProfesorDTO.getNombre() + " " + altaProfesorDTO.getApellidos()
+            String mensajeExito = "El profesor " + altaProfesorDTO.nombre() + " " + altaProfesorDTO.apellidos()
                     + " ha sido dado de alta correctamente. Se ha enviado un correo electrónico a "
-                    + altaProfesorDTO.getCorreo() + " para que configure sus credenciales de acceso.";
+                    + altaProfesorDTO.correo() + " para que configure sus credenciales de acceso.";
 
             redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
 
@@ -176,11 +176,7 @@ public class AdministradorController
     {
         if (!model.containsAttribute("altaProfesorDTO"))
         {
-            AltaProfesorDTO dto = new AltaProfesorDTO();
-            dto.setFechaContratacion(LocalDate.now());
-            dto.setTurno(TipoTurno.MATINAL);
-            dto.setPermisos(List.of(TipoCarnet.PERMISO_B));
-            model.addAttribute("altaProfesorDTO", dto);
+            model.addAttribute("altaProfesorDTO", new AltaProfesorDTO());
         }
 
         model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));

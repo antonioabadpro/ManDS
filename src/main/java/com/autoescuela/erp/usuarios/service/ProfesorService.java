@@ -58,46 +58,46 @@ public class ProfesorService
             throw new ReglaNegocioException("Los datos para el alta del profesor no pueden ser nulos.");
         }
 
-        if (dto.getFechaNacimiento() == null || dto.getFechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
+        if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
         {
             throw new ReglaNegocioException("El profesor debe ser mayor de edad (al menos 18 años).");
         }
 
-        if (dto.getPermisos() == null || dto.getPermisos().isEmpty())
+        if (dto.permisos() == null || dto.permisos().isEmpty())
         {
             throw new ReglaNegocioException("Debe seleccionar al menos un permiso de conducción autorizado.");
         }
 
-        String dniLimpio = dto.getDni().trim().toUpperCase();
+        String dniLimpio = dto.dni().trim().toUpperCase();
         if (this.personaRepository.existsByDni(dniLimpio))
         {
             throw new ReglaNegocioException("Ya existe un usuario registrado con el DNI/NIE " + dniLimpio + ".");
         }
 
-        String correoLimpio = dto.getCorreo().trim().toLowerCase();
+        String correoLimpio = dto.correo().trim().toLowerCase();
         if (this.personaRepository.existsByCorreo(correoLimpio))
         {
             throw new ReglaNegocioException("Ya existe un usuario registrado con el correo electrónico " + correoLimpio + ".");
         }
 
-        String telefonoLimpio = dto.getTelefono().trim();
+        String telefonoLimpio = dto.telefono().trim();
         if (this.personaRepository.existsByTelefono(telefonoLimpio))
         {
             throw new ReglaNegocioException("Ya existe un usuario registrado con el número de teléfono " + telefonoLimpio + ".");
         }
 
         Vehiculo vehiculo = null;
-        if (dto.getVehiculoId() != null)
+        if (dto.vehiculoId() != null)
         {
-            vehiculo = this.vehiculoRepository.findById(dto.getVehiculoId())
-                    .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + dto.getVehiculoId()));
+            vehiculo = this.vehiculoRepository.findById(dto.vehiculoId())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + dto.vehiculoId()));
 
             if (vehiculo.getProfesor() != null)
             {
                 throw new ReglaNegocioException("El vehículo con matrícula " + vehiculo.getMatricula() + " ya se encuentra asignado a otro docente.");
             }
 
-            if (dto.getPermisos() == null || !dto.getPermisos().contains(vehiculo.getTipo()))
+            if (dto.permisos() == null || !dto.permisos().contains(vehiculo.getTipo()))
             {
                 throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculo.getTipo().getDescripcion()
                         + " requerido para conducir el vehículo asignado (" + vehiculo.getMatricula() + ").");

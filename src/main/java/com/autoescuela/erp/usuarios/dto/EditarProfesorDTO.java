@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.dto;
 
-public class EditarProfesorDTO
-{
+public record EditarProfesorDTO(
 
+)
+{
 }

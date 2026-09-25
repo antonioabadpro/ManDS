@@ -24,17 +24,19 @@ class ProfesorMapperTest
     @DisplayName("toProfesor mapea correctamente todos los campos desde AltaProfesorDTO")
     void testToProfesor()
     {
-        AltaProfesorDTO dto = new AltaProfesorDTO();
-        dto.setNombre("Lucía");
-        dto.setApellidos("Pérez Gómez");
-        dto.setDni("98765432W");
-        dto.setCorreo("lucia.profesor@autoescuela.es");
-        dto.setTelefono("655443322");
-        dto.setDireccion("Calle Toledo 45, Madrid");
-        dto.setFechaNacimiento(LocalDate.of(1987, 6, 15));
-        dto.setFechaContratacion(LocalDate.of(2026, 9, 1));
-        dto.setTurno(TipoTurno.TARDE);
-        dto.setPermisos(List.of(TipoCarnet.PERMISO_B, TipoCarnet.PERMISO_A2));
+        AltaProfesorDTO dto = new AltaProfesorDTO(
+                "Lucía",
+                "Pérez Gómez",
+                "98765432W",
+                "655443322",
+                "lucia.profesor@autoescuela.es",
+                LocalDate.of(1987, 6, 15),
+                "Calle Toledo 45, Madrid",
+                LocalDate.of(2026, 9, 1),
+                TipoTurno.TARDE,
+                null,
+                List.of(TipoCarnet.PERMISO_B, TipoCarnet.PERMISO_A2)
+        );
 
         Profesor profesor = this.mapper.toProfesor(dto);
 

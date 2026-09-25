@@ -1,6 +1,7 @@
 package com.autoescuela.erp.pagos.dto;
 
-public class SesionPagoDTO
-{
+public record SesionPagoDTO(
 
+)
+{
 }
