@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -38,6 +40,16 @@ public class ConfiguracionSeguridad
     public HttpSessionEventPublisher httpSessionEventPublisher()
     {
         return new HttpSessionEventPublisher();
+    }
+
+    /**
+     * Registro centralizado de sesiones activas administrado por Spring.
+     * Mantiene en memoria las sesiones por usuario y reacciona a eventos de destrucción de sesión.
+     */
+    @Bean
+    public SessionRegistry sessionRegistry()
+    {
+        return new SessionRegistryImpl();
     }
 
     @Bean
@@ -98,6 +110,7 @@ public class ConfiguracionSeguridad
                         .sessionFixation(fixation -> fixation.migrateSession())
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
+                        .sessionRegistry(sessionRegistry())
                         .expiredUrl("/login?expirada=true"));
 
         return http.build();

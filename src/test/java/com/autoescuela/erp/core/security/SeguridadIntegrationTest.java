@@ -265,4 +265,62 @@ class SeguridadIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?expirada=true"));
     }
+
+    @Test
+    @DisplayName("Usuarios distintos pueden tener sesiones simultáneas sin interferir entre sí")
+    void testUsuariosDistintosPuedenTenerSesionesSimultaneas() throws Exception
+    {
+        // 1. Login de Administrador (Sesión 1)
+        MvcResult loginAdmin = this.mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "admin123")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/dashboard"))
+                .andReturn();
+
+        HttpSession sesionAdmin = loginAdmin.getRequest().getSession(false);
+        Assertions.assertNotNull(sesionAdmin);
+
+        // 2. Login de Alumno (Sesión 2, simulando otro navegador)
+        MvcResult loginAlumno = this.mockMvc.perform(post("/login")
+                .param("username", "alumno1")
+                .param("password", "alumno123")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andReturn();
+
+        HttpSession sesionAlumno = loginAlumno.getRequest().getSession(false);
+        Assertions.assertNotNull(sesionAlumno);
+
+        // 3. Verificar que el Administrador sigue activo en su sesión
+        this.mockMvc.perform(get("/admin/dashboard")
+                .session((MockHttpSession) sesionAdmin))
+                .andExpect(status().isOk());
+
+        // 4. Verificar que el Alumno sigue activo en su sesión
+        this.mockMvc.perform(get("/alumno/dashboard")
+                .session((MockHttpSession) sesionAlumno))
+                .andExpect(status().isOk());
+
+        // 5. Iniciar una segunda sesión para Administrador (Sesión 3) -> Invalida Sesión 1, pero NO debe afectar a Alumno (Sesión 2)
+        this.mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "admin123")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/dashboard"));
+
+        // Sesión 1 del Admin queda invalidada
+        this.mockMvc.perform(get("/admin/dashboard")
+                .session((MockHttpSession) sesionAdmin))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?expirada=true"));
+
+        // Sesión 2 del Alumno DEBE SEGUIR TOTALMENTE ACTIVA
+        this.mockMvc.perform(get("/alumno/dashboard")
+                .session((MockHttpSession) sesionAlumno))
+                .andExpect(status().isOk());
+    }
 }
