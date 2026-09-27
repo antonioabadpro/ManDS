@@ -1,7 +1,6 @@
 package com.autoescuela.erp.usuarios.controller;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;

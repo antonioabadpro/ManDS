@@ -100,6 +100,36 @@ public class EmailServiceImpl implements EmailService
     }
 
     /**
+     * Envía un correo electrónico de notificación o comunicación directa a un alumno tutelado.
+     *
+     * @param correoDestinatario Dirección de correo del alumno.
+     * @param asunto Asunto del correo electrónico.
+     * @param mensaje Cuerpo del mensaje en texto plano o aviso del profesor.
+     */
+    @Override
+    public void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje)
+    {
+        try
+        {
+            MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - " + asunto);
+            helper.setText(mensaje, false);
+
+            this.mailSender.send(mimeMessage);
+            log.info("Notificación enviada con éxito al alumno {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar notificación a {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+
+    /**
      * Genera la plantilla HTML responsive con branding corporativo ManDS para el restablecimiento de contraseña.
      * @param nombreDestinatario Nombre del destinatario para personalizar el saludo.
      * @param enlace Enlace de recuperación de contraseña con token.

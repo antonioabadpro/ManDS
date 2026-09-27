@@ -27,4 +27,13 @@ public interface EmailService
      * @param duracionTokenMinutos Duración del token en minutos.
      */
     void enviarInvitacionProfesor(String correoDestinatario, String nombreDestinatario, String enlaceActivacion, String duracionTokenMinutos);
+
+    /**
+     * Envía un correo electrónico de notificación formal o pedagógica a un alumno tutelado.
+     *
+     * @param correoDestinatario Dirección de correo del alumno.
+     * @param asunto Asunto del correo electrónico.
+     * @param mensaje Cuerpo del mensaje en texto plano o contenido transaccional.
+     */
+    void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje);
 }

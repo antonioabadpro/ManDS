@@ -6,22 +6,256 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel del Profesor - ManDS</title>
 
+    <!-- Meta etiquetas CSRF -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon SVG -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
+
     <!-- Tipografía Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Estilos globales y Tailwind CSS (Play CDN con configuración unificada) -->
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <!-- Estilos globales y Tailwind CSS -->
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- HTMX para componentes reactivos -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <!-- Scripts de Interfaz -->
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/profesor.js" th:src="@{/js/profesor.js}" defer></script>
 </head>
 
-<body class="p-6 bg-slate-100 font-sans">
-    <h1 class="text-2xl font-bold text-slate-900">Panel de Control del Profesor</h1>
-    <p class="text-xl text-slate-800">
-        Bienvenido/a, <strong th:text="${nombreProfesor}">Profesor</strong>
-    </p>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-emerald-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <!-- Backdrop desenfocado para móviles -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <!-- Menú lateral común del Profesor -->
+    <aside th:replace="~{fragments/profesor-nav :: sidebar(activeSection='dashboard')}"></aside>
+
+    <!-- Contenedor Principal -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <!-- Cabecera Superior -->
+        <header th:replace="~{fragments/profesor-nav :: topbar(tituloSeccion='Panel de Control del Profesor', subtituloSeccion='Resumen de la jornada docente y control operativo')}"></header>
+
+        <!-- Contenido del Dashboard -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Alertas Flash -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Bienvenida y Tarjeta Principal de Turno -->
+            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-xl shadow-emerald-500/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-2 relative z-10">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white">
+                            Turno <span th:text="${profesor?.turno?.name()}"></span>
+                        </span>
+                        <span class="text-xs text-emerald-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        ¡Hola, <span th:text="${profesor?.nombre ?: 'Profesor'}"></span>!
+                    </h2>
+                    <p class="text-xs sm:text-sm text-emerald-100 max-w-xl">
+                        Tienes todo preparado para tu jornada laboral. Consulta tus clases asignadas de hoy y registra los reportes técnicos tras finalizar cada clase.
+                    </p>
+                </div>
+
+                <!-- Botones de Acción Rápida en Cabecera -->
+                <div class="flex flex-wrap items-center gap-3 relative z-10">
+                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-white text-emerald-700 hover:bg-emerald-50 text-xs sm:text-sm font-bold shadow-md transition transform active:scale-95">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Ver Mi Calendario</span>
+                    </a>
+                    <a th:href="@{/profesor/vehiculo}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-emerald-800/60 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold border border-white/20 backdrop-blur-sm transition">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Reportar Avería</span>
+                    </a>
+                </div>
+
+                <!-- Adorno decorativo de fondo -->
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+            </div>
+
+            <!-- Rejilla de 4 Métricas Clave -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+
+                <!-- 1. Próxima Clase -->
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Próxima Clase</span>
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-lg font-extrabold text-slate-900 dark:text-white truncate" th:text="${proximaClase != null ? #temporals.format(proximaClase.fechaHora, 'HH:mm') + ' - ' + proximaClase.alumno?.nombre : 'Sin clases pendientes'}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${proximaClase != null ? proximaClase.puntoRecogida : 'No hay clases próximamente'}"></p>
+                    </div>
+                </div>
+
+                <!-- 2. Alumnos Asignados -->
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alumnos Asignados</span>
+                        <div class="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-black text-slate-900 dark:text-white" th:text="${totalAlumnos}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${totalAlumnos > 1} ? 'Expedientes activos' : 'Expediente activo'"></p>
+                    </div>
+                </div>
+
+                <!-- 3. Vehículo Asignado -->
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehículo Asignado</span>
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-lg font-bold text-slate-900 dark:text-white truncate" th:text="${vehiculo?.modelo ?: 'Sin vehículo asignado'}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${vehiculo?.matricula}"></p>
+                    </div>
+                </div>
+
+                <!-- 4. Calificaciones Pendientes -->
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Calificaciones Pendientes</span>
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-2xl font-black text-slate-900 dark:text-white" th:text="${pendientesCalificar}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${pendientesCalificar > 1} ? 'Exámenes pendientes de calificar' : 'Examen pendiente de calificar'"></p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Clases Programadas para Hoy -->
+            <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Calendario de Clases Prácticas</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Clases programadas para el día de hoy</p>
+                    </div>
+                    <a th:href="@{/profesor/calendario}" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center space-x-1">
+                        <span>Abrir calendario interactivo</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Tabla de Clases de Hoy -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Hora</th>
+                                <th class="py-3 px-4">Alumno</th>
+                                <th class="py-3 px-4">Recogida</th>
+                                <th class="py-3 px-4">Duración</th>
+                                <th class="py-3 px-4">Estado</th>
+                                <th class="py-3 px-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="clase : ${clasesHoy}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(clase.fechaHora, 'HH:mm')}"></td>
+                                <td class="py-3 px-4">
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.alumno?.nombre + ' ' + clase.alumno?.apellidos}"></span>
+                                    <span class="block text-[11px] text-slate-400" th:text="${'DNI: ' + clase.alumno?.dni}"></span>
+                                </td>
+                                <td class="py-3 px-4" th:text="${clase.puntoRecogida}"></td>
+                                <td class="py-3 px-4" th:text="${clase.duracion + ' min'}"></td>
+                                <td class="py-3 px-4">
+                                    <!-- Estado de Clase: PENDIENTE -->
+                                    <span th:if="${clase.estadoClase.name() == 'PENDIENTE'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                        PENDIENTE
+                                    </span>
+                                    <!-- Estado de Clase: RECIBIDA -->
+                                    <span th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                        RECIBIDA
+                                    </span>
+                                    <!-- Estado de Clase: CANCELADA -->
+                                    <span th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                        CANCELADA
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 transition">
+                                        <span>Ficha Técnica</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(clasesHoy)}">
+                                <td colspan="6" class="py-8 text-center text-slate-400">
+                                    <div class="flex flex-col items-center justify-center space-y-2">
+                                        <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p class="text-xs font-medium">No tienes clases prácticas programadas para el día de hoy.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
 </body>
 
 </html>

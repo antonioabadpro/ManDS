@@ -1,9 +1,11 @@
 package com.autoescuela.erp.usuarios.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.model.Profesor;
 
 public interface AlumnoRepository extends JpaRepository<Alumno, Long>
 {
@@ -30,4 +32,14 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
      * @return Optional con el Alumno encontrado o vacío si no existe.
      */
     Optional<Alumno> findByCorreo(String correo);
+
+    /**
+     * Recupera todos los alumnos tutelados por un profesor determinado.
+     */
+    List<Alumno> findByProfesor(Profesor profesor);
+
+    /**
+     * Recupera todos los alumnos tutelados por el identificador del profesor.
+     */
+    List<Alumno> findByProfesorId(Long profesorId);
 }

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convocatorias y Calificaciones DGT - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/profesor.js" th:src="@{/js/profesor.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-emerald-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{fragments/profesor-nav :: sidebar(activeSection='examenes')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{fragments/profesor-nav :: topbar(tituloSeccion='Convocatorias y Calificaciones DGT', subtituloSeccion='Consulta de citaciones oficiales y registro de resultados')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Banner Informativo de Regla 7.5 -->
+            <div class="rounded-2xl p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-200 dark:border-indigo-900/60 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold">Consulta la nota del examen en la DGT</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                        El Administrador es la única persona autorizada para fijar las 2 convocatorias mensuales oficiales y aceptar/rechazar solicitudes de examen.
+                        Como profesor, puedes <strong>consultar las fechas de examen asignadas y establecer la nota del examen en la aplicación</strong>.
+                    </p>
+                </div>
+                <!-- Enlace externo Sede Electrónica DGT -->
+                <a href="https://sedeclave.dgt.gob.es/WEB_NOTP_CONSULTA/consultaNota.faces" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-700 text-xs font-bold border border-indigo-200 dark:border-indigo-800 shadow-sm shrink-0 transition">
+                    <span>Sede Oficial DGT</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Listado de Fechas de Examenes -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Fechas de Exámenes Oficiales Asignadas</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Alumnos citados a pruebas oficiales en tu vehículo asignado</p>
+                    </div>
+                    <div class="w-full sm:w-64 relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" data-table-search="tabla-examenes" placeholder="Buscar por alumno o DNI..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none" />
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="tabla-examenes" class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Fecha y Hora</th>
+                                <th class="py-3 px-4">Alumno</th>
+                                <th class="py-3 px-4">Tipo Examen</th>
+                                <th class="py-3 px-4">Duración</th>
+                                <th class="py-3 px-4">Resultado Oficial</th>
+                                <th class="py-3 px-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="ex : ${examenes}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                                    25/09/2026 09:00
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}">Jose López</span>
+                                    <span class="block text-[11px] text-slate-400" th:text="${'DNI: ' + ex.alumno?.dni}">DNI: 45678901D</span>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800" th:text="${ex.tipo.name()}">
+                                        PRACTICO
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 font-medium" th:text="${ex.duracion + ' min'}">
+                                    35 min
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span th:if="${ex.esApto == true}" class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>APTO</span>
+                                    </span>
+                                    <span th:if="${ex.esApto == false}" class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-300 dark:border-rose-700">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        <span>NO APTO</span>
+                                    </span>
+                                    <span th:if="${ex.esApto == null}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                                        PENDIENTE DE CALIFICAR
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <button type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}" class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <span>Calificar</span>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(examenes)}">
+                                <td colspan="6" class="py-8 text-center text-slate-400">
+                                    <p class="text-xs font-medium">No constan exámenes oficiales asignados en tu vehículo para este mes.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- MODAL ACCESIBLE: Calificar Examen DGT (CU-025) -->
+    <!-- --------------------------------------------------------------------- -->
+    <div id="modal-calificar-examen" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-calificar-examen"></div>
+
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Registrar Calificación DGT</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Asignar resultado oficial del examen</p>
+                </div>
+                <button type="button" data-modal-close="modal-calificar-examen" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form th:action="@{/profesor/examenes/calificar}" method="post" class="space-y-4">
+                <input type="hidden" id="calificar-examen-id" name="examenId" value="" />
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+                    <p class="text-slate-400 text-[11px]">Alumno convocado:</p>
+                    <p id="calificar-examen-alumno" class="font-bold text-slate-900 dark:text-white text-sm">Jose López</p>
+                    <p id="calificar-examen-fecha" class="text-slate-500 font-mono text-[11px]">25/09/2026 09:00</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        Resultado Oficial de la Prueba <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center justify-center p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 dark:has-[:checked]:bg-emerald-950/30 transition">
+                            <input type="radio" name="esApto" value="true" required class="sr-only" />
+                            <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">APTO</span>
+                        </label>
+                        <label class="flex items-center justify-center p-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50 dark:has-[:checked]:bg-rose-950/30 transition">
+                            <input type="radio" name="esApto" value="false" required class="sr-only" />
+                            <span class="text-xs font-bold text-rose-700 dark:text-rose-400">NO APTO</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="calificar-observaciones" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Observaciones del Examinador (Opcional)
+                    </label>
+                    <textarea id="calificar-observaciones" name="observaciones" rows="3" maxlength="500" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none resize-none" placeholder="Anotaciones sobre faltas leves o motivos..."></textarea>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-2">
+                    <button type="button" data-modal-close="modal-calificar-examen" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition">
+                        Registrar Calificación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

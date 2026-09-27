@@ -333,6 +333,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form && !modal.dataset.preserveForm) {
             form.reset();
         }
+
+        // Si el modal está contenido en un contenedor dinámico HTMX, limpiar el contenedor
+        const contenedorDinamico = modal.closest('#contenedor-modal');
+        if (contenedorDinamico) {
+            contenedorDinamico.innerHTML = '';
+        }
     }
 
     document.addEventListener('click', (event) => {

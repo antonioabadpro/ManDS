@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO MODAL: Detalle de Jornada Oficial DGT (HTMX + Thymeleaf)        -->
+    <!-- ========================================================================= -->
+    <div th:fragment="modalDetalleExamen" id="modal-detalle-examen" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto overflow-x-hidden">
+
+        <!-- Fondo desenfocado con cierre al hacer clic -->
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity cursor-pointer" data-modal-close="modal-detalle-examen"></div>
+
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 my-auto z-10">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="text-center space-y-1">
+                <h3 id="modal-examen-titulo" class="text-base font-bold text-slate-900 dark:text-white">Jornada Oficial DGT</h3>
+                <p id="modal-examen-fecha" class="text-xs text-slate-500 dark:text-slate-400 font-mono" th:text="${examen != null && examen.fechaHora != null ? #temporals.format(examen.fechaHora, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</p>
+                <p id="modal-examen-cupo" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mt-2" th:text="${(alumnosCitados != null ? alumnosCitados : 1) + ' / 4 alumnos convocados'}">Cupo oficial</p>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-400 text-center leading-relaxed">
+                Esta jornada está bloqueada para clases prácticas debido a la realización de pruebas prácticas oficiales de la DGT con tu vehículo asignado.
+            </p>
+            <div class="pt-2">
+                <button type="button" data-modal-close="modal-detalle-examen" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
