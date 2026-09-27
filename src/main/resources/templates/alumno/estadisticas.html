@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Estadísticas Alumno - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/alumno.js" th:src="@{/js/alumno.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{fragments/alumno-nav :: sidebar(activeSection='estadisticas')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Mis Estadísticas de Aprendizaje', subtituloSeccion='Métricas de evolución pedagógica, horas al volante y balance económico')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Encabezado de Sección -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Progreso y Balance de Aprendizaje</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Resumen analítico de tu formación como conductor en ManDS ERP</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Permiso Cursado:</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${matricula?.permisoCarnet}">
+                        PERMISO B
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cuadrícula de 4 Tarjetas de Métricas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+
+                <!-- 1. Horas de Conducción Acumuladas -->
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Horas al Volante</span>
+                    <div class="my-3">
+                        <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(estadisticas?.horasConduccion ?: 0.0, 1, 1)} + ' h'">0.0 h</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tiempo efectivo de conducción</p>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Calculado a 45 min por clase recibida</p>
+                </div>
+
+                <!-- 2. Kilómetros Recorridos -->
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Distancia Recorrida</span>
+                    <div class="my-3">
+                        <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${estadisticas?.kilometrosRecorridos ?: 0} + ' km'">0 km</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kilómetros totales en prácticas</p>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Suma de fichas técnicas docentes</p>
+                </div>
+
+                <!-- 3. Tasa de Aprobados -->
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Exámenes DGT</span>
+                    <div class="my-3">
+                        <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                            <span th:text="${estadisticas?.examenesAprobados ?: 0}">0</span> Aptos
+                        </p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            <span th:text="${estadisticas?.examenesSuspensos ?: 0}">0</span> No aptos
+                        </p>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        Convocatorias restantes: <strong class="text-indigo-600 dark:text-indigo-400" th:text="${estadisticas?.convocatoriasRestantes ?: 2}">2</strong>
+                    </p>
+                </div>
+
+                <!-- 4. Gasto Total Invertido -->
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Inversión Formativa</span>
+                    <div class="my-3">
+                        <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono" th:text="${#numbers.formatDecimal(estadisticas?.gastoTotal ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Total matricula y saldo</p>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Historial económico acumulado</p>
+                </div>
+
+            </div>
+
+            <!-- Panel de Desglose de Clases y Actividad -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Distribución de Clases Prácticas -->
+                <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Distribución de Clases Prácticas</h3>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800/60">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span class="font-semibold text-emerald-900 dark:text-emerald-200">Clases Recibidas (Completadas):</span>
+                            </div>
+                            <span class="font-bold text-sm text-emerald-800 dark:text-emerald-300 font-mono" th:text="${estadisticas?.clasesRecibidas ?: 0}">0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800/60">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                <span class="font-semibold text-amber-900 dark:text-amber-200">Clases Reservadas (Pendientes):</span>
+                            </div>
+                            <span class="font-bold text-sm text-amber-800 dark:text-amber-300 font-mono" th:text="${estadisticas?.clasesPendientes ?: 0}">0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                                <span class="font-medium text-slate-600 dark:text-slate-400">Clases Canceladas:</span>
+                            </div>
+                            <span class="font-bold text-sm text-slate-700 dark:text-slate-300 font-mono" th:text="${estadisticas?.clasesCanceladas ?: 0}">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Expediente de Matrícula -->
+                <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Estado del Expediente</h3>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Modalidad de matrícula:</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${matricula?.modalidad}">TEORICO_PRACTICA</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Fecha de matriculación:</span>
+                            <span class="font-mono text-slate-800 dark:text-slate-200" th:text="${#temporals.format(matricula?.fechaMatriculacion, 'dd/MM/yyyy')}">--</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Estado del expediente:</span>
+                            <span th:if="${matricula?.estaActiva == true}" class="text-emerald-600 dark:text-emerald-400 font-bold">Activo Vigente</span>
+                            <span th:if="${matricula?.estaActiva != true}" class="text-rose-600 dark:text-rose-400 font-bold">Inactivo</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO: Modal Accesible con Detalles de Clase Práctica (CU-035)        -->
+    <!-- ========================================================================= -->
+    <div th:fragment="modalDetalleClase" id="modal-detalle-clase" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" onclick="document.getElementById('contenedor-modal').innerHTML = ''; document.body.classList.remove('overflow-hidden');"></div>
+
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10 animate-fade-in">
+            <!-- Cabecera del Modal -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Ficha de Clase Práctica</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Detalles de la sesión de formación</p>
+                </div>
+                <button type="button" onclick="document.getElementById('contenedor-modal').innerHTML = ''; document.body.classList.remove('overflow-hidden');" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Cerrar ventana">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Estado de la clase -->
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-500 font-medium">Estado actual:</span>
+                <span th:if="${clase.estadoClase.name() == 'PENDIENTE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    PENDIENTE
+                </span>
+                <span th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    RECIBIDA
+                </span>
+                <span th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                    CANCELADA
+                </span>
+            </div>
+
+            <!-- Datos Técnicos de la Sesión -->
+            <div class="space-y-3 text-xs">
+                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Fecha y hora:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 font-mono" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Duración:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${clase.duracion} + ' min'"></span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Profesor:</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${clase.profesor?.nombre + ' ' + clase.profesor?.apellidos} ?: 'No asignado'"></span>
+                    </div>
+                    <div class="flex items-center justify-between" th:if="${clase.profesor?.vehiculo != null}">
+                        <span class="text-slate-400">Vehículo:</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${clase.profesor.vehiculo.marca + ' ' + clase.profesor.vehiculo.modelo + ' (' + clase.profesor.vehiculo.matricula + ')'}"></span>
+                    </div>
+                    <div class="flex items-start justify-between gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span class="text-slate-400 shrink-0">Recogida:</span>
+                        <span class="font-medium text-slate-800 dark:text-slate-200 text-right" th:text="${clase.puntoRecogida}"></span>
+                    </div>
+                </div>
+
+                <!-- Reporte Técnico del Odómetro (solo para clases RECIBIDAS) -->
+                <div th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="p-3.5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/60 space-y-2">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Reporte del Profesor</p>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700">
+                            <span class="text-[10px] text-slate-400 block">Km Inicio</span>
+                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200" th:text="${clase.kmInicio} ?: 0"></span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700">
+                            <span class="text-[10px] text-slate-400 block">Km Fin</span>
+                            <span class="font-mono font-bold text-slate-800 dark:text-slate-200" th:text="${clase.kmFin} ?: 0"></span>
+                        </div>
+                        <div class="p-2 rounded-xl bg-emerald-100/70 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-700">
+                            <span class="text-[10px] text-emerald-800 dark:text-emerald-300 block">Recorrido</span>
+                            <span class="font-mono font-bold text-emerald-900 dark:text-emerald-200" th:text="${(clase.kmFin ?: 0) - (clase.kmInicio ?: 0)} + ' km'"></span>
+                        </div>
+                    </div>
+                    <!-- Observaciones Pedagógicas -->
+                    <div class="pt-2">
+                        <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Observaciones del profesor:</span>
+                        <p class="mt-1 p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 italic text-[11px] leading-relaxed border border-slate-100 dark:border-slate-700" th:text="${clase.observaciones} ?: 'Sin observaciones registradas.'"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones y Cancelación -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="document.getElementById('contenedor-modal').innerHTML = ''; document.body.classList.remove('overflow-hidden');" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    Cerrar
+                </button>
+
+                <!-- Botón Cancelar Clase (Solo si está PENDIENTE) -->
+                <form th:if="${clase.estadoClase.name() == 'PENDIENTE'}" hx-post="/alumno/clases/cancelar" hx-target="#contenedor-alertas" hx-swap="innerHTML">
+                    <input type="hidden" name="claseId" th:value="${clase.id}" />
+                    <button type="submit" onclick="return confirm('¿Seguro que deseas cancelar esta reserva de clase práctica?');" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/50 transition">
+                        Cancelar Reserva
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

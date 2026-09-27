@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO: Indicador de Capacidad de Reserva (Regla 7.4)                  -->
+    <!-- Fragmento reutilizable único (DRY) tanto para la carga inicial como para  -->
+    <!-- el reemplazo reactivo Out-Of-Band (OOB) mediante HTMX.                    -->
+    <!-- ========================================================================= -->
+    <p th:fragment="indicadorCapacidad(esOob)" id="indicador-capacidad-reserva" th:attr="hx-swap-oob=${esOob ? 'outerHTML' : null}" class="text-xs text-slate-500 dark:text-slate-400">
+        Capacidad de Reserva = Saldo (<strong class="text-slate-800 dark:text-slate-200" th:text="${matricula?.saldoClases ?: 0}">0</strong>) - Clases Reservadas (<strong class="text-slate-800 dark:text-slate-200" th:text="${clasesReservadas ?: 0}">0</strong>) = <strong th:class="${capacidadReserva &gt; 0} ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'" th:text="${capacidadReserva ?: 0}">0</strong>
+    </p>
+
+</body>
+
+</html>

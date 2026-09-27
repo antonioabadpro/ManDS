@@ -47,4 +47,9 @@ public interface PersonaRepository extends JpaRepository<Persona, Long>
      * Comprueba si ya existe otro usuario registrado con el teléfono indicado (distinto ID).
      */
     boolean existsByTelefonoAndIdNot(String telefono, Long id);
+
+    /**
+     * Comprueba si ya existe otro usuario registrado con el correo electrónico indicado (distinto ID).
+     */
+    boolean existsByCorreoAndIdNot(String correo, Long id);
 }
