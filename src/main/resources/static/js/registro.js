@@ -5,7 +5,37 @@
  */
 
 let pasoActual = 1;
-const TOTAL_PASOS = 3;
+const TOTAL_PASOS = 4;
+
+/**
+ * Actualiza dinámicamente la información de la tasa de matrícula en el Paso 4
+ * según el tipo de carnet seleccionado en el desplegable del Paso 3:
+ * - Permisos C y D (vehículos grandes y pesados): 450,00 €
+ * - Resto de permisos: 250,00 €
+ */
+function actualizarInformacionTasa() {
+    const selectCarnet = document.getElementById('reg-tipoCarnet');
+    const valorCarnet = selectCarnet?.value || 'PERMISO_B';
+    const textoOption = selectCarnet && selectCarnet.selectedIndex >= 0
+        ? selectCarnet.options[selectCarnet.selectedIndex].text
+        : 'Permiso B';
+
+    const nombreCarnet = textoOption.split('—')[0].trim();
+    const esPesado = valorCarnet.startsWith('PERMISO_C') || valorCarnet.startsWith('PERMISO_D');
+    const importeTexto = esPesado ? '450,00 €' : '250,00 €';
+
+    const elemTitulo = document.getElementById('resumen-carnet-titulo');
+    const elemPrecio = document.getElementById('resumen-tasa-precio');
+    const elemBotonTexto = document.getElementById('btn-pago-texto');
+    const enlacePago = document.getElementById('btn-ir-pago');
+
+    if (elemTitulo) elemTitulo.textContent = nombreCarnet;
+    if (elemPrecio) elemPrecio.textContent = importeTexto;
+    if (elemBotonTexto) elemBotonTexto.textContent = `Abrir Pasarela de Pago (${importeTexto})`;
+    if (enlacePago) {
+        enlacePago.href = `/pagos/checkout?tipoCarnet=${encodeURIComponent(valorCarnet)}`;
+    }
+}
 
 /**
  * Valida los campos obligatorios del paso actual antes de permitir avanzar.
@@ -272,6 +302,10 @@ function irAPaso(nuevoPaso) {
 
     pasoActual = nuevoPaso;
 
+    if (nuevoPaso === 4) {
+        actualizarInformacionTasa();
+    }
+
     // Foco automático en el primer input accesible del nuevo paso
     const primerInput = document.querySelector(`#panel-step-${nuevoPaso} input:not([type="hidden"])`);
     if (primerInput) {
@@ -311,6 +345,7 @@ function inicializarEventosRegistro() {
     // Botones de avance ("Siguiente")
     const btnNext1 = document.getElementById('btn-next-step-1');
     const btnNext2 = document.getElementById('btn-next-step-2');
+    const btnNext3 = document.getElementById('btn-next-step-3');
 
     if (btnNext1) {
         btnNext1.addEventListener('click', () => {
@@ -328,9 +363,19 @@ function inicializarEventosRegistro() {
         });
     }
 
+    if (btnNext3) {
+        btnNext3.addEventListener('click', () => {
+            if (validarPaso(3)) {
+                actualizarInformacionTasa();
+                irAPaso(4);
+            }
+        });
+    }
+
     // Botones de retroceso ("Atrás")
     const btnPrev2 = document.getElementById('btn-prev-step-2');
     const btnPrev3 = document.getElementById('btn-prev-step-3');
+    const btnPrev4 = document.getElementById('btn-prev-step-4');
 
     if (btnPrev2) {
         btnPrev2.addEventListener('click', () => irAPaso(1));
@@ -338,6 +383,16 @@ function inicializarEventosRegistro() {
 
     if (btnPrev3) {
         btnPrev3.addEventListener('click', () => irAPaso(2));
+    }
+
+    if (btnPrev4) {
+        btnPrev4.addEventListener('click', () => irAPaso(3));
+    }
+
+    // Cambio reactivo del tipo de carnet para recalcular tarifas
+    const selectCarnet = document.getElementById('reg-tipoCarnet');
+    if (selectCarnet) {
+        selectCarnet.addEventListener('change', actualizarInformacionTasa);
     }
 
     // Botones de visibilidad de contraseña
@@ -397,7 +452,7 @@ function inicializarEventosRegistro() {
                     btnSiguiente.click();
                 }
             } else {
-                // En el paso 3, validar los campos antes de permitir el envío nativo
+                // En el último paso (paso 4), validar los campos antes de permitir el envío nativo
                 if (!validarPaso(TOTAL_PASOS)) {
                     e.preventDefault();
                 }

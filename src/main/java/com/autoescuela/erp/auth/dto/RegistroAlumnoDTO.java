@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.autoescuela.erp.core.enums.TipoCarnet;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -62,11 +64,31 @@ public record RegistroAlumnoDTO(
 
         @NotNull(message = "Debe aceptar los términos de uso y la política de privacidad")
         @AssertTrue(message = "Debe aceptar los términos de uso y la política de privacidad")
-        Boolean terminos)
+        Boolean terminos,
+
+        @NotNull(message = "Debe seleccionar un tipo de carnet")
+        TipoCarnet tipoCarnet
+    )
 {
     public RegistroAlumnoDTO()
     {
-        this(null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    public RegistroAlumnoDTO(String nombreUsuario, String correo, String password, String confirmPassword, String nombre, String apellidos, String dni, LocalDate fechaNacimiento, String telefono, String direccion, Boolean terminos, TipoCarnet tipoCarnet)
+    {
+        this.nombreUsuario = nombreUsuario;
+        this.correo = correo;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
+        this.nombre = nombre;
+        this.apellidos = apellidos;
+        this.dni = dni;
+        this.fechaNacimiento = fechaNacimiento;
+        this.telefono = telefono;
+        this.direccion = direccion;
+        this.terminos = terminos;
+        this.tipoCarnet = tipoCarnet;
     }
 
     /**
