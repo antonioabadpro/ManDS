@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
+import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.usuarios.model.Persona;
@@ -212,7 +213,8 @@ class AutenticacionServiceTest
                 LocalDate.of(2000, 1, 1),
                 "600111222",
                 "Calle Principal 1",
-                true
+                true,
+                TipoCarnet.PERMISO_B
         );
 
         when(this.personaRepository.existsByNombreUsuario("alumno_tel_dup")).thenReturn(false);

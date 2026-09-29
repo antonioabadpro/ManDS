@@ -63,7 +63,7 @@ public class ConfiguracionSeguridad
                 .requestMatchers("/", "/login", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**", "/usuario/validar-**").permitAll()
 
                 // Pasarela y Webhook de Stripe (acceso público a checkout previo al alta y webhook firmado)
-                .requestMatchers("/pagos/checkout/**", "/pagos/webhook/**").permitAll()
+                .requestMatchers("/pagos/**").permitAll()
 
                 // Consola H2 para desarrollo y pruebas locales
                 .requestMatchers("/h2-console/**").permitAll()
@@ -78,7 +78,7 @@ public class ConfiguracionSeguridad
 
                 // Configuración de CSRF: habilitado globalmente, excluyendo consola H2 y Webhook de Stripe
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**", "/pagos/webhook/**"))
+                        .ignoringRequestMatchers("/h2-console/**", "/pagos/webhook", "/pagos/webhook/**"))
 
                 // Cabeceras de seguridad
                 .headers(headers -> headers

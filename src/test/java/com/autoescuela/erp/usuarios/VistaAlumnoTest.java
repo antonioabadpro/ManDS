@@ -9,6 +9,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.Matchers.containsString;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Pruebas de integración visual y autorización para el conjunto de vistas del Rol Alumno.
  */
+@Transactional
 class VistaAlumnoTest
 {
     @Autowired
@@ -275,7 +277,7 @@ class VistaAlumnoTest
                 .with(csrf())
                 .param("nombre", "Jose")
                 .param("apellidos", "López Martínez")
-                .param("telefono", "611223344")
+                .param("telefono", "611223399")
                 .param("direccion", "Calle Gran Vía 28, Madrid")
                 .param("correo", "jose.actualizado@autoescuela.es")
                 .param("fechaNacimiento", "2004-03-15"))
