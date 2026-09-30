@@ -80,16 +80,24 @@
             <!-- Caja Informativa -->
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 text-left space-y-2 text-xs">
                 <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                    <span>Estado:</span>
+                    <span>Estado del Pago:</span>
                     <span class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">Completado</span>
                 </div>
-                <div th:if="${sessionId}" class="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                    <span>Identificador de Sesión:</span>
-                    <span class="font-mono font-medium text-slate-700 dark:text-slate-300 truncate max-w-[200px]" th:text="${sessionId}">cs_test_...</span>
+                <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                    <span>Concepto:</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">Tasa de Matrícula Oficial</span>
+                </div>
+                <div th:if="${tipoCarnet}" class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                    <span>Permiso Matriculado:</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium" th:text="${tipoCarnet}">Permiso B</span>
+                </div>
+                <div th:if="${importeTotal}" class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                    <span>Importe Abonado:</span>
+                    <span class="text-slate-900 dark:text-white font-bold font-mono" th:text="${importeTotal + ' €'}">250,00 €</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                    <span>Confirmación:</span>
-                    <span class="text-slate-700 dark:text-slate-300">Notificación automática por Webhook</span>
+                    <span>Acceso:</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">Expediente formalizado y activado</span>
                 </div>
             </div>
 

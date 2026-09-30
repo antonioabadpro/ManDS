@@ -158,7 +158,7 @@ class VistaRegistroTest
     }
 
     @Test
-    @DisplayName("GET /registro contiene el Paso 4: Información de tasa, enlace a pasarela y botón de finalización")
+    @DisplayName("GET /registro contiene el Paso 4: Información de tasa y botón de pago con Stripe")
     void testPaso4TasaMatriculacionYPasarela() throws Exception
     {
         this.mockMvc.perform(get("/registro"))
@@ -166,11 +166,8 @@ class VistaRegistroTest
                 .andExpect(content().string(containsString("id=\"panel-step-4\"")))
                 .andExpect(content().string(containsString("Abono de Tasa de Matrícula")))
                 .andExpect(content().string(containsString("id=\"btn-ir-pago\"")))
-                .andExpect(content().string(containsString("target=\"_blank\"")))
-                .andExpect(content().string(containsString("/pagos/checkout")))
                 .andExpect(content().string(containsString("id=\"btn-prev-step-4\"")))
-                .andExpect(content().string(containsString("id=\"btn-submit-registro\"")))
-                .andExpect(content().string(containsString("Finalizar Registro")));
+                .andExpect(content().string(containsString("Pagar Matrícula")));
     }
 
     @Test

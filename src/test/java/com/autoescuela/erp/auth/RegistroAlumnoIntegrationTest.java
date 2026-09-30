@@ -29,11 +29,20 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MvcResult;
+import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.autoescuela.erp.pagos.service.PagoStripeService;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -44,9 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Pruebas de integración para el circuito completo de registro público de alumnos.
  * Cubre peticiones HTTP POST /registro, validaciones declarativas, reglas de negocio de unicidad,
- * encriptación segura de contraseña con BCrypt y persistencia en la base de datos.
- * RegistroAlumnoIntegrationTest contiene pruebas para verificar el registro exitoso de un alumno, así como los casos de error por duplicidad de nombre de usuario, correo, DNI y teléfono.
- * Se utilizan Mocks para simular solicitudes HTTP y verificar el contenido de la respuesta, así como la correcta persistencia de los datos en la base de datos.
+ * encriptación segura de contraseña con BCrypt y persistencia en la base de datos tras pago exitoso.
  */
 @Transactional
 class RegistroAlumnoIntegrationTest
@@ -60,11 +67,17 @@ class RegistroAlumnoIntegrationTest
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean
+    private PagoStripeService pagoStripeService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp()
     {
+        when(this.pagoStripeService.crearSesionPagoMatricula(any(), any()))
+                .thenReturn(new SesionPagoDTO("cs_123", "https://checkout.stripe.com/pay/cs_123", 25000L, "EUR"));
+
         this.mockMvc = MockMvcBuilders
                 .webAppContextSetup(this.contexto)
                 .apply(springSecurity())
@@ -72,10 +85,11 @@ class RegistroAlumnoIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /registro con datos válidos registra al alumno en BD, hashea su clave y redirige a login")
+    @DisplayName("POST /registro inicia Stripe y tras retorno en /pagos/checkout/success registra al alumno y formaliza matrícula")
     void testRegistroAlumnoExitoso() throws Exception
     {
-        this.mockMvc.perform(post("/registro")
+        // 1. Envío del formulario de registro: se valida, encripta la clave y redirige a Stripe
+        MvcResult postResult = this.mockMvc.perform(post("/registro")
                 .with(csrf())
                 .param("nombreUsuario", "nuevo_alumno")
                 .param("correo", "nuevo.alumno@autoescuela.es")
@@ -90,8 +104,27 @@ class RegistroAlumnoIntegrationTest
                 .param("tipoCarnet", "PERMISO_B")
                 .param("terminos", "true"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?registrado=true"))
-                .andExpect(flash().attributeExists("mensajeExito"));
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_123"))
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) postResult.getRequest().getSession();
+        assertNotNull(session, "La sesión debe crearse para retener temporalmente los datos de registro");
+        assertEquals("77889900K", session.getAttribute("dniAlumno"), "El DNI del alumno debe persistirse en la sesión");
+        assertNotNull(session.getAttribute("importeTotal"), "El importe debe persistirse en la sesión");
+
+        // Verificamos que el alumno fue creado de inmediato en la base de datos con estado INACTIVO
+        Optional<Alumno> alumnoInactivoOpt = this.alumnoRepository.findByDni("77889900K");
+        assertTrue(alumnoInactivoOpt.isPresent(), "El alumno debe crearse en BD inmediatamente");
+        assertEquals(EstadoUsuario.INACTIVO, alumnoInactivoOpt.get().getEstado(), "El alumno debe permanecer INACTIVO hasta el pago");
+
+        // 2. Retorno desde Stripe Checkout con éxito: activación en BD y formalización de matrícula
+        this.mockMvc.perform(get("/pagos/checkout/success")
+                .session(session)
+                .param("session_id", "cs_123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/success"))
+                .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
+                .andExpect(content().string(containsString("250,00 €")));
 
         // Comprobación de persistencia y propiedades en el repositorio
         Optional<Alumno> alumnoOpt = this.alumnoRepository.findByNombreUsuario("nuevo_alumno");
@@ -396,6 +429,37 @@ class RegistroAlumnoIntegrationTest
                 .param("telefono", "699112233"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: fragmento-vacio"));
+    }
+
+    @Test
+    @DisplayName("GET /pagos/checkout/cancel con sesión purga al alumno inactivo de la base de datos")
+    void testCancelacionCheckoutEliminaAlumnoInactivo() throws Exception
+    {
+        MvcResult postResult = this.mockMvc.perform(post("/registro")
+                .with(csrf())
+                .param("nombreUsuario", "alumno_cancela")
+                .param("correo", "cancela@autoescuela.es")
+                .param("password", "claveSecreta123")
+                .param("confirmPassword", "claveSecreta123")
+                .param("nombre", "Raúl")
+                .param("apellidos", "Cancela")
+                .param("dni", "11223344X")
+                .param("fechaNacimiento", "2001-01-01")
+                .param("telefono", "611009988")
+                .param("direccion", "Calle Fin 1")
+                .param("tipoCarnet", "PERMISO_B")
+                .param("terminos", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn();
+
+        MockHttpSession session = (MockHttpSession) postResult.getRequest().getSession();
+        assertTrue(this.alumnoRepository.findByDni("11223344X").isPresent(), "El alumno debe existir inicialmente como inactivo");
+
+        this.mockMvc.perform(get("/pagos/checkout/cancel").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/cancel"));
+
+        assertTrue(this.alumnoRepository.findByDni("11223344X").isEmpty(), "El alumno inactivo debe haberse purgado de la BD tras cancelar");
     }
 }
 

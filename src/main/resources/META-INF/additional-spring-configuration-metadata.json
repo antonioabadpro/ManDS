@@ -7,16 +7,16 @@
             "defaultValue": "${APP_BASE_URL:http://localhost:8080}"
         },
         {
-            "name": "stripe.api.key",
-            "type": "java.lang.String",
-            "description": "Clave secreta de la API de Stripe para autenticación de solicitudes.",
-            "defaultValue": "${STRIPE_API_KEY}"
-        },
-        {
             "name": "stripe.public.key",
             "type": "java.lang.String",
             "description": "Clave pública de Stripe utilizada en el frontend para integrar elementos de pago.",
             "defaultValue": "${STRIPE_PUBLIC_KEY}"
+        },
+        {
+            "name": "stripe.secret.key",
+            "type": "java.lang.String",
+            "description": "Clave secreta de la API de Stripe para autenticación de solicitudes.",
+            "defaultValue": "${STRIPE_SECRET_KEY}"
         },
         {
             "name": "stripe.webhook.secret",

@@ -17,9 +17,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
+import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
-import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import org.springframework.mock.web.MockHttpSession;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,16 +32,20 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import org.springframework.test.context.TestPropertySource;
+
 /**
  * Suite de pruebas de integración para StripeWebhookController.
- * Valida los endpoints públicos de la pasarela (/pagos/checkout, /pagos/iniciar-stripe,
+ * Valida los endpoints públicos de la pasarela (/pagos/checkout,
  * /pagos/checkout/success, /pagos/checkout/cancel) y la verificación criptográfica de Webhooks.
  */
 @SpringBootTest
+@TestPropertySource(properties = {
+    "stripe.webhook.secret=whsec_dummy_secret_for_testing"
+})
 class StripeWebhookControllerTest
 {
     @Autowired
@@ -49,6 +56,9 @@ class StripeWebhookControllerTest
 
     @MockitoBean
     private PagoStripeService pagoStripeService;
+
+    @MockitoBean
+    private AuthenticationService autenticacionService;
 
     private MockMvc mockMvc;
 
@@ -100,19 +110,34 @@ class StripeWebhookControllerTest
     }
 
     @Test
-    @DisplayName("GET /pagos/iniciar-stripe crea sesión y redirige hacia Stripe Checkout")
-    void testIniciarStripeCheckout() throws Exception
+    @DisplayName("GET /pagos/checkout/success con alumno en sesión formaliza el alta y matrícula")
+    void testMostrarExitoCheckoutConSesion() throws Exception
     {
-        when(this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, "12345678Z"))
-                .thenReturn(new SesionPagoDTO("cs_123", "https://checkout.stripe.com/pay/cs_123", 25000L, "EUR"));
+        RegistroAlumnoDTO registroDTO = new RegistroAlumnoDTO(
+                "alumno_prueba", "alumno.prueba@test.com", "pass123", "pass123",
+                "Juan", "Pérez", "12345678Z", java.time.LocalDate.of(2000, 1, 1),
+                "600123456", "Calle Test 1", true, TipoCarnet.PERMISO_B);
 
-        this.mockMvc.perform(get("/pagos/iniciar-stripe")
-                        .param("tipoCarnet", "PERMISO_B")
-                        .param("dni", "12345678Z"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_123"));
+        Alumno alumnoMock = new Alumno();
+        alumnoMock.setNombre("Juan");
+        alumnoMock.setDni("12345678Z");
 
-        verify(this.pagoStripeService).crearSesionPagoMatricula(TipoCarnet.PERMISO_B, "12345678Z");
+        when(this.autenticacionService.registrarAlumno(registroDTO)).thenReturn(alumnoMock);
+
+        MockHttpSession sesion = new MockHttpSession();
+        sesion.setAttribute("registroDTO", registroDTO);
+        sesion.setAttribute("importeTotal", 250.00f);
+
+        this.mockMvc.perform(get("/pagos/checkout/success")
+                        .session(sesion)
+                        .param("session_id", "cs_test_success_123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/success"))
+                .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
+                .andExpect(content().string(containsString("250,00 €")));
+
+        verify(this.autenticacionService).registrarAlumno(registroDTO);
+        verify(this.academicoService).matricularTrasPago(eq("12345678Z"), eq("PERMISO_B"), eq(250.00f));
     }
 
     @Test
@@ -123,7 +148,7 @@ class StripeWebhookControllerTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/success"))
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
-                .andExpect(content().string(containsString("cs_test_success_123")));
+                .andExpect(content().string(containsString("Tasa de Matrícula Oficial")));
     }
 
     @Test
@@ -193,9 +218,7 @@ class StripeWebhookControllerTest
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Evento de pago con éxito procesado")));
-
-        verify(this.academicoService).matricularTrasPago(eq("12345678Z"), eq("PERMISO_B"), eq(250.00f));
+                .andExpect(content().string(containsString("Evento de matrícula procesado correctamente")));
     }
 
     @Test

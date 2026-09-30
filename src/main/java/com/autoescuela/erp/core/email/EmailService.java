@@ -36,4 +36,14 @@ public interface EmailService
      * @param mensaje Cuerpo del mensaje en texto plano o contenido transaccional.
      */
     void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje);
+
+    /**
+     * Envía un correo electrónico de bienvenida y confirmación de matrícula a un nuevo alumno tras el pago.
+     *
+     * @param correoDestinatario Dirección de correo del alumno.
+     * @param nombreDestinatario Nombre de pila del alumno.
+     * @param descripcionCarnet Descripción legible del carnet matriculado.
+     * @param importeAbonado Importe abonado de la matrícula en euros.
+     */
+    void enviarBienvenidaAlumno(String correoDestinatario, String nombreDestinatario, String descripcionCarnet, float importeAbonado);
 }

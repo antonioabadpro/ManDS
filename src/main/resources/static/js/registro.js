@@ -15,7 +15,9 @@ const TOTAL_PASOS = 4;
  */
 function actualizarInformacionTasa() {
     const selectCarnet = document.getElementById('reg-tipoCarnet');
+    const inputDni = document.getElementById('reg-dni');
     const valorCarnet = selectCarnet?.value || 'PERMISO_B';
+    const valorDni = inputDni?.value?.trim() || '';
     const textoOption = selectCarnet && selectCarnet.selectedIndex >= 0
         ? selectCarnet.options[selectCarnet.selectedIndex].text
         : 'Permiso B';
@@ -31,10 +33,7 @@ function actualizarInformacionTasa() {
 
     if (elemTitulo) elemTitulo.textContent = nombreCarnet;
     if (elemPrecio) elemPrecio.textContent = importeTexto;
-    if (elemBotonTexto) elemBotonTexto.textContent = `Abrir Pasarela de Pago (${importeTexto})`;
-    if (enlacePago) {
-        enlacePago.href = `/pagos/checkout?tipoCarnet=${encodeURIComponent(valorCarnet)}`;
-    }
+    if (elemBotonTexto) elemBotonTexto.textContent = `Pagar Matrícula (${importeTexto})`;
 }
 
 /**
@@ -389,10 +388,16 @@ function inicializarEventosRegistro() {
         btnPrev4.addEventListener('click', () => irAPaso(3));
     }
 
-    // Cambio reactivo del tipo de carnet para recalcular tarifas
+    // Cambio reactivo del tipo de carnet y DNI para recalcular tarifas y enlace a Stripe
     const selectCarnet = document.getElementById('reg-tipoCarnet');
     if (selectCarnet) {
         selectCarnet.addEventListener('change', actualizarInformacionTasa);
+    }
+
+    const inputDni = document.getElementById('reg-dni');
+    if (inputDni) {
+        inputDni.addEventListener('input', actualizarInformacionTasa);
+        inputDni.addEventListener('change', actualizarInformacionTasa);
     }
 
     // Botones de visibilidad de contraseña
@@ -440,21 +445,38 @@ function inicializarEventosRegistro() {
         });
     }
 
-    // Interceptar envío de formulario (evita submit accidental con Enter en pasos 1 y 2)
+    // Manejador del botón de pago con Stripe (validación estricta de pasos 1, 2 y 3)
+    const btnIrPago = document.getElementById('btn-ir-pago');
+    if (btnIrPago) {
+        btnIrPago.addEventListener('click', (e) => {
+            for (let i = 1; i <= 3; i++) {
+                if (!validarPaso(i)) {
+                    e.preventDefault();
+                    irAPaso(i);
+                    return;
+                }
+            }
+            actualizarInformacionTasa();
+        });
+    }
+
+    // Interceptar envío convencional de formulario para redirigir al flujo del wizard
     const formRegistro = document.getElementById('form-registro');
     if (formRegistro) {
         formRegistro.addEventListener('submit', (e) => {
             if (pasoActual < TOTAL_PASOS) {
-                // Prevenir el POST al servidor si aún estamos en pasos preliminares
                 e.preventDefault();
                 const btnSiguiente = document.getElementById(`btn-next-step-${pasoActual}`);
                 if (btnSiguiente) {
                     btnSiguiente.click();
                 }
             } else {
-                // En el último paso (paso 4), validar los campos antes de permitir el envío nativo
-                if (!validarPaso(TOTAL_PASOS)) {
-                    e.preventDefault();
+                for (let i = 1; i <= 3; i++) {
+                    if (!validarPaso(i)) {
+                        e.preventDefault();
+                        irAPaso(i);
+                        return;
+                    }
                 }
             }
         });

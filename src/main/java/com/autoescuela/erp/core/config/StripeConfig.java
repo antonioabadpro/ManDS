@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration
 public class StripeConfig
 {
-    @Value("${stripe.api.key}")
+    @Value("${stripe.secret.key:sk_test_placeholder}")
     private String stripeApiKey;
 
     /**

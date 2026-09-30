@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -40,6 +41,9 @@ class AcademicoServiceTest
 
     @Mock
     private MatriculaRepository matriculaRepository;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private AcademicoService academicoService;
@@ -136,13 +140,12 @@ class AcademicoServiceTest
 
         when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matriculaExistente));
-        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Matricula resultado = this.academicoService.matricularTrasPago(dni, "PERMISO_B", 250.00f);
 
         assertNotNull(resultado);
-        assertEquals(250.00f, resultado.getPrecio());
-        verify(this.matriculaRepository).save(matriculaExistente);
+        assertEquals(200.00f, resultado.getPrecio());
+        verify(this.matriculaRepository, never()).save(any(Matricula.class));
     }
 
     @Test

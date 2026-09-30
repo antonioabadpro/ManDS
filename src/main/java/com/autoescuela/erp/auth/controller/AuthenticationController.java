@@ -16,9 +16,14 @@ import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.autoescuela.erp.pagos.service.PagoStripeService;
+
+import com.autoescuela.erp.usuarios.model.Alumno;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationController
 {
     private final AuthenticationService autenticacionService;
+    private final PagoStripeService pagoStripeService;
 
     /**
      * Muestra la vista de inicio de sesión.
@@ -80,7 +86,7 @@ public class AuthenticationController
      * @return Redirección a login tras éxito o retorno a la vista de registro en caso de error.
      */
     @PostMapping("/registro")
-    public String procesarRegistro(@Valid @ModelAttribute("registroDTO") RegistroAlumnoDTO registroDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
+    public String procesarRegistro(@Valid @ModelAttribute("registroDTO") RegistroAlumnoDTO registroDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes, HttpSession sesion)
     {
         if (bindingResult.hasErrors())
         {
@@ -93,9 +99,22 @@ public class AuthenticationController
 
         try
         {
-            this.autenticacionService.registrarAlumno(registroDTO);
-            redirectAttributes.addFlashAttribute("mensajeExito", "Registro completado con éxito.");
-            return "redirect:/login?registrado=true";
+            // Registramos al alumno en la BD con estado INACTIVO (pendiente de confirmación de pago en Stripe)
+            Alumno alumno = this.autenticacionService.registrarAlumno(registroDTO);
+
+            // Almacenamos únicamente identificadores en sesión para enriquecer la experiencia tras el retorno
+            sesion.setAttribute("dniAlumno", alumno.getDni());
+            sesion.setAttribute("tipoCarnet", registroDTO.tipoCarnet().name());
+
+            // Creamos la sesión de la pasarela de pago en Stripe
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(registroDTO.tipoCarnet(), alumno.getDni());
+
+            // Almacenamos el importe total (en euros) en sesión para recuperarlo en la pantalla de éxito
+            float importeTotal = sesionPago.importeTotal() / 100.0f;
+            sesion.setAttribute("importeTotal", importeTotal);
+
+            // Redirigimos al usuario a la pasarela de pago de Stripe Checkout
+            return "redirect:" + sesionPago.urlStripe();
         }
         catch (ReglaNegocioException ex)
         {

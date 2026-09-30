@@ -2,6 +2,8 @@ package com.autoescuela.erp.pagos.controller;
 
 import java.util.Locale;
 
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,11 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
-import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
-import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
-import com.autoescuela.erp.pagos.service.PagoStripeService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
@@ -40,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StripeWebhookController
 {
     private final AcademicoService academicoService;
-    private final PagoStripeService pagoStripeService;
+    private final AuthenticationService autenticacionService;
 
     @Value("${stripe.webhook.secret:whsec_placeholder}")
     private String webhookSecret;
@@ -88,55 +89,66 @@ public class StripeWebhookController
     }
 
     /**
-     * Inicia una sesión de pago oficial en Stripe Checkout y redirige a la pasarela alojada.
-     *
-     * @param tipoCarnet_string Tipo de permiso para el que se solicita la matrícula.
-     * @param dni DNI opcional del alumno.
-     * @return Redirección HTTP hacia la URL de Stripe Checkout.
-     */
-    @GetMapping("/iniciar-stripe")
-    public String iniciarStripeCheckout(@RequestParam(name = "tipoCarnet", required = false) String tipoCarnetStr, @RequestParam(name = "dni", required = false) String dni)
-    {
-        TipoCarnet tipoCarnet = TipoCarnet.PERMISO_B;
-        if (tipoCarnetStr != null && !tipoCarnetStr.isBlank())
-        {
-            try
-            {
-                tipoCarnet = TipoCarnet.valueOf(tipoCarnetStr.trim().toUpperCase());
-            }
-            catch (IllegalArgumentException ex)
-            {
-                log.warn("Tipo de carnet no reconocido al iniciar Stripe: '{}'. Aplicando PERMISO_B.", tipoCarnetStr);
-            }
-        }
-
-        SesionPagoDTO sesion = this.pagoStripeService.crearSesionPagoMatricula(tipoCarnet, dni);
-        log.info("Redirigiendo a Stripe Checkout: {}", sesion.urlStripe());
-        return "redirect:" + sesion.urlStripe();
-    }
-
-    /**
      * Página de confirmación tras un pago exitoso en Stripe Checkout.
+     * Recupera el registro pendiente y el importe abonado desde la sesión para formalizar
+     * el alta del nuevo alumno y su matrícula asociada.
      *
      * @param sessionId Identificador de la sesión devuelto por Stripe.
      * @param model Modelo para la vista Thymeleaf.
+     * @param sesion Sesión HTTP del usuario.
      * @return Nombre de la vista de éxito ("pagos/success").
      */
     @GetMapping("/checkout/success")
-    public String mostrarExitoCheckout(@RequestParam(name = "session_id", required = false) String sessionId, Model model)
+    public String mostrarExitoCheckout(@RequestParam(name = "session_id", required = false) String sessionId, Model model, HttpSession sesion)
     {
+        // Obtenemos los datos del alumno y del importe abonado desde la sesión HTTP
+        String dniAlumno = (String) sesion.getAttribute("dniAlumno");
+        String tipoCarnetStr = (String) sesion.getAttribute("tipoCarnet");
+        Float importeTotal = (Float) sesion.getAttribute("importeTotal");
+
+        if (dniAlumno != null && !dniAlumno.isBlank())
+        {
+            // Formalizamos la matrícula y activamos la cuenta de forma idempotente
+            Matricula matricula = this.academicoService.matricularTrasPago(dniAlumno, tipoCarnetStr, importeTotal);
+
+            sesion.removeAttribute("dniAlumno");
+            sesion.removeAttribute("tipoCarnet");
+            sesion.removeAttribute("importeTotal");
+
+            model.addAttribute("importeTotal", String.format(Locale.GERMAN, "%.2f", importeTotal));
+            model.addAttribute("tipoCarnet", matricula != null && matricula.getPermisoCarnet() != null ? matricula.getPermisoCarnet().getDescripcion() : tipoCarnetStr);
+            model.addAttribute("nombreAlumno", matricula != null && matricula.getAlumno() != null ? matricula.getAlumno().getNombre() : "Alumno");
+        }
+        else
+        {
+            // Si la página se recarga o ya se procesó la sesión, mostramos valores por defecto
+            model.addAttribute("importeTotal", "250,00");
+        }
+
         model.addAttribute("sessionId", sessionId);
         return "pagos/success";
     }
 
     /**
      * Página informativa tras la cancelación voluntaria del pago en Stripe Checkout.
+     * Si existía un registro de alumno pendiente e inactivo, se elimina de la base de datos
+     * para liberar su DNI, correo y nombre de usuario de inmediato.
      *
+     * @param sesion Sesión HTTP del usuario.
      * @return Nombre de la vista de cancelación ("pagos/cancel").
      */
     @GetMapping("/checkout/cancel")
-    public String mostrarCancelacionCheckout()
+    public String mostrarCancelacionCheckout(HttpSession sesion)
     {
+        String dniAlumno = (String) sesion.getAttribute("dniAlumno");
+        if (dniAlumno != null && !dniAlumno.isBlank())
+        {
+            this.autenticacionService.eliminarAlumnoInactivoPorDni(dniAlumno);
+            sesion.removeAttribute("dniAlumno");
+            sesion.removeAttribute("tipoCarnet");
+            sesion.removeAttribute("importeTotal");
+            log.info("Cancelación de pago procesada: Alumno inactivo con DNI {} purgado satisfactoriamente.", dniAlumno);
+        }
         return "pagos/cancel";
     }
 
@@ -217,21 +229,9 @@ public class StripeWebhookController
                     {
                         log.info("Evento checkout.session.completed recibido para MATRICULA. DNI: {}, Carnet: {}, Importe: {} €",
                             dniAlumno, tipoCarnet, importeTotal);
-
-                        if (dniAlumno != null && !dniAlumno.isBlank() && !"PENDIENTE".equalsIgnoreCase(dniAlumno))
+                        if (dniAlumno != null && !dniAlumno.isBlank())
                         {
-                            try
-                            {
-                                this.academicoService.matricularTrasPago(dniAlumno, tipoCarnet, importeTotal);
-                            }
-                            catch (ReglaNegocioException ex)
-                            {
-                                log.warn("Aviso de negocio al formalizar matrícula en webhook: {}", ex.getMessage());
-                            }
-                        }
-                        else
-                        {
-                            log.info("Pago de matrícula registrado para alta pendiente con carnet {}. Se conciliará al completar el registro.", tipoCarnet);
+                            this.academicoService.matricularTrasPago(dniAlumno, tipoCarnet, importeTotal);
                         }
                         respuesta = ResponseEntity.ok("Evento de matrícula procesado correctamente");
                     }; break;
@@ -244,8 +244,6 @@ public class StripeWebhookController
             }; break;
             case "checkout.session.payment_failed": // El pago ha fallado
             {
-                log.warn("Evento de Stripe recibido: checkout.session.payment_failed");
-
                 log.warn("Evento de pago fallido recibido en webhook: checkout.session.payment_failed");
                 respuesta = ResponseEntity.ok("Evento de pago fallido registrado");
             }; break;

@@ -29,12 +29,14 @@ import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Servicio centralizado para la gestión del contexto de seguridad y autenticación.
  * Proporciona métodos de consulta para verificar el estado de la sesión activa,
  * obtener los datos del usuario autenticado, registrar nuevos alumnos y gestionar la invalidación de credenciales.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService
@@ -153,9 +155,15 @@ public class AuthenticationService
      * @param dto DTO que contiene los datos del formulario de registro.
      * @return Entidad Alumno persistida.
      * @throws ReglaNegocioException Si alguna validación de negocio falla.
+    /**
+     * Valida la coherencia y unicidad de los datos de registro de un alumno antes de iniciar el pago.
+     * Comprueba la coincidencia de contraseñas y la no existencia de nombre de usuario, correo, DNI o teléfono.
+     *
+     * @param dto DTO con los datos del formulario de registro.
+     * @throws ReglaNegocioException Si alguna validación de negocio falla.
      */
-    @Transactional
-    public Alumno registrarAlumno(RegistroAlumnoDTO dto)
+    @Transactional(readOnly = true)
+    public void validarDatosRegistro(RegistroAlumnoDTO dto)
     {
         if (dto == null)
         {
@@ -168,10 +176,13 @@ public class AuthenticationService
             throw new ReglaNegocioException("Las contraseñas introducidas no coinciden.");
         }
 
-        String nombreUsuarioLimpio = dto.nombreUsuario().trim();
-        String correoLimpio = dto.correo().trim().toLowerCase();
-        String dniLimpio = dto.dni().trim().toUpperCase();
-        String telefonoLimpio = dto.telefono().trim();
+        String nombreUsuarioLimpio = dto.nombreUsuario() != null ? dto.nombreUsuario().trim() : "";
+        String correoLimpio = dto.correo() != null ? dto.correo().trim().toLowerCase() : "";
+        String dniLimpio = dto.dni() != null ? dto.dni().trim().toUpperCase() : "";
+        String telefonoLimpio = dto.telefono() != null ? dto.telefono().trim() : "";
+
+        // Si existe un registro abandonado previo (INACTIVO y sin matrículas), lo purgamos para permitir el reintento
+        this.purgarAlumnoInactivoSiExiste(dniLimpio, correoLimpio, nombreUsuarioLimpio);
 
         // Validaciones de unicidad en el repositorio global de personas
         if (this.personaRepository.existsByNombreUsuario(nombreUsuarioLimpio))
@@ -193,6 +204,74 @@ public class AuthenticationService
         {
             throw new ReglaNegocioException("El teléfono ya está registrado en el sistema.");
         }
+    }
+
+    /**
+     * Purga entidades Alumno huérfanas en estado INACTIVO sin matrículas formalizadas
+     * para permitir que el usuario vuelva a registrarse con los mismos datos tras un abandono de pago.
+     */
+    private void purgarAlumnoInactivoSiExiste(String dni, String correo, String nombreUsuario)
+    {
+        if (dni != null && !dni.isBlank())
+        {
+            Optional<Alumno> porDni = this.alumnoRepository.findByDni(dni);
+            if (porDni.isPresent() && esAlumnoInactivoSinMatricula(porDni.get()))
+            {
+                this.alumnoRepository.delete(porDni.get());
+                this.alumnoRepository.flush();
+                return;
+            }
+        }
+
+        if (correo != null && !correo.isBlank())
+        {
+            Optional<Alumno> porCorreo = this.alumnoRepository.findByCorreo(correo);
+            if (porCorreo.isPresent() && esAlumnoInactivoSinMatricula(porCorreo.get()))
+            {
+                this.alumnoRepository.delete(porCorreo.get());
+                this.alumnoRepository.flush();
+                return;
+            }
+        }
+
+        if (nombreUsuario != null && !nombreUsuario.isBlank())
+        {
+            Optional<Alumno> porUsername = this.alumnoRepository.findByNombreUsuario(nombreUsuario);
+            if (porUsername.isPresent() && esAlumnoInactivoSinMatricula(porUsername.get()))
+            {
+                this.alumnoRepository.delete(porUsername.get());
+                this.alumnoRepository.flush();
+            }
+        }
+    }
+
+    /**
+     * Comprueba si un alumno está en estado INACTIVO y carece de matrículas asociadas.
+     */
+    private boolean esAlumnoInactivoSinMatricula(Alumno alumno)
+    {
+        return alumno != null && alumno.getEstado() == EstadoUsuario.INACTIVO && (alumno.getHistorialMatriculas() == null || alumno.getHistorialMatriculas().isEmpty());
+    }
+
+    /**
+     * Registra a un nuevo alumno en el sistema a partir del formulario público.
+     * Valida reglas de negocio de unicidad (nombre de usuario, correo y DNI),
+     * comprueba la coincidencia de contraseñas, codifica la credencial mediante BCrypt
+     * y persiste la entidad Alumno con estado INACTIVO hasta que se confirme el pago en Stripe.
+     *
+     * @param dto DTO que contiene los datos del formulario de registro.
+     * @return Entidad Alumno persistida en estado INACTIVO.
+     * @throws ReglaNegocioException Si alguna validación de negocio falla.
+     */
+    @Transactional
+    public Alumno registrarAlumno(RegistroAlumnoDTO dto)
+    {
+        this.validarDatosRegistro(dto);
+
+        String nombreUsuarioLimpio = dto.nombreUsuario().trim();
+        String correoLimpio = dto.correo().trim().toLowerCase();
+        String dniLimpio = dto.dni().trim().toUpperCase();
+        String telefonoLimpio = dto.telefono().trim();
 
         // Mapeo inicial con MapStruct
         Alumno alumno = this.authenticationMapper.toAlumno(dto);
@@ -203,12 +282,38 @@ public class AuthenticationService
         alumno.setApellidos(dto.apellidos().trim());
         alumno.setTelefono(telefonoLimpio);
         alumno.setDireccion(dto.direccion().trim());
-        alumno.setEstado(EstadoUsuario.ACTIVO);
+        alumno.setEstado(EstadoUsuario.INACTIVO);
 
-        // Encriptación segura de contraseña con BCrypt
-        alumno.actualizarPassword(this.passwordEncoder.encode(dto.password()));
+        // Ciframos la contraseña antes de persistir la entidad Alumno
+        String passwordFinal = this.passwordEncoder.encode(dto.password());
+        alumno.actualizarPassword(passwordFinal);
 
+        log.info("Alumno registrado en estado INACTIVO (pendiente de formalizar pago en Stripe) con DNI: {}", dniLimpio);
         return this.alumnoRepository.save(alumno);
+    }
+
+    /**
+     * Elimina a un alumno en estado INACTIVO y sin matrículas de la base de datos tras una cancelación voluntaria en Stripe.
+     *
+     * @param dni DNI del alumno a eliminar.
+     */
+    @Transactional
+    public void eliminarAlumnoInactivoPorDni(String dni)
+    {
+        if (dni == null || dni.isBlank())
+        {
+            return;
+        }
+
+        String dniLimpio = dni.trim().toUpperCase();
+        this.alumnoRepository.findByDni(dniLimpio).ifPresent(alumno -> {
+            if (esAlumnoInactivoSinMatricula(alumno))
+            {
+                this.alumnoRepository.delete(alumno);
+                this.alumnoRepository.flush();
+                log.info("Alumno inactivo con DNI {} purgado satisfactoriamente tras cancelación de pago.", dniLimpio);
+            }
+        });
     }
 
     /**
