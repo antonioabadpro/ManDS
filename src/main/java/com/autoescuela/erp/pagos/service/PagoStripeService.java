@@ -62,13 +62,16 @@ public class PagoStripeService
         // Regla de Negocio: Permisos C y D (450€), resto (250€)
         boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
         long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
-        double importeTotal = importeTotalCents / 100.0; // Convertir a euros para la tasa DGT
 
-        double tasaDgt = 94.05;
-        double cuotaAutoescuela = importeTotal - tasaDgt;
+        long tasaDgtCents = 9405L; // Tasa oficial DGT fijada en 94,05 €
+        long cuotaAutoescuelaCents = importeTotalCents - tasaDgtCents;
+
+        double tasaDgt = tasaDgtCents / 100.0;
+        double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
 
         // Creamos la sesión de pago en Stripe con los parámetros necesarios
         SessionCreateParams parametros = SessionCreateParams.builder()
+                .setLocale(SessionCreateParams.Locale.ES)
                 .setMode(SessionCreateParams.Mode.PAYMENT) // Modo de pago único
                 .setSuccessUrl(this.appBaseUrl + "/pagos/checkout/success?session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl(this.appBaseUrl + "/pagos/checkout/cancel")
@@ -79,11 +82,25 @@ public class PagoStripeService
                                 .setPriceData(
                                         SessionCreateParams.LineItem.PriceData.builder()
                                                 .setCurrency("EUR")
-                                                .setUnitAmount(importeTotalCents)
+                                                .setUnitAmount(tasaDgtCents)
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("Pago de Matrícula - " + tipoCarnet.getDescripcion())
-                                                                .setDescription("Matrícula del alumno con DNI '" + dniAlumno + "' y seguro de responsabilidad civil incluido.")
+                                                                .setName("Tasa Oficial DGT y Apertura de Expediente")
+                                                                .setDescription("Tramitación y gestión de apertura de expediente ante la Jefatura Provincial de Tráfico.")
+                                                                .build())
+                                                .build())
+                                .build())
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(cuotaAutoescuelaCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Matrícula Autoescuela - " + tipoCarnet.getDescripcion())
+                                                                .setDescription("Incluye 2 convocatorias oficiales a examen, seguro escolar y seguro de responsabilidad civil (Alumno DNI: " + dniAlumno + ").")
                                                                 .build())
                                                 .build())
                                 .build())

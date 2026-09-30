@@ -73,6 +73,9 @@ class PagoStripeServiceTest
         assertEquals("MATRICULA", capturedParams.getMetadata().get("tipoOperacion"));
         assertEquals("PERMISO_B", capturedParams.getMetadata().get("tipoCarnet"));
         assertEquals("12345678Z", capturedParams.getMetadata().get("dniAlumno"));
+        assertEquals(2, capturedParams.getLineItems().size());
+        assertEquals(9405L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
+        assertEquals(15595L, capturedParams.getLineItems().get(1).getPriceData().getUnitAmount());
     }
 
     @Test
@@ -94,20 +97,14 @@ class PagoStripeServiceTest
     }
 
     @Test
-    @DisplayName("crearSesionPagoMatricula maneja carnet nulo asignando PERMISO_B por defecto")
-    void testCrearSesionPagoMatriculaCarnetNulo() throws StripeException
+    @DisplayName("crearSesionPagoMatricula lanza ReglaNegocioException si tipoCarnet es nulo")
+    void testCrearSesionPagoMatriculaCarnetNulo()
     {
-        Session sessionMock = new Session();
-        sessionMock.setId("cs_test_default");
-        sessionMock.setUrl("https://checkout.stripe.com/pay/cs_test_default");
+        ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
+                this.pagoStripeService.crearSesionPagoMatricula(null, "12345678Z")
+        );
 
-        when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
-                .thenReturn(sessionMock);
-
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(null, "12345678Z");
-
-        assertNotNull(resultado);
-        assertEquals(25000L, resultado.importeTotal());
+        assertTrue(excepcion.getMessage().contains("obligatorios para formalizar la matrícula"));
     }
 
     @Test

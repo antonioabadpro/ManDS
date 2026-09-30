@@ -45,16 +45,14 @@ function validarPaso(paso) {
     const contenedorPaso = document.getElementById(`panel-step-${paso}`);
     if (!contenedorPaso) return true;
 
-    // Validación específica del Paso 2: Fecha de nacimiento (mayoría de edad)
-    if (paso === 2) {
-        if (!validarFechaNacimiento()) {
-            const inputFecha = document.getElementById('reg-fechaNacimiento');
-            if (inputFecha) inputFecha.focus();
+    // Validación específica del Paso 1: Coincidencia de contraseñas
+    if (paso === 1) {
+        if (!validarCoincidenciaPasswords()) {
             return false;
         }
     }
 
-    // Obtener todos los inputs obligatorios o con reglas del paso actual
+    // Obtener todos los inputs obligatorios o con reglas del paso actual y validar en orden DOM
     const inputs = contenedorPaso.querySelectorAll('input, select, textarea');
     for (const input of inputs) {
         if (!input.checkValidity()) {
@@ -63,9 +61,11 @@ function validarPaso(paso) {
         }
     }
 
-    // Validación específica del Paso 1: Coincidencia de contraseñas
-    if (paso === 1) {
-        if (!validarCoincidenciaPasswords()) {
+    // Validación específica del Paso 2: Fecha de nacimiento (mayoría de edad)
+    if (paso === 2) {
+        if (!validarFechaNacimiento()) {
+            const inputFecha = document.getElementById('reg-fechaNacimiento');
+            if (inputFecha) inputFecha.focus();
             return false;
         }
     }
@@ -432,12 +432,27 @@ function inicializarEventosRegistro() {
     // Validación reactiva de fecha de nacimiento (mayoría de edad)
     const fechaNacInput = document.getElementById('reg-fechaNacimiento');
     if (fechaNacInput) {
-        fechaNacInput.addEventListener('change', validarFechaNacimiento);
+        fechaNacInput.addEventListener('focus', () => {
+            // Limpia el error visual al enfocar el campo para que el usuario pueda escribir limpiamente
+            limpiarErrorFechaNacimiento();
+        });
+
+        fechaNacInput.addEventListener('change', () => {
+            if (fechaNacInput.value) {
+                validarFechaNacimiento();
+            } else {
+                limpiarErrorFechaNacimiento();
+            }
+        });
+
         fechaNacInput.addEventListener('input', () => {
             if (fechaNacInput.value) {
                 validarFechaNacimiento();
+            } else {
+                limpiarErrorFechaNacimiento();
             }
         });
+
         fechaNacInput.addEventListener('blur', () => {
             if (fechaNacInput.value) {
                 validarFechaNacimiento();
@@ -463,6 +478,23 @@ function inicializarEventosRegistro() {
     // Interceptar envío convencional de formulario para redirigir al flujo del wizard
     const formRegistro = document.getElementById('form-registro');
     if (formRegistro) {
+        // Prevenir avance involuntario o validación prematura al pulsar Enter dentro de los inputs de texto
+        formRegistro.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'submit') {
+                e.preventDefault();
+                const inputsPaso = Array.from(document.querySelectorAll(`#panel-step-${pasoActual} input:not([type="hidden"]), #panel-step-${pasoActual} select`));
+                const currentIndex = inputsPaso.indexOf(e.target);
+                if (currentIndex >= 0 && currentIndex < inputsPaso.length - 1) {
+                    inputsPaso[currentIndex + 1].focus();
+                } else if (currentIndex === inputsPaso.length - 1) {
+                    const btnSiguiente = document.getElementById(`btn-next-step-${pasoActual}`);
+                    if (btnSiguiente) {
+                        btnSiguiente.click();
+                    }
+                }
+            }
+        });
+
         formRegistro.addEventListener('submit', (e) => {
             if (pasoActual < TOTAL_PASOS) {
                 e.preventDefault();

@@ -16,8 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
-import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
@@ -113,19 +113,18 @@ class StripeWebhookControllerTest
     @DisplayName("GET /pagos/checkout/success con alumno en sesión formaliza el alta y matrícula")
     void testMostrarExitoCheckoutConSesion() throws Exception
     {
-        RegistroAlumnoDTO registroDTO = new RegistroAlumnoDTO(
-                "alumno_prueba", "alumno.prueba@test.com", "pass123", "pass123",
-                "Juan", "Pérez", "12345678Z", java.time.LocalDate.of(2000, 1, 1),
-                "600123456", "Calle Test 1", true, TipoCarnet.PERMISO_B);
-
+        Matricula matriculaMock = new Matricula();
         Alumno alumnoMock = new Alumno();
         alumnoMock.setNombre("Juan");
         alumnoMock.setDni("12345678Z");
+        matriculaMock.setAlumno(alumnoMock);
+        matriculaMock.setPermisoCarnet(TipoCarnet.PERMISO_B);
 
-        when(this.autenticacionService.registrarAlumno(registroDTO)).thenReturn(alumnoMock);
+        when(this.academicoService.matricularTrasPago("12345678Z", "PERMISO_B", 250.00f)).thenReturn(matriculaMock);
 
         MockHttpSession sesion = new MockHttpSession();
-        sesion.setAttribute("registroDTO", registroDTO);
+        sesion.setAttribute("dniAlumno", "12345678Z");
+        sesion.setAttribute("tipoCarnet", "PERMISO_B");
         sesion.setAttribute("importeTotal", 250.00f);
 
         this.mockMvc.perform(get("/pagos/checkout/success")
@@ -136,7 +135,6 @@ class StripeWebhookControllerTest
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
                 .andExpect(content().string(containsString("250,00 €")));
 
-        verify(this.autenticacionService).registrarAlumno(registroDTO);
         verify(this.academicoService).matricularTrasPago(eq("12345678Z"), eq("PERMISO_B"), eq(250.00f));
     }
 
