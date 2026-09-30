@@ -47,7 +47,7 @@
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
 
             <!-- Mensajes Flash y Alertas -->
-            <div id="contenedor-alertas">
+            <div id="contenedor-alertas" class="space-y-4">
                 <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
                     <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -60,6 +60,37 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+                </div>
+
+                <!-- Banner Alerta: Convocatorias Agotadas (Regla 7.2) -->
+                <div th:if="${convocatoriasAgotadas}" class="p-5 sm:p-6 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800/80 shadow-md shadow-rose-500/5 flex flex-col md:flex-row md:items-center justify-between gap-4 text-rose-900 dark:text-rose-100">
+                    <div class="flex items-start space-x-3.5">
+                        <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-200/80 dark:bg-rose-900/70 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700">
+                                    Bloqueo de Compra Activo
+                                </span>
+                                <span class="text-xs font-semibold text-rose-600 dark:text-rose-300">Convocatorias Agotadas</span>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">No puedes adquirir más clases prácticas hasta renovar tu matrícula</h3>
+                            <p class="text-xs sm:text-sm text-rose-700 dark:text-rose-300 max-w-2xl leading-relaxed">
+                                Has consumido todas las convocatorias oficiales a examen. Para desbloquear la adquisición de clases sueltas o bonos intensivos, debes tramitar previamente la renovación de matrícula oficial con la DGT.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 pt-2 md:pt-0">
+                        <a href="#seccion-renovacion" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-lg shadow-rose-600/25 transition transform active:scale-95">
+                            <span>Ir a Renovar Matrícula</span>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -116,7 +147,7 @@
                                 </label>
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                                     <div class="flex items-center space-x-3">
-                                        <input type="number" id="cantidad-clases-individual" name="cantidadClases" min="1" max="50" value="1" required th:data-precio-clase="${esVehiculoPesado ? 60 : 30}" class="w-24 sm:w-28 px-3 py-2 text-base font-extrabold tabular-nums rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center" />
+                                        <input type="number" id="cantidad-clases-individual" name="cantidadClases" min="1" max="50" value="1" required th:disabled="${convocatoriasAgotadas}" th:data-precio-clase="${esVehiculoPesado ? 60 : 30}" class="w-24 sm:w-28 px-3 py-2 text-base font-extrabold tabular-nums rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 text-center" />
                                         <span class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">sesión(es)</span>
                                     </div>
                                     <div class="flex items-center space-x-2 whitespace-nowrap bg-white dark:bg-slate-900/60 sm:bg-transparent sm:dark:bg-transparent px-3 py-2 sm:p-0 rounded-xl border sm:border-0 border-slate-200/80 dark:border-slate-700/80 justify-between sm:justify-end">
@@ -127,11 +158,11 @@
                                 <p class="text-[11px] text-slate-400">Indica cuántas clases deseas añadir a tu saldo.</p>
                             </div>
 
-                            <button type="submit" class="w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition transform active:scale-95 cursor-pointer">
+                            <button type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none text-white font-bold text-sm shadow-lg shadow-indigo-500/20 transition transform active:scale-95 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
-                                <span>Conectar con Pasarela de Pago</span>
+                                <span th:text="${convocatoriasAgotadas ? 'Compra Bloqueada (Requiere Renovación)' : 'Confirmar Compra'}">Confirmar Compra</span>
                             </button>
                         </form>
                     </div>
@@ -197,8 +228,9 @@
                             <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
                             <input type="hidden" name="tipoProducto" value="BONO_10" />
                             <input type="hidden" name="cantidadClases" value="10" />
-                            <button type="submit" class="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition transform active:scale-95 cursor-pointer">
-                                <span th:text="${esVehiculoPesado ? 'Confirmar Compra (540 €)' : 'Confirmar Compra (270 €)'}">Confirmar Compra (270 €)</span>
+                            <button type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition transform active:scale-95 cursor-pointer">
+                                <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (540 €)' : 'Confirmar Compra (270 €)'}">Confirmar Compra (270 €)</span>
                             </button>
                         </form>
                     </div>
@@ -263,8 +295,9 @@
                             <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
                             <input type="hidden" name="tipoProducto" value="BONO_15" />
                             <input type="hidden" name="cantidadClases" value="15" />
-                            <button type="submit" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-500/20 transition transform active:scale-95 cursor-pointer">
-                                <span th:text="${esVehiculoPesado ? 'Confirmar Compra (800 €)' : 'Confirmar Compra (400 €)'}">Confirmar Compra (400 €)</span>
+                            <button type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none disabled:ring-0 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-500/20 transition transform active:scale-95 cursor-pointer">
+                                <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (800 €)' : 'Confirmar Compra (400 €)'}">Confirmar Compra (400 €)</span>
                             </button>
                         </form>
                     </div>
@@ -319,8 +352,9 @@
                             <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
                             <input type="hidden" name="tipoProducto" value="BONO_20" />
                             <input type="hidden" name="cantidadClases" value="20" />
-                            <button type="submit" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition transform active:scale-95 cursor-pointer">
-                                <span th:text="${esVehiculoPesado ? 'Confirmar Compra (1.000 €)' : 'Confirmar Compra (500 €)'}">Confirmar Compra (500 €)</span>
+                            <button type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition transform active:scale-95 cursor-pointer">
+                                <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (1.000 €)' : 'Confirmar Compra (500 €)'}">Confirmar Compra (500 €)</span>
                             </button>
                         </form>
                     </div>
@@ -329,7 +363,7 @@
             </div>
 
             <!-- SECCIÓN 3: Renovación de Matrícula (Regla 7.2) -->
-            <div th:if="${matricula != null and matricula.convocatorias &lt;= 0}" class="rounded-3xl bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-300 dark:border-rose-800 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div th:if="${convocatoriasAgotadas}" id="seccion-renovacion" class="rounded-3xl bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-300 dark:border-rose-800 p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 scroll-mt-8">
                 <div class="space-y-2">
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200 border border-rose-200">
                         Convocatorias Oficiales Agotadas
@@ -340,7 +374,7 @@
                     </p>
                 </div>
                 <div class="text-right shrink-0 space-y-3">
-                    <span class="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap block">320,00 €</span>
+                    <span class="text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap block" th:text="${esVehiculoPesado ? '450,00 €' : '250,00 €'}">250,00 €</span>
                     <form th:action="@{/alumno/pagos/renovar-matricula}" method="post">
                         <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
                         <button type="submit" class="px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-lg shadow-rose-600/20 transition transform active:scale-95 cursor-pointer">

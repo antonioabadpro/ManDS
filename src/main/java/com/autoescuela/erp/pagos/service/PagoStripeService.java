@@ -116,6 +116,74 @@ public class PagoStripeService
     }
 
     /**
+     * Crea una sesión de pago para la renovación de matrícula de un alumno según el tipo de carnet y su DNI.
+     * Aplica las tarifas oficiales: 450 € para vehículos pesados (C y D) y 250 € para el resto.
+     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
+     * @param dniAlumno DNI del alumno.
+     * @return DTO con URL de la pasarela y Session ID generado por Stripe.
+     */
+    public SesionPagoDTO crearSesionPagoRenovacionMatricula(TipoCarnet tipoCarnet, String dniAlumno)
+    {
+        if (tipoCarnet == null || dniAlumno == null || dniAlumno.isBlank())
+        {
+            throw new ReglaNegocioException("El DNI del alumno y el tipo de carnet son obligatorios para renovar la matrícula.");
+        }
+
+        // Regla de Negocio: Permisos C y D (450€), resto (250€)
+        boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
+        long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
+
+        long tasaDgtCents = 9405L; // Tasa oficial DGT fijada en 94,05 €
+        long cuotaAutoescuelaCents = importeTotalCents - tasaDgtCents;
+
+        double tasaDgt = tasaDgtCents / 100.0;
+        double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
+
+        SessionCreateParams parametros = SessionCreateParams.builder()
+                .setLocale(SessionCreateParams.Locale.ES)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(this.appBaseUrl + "/pagos/renovacion/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(this.appBaseUrl + "/pagos/renovacion/cancel")
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(tasaDgtCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Tasa Oficial DGT y Renovación de Expediente")
+                                                                .setDescription("Tramitación y gestión de 2 nuevas convocatorias oficiales ante la Jefatura Provincial de Tráfico.")
+                                                                .build())
+                                                .build())
+                                .build())
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(cuotaAutoescuelaCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Renovación Matrícula Autoescuela - " + tipoCarnet.getDescripcion())
+                                                                .setDescription("Renovación de matrícula con 2 convocatorias oficiales a examen y seguro escolar (Alumno DNI: " + dniAlumno + ").")
+                                                                .build())
+                                                .build())
+                                .build())
+                .putMetadata("tipoOperacion", "RENOVACION_MATRICULA")
+                .putMetadata("tipoCarnet", tipoCarnet.name())
+                .putMetadata("dniAlumno", dniAlumno)
+                .putMetadata("tasaDgt", String.format(Locale.US, "%.2f", tasaDgt))
+                .putMetadata("cuotaAutoescuela", String.format(Locale.US, "%.2f", cuotaAutoescuela))
+                .build();
+
+        return this.crearSesionPago(parametros, importeTotalCents);
+    }
+
+    /**
      * Crea una sesión de pago para las clases prácticas de un alumno según el tipo de carnet y su DNI.
      * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
      * @param dniAlumno DNI del alumno.

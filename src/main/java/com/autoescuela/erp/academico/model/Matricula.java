@@ -73,4 +73,13 @@ public class Matricula
 
     @OneToMany(mappedBy = "matricula")
     private List<SolicitudExamen> listaSolicitudesExamen = new ArrayList<>();
+
+    /**
+     * Determina si el expediente ha consumido todas sus convocatorias oficiales a examen.
+     * @return true si no tiene convocatorias asignadas o el saldo es menor o igual a cero.
+     */
+    public boolean tieneConvocatoriasAgotadas()
+    {
+        return this.convocatorias == null || this.convocatorias <= 0;
+    }
 }

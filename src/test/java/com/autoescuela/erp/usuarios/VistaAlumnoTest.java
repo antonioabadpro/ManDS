@@ -275,6 +275,48 @@ class VistaAlumnoTest
     }
 
     @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("GET /alumno/dashboard muestra el banner de aviso cuando el alumno ha agotado sus convocatorias")
+    void testDashboardConvocatoriasAgotadas() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/dashboard"))
+                .andExpect(content().string(containsString("Convocatorias Agotadas")))
+                .andExpect(content().string(containsString("Has consumido todas las convocatorias de tu matrícula")))
+                .andExpect(content().string(containsString("Renovar Matrícula Ahora")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("GET /alumno/pagos muestra banner de bloqueo, deshabilita botones de compra y muestra tarjeta de renovación")
+    void testPagosConvocatoriasAgotadas() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/pagos"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/pagos"))
+                .andExpect(content().string(containsString("Bloqueo de Compra Activo")))
+                .andExpect(content().string(containsString("No puedes adquirir más clases prácticas hasta renovar tu matrícula")))
+                .andExpect(content().string(containsString("Compra Bloqueada (Requiere Renovación)")))
+                .andExpect(content().string(containsString("id=\"seccion-renovacion\"")))
+                .andExpect(content().string(containsString("Renovar Matrícula")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("POST /alumno/pagos/comprar-clases bloquea la compra si el alumno tiene convocatorias agotadas")
+    void testComprarClasesConvocatoriasAgotadasBloqueado() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
+                .with(csrf())
+                .param("tipoProducto", "INDIVIDUAL")
+                .param("cantidadClases", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/pagos"))
+                .andExpect(flash().attribute("error", containsString("Has agotado las convocatorias de examen de tu matrícula")));
+    }
+
+    @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
     @DisplayName("GET /alumno/estadisticas renderiza horas al volante y progreso pedagógico")
     void testEstadisticasRenderizado() throws Exception

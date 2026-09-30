@@ -141,6 +141,11 @@ public class AcademicoService
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró ningún expediente de matrícula activo para el alumno con DNI: " + dniAlumno));
 
+        if (matricula.tieneConvocatoriasAgotadas())
+        {
+            throw new ReglaNegocioException("Has agotado las convocatorias oficiales de examen de tu matrícula. Debes tramitar la renovación de tu matrícula antes de adquirir más clases prácticas.");
+        }
+
         // Idempotencia: si la sesión de Stripe ya fue procesada (por webhook o retorno), retornamos el estado actual sin duplicar
         if (sessionId != null && !sessionId.isBlank())
         {
@@ -161,4 +166,48 @@ public class AcademicoService
         return guardada;
     }
 
+    /**
+     * Renueva la matrícula de un alumno tras la confirmación del pago en Stripe.
+     * Restablece las 2 convocatorias oficiales a examen, actualiza el tipo a RENOVACION
+     * y garantiza idempotencia ante webhooks y retornos concurrentes.
+     *
+     * @param dniAlumno DNI del alumno titular.
+     * @param sessionId Identificador de la sesión de Stripe (para idempotencia).
+     * @param importeTotal Importe total abonado en la renovación.
+     * @return Matrícula renovada.
+     */
+    @Transactional
+    public Matricula renovarMatriculaTrasPago(String dniAlumno, String sessionId, float importeTotal)
+    {
+        if (dniAlumno == null || dniAlumno.isBlank())
+        {
+            throw new ReglaNegocioException("El DNI del alumno es obligatorio para renovar la matrícula.");
+        }
+
+        Alumno alumno = this.alumnoRepository.findByDni(dniAlumno.trim().toUpperCase())
+                .orElseThrow(() -> new ReglaNegocioException("NO se ha encontrado a ningún Alumno con el DNI: " + dniAlumno));
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró ningún expediente de matrícula activo para el alumno con DNI: " + dniAlumno));
+
+        // Idempotencia: evitamos duplicar la renovación si webhook y retorno coinciden
+        if (sessionId != null && !sessionId.isBlank())
+        {
+            if (!this.sesionesProcesadas.add(sessionId))
+            {
+                log.info("La sesión de renovación de Stripe {} ya fue procesada previamente para el alumno DNI {}. Evitando duplicación.", sessionId, dniAlumno);
+                return matricula;
+            }
+        }
+
+        matricula.setConvocatorias(2);
+        matricula.setTipo(TipoMatricula.RENOVACION);
+        matricula.setPrecio(importeTotal);
+
+        Matricula matriculaGuardada = this.matriculaRepository.save(matricula);
+        log.info("Matrícula renovada exitosamente tras pago Stripe para Alumno DNI: {}. Convocatorias disponibles: 2, Tipo: RENOVACION, Importe: {} €",
+                dniAlumno, importeTotal);
+
+        return matriculaGuardada;
+    }
 }

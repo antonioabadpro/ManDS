@@ -75,6 +75,7 @@ public class AlumnoController
     private final ExamenRepository examenRepository;
     private final PersonaRepository personaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PagoStripeService pagoStripeService;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -187,8 +188,11 @@ public class AlumnoController
             solicitudesRecientes = solicitudesRecientes.subList(0, 3);
         }
 
+        boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
+
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
+        model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
         model.addAttribute("profesor", profesor);
         model.addAttribute("capacidadReserva", capacidadReserva);
         model.addAttribute("proximaClase", proximaClase);
@@ -759,7 +763,13 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        boolean esVehiculoPesado = matricula != null && matricula.getPermisoCarnet() != null &&
+                (matricula.getPermisoCarnet().name().startsWith("PERMISO_C") || matricula.getPermisoCarnet().name().startsWith("PERMISO_D"));
+        boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
+
         model.addAttribute("matricula", matricula);
+        model.addAttribute("esVehiculoPesado", esVehiculoPesado);
+        model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
 
         return "alumno/pagos";
     }
@@ -788,7 +798,7 @@ public class AlumnoController
         }
 
         // Regla: Bloqueo de compra de clases si ha agotado sus 2 convocatorias y debe renovar
-        if (matricula.getConvocatorias() == null || matricula.getConvocatorias() <= 0)
+        if (matricula.tieneConvocatoriasAgotadas())
         {
             redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de examen de tu matrícula. No puedes adquirir clases prácticas ni bonos hasta renovar tu matrícula.");
             return "redirect:/alumno/pagos";
@@ -842,11 +852,10 @@ public class AlumnoController
     }
 
     /**
-     * Procesa la renovación de matrícula al agotar convocatorias oficiales (Regla 7.2).
+     * Inicia el proceso de pago para la renovación de matrícula al agotar convocatorias oficiales conectando con Stripe Checkout (Regla 7.2).
      */
     @PostMapping("/pagos/renovar-matricula")
-    @Transactional
-    public String renovarMatricula(@AuthenticationPrincipal Object principal, RedirectAttributes redirectAttributes)
+    public String renovarMatricula(@AuthenticationPrincipal Object principal, RedirectAttributes redirectAttributes, HttpSession sesion)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -857,16 +866,31 @@ public class AlumnoController
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
         if (matricula == null)
         {
-            redirectAttributes.addFlashAttribute("error", "No se encontró matrícula activa.");
+            redirectAttributes.addFlashAttribute("error", "No se encontró un expediente de matrícula activo para tramitar la renovación.");
             return "redirect:/alumno/pagos";
         }
 
-        matricula.setConvocatorias(2);
-        matricula.setTipo(TipoMatricula.RENOVACION);
-        this.matriculaRepository.save(matricula);
+        if (matricula.getConvocatorias() != null && matricula.getConvocatorias() > 0)
+        {
+            redirectAttributes.addFlashAttribute("error", "Aún dispones de convocatorias de examen vigentes (" + matricula.getConvocatorias() + " restantes). No es necesario renovar tu matrícula.");
+            return "redirect:/alumno/pagos";
+        }
 
-        redirectAttributes.addFlashAttribute("mensajeExito", "¡Renovación de matrícula completada con éxito! Dispones de 2 nuevas convocatorias oficiales DGT.");
-        return "redirect:/alumno/pagos";
+        try
+        {
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoRenovacionMatricula(matricula.getPermisoCarnet(), alumno.getDni());
+
+            sesion.setAttribute("pagoRenovacion_dni", alumno.getDni());
+            sesion.setAttribute("pagoRenovacion_importe", sesionPago.importeTotal() / 100.0f);
+            sesion.setAttribute("pagoRenovacion_tipoCarnet", matricula.getPermisoCarnet().getDescripcion());
+
+            return "redirect:" + sesionPago.urlStripe();
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/alumno/pagos";
+        }
     }
 
     // =========================================================================

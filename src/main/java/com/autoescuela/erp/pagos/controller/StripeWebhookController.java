@@ -222,6 +222,62 @@ public class StripeWebhookController
         return "pagos/clases-cancel";
     }
 
+    /**
+     * Página de confirmación tras la renovación exitosa de matrícula en Stripe Checkout.
+     * Restablece las 2 convocatorias oficiales a examen y confirma la regularización del expediente.
+     *
+     * @param sessionId Identificador de la sesión de Stripe devuelto en la URL de retorno.
+     * @param model Modelo para abastecer a la plantilla Thymeleaf.
+     * @param sesion Sesión HTTP del usuario.
+     * @return Nombre de la vista ("pagos/renovacion-success").
+     */
+    @GetMapping("/renovacion/success")
+    public String mostrarExitoPagoRenovacion(@RequestParam(name = "session_id", required = false) String sessionId, Model model, HttpSession sesion)
+    {
+        String dniAlumno = (String) sesion.getAttribute("pagoRenovacion_dni");
+        Float importeTotal = (Float) sesion.getAttribute("pagoRenovacion_importe");
+        String tipoCarnetStr = (String) sesion.getAttribute("pagoRenovacion_tipoCarnet");
+
+        if (dniAlumno != null && !dniAlumno.isBlank())
+        {
+            Matricula matricula = this.academicoService.renovarMatriculaTrasPago(dniAlumno, sessionId, importeTotal);
+
+            sesion.removeAttribute("pagoRenovacion_dni");
+            sesion.removeAttribute("pagoRenovacion_importe");
+            sesion.removeAttribute("pagoRenovacion_tipoCarnet");
+
+            model.addAttribute("dniAlumno", dniAlumno);
+            model.addAttribute("convocatorias", matricula != null ? matricula.getConvocatorias() : 2);
+            model.addAttribute("importeTotal", importeTotal != null ? String.format(Locale.GERMAN, "%.2f", importeTotal) : "250,00");
+            model.addAttribute("tipoCarnet", matricula != null && matricula.getPermisoCarnet() != null ? matricula.getPermisoCarnet().getDescripcion() : tipoCarnetStr);
+            model.addAttribute("nombreAlumno", matricula != null && matricula.getAlumno() != null ? matricula.getAlumno().getNombre() : "Alumno");
+        }
+        else
+        {
+            model.addAttribute("convocatorias", 2);
+            model.addAttribute("importeTotal", importeTotal != null ? String.format(Locale.GERMAN, "%.2f", importeTotal) : "250,00");
+            model.addAttribute("tipoCarnet", tipoCarnetStr != null ? tipoCarnetStr : "Permiso de Conducir");
+            model.addAttribute("nombreAlumno", "Alumno");
+        }
+
+        model.addAttribute("sessionId", sessionId);
+        return "pagos/renovacion-success";
+    }
+
+    /**
+     * Página informativa tras la cancelación voluntaria de la renovación de matrícula en Stripe Checkout.
+     *
+     * @param sesion Sesión HTTP del usuario.
+     * @return Nombre de la vista ("pagos/renovacion-cancel").
+     */
+    @GetMapping("/renovacion/cancel")
+    public String mostrarCancelacionPagoRenovacion(HttpSession sesion)
+    {
+        sesion.removeAttribute("pagoRenovacion_dni");
+        sesion.removeAttribute("pagoRenovacion_importe");
+        sesion.removeAttribute("pagoRenovacion_tipoCarnet");
+
+        return "pagos/renovacion-cancel";
     }
 
     /**
@@ -321,6 +377,17 @@ public class StripeWebhookController
                             this.academicoService.recargarSaldoClasesTrasPago(dniAlumno, numeroClases, idSesionStripe);
                         }
                         respuesta = ResponseEntity.ok("Evento de clases prácticas procesado correctamente");
+                    }; break;
+                    case "RENOVACION_MATRICULA": // Renovación de matrícula tras agotar convocatorias
+                    {
+                        String idSesionStripe = (session != null) ? session.getId() : null;
+                        log.info("Evento checkout.session.completed recibido para RENOVACION_MATRICULA. DNI: {}, Carnet: {}, Importe: {} €",
+                            dniAlumno, tipoCarnet, importeTotal);
+                        if (dniAlumno != null && !dniAlumno.isBlank())
+                        {
+                            this.academicoService.renovarMatriculaTrasPago(dniAlumno, idSesionStripe, importeTotal);
+                        }
+                        respuesta = ResponseEntity.ok("Evento de renovación de matrícula procesado correctamente");
                     }; break;
                     default: // Para cualquier otro tipo de operación desconocida, registramos el evento pero no realizamos acción inmediata
                     {
