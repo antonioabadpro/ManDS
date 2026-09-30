@@ -131,7 +131,7 @@ class StripeWebhookControllerTest
                         .session(sesion)
                         .param("session_id", "cs_test_success_123"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/success"))
+                .andExpect(view().name("pagos/matricula-success"))
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
                 .andExpect(content().string(containsString("250,00 €")));
 
@@ -144,7 +144,7 @@ class StripeWebhookControllerTest
     {
         this.mockMvc.perform(get("/pagos/checkout/success").param("session_id", "cs_test_success_123"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/success"))
+                .andExpect(view().name("pagos/matricula-success"))
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
                 .andExpect(content().string(containsString("Tasa de Matrícula Oficial")));
     }
@@ -155,8 +155,39 @@ class StripeWebhookControllerTest
     {
         this.mockMvc.perform(get("/pagos/checkout/cancel"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/cancel"))
+                .andExpect(view().name("pagos/matricula-cancel"))
                 .andExpect(content().string(containsString("Pago No Completado")));
+    }
+
+    @Test
+    @DisplayName("GET /pagos/clases/success procesa y renderiza confirmación de recarga de clases")
+    void testMostrarExitoPagoClases() throws Exception
+    {
+        MockHttpSession sesion = new MockHttpSession();
+        sesion.setAttribute("pagoClases_dni", "12345678Z");
+        sesion.setAttribute("pagoClases_numero", 15);
+        sesion.setAttribute("pagoClases_importe", 400.00f);
+        sesion.setAttribute("pagoClases_tipoCarnet", "Permiso B");
+
+        this.mockMvc.perform(get("/pagos/clases/success")
+                        .session(sesion)
+                        .param("session_id", "cs_test_clases_123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/clases-success"))
+                .andExpect(content().string(containsString("¡Clases Adquiridas con Éxito!")))
+                .andExpect(content().string(containsString("+15 clases")));
+
+        verify(this.academicoService).recargarSaldoClasesTrasPago(eq("12345678Z"), eq(15), eq("cs_test_clases_123"));
+    }
+
+    @Test
+    @DisplayName("GET /pagos/clases/cancel renderiza aviso de compra de clases cancelada")
+    void testMostrarCancelacionPagoClases() throws Exception
+    {
+        this.mockMvc.perform(get("/pagos/clases/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/clases-cancel"))
+                .andExpect(content().string(containsString("Pago de Clases Interrumpido")));
     }
 
     @Test
@@ -217,6 +248,45 @@ class StripeWebhookControllerTest
                         .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Evento de matrícula procesado correctamente")));
+    }
+
+    @Test
+    @DisplayName("POST /pagos/webhook procesa exitosamente checkout.session.completed para CLASES_PRACTICAS")
+    void testWebhookCheckoutSessionCompletedClasesPracticas() throws Exception
+    {
+        String payload = String.format("""
+        {
+          "id": "evt_test_clases_1",
+          "object": "event",
+          "api_version": "%s",
+          "type": "checkout.session.completed",
+          "data": {
+            "object": {
+              "id": "cs_test_session_clases_1",
+              "object": "checkout.session",
+              "amount_total": 40000,
+              "currency": "eur",
+              "metadata": {
+                "tipoOperacion": "CLASES_PRACTICAS",
+                "tipoCarnet": "PERMISO_B",
+                "dniAlumno": "12345678Z",
+                "numeroClases": "15"
+              }
+            }
+          }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+
+        String sigHeader = generarStripeSignatureHeader(payload, "whsec_dummy_secret_for_testing");
+
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", sigHeader)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Evento de clases prácticas procesado correctamente")));
+
+        verify(this.academicoService).recargarSaldoClasesTrasPago(eq("12345678Z"), eq(15), eq("cs_test_session_clases_1"));
     }
 
     @Test

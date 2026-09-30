@@ -122,4 +122,61 @@ class PagoStripeServiceTest
 
         assertTrue(excepcion.getMessage().contains("No se pudo crear la sesión de pago"));
     }
+
+    @Test
+    @DisplayName("crearSesionPagoClasesPracticas para Bono 10 en vehículo estándar aplica tarifa con 1 clase gratis (270 €)")
+    void testCrearSesionPagoBono10PermisoEstandar() throws StripeException
+    {
+        Session sessionMock = new Session();
+        sessionMock.setId("cs_test_bono10_estandar");
+        sessionMock.setUrl("https://checkout.stripe.com/pay/cs_test_bono10_estandar");
+
+        when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
+                .thenReturn(sessionMock);
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(TipoCarnet.PERMISO_B, "12345678Z", 10, true);
+
+        assertNotNull(resultado);
+        assertEquals("cs_test_bono10_estandar", resultado.idSesion());
+        assertEquals(27000L, resultado.importeTotal());
+
+        ArgumentCaptor<SessionCreateParams> paramsCaptor = ArgumentCaptor.forClass(SessionCreateParams.class);
+        verify(this.stripeClient.v1().checkout().sessions()).create(paramsCaptor.capture());
+
+        SessionCreateParams capturedParams = paramsCaptor.getValue();
+        assertEquals("CLASES_PRACTICAS", capturedParams.getMetadata().get("tipoOperacion"));
+        assertEquals("10", capturedParams.getMetadata().get("numeroClases"));
+        assertEquals("true", capturedParams.getMetadata().get("esOferta"));
+        assertEquals("12345678Z", capturedParams.getMetadata().get("dniAlumno"));
+        assertEquals(1, capturedParams.getLineItems().size());
+        assertEquals(27000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
+        assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso B", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso B (Alumno DNI: 12345678Z).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+    }
+
+    @Test
+    @DisplayName("crearSesionPagoClasesPracticas para Bono 10 en vehículo pesado aplica tarifa con 1 clase gratis (540 €)")
+    void testCrearSesionPagoBono10PermisoPesado() throws StripeException
+    {
+        Session sessionMock = new Session();
+        sessionMock.setId("cs_test_bono10_pesado");
+        sessionMock.setUrl("https://checkout.stripe.com/pay/cs_test_bono10_pesado");
+
+        when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
+                .thenReturn(sessionMock);
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(TipoCarnet.PERMISO_C, "87654321X", 10, true);
+
+        assertNotNull(resultado);
+        assertEquals(54000L, resultado.importeTotal());
+
+        ArgumentCaptor<SessionCreateParams> paramsCaptor = ArgumentCaptor.forClass(SessionCreateParams.class);
+        verify(this.stripeClient.v1().checkout().sessions()).create(paramsCaptor.capture());
+
+        SessionCreateParams capturedParams = paramsCaptor.getValue();
+        assertEquals(1, capturedParams.getLineItems().size());
+        assertEquals(54000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
+        assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso C", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso C (Alumno DNI: 87654321X).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+    }
 }

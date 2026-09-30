@@ -27,13 +27,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.autoescuela.erp.pagos.service.PagoStripeService;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
-import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
@@ -761,12 +765,15 @@ public class AlumnoController
     }
 
     /**
-     * Procesa la adquisición de clases sueltas (30€/clase) o bonos (10, 15, 20 clases) (CU-032).
+     * Procesa la adquisición de clases sueltas o bonos oficiales conectando con Stripe Checkout.
+     * Bloquea la compra si el alumno ha agotado sus convocatorias oficiales y debe renovar su matrícula.
      */
     @PostMapping("/pagos/comprar-clases")
-    @Transactional
-    public String comprarClasesPracticas(@AuthenticationPrincipal Object principal, @RequestParam("tipoProducto") String tipoProducto, @RequestParam(value = "cantidadClases", defaultValue = "1") Integer cantidadClases, RedirectAttributes redirectAttributes)
+    public String comprarClasesPracticas(@AuthenticationPrincipal Object principal, @RequestParam("tipoProducto") String tipoProducto, @RequestParam(value = "cantidadClases", defaultValue = "1") Integer cantidadClases, RedirectAttributes redirectAttributes, HttpSession sesion)
     {
+        int clasesCompradas = 1;
+        boolean esOferta = false;
+
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
@@ -780,30 +787,58 @@ public class AlumnoController
             return "redirect:/alumno/pagos";
         }
 
-        int clasesAñadir = 1;
-        if ("BONO_10".equalsIgnoreCase(tipoProducto))
+        // Regla: Bloqueo de compra de clases si ha agotado sus 2 convocatorias y debe renovar
+        if (matricula.getConvocatorias() == null || matricula.getConvocatorias() <= 0)
         {
-            clasesAñadir = 10;
-        }
-        else if ("BONO_15".equalsIgnoreCase(tipoProducto))
-        {
-            clasesAñadir = 15;
-        }
-        else if ("BONO_20".equalsIgnoreCase(tipoProducto))
-        {
-            clasesAñadir = 20;
-        }
-        else if (cantidadClases != null && cantidadClases > 0)
-        {
-            clasesAñadir = cantidadClases;
+            redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de examen de tu matrícula. No puedes adquirir clases prácticas ni bonos hasta renovar tu matrícula.");
+            return "redirect:/alumno/pagos";
         }
 
-        int saldoAnterior = matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;
-        matricula.setSaldoClases(saldoAnterior + clasesAñadir);
-        this.matriculaRepository.save(matricula);
+        switch(tipoProducto != null ? tipoProducto.toUpperCase() : "")
+        {
+            case "BONO_10":
+            {
+                clasesCompradas = 10;
+                esOferta = true;
+            }; break;
+            case "BONO_15":
+            {
+                clasesCompradas = 15;
+                esOferta = true;
+            }; break;
+            case "BONO_20":
+            {
+                clasesCompradas = 20;
+                esOferta = true;
 
-        redirectAttributes.addFlashAttribute("mensajeExito", "¡Pago procesado con éxito! Se han añadido " + clasesAñadir + " clases prácticas a tu saldo disponible.");
-        return "redirect:/alumno/pagos";
+            }; break;
+            default:
+            {
+                if (cantidadClases != null && cantidadClases > 0)
+                {
+                    clasesCompradas = cantidadClases;
+                    esOferta = false;
+                }
+            }; break;
+        }
+
+        try
+        {
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoClasesPracticas( matricula.getPermisoCarnet(), alumno.getDni(), clasesCompradas, esOferta);
+
+            // Almacenamos datos en sesión para enriquecer la experiencia tras el retorno
+            sesion.setAttribute("pagoClases_dni", alumno.getDni());
+            sesion.setAttribute("pagoClases_numero", clasesCompradas);
+            sesion.setAttribute("pagoClases_importe", sesionPago.importeTotal() / 100.0f);
+            sesion.setAttribute("pagoClases_tipoCarnet", matricula.getPermisoCarnet().getDescripcion());
+
+            return "redirect:" + sesionPago.urlStripe();
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/alumno/pagos";
+        }
     }
 
     /**

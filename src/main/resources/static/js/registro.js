@@ -23,8 +23,8 @@ function actualizarInformacionTasa() {
         : 'Permiso B';
 
     const nombreCarnet = textoOption.split('—')[0].trim();
-    const esPesado = valorCarnet.startsWith('PERMISO_C') || valorCarnet.startsWith('PERMISO_D');
-    const importeTexto = esPesado ? '450,00 €' : '250,00 €';
+    const esVehiculoPesado = valorCarnet.startsWith('PERMISO_C') || valorCarnet.startsWith('PERMISO_D');
+    const importeTexto = esVehiculoPesado ? '450,00 €' : '250,00 €';
 
     const elemTitulo = document.getElementById('resumen-carnet-titulo');
     const elemPrecio = document.getElementById('resumen-tasa-precio');

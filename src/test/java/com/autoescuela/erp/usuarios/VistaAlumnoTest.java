@@ -9,10 +9,17 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.autoescuela.erp.pagos.service.PagoStripeService;
+
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,6 +47,9 @@ class VistaAlumnoTest
 {
     @Autowired
     private WebApplicationContext contexto;
+
+    @MockitoBean
+    private PagoStripeService pagoStripeService;
 
     private MockMvc mockMvc;
 
@@ -202,7 +212,7 @@ class VistaAlumnoTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("GET /alumno/pagos renderiza la tarjeta individual a 30€ y las 3 tarjetas de bonos")
+    @DisplayName("GET /alumno/pagos renderiza la tarjeta individual a 30€ y las 3 tarjetas de bonos oficiales")
     void testPagosRenderizado() throws Exception
     {
         this.mockMvc.perform(get("/alumno/pagos"))
@@ -210,6 +220,7 @@ class VistaAlumnoTest
                 .andExpect(view().name("alumno/pagos"))
                 .andExpect(content().string(containsString("30,00 €")))
                 .andExpect(content().string(containsString("Bono 10 Clases")))
+                .andExpect(content().string(containsString("270,00 €")))
                 .andExpect(content().string(containsString("Bono 15 Clases")))
                 .andExpect(content().string(containsString("Bono 20 Clases")))
                 .andExpect(content().string(containsString("Conectar con Pasarela de Pago")));
@@ -217,30 +228,50 @@ class VistaAlumnoTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("POST /alumno/pagos/comprar-clases añade clases individuales al saldo")
+    @DisplayName("POST /alumno/pagos/comprar-clases redirige a la pasarela de Stripe para clases individuales")
     void testComprarClasesIndividualesExito() throws Exception
     {
+        when(this.pagoStripeService.crearSesionPagoClasesPracticas(any(), any(), eq(3), eq(false)))
+                .thenReturn(new SesionPagoDTO("cs_clases_ind", "https://checkout.stripe.com/pay/cs_clases_ind", 9000L, "EUR"));
+
         this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
                 .with(csrf())
                 .param("tipoProducto", "INDIVIDUAL")
                 .param("cantidadClases", "3"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/alumno/pagos"))
-                .andExpect(flash().attributeExists("mensajeExito"));
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_clases_ind"));
     }
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("POST /alumno/pagos/comprar-clases adquiere un Bono de 15 clases")
+    @DisplayName("POST /alumno/pagos/comprar-clases redirige a la pasarela de Stripe para Bono de 10 clases (1 clase gratis)")
+    void testComprarBono10Exito() throws Exception
+    {
+        when(this.pagoStripeService.crearSesionPagoClasesPracticas(any(), any(), eq(10), eq(true)))
+                .thenReturn(new SesionPagoDTO("cs_bono_10", "https://checkout.stripe.com/pay/cs_bono_10", 27000L, "EUR"));
+
+        this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
+                .with(csrf())
+                .param("tipoProducto", "BONO_10")
+                .param("cantidadClases", "10"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_bono_10"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/pagos/comprar-clases redirige a la pasarela de Stripe para Bono de 15 clases")
     void testComprarBonoExito() throws Exception
     {
+        when(this.pagoStripeService.crearSesionPagoClasesPracticas(any(), any(), eq(15), eq(true)))
+                .thenReturn(new SesionPagoDTO("cs_bono_15", "https://checkout.stripe.com/pay/cs_bono_15", 40000L, "EUR"));
+
         this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
                 .with(csrf())
                 .param("tipoProducto", "BONO_15")
                 .param("cantidadClases", "15"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/alumno/pagos"))
-                .andExpect(flash().attributeExists("mensajeExito"));
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_bono_15"));
     }
 
     @Test

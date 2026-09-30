@@ -194,7 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cant = 1;
                 inputCantidadIndividual.value = 1;
             }
-            const total = cant * 30;
+            const precioClase = parseFloat(inputCantidadIndividual.dataset.precioClase) || 30;
+            const total = cant * precioClase;
             displayTotalIndividual.textContent = total.toFixed(2) + ' €';
         }
         inputCantidadIndividual.addEventListener('input', actualizarTotalIndividual);

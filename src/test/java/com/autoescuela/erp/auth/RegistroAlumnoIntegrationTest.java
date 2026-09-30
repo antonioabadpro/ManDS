@@ -122,7 +122,7 @@ class RegistroAlumnoIntegrationTest
                 .session(session)
                 .param("session_id", "cs_123"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/success"))
+                .andExpect(view().name("pagos/matricula-success"))
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
                 .andExpect(content().string(containsString("250,00 €")));
 
@@ -457,7 +457,7 @@ class RegistroAlumnoIntegrationTest
 
         this.mockMvc.perform(get("/pagos/checkout/cancel").session(session))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/cancel"));
+                .andExpect(view().name("pagos/matricula-cancel"));
 
         assertTrue(this.alumnoRepository.findByDni("11223344X").isEmpty(), "El alumno inactivo debe haberse purgado de la BD tras cancelar");
     }

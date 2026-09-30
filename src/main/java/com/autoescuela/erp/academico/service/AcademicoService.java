@@ -1,7 +1,10 @@
 package com.autoescuela.erp.academico.service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,8 @@ public class AcademicoService
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
     private final EmailService emailService;
+    // Registro de sesiones de Stripe ya procesadas para garantizar idempotencia entre retorno y webhook
+    private final Set<String> sesionesProcesadas = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     /**
      * Formaliza la matrícula de un alumno tras la confirmación del pago en Stripe.
@@ -68,6 +73,7 @@ public class AcademicoService
         catch (IllegalArgumentException ex)
         {
             log.warn("Tipo de carnet no reconocido: '{}'. Se asigna PERMISO_B por defecto.", tipoCarnet_string);
+            tipoCarnet = TipoCarnet.PERMISO_B;
         }
 
         // Idempotencia ante reintentos de Stripe o concurrencia: si el alumno ya tiene matrícula activa para este permiso, la retornamos
@@ -106,4 +112,53 @@ public class AcademicoService
         }
         return matriculaGuardada;
     }
+
+    /**
+     * Recarga el saldo de clases prácticas del expediente de matrícula activo de un alumno tras confirmación de pago en Stripe.
+     * Garantiza idempotencia ante reintentos concurrentes del webhook y redirección del navegador mediante sessionId.
+     *
+     * @param dniAlumno DNI del alumno titular.
+     * @param numeroClases Número de clases prácticas adquiridas.
+     * @param sessionId Identificador de la sesión de Stripe (opcional, para idempotencia).
+     * @return Matrícula actualizada con el nuevo saldo de clases prácticas.
+     * @throws ReglaNegocioException Si el alumno o su matrícula activa no existen.
+     */
+    @Transactional
+    public Matricula recargarSaldoClasesTrasPago(String dniAlumno, int numeroClases, String sessionId)
+    {
+        if (dniAlumno == null || dniAlumno.isBlank())
+        {
+            throw new ReglaNegocioException("El DNI del alumno es obligatorio para recargar saldo de clases.");
+        }
+        if (numeroClases <= 0)
+        {
+            throw new ReglaNegocioException("El número de clases a recargar debe ser superior a cero.");
+        }
+
+        Alumno alumno = this.alumnoRepository.findByDni(dniAlumno.trim().toUpperCase())
+                .orElseThrow(() -> new ReglaNegocioException("NO se ha encontrado a ningún Alumno con el DNI: " + dniAlumno));
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró ningún expediente de matrícula activo para el alumno con DNI: " + dniAlumno));
+
+        // Idempotencia: si la sesión de Stripe ya fue procesada (por webhook o retorno), retornamos el estado actual sin duplicar
+        if (sessionId != null && !sessionId.isBlank())
+        {
+            if (!this.sesionesProcesadas.add(sessionId))
+            {
+                log.info("La sesión de Stripe {} ya fue procesada previamente para el alumno DNI {}. Evitando recarga duplicada.", sessionId, dniAlumno);
+                return matricula;
+            }
+        }
+
+        int saldoAnterior = matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;
+        matricula.setSaldoClases(saldoAnterior + numeroClases);
+        Matricula guardada = this.matriculaRepository.save(matricula);
+
+        log.info("Saldo de clases recargado exitosamente para Alumno DNI: {}. Clases añadidas: {}. Nuevo saldo total: {}",
+                dniAlumno, numeroClases, guardada.getSaldoClases());
+
+        return guardada;
+    }
+
 }
