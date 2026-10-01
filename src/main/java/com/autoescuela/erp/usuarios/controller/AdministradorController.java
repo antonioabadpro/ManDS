@@ -17,12 +17,13 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
-import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.estadisticas.service.EstadisticaService;
+import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
@@ -40,7 +41,9 @@ public class AdministradorController
 {
     private final UsuarioService usuarioService;
     private final ProfesorService profesorService;
-    private final VehiculoRepository vehiculoRepository;
+    private final FlotaService flotaService;
+    private final ExamenService examenService;
+    private final EstadisticaService estadisticaService;
 
     /**
      * Proporciona el nombre corto/de pila del Administrador a todas las vistas para evitar
@@ -68,13 +71,14 @@ public class AdministradorController
      * @return Nombre de la vista admin/dashboard.
      */
     @GetMapping("/dashboard")
-    public String redirectToDashboard(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
+    public String mostrarDashboard(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
     {
         if (userDetails != null)
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
 
+        cargarDatosDashboard(model);
         cargarCatalogosAltaProfesor(model);
 
         return "admin/dashboard";
@@ -100,6 +104,10 @@ public class AdministradorController
         if (bindingResult.hasErrors())
         {
             cargarCatalogosAltaProfesor(model);
+            if (!esDesdeProfesores)
+            {
+                cargarDatosDashboard(model);
+            }
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
             {
@@ -142,6 +150,10 @@ public class AdministradorController
         catch (ReglaNegocioException ex)
         {
             cargarCatalogosAltaProfesor(model);
+            if (!esDesdeProfesores)
+            {
+                cargarDatosDashboard(model);
+            }
             model.addAttribute("errorAltaProfesor", ex.getMessage());
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
@@ -169,6 +181,16 @@ public class AdministradorController
     }
 
     /**
+     * Carga en el modelo las métricas globales y los listados resumidos del dashboard.
+     */
+    private void cargarDatosDashboard(Model model)
+    {
+        model.addAttribute("estadisticas", this.estadisticaService.obtenerEstadisticasDashboard());
+        model.addAttribute("vehiculos", this.flotaService.obtenerVehiculosDashboard());
+        model.addAttribute("solicitudesExamen", this.examenService.obtenerSolicitudesExamenDashboard());
+    }
+
+    /**
      * Carga en el modelo los catálogos y el DTO necesarios para renderizar el modal de alta de profesor.
      */
     private void cargarCatalogosAltaProfesor(Model model)
@@ -178,7 +200,7 @@ public class AdministradorController
             model.addAttribute("altaProfesorDTO", new AltaProfesorDTO());
         }
 
-        model.addAttribute("vehiculosDisponibles", this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
+        model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosDisponiblesParaProfesor());
         model.addAttribute("tiposCarnet", TipoCarnet.values());
         model.addAttribute("turnos", TipoTurno.values());
     }

@@ -3,10 +3,15 @@ package com.autoescuela.erp.usuarios.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
 public interface ProfesorRepository extends JpaRepository<Profesor, Long>
 {
+    /**
+     * Cuenta el número de profesores en un estado determinado.
+     */
+    long countByEstado(EstadoUsuario estado);
     /**
      * Busca un profesor a partir de su Documento Nacional de Identidad o NIE.
      *

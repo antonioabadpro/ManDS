@@ -108,7 +108,7 @@
                     <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div class="space-y-1">
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Alumnos Activos</p>
-                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalAlumnos} ?: '3'">3</h4>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalAlumnos} ?: 'X'"></h4>
                             <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center space-x-1">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -127,7 +127,7 @@
                     <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div class="space-y-1">
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profesores en Plantilla</p>
-                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalProfesores} ?: '2'">2</h4>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalProfesores} ?: 'X'"></h4>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Turnos Matinal y Tarde</p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
@@ -142,10 +142,10 @@
                         <div class="space-y-1">
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Flota de Vehículos</p>
                             <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
-                                <span th:text="${estadisticas?.totalVehiculos} ?: '4'">X</span>
-                                <span class="text-xs text-amber-500 font-medium ml-1">(1 en taller)</span>
+                                <span th:text="${estadisticas?.totalVehiculosActivos ?: 0}">0</span>
+                                <span th:if="${estadisticas?.totalVehiculosEnMantenimiento != null and estadisticas.totalVehiculosEnMantenimiento > 0}" class="text-xs text-amber-500 font-medium ml-1" th:text="' (' + ${estadisticas.totalVehiculosEnMantenimiento} + ' en taller)'"></span>
                             </h4>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">3 operativos | 1 en revisión</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium" th:text="${(estadisticas?.totalVehiculosOperativos ?: 0) + ' operativos | ' + (estadisticas?.totalVehiculosEnMantenimiento ?: 0) + ' en revisión'}">0 operativos | 0 en revisión</p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -158,7 +158,7 @@
                     <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div class="space-y-1">
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Solicitudes de Examen</p>
-                            <h4 class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400" th:text="${estadisticas?.solicitudesExamenPendientes} ?: '1'">1</h4>
+                            <h4 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${estadisticas?.totalSolicitudesExamenPendientes ?: 0}">0</h4>
                             <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Pendiente de revisión</p>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
@@ -214,8 +214,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                                    2 en activo
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" th:text="|${estadisticas?.totalProfesores ?: 0} en activo|">
+                                    0 en activo
                                 </span>
                             </div>
                             <h4 class="text-base font-bold text-slate-900 dark:text-white">Gestión de Profesores</h4>
@@ -242,8 +242,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                                    3 matriculados
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" th:text="|${estadisticas?.totalAlumnos ?: 0} matriculados|">
+                                    0 matriculados
                                 </span>
                             </div>
                             <h4 class="text-base font-bold text-slate-900 dark:text-white">Gestión de Alumnos</h4>
@@ -270,8 +270,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-8 4h4m6 0a2 2 0 100-4 2 2 0 000 4zm-14 0a2 2 0 100-4 2 2 0 000 4zM3 9l2.25-4.5A2 2 0 017.03 3.5h9.94a2 2 0 011.78 1l2.25 4.5M3 9v8a2 2 0 002 2h14a2 2 0 002-2V9M3 9h18" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                                    4 registrados
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400" th:text="|${estadisticas?.totalVehiculosActivos ?: 0} registrados|">
+                                    0 registrados
                                 </span>
                             </div>
                             <h4 class="text-base font-bold text-slate-900 dark:text-white">Gestión de Flota de Vehículos</h4>
@@ -312,28 +312,18 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">1234-LMN</td>
-                                    <td class="py-2.5 px-3">SEAT Ibiza 1.0 TSI</td>
-                                    <td class="py-2.5 px-3">Permiso B</td>
-                                    <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
-                                    </td>
+                                <tr th:if="${#lists.isEmpty(vehiculos)}">
+                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay vehículos registrados en la flota.</td>
                                 </tr>
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">5678-KPR</td>
-                                    <td class="py-2.5 px-3">Renault Clio E-Tech</td>
-                                    <td class="py-2.5 px-3">Permiso B</td>
+                                <tr th:each="vehiculo : ${vehiculos}">
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white" th:text="${vehiculo.matricula}">1234-LMN</td>
+                                    <td class="py-2.5 px-3" th:text="|${vehiculo.marca} ${vehiculo.modelo}|">SEAT Ibiza 1.0 TSI</td>
+                                    <td class="py-2.5 px-3" th:text="${vehiculo.tipo?.descripcion ?: vehiculo.tipo}">Permiso B</td>
                                     <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">3456-FGH</td>
-                                    <td class="py-2.5 px-3">Mercedes Actros 1845</td>
-                                    <td class="py-2.5 px-3">Permiso C</td>
-                                    <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
+                                        <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
+                                        <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
+                                        <span th:if="${vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
+                                        <span th:if="${vehiculo.estado?.name() == 'INACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">INACTIVO</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -358,28 +348,17 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">David Ruiz Gómez</td>
-                                    <td class="py-2.5 px-3">Laura Sánchez</td>
-                                    <td class="py-2.5 px-3">Permiso B</td>
-                                    <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">PENDIENTE</span>
-                                    </td>
+                                <tr th:if="${#lists.isEmpty(solicitudesExamen)}">
+                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay solicitudes de examen registradas.</td>
                                 </tr>
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">Elena Martínez López</td>
-                                    <td class="py-2.5 px-3">Laura Sánchez</td>
-                                    <td class="py-2.5 px-3">Permiso B</td>
+                                <tr th:each="solicitud : ${solicitudesExamen}">
+                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white" th:text="${solicitud.alumno != null ? (solicitud.alumno.nombre + ' ' + solicitud.alumno.apellidos) : 'Sin alumno'}">David Ruiz Gómez</td>
+                                    <td class="py-2.5 px-3" th:text="${solicitud.profesor != null ? (solicitud.profesor.nombre + ' ' + solicitud.profesor.apellidos) : 'Sin profesor asignado'}">Laura Sánchez</td>
+                                    <td class="py-2.5 px-3" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: (solicitud.matricula?.permisoCarnet ?: '-')}">Permiso B</td>
                                     <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACEPTADA</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">Sofía Fernández</td>
-                                    <td class="py-2.5 px-3">Manuel Navarro</td>
-                                    <td class="py-2.5 px-3">Permiso A2</td>
-                                    <td class="py-2.5 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">RECHAZADA</span>
+                                        <span th:if="${solicitud.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">PENDIENTE</span>
+                                        <span th:if="${solicitud.estado?.name() == 'ACEPTADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACEPTADA</span>
+                                        <span th:if="${solicitud.estado?.name() == 'RECHAZADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">RECHAZADA</span>
                                     </td>
                                 </tr>
                             </tbody>

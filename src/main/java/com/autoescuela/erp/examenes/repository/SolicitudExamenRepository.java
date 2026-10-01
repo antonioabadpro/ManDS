@@ -29,4 +29,14 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
      * Comprueba si el alumno tiene alguna solicitud de examen en un determinado estado.
      */
     boolean existsByAlumnoAndEstado(Alumno alumno, EstadoSolicitud estado);
+
+    /**
+     * Cuenta las solicitudes de examen en un determinado estado.
+     */
+    long countByEstado(EstadoSolicitud estado);
+
+    /**
+     * Recupera las últimas 5 solicitudes de examen ordenadas por ID descendente.
+     */
+    List<SolicitudExamen> findTop5ByOrderByIdDesc();
 }

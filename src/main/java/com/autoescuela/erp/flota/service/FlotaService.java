@@ -1,6 +1,37 @@
 package com.autoescuela.erp.flota.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.flota.repository.VehiculoRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
 public class FlotaService
 {
+    private final VehiculoRepository vehiculoRepository;
 
+    /**
+     * Obtiene los vehículos disponibles y sin profesor asignado para la creación/asignación docente.
+     */
+    @Transactional(readOnly = true)
+    public List<Vehiculo> obtenerVehiculosDisponiblesParaProfesor()
+    {
+        return this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE);
+    }
+
+    /**
+     * Obtiene los vehículos principales para el resumen rápido del Dashboard de Administración.
+     */
+    @Transactional(readOnly = true)
+    public List<Vehiculo> obtenerVehiculosDashboard()
+    {
+        return this.vehiculoRepository.findTop5ByOrderByIdAsc();
+    }
 }

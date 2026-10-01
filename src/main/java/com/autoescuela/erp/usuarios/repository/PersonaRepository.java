@@ -3,6 +3,7 @@ package com.autoescuela.erp.usuarios.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import com.autoescuela.erp.usuarios.model.Persona;
 
 public interface PersonaRepository extends JpaRepository<Persona, Long>

@@ -24,4 +24,19 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
      * Obtiene todos los vehículos que no tienen profesor asignado (libres).
      */
     List<Vehiculo> findByProfesorIsNull();
+
+    /**
+     * Cuenta el número de vehículos cuyo estado no coincide con el especificado (ej. activos).
+     */
+    long countByEstadoNot(EstadoVehiculo estado);
+
+    /**
+     * Cuenta el número de vehículos en un estado determinado.
+     */
+    long countByEstado(EstadoVehiculo estado);
+
+    /**
+     * Recupera los primeros 5 vehículos ordenados por ID para el resumen del dashboard.
+     */
+    List<Vehiculo> findTop5ByOrderByIdAsc();
 }

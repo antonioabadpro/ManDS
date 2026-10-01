@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -42,4 +44,10 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
      * Recupera todos los alumnos tutelados por el identificador del profesor.
      */
     List<Alumno> findByProfesorId(Long profesorId);
+
+    /**
+     * Cuenta el número de alumnos activos en el sistema
+     * @return Número de alumnos activos.
+     */
+    long countByEstado(EstadoUsuario estado);
 }

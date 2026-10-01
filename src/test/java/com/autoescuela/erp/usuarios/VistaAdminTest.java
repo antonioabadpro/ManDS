@@ -70,7 +70,13 @@ class VistaAdminTest
                 .andExpect(content().string(containsString("Panel de Control del Administrador")))
                 .andExpect(content().string(containsString("Resumen de la Autoescuela")))
                 .andExpect(content().string(containsString("Alumnos Activos")))
-                .andExpect(content().string(containsString("Profesores en Plantilla")));
+                .andExpect(content().string(containsString("Profesores en Plantilla")))
+                .andExpect(content().string(containsString("Flota de Vehículos")))
+                .andExpect(content().string(containsString("Solicitudes de Examen")))
+                .andExpect(content().string(containsString("1234-LMN")))
+                .andExpect(content().string(containsString("en activo")))
+                .andExpect(content().string(containsString("matriculados")))
+                .andExpect(content().string(containsString("registrados")));
     }
 
     @Test

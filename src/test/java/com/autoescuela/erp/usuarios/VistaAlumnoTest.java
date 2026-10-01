@@ -223,7 +223,7 @@ class VistaAlumnoTest
                 .andExpect(content().string(containsString("270,00 €")))
                 .andExpect(content().string(containsString("Bono 15 Clases")))
                 .andExpect(content().string(containsString("Bono 20 Clases")))
-                .andExpect(content().string(containsString("Conectar con Pasarela de Pago")));
+                .andExpect(content().string(containsString("Confirmar Compra")));
     }
 
     @Test
