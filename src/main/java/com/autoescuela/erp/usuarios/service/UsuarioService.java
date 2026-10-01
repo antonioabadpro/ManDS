@@ -1,5 +1,7 @@
 package com.autoescuela.erp.usuarios.service;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +73,23 @@ public class UsuarioService
     }
 
     /**
+     * Comprueba si un DNI ya está registrado por otro usuario (distinto ID).
+     */
+    @Transactional(readOnly = true)
+    public boolean existeDniOtroUsuario(String dni, Long id)
+    {
+        if (dni == null || dni.isBlank())
+        {
+            return false;
+        }
+        if (id == null)
+        {
+            return existeDni(dni);
+        }
+        return this.personaRepository.existsByDniAndIdNot(dni.trim().toUpperCase(), id);
+    }
+
+    /**
      * Comprueba si un número de teléfono ya está registrado en el sistema.
      *
      * @param telefono Número de teléfono a comprobar.
@@ -84,6 +103,23 @@ public class UsuarioService
             return false;
         }
         return this.personaRepository.existsByTelefono(telefono.trim());
+    }
+
+    /**
+     * Comprueba si un teléfono ya está registrado por otro usuario (distinto ID).
+     */
+    @Transactional(readOnly = true)
+    public boolean existeTelefonoOtroUsuario(String telefono, Long id)
+    {
+        if (telefono == null || telefono.isBlank())
+        {
+            return false;
+        }
+        if (id == null)
+        {
+            return existeTelefono(telefono);
+        }
+        return this.personaRepository.existsByTelefonoAndIdNot(telefono.trim(), id);
     }
 
     /**
@@ -128,12 +164,37 @@ public class UsuarioService
         Persona persona = this.personaRepository.findById(personaId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario con ID: " + personaId));
 
+        if (dto.getDni() == null || dto.getDni().isBlank())
+        {
+            throw new ReglaNegocioException("El DNI/NIE es obligatorio.");
+        }
+
+        String dniLimpio = dto.getDni().trim().toUpperCase();
+        if (this.personaRepository.existsByDniAndIdNot(dniLimpio, personaId))
+        {
+            throw new ReglaNegocioException("El DNI/NIE ya se encuentra registrado por otro usuario.");
+        }
+
         String telefonoLimpio = dto.getTelefono().trim();
         if (this.personaRepository.existsByTelefonoAndIdNot(telefonoLimpio, personaId))
         {
             throw new ReglaNegocioException("El número de teléfono ya se encuentra registrado por otro usuario.");
         }
 
+        if (dto.getFechaNacimiento() != null)
+        {
+            LocalDate hoy = LocalDate.now();
+            if (dto.getFechaNacimiento().plusYears(18).isAfter(hoy))
+            {
+                throw new ReglaNegocioException("El administrador debe ser mayor de edad (al menos 18 años).");
+            }
+            if (dto.getFechaNacimiento().isBefore(hoy.minusYears(100)))
+            {
+                throw new ReglaNegocioException("La fecha de nacimiento no puede ser anterior a hace 100 años.");
+            }
+        }
+
+        persona.setDni(dniLimpio);
         persona.setNombre(dto.getNombre().trim());
         persona.setApellidos(dto.getApellidos().trim());
         persona.setTelefono(telefonoLimpio);

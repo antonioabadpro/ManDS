@@ -84,7 +84,7 @@
             </div>
 
             <!-- Banner de Cabecera del Usuario -->
-            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
                 <!-- Avatar Circular Grande -->
                 <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-3xl flex items-center justify-center shadow-md ring-4 ring-blue-500/20 shrink-0" th:text="${#strings.substring(perfilDTO?.nombre != null ? perfilDTO.nombre : 'A', 0, 1).toUpperCase()}">
                     A
@@ -92,15 +92,14 @@
                 <div class="space-y-1.5 flex-1 min-w-0">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                         <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white truncate" th:text="${(perfilDTO?.nombre ?: '') + ' ' + (perfilDTO?.apellidos ?: '')}">
-                            Carlos García Moreno
                         </h2>
                         <span class="inline-flex self-center sm:self-auto items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                             ADMINISTRADOR
                         </span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">
-                        Usuario: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.nombreUsuario} ?: 'admin'">admin</span> ·
-                        Correo: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.correo} ?: 'admin@autoescuela.es'">admin@autoescuela.es</span>
+                        Usuario: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.nombreUsuario} ?: 'admin'"></span> ·
+                        Correo: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.correo} ?: 'admin@autoescuela.es'"></span>
                     </p>
                 </div>
             </div>
@@ -120,61 +119,96 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Actualiza tus datos de contacto y localización personal.</p>
                     </div>
 
-                    <form th:action="@{/admin/perfil}" th:object="${perfilDTO}" method="post" class="space-y-4">
+                    <form id="form-perfil-admin" th:action="@{/admin/perfil}" th:object="${perfilDTO}" method="post" class="space-y-4">
                         <input type="hidden" th:field="*{id}" />
 
-                        <!-- Fila 1: DNI (solo lectura) y Nombre de Usuario (solo lectura) -->
+                        <!-- Fila 2: DNI / NIE (Editable y Obligatorio) y Fecha de Nacimiento (Rango 18 a 100 años) -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE (Identificador)</label>
-                                <input type="text" th:field="*{dni}" disabled class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 cursor-not-allowed uppercase font-mono" />
-                                <span class="text-[10px] text-slate-400 mt-1 block">Identificador oficial único no modificable</span>
+                                <label for="dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE <span class="text-rose-500">*</span></label>
+                                <input type="text" id="dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition uppercase font-mono" th:classappend="${#fields.hasErrors('dni')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-dni">
+                                    <div th:if="${#fields.hasErrors('dni')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{dni}">Error en DNI</span>
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre de Usuario</label>
-                                <input type="text" th:field="*{nombreUsuario}" disabled class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 cursor-not-allowed font-mono" />
-                                <span class="text-[10px] text-slate-400 mt-1 block">Alias asignado para inicio de sesión</span>
+                                <label for="fechaNacimiento" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Nacimiento <span class="text-rose-500">*</span></label>
+                                <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('fechaNacimiento')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-fechaNacimiento">
+                                    <div th:if="${#fields.hasErrors('fechaNacimiento')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{fechaNacimiento}">Error en Fecha de Nacimiento</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Fila 2: Nombre y Apellidos -->
+                        <!-- Fila 3: Nombre y Apellidos -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="nombre" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre *</label>
-                                <input type="text" id="nombre" th:field="*{nombre}" required class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
-                                <p th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="text-xs text-red-600 dark:text-red-400 mt-1"></p>
+                                <label for="nombre" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre <span class="text-rose-500">*</span></label>
+                                <input type="text" id="nombre" th:field="*{nombre}" required maxlength="50" placeholder="Carlos" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('nombre')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-nombre">
+                                    <div th:if="${#fields.hasErrors('nombre')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{nombre}">Error en Nombre</span>
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <label for="apellidos" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellidos *</label>
-                                <input type="text" id="apellidos" th:field="*{apellidos}" required class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
-                                <p th:if="${#fields.hasErrors('apellidos')}" th:errors="*{apellidos}" class="text-xs text-red-600 dark:text-red-400 mt-1"></p>
+                                <label for="apellidos" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellidos <span class="text-rose-500">*</span></label>
+                                <input type="text" id="apellidos" th:field="*{apellidos}" required maxlength="100" placeholder="García Moreno" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('apellidos')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-apellidos">
+                                    <div th:if="${#fields.hasErrors('apellidos')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{apellidos}">Error en Apellidos</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Fila 3: Teléfono y Fecha de Nacimiento -->
+                        <!-- Fila 4: Teléfono Móvil y Dirección de Residencia -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="telefono" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono Móvil *</label>
-                                <input type="tel" id="telefono" th:field="*{telefono}" required maxlength="9" placeholder="600111222" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
-                                <p th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}" class="text-xs text-red-600 dark:text-red-400 mt-1"></p>
+                                <label for="telefono" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono Móvil <span class="text-rose-500">*</span></label>
+                                <input type="tel" id="telefono" th:field="*{telefono}" required maxlength="9" placeholder="600111222" hx-post="/usuario/validar-telefono" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-telefono" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('telefono')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-telefono">
+                                    <div th:if="${#fields.hasErrors('telefono')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{telefono}">Error en Teléfono</span>
+                                    </div>
+                                </div>
                             </div>
                             <div>
-                                <label for="fechaNacimiento" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Nacimiento *</label>
-                                <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
-                                <p th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}" class="text-xs text-red-600 dark:text-red-400 mt-1"></p>
+                                <label for="direccion" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dirección de Residencia <span class="text-rose-500">*</span></label>
+                                <input type="text" id="direccion" th:field="*{direccion}" required maxlength="200" placeholder="Calle Ejemplo 123, 1ºA" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('direccion')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-direccion">
+                                    <div th:if="${#fields.hasErrors('direccion')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{direccion}">Error en Dirección</span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Fila 4: Dirección Postal -->
-                        <div>
-                            <label for="direccion" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dirección de Residencia *</label>
-                            <input type="text" id="direccion" th:field="*{direccion}" required placeholder="Calle Ejemplo 123, 1ºA" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
-                            <p th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}" class="text-xs text-red-600 dark:text-red-400 mt-1"></p>
                         </div>
 
                         <!-- Botón Guardar Cambios -->
                         <div class="pt-3 flex justify-end">
-                            <button type="submit" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-500/25 transition duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="submit" id="btn-guardar-perfil-admin" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-500/25 transition duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                 </svg>

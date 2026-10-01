@@ -368,7 +368,6 @@ public class AdministradorController
         if (usuarioId != null)
         {
             EditarPerfilAdminDTO original = this.usuarioService.obtenerPerfilAdmin(usuarioId);
-            perfilDTO.setDni(original.getDni());
             perfilDTO.setNombreUsuario(original.getNombreUsuario());
             perfilDTO.setCorreo(original.getCorreo());
             perfilDTO.setRol(original.getRol());

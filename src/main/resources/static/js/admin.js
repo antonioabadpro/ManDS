@@ -480,10 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('htmx:afterSwap', (event) => {
         const targetId = event.detail.target?.id;
 
-        // Feedback de campos individuales
+        // Feedback de campos individuales (soporta tanto modales profesor-... como perfil admin)
         if (targetId && targetId.startsWith('feedback-')) {
             const campoNombre = targetId.replace('feedback-', '');
-            const input = document.getElementById(`profesor-${campoNombre}`);
+            const input = document.getElementById(`profesor-${campoNombre}`) || document.getElementById(campoNombre);
             const tieneError = event.detail.target.querySelector('.mensaje-error-campo') !== null;
 
             if (input) {
@@ -503,5 +503,218 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // =========================================================================
+    // VALIDACIONES FRONT-END: PERFIL DEL ADMINISTRADOR
+    // =========================================================================
+    function inicializarValidacionesPerfilAdmin() {
+        const formPerfil = document.getElementById('form-perfil-admin');
+        if (!formPerfil) return;
+
+        const inputDni = document.getElementById('dni');
+        const inputFechaNac = document.getElementById('fechaNacimiento');
+        const inputNombre = document.getElementById('nombre');
+        const inputApellidos = document.getElementById('apellidos');
+        const inputTelefono = document.getElementById('telefono');
+        const inputDireccion = document.getElementById('direccion');
+
+        // Configurar rango 18 a 100 años para fecha de nacimiento
+        if (inputFechaNac) {
+            const hoy = new Date();
+            const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+            const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
+            inputFechaNac.setAttribute('max', formatearFechaISO(hace18Anios));
+            inputFechaNac.setAttribute('min', formatearFechaISO(hace100Anios));
+        }
+
+        function validarDni() {
+            if (!inputDni) return true;
+            const valor = inputDni.value.trim().toUpperCase();
+            if (!valor) {
+                mostrarErrorCampo('dni', 'feedback-dni', 'El DNI / NIE es obligatorio.');
+                return false;
+            }
+            const regexDni = /^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$/;
+            if (!regexDni.test(valor)) {
+                mostrarErrorCampo('dni', 'feedback-dni', 'El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
+                return false;
+            }
+            const feedback = document.getElementById('feedback-dni');
+            if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+                limpiarErrorCampo('dni', 'feedback-dni');
+            }
+            return true;
+        }
+
+        function validarFechaNacimiento() {
+            if (!inputFechaNac) return true;
+            const valor = inputFechaNac.value.trim();
+            if (!valor) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'La fecha de nacimiento es obligatoria.');
+                return false;
+            }
+            const partes = valor.split('-');
+            if (partes.length !== 3) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'Formato de fecha inválido.');
+                return false;
+            }
+            const anio = parseInt(partes[0], 10);
+            const mes = parseInt(partes[1], 10) - 1;
+            const dia = parseInt(partes[2], 10);
+            const fechaNac = new Date(anio, mes, dia);
+
+            if (isNaN(fechaNac.getTime())) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'Introduce una fecha de nacimiento válida.');
+                return false;
+            }
+
+            const hoy = new Date();
+            const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+            if (fechaNac > hoySinHora) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'La fecha de nacimiento debe ser una fecha pasada.');
+                return false;
+            }
+
+            const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
+            if (fechaNac < hace100Anios) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'La fecha de nacimiento no puede ser anterior a hace 100 años.');
+                return false;
+            }
+
+            const fechaMinima18 = new Date(anio + 18, mes, dia);
+            if (hoySinHora < fechaMinima18) {
+                mostrarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento', 'El administrador debe ser mayor de edad (al menos 18 años).');
+                return false;
+            }
+
+            limpiarErrorCampo('fechaNacimiento', 'feedback-fechaNacimiento');
+            return true;
+        }
+
+        function validarNombre() {
+            if (!inputNombre) return true;
+            const valor = inputNombre.value.trim();
+            if (!valor) {
+                mostrarErrorCampo('nombre', 'feedback-nombre', 'El nombre es obligatorio.');
+                return false;
+            }
+            if (valor.length > 50) {
+                mostrarErrorCampo('nombre', 'feedback-nombre', 'El nombre no puede superar los 50 caracteres.');
+                return false;
+            }
+            limpiarErrorCampo('nombre', 'feedback-nombre');
+            return true;
+        }
+
+        function validarApellidos() {
+            if (!inputApellidos) return true;
+            const valor = inputApellidos.value.trim();
+            if (!valor) {
+                mostrarErrorCampo('apellidos', 'feedback-apellidos', 'Los apellidos son obligatorios.');
+                return false;
+            }
+            if (valor.length > 100) {
+                mostrarErrorCampo('apellidos', 'feedback-apellidos', 'Los apellidos no pueden superar los 100 caracteres.');
+                return false;
+            }
+            limpiarErrorCampo('apellidos', 'feedback-apellidos');
+            return true;
+        }
+
+        function validarTelefono() {
+            if (!inputTelefono) return true;
+            const valor = inputTelefono.value.trim();
+            if (!valor) {
+                mostrarErrorCampo('telefono', 'feedback-telefono', 'El teléfono es obligatorio.');
+                return false;
+            }
+            const regexTel = /^(\+34|0034)?[6789]\d{8}$/;
+            if (!regexTel.test(valor)) {
+                mostrarErrorCampo('telefono', 'feedback-telefono', 'El formato del teléfono no es válido (ej. 600111222).');
+                return false;
+            }
+            const feedback = document.getElementById('feedback-telefono');
+            if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+                limpiarErrorCampo('telefono', 'feedback-telefono');
+            }
+            return true;
+        }
+
+        function validarDireccion() {
+            if (!inputDireccion) return true;
+            const valor = inputDireccion.value.trim();
+            if (!valor) {
+                mostrarErrorCampo('direccion', 'feedback-direccion', 'La dirección es obligatoria.');
+                return false;
+            }
+            if (valor.length > 200) {
+                mostrarErrorCampo('direccion', 'feedback-direccion', 'La dirección no puede superar los 200 caracteres.');
+                return false;
+            }
+            limpiarErrorCampo('direccion', 'feedback-direccion');
+            return true;
+        }
+
+        // Listeners individuales blur e input
+        if (inputDni) {
+            inputDni.addEventListener('blur', validarDni);
+            inputDni.addEventListener('input', () => {
+                if (inputDni.value.trim()) validarDni();
+            });
+        }
+
+        if (inputFechaNac) {
+            inputFechaNac.addEventListener('blur', validarFechaNacimiento);
+            inputFechaNac.addEventListener('change', validarFechaNacimiento);
+        }
+
+        if (inputNombre) {
+            inputNombre.addEventListener('blur', validarNombre);
+            inputNombre.addEventListener('input', () => {
+                if (inputNombre.value.trim()) validarNombre();
+            });
+        }
+
+        if (inputApellidos) {
+            inputApellidos.addEventListener('blur', validarApellidos);
+            inputApellidos.addEventListener('input', () => {
+                if (inputApellidos.value.trim()) validarApellidos();
+            });
+        }
+
+        if (inputTelefono) {
+            inputTelefono.addEventListener('blur', validarTelefono);
+            inputTelefono.addEventListener('input', () => {
+                if (inputTelefono.value.trim()) validarTelefono();
+            });
+        }
+
+        if (inputDireccion) {
+            inputDireccion.addEventListener('blur', validarDireccion);
+            inputDireccion.addEventListener('input', () => {
+                if (inputDireccion.value.trim()) validarDireccion();
+            });
+        }
+
+        // Validación global al enviar el formulario
+        formPerfil.addEventListener('submit', (e) => {
+            const vDni = validarDni();
+            const vFecha = validarFechaNacimiento();
+            const vNombre = validarNombre();
+            const vApellidos = validarApellidos();
+            const vTel = validarTelefono();
+            const vDir = validarDireccion();
+
+            const feedbackError = formPerfil.querySelector('.mensaje-error-campo');
+            if (!vDni || !vFecha || !vNombre || !vApellidos || !vTel || !vDir || feedbackError) {
+                e.preventDefault();
+                const primerInvalido = formPerfil.querySelector('.border-red-500');
+                if (primerInvalido) {
+                    primerInvalido.focus();
+                }
+            }
+        });
+    }
+
     inicializarEventosModalProfesor();
+    inicializarValidacionesPerfilAdmin();
 });

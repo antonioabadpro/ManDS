@@ -84,7 +84,10 @@ public class UsuarioController
      * Endpoint HTMX para validar de forma temprana el formato y unicidad del DNI/NIE.
      */
     @PostMapping("/validar-dni")
-    public String validarDni(@RequestParam(name = "dni", required = false) String dni, Model model)
+    public String validarDni(@RequestParam(name = "dni", required = false) String dni,
+                             @RequestParam(name = "id", required = false) Long id,
+                             @RequestParam(name = "usuarioId", required = false) Long usuarioId,
+                             Model model)
     {
         if (dni == null || dni.isBlank())
         {
@@ -99,7 +102,8 @@ public class UsuarioController
             return "auth/registro :: mensaje-error";
         }
 
-        if (this.usuarioService.existeDni(limpio))
+        Long idExcluir = id != null ? id : usuarioId;
+        if (this.usuarioService.existeDniOtroUsuario(limpio, idExcluir))
         {
             model.addAttribute("mensaje", "El DNI/NIE ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
@@ -109,7 +113,10 @@ public class UsuarioController
     }
 
     @PostMapping("/validar-telefono")
-    public String validarTelefono(@RequestParam(name = "telefono", required = false) String telefono, Model model)
+    public String validarTelefono(@RequestParam(name = "telefono", required = false) String telefono,
+                                  @RequestParam(name = "id", required = false) Long id,
+                                  @RequestParam(name = "usuarioId", required = false) Long usuarioId,
+                                  Model model)
     {
         if (telefono == null || telefono.isBlank())
         {
@@ -124,7 +131,8 @@ public class UsuarioController
             return "auth/registro :: mensaje-error";
         }
 
-        if (this.usuarioService.existeTelefono(limpio))
+        Long idExcluir = id != null ? id : usuarioId;
+        if (this.usuarioService.existeTelefonoOtroUsuario(limpio, idExcluir))
         {
             model.addAttribute("mensaje", "El teléfono ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
