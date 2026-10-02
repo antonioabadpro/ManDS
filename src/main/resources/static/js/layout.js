@@ -94,10 +94,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Re-sincronizar iconos si HTMX intercambia fragmentos del DOM
-    document.addEventListener('htmx:afterSwap', () => {
+    // Re-sincronizar iconos y scroll del body si HTMX intercambia fragmentos del DOM
+    document.addEventListener('htmx:afterSwap', (event) => {
         const esOscuro = document.documentElement.classList.contains('dark');
         sincronizarIconosTema(esOscuro);
+
+        // Bloquear scroll si el contenido intercambiado contiene o es un modal activo
+        const modalActivo = document.querySelector('[role="dialog"].flex:not(.hidden)');
+        if (modalActivo) {
+            document.body.classList.add('overflow-hidden');
+        }
     });
 
     // =========================================================================
@@ -333,6 +339,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form && !modal.dataset.preserveForm) {
             form.reset();
         }
+
+        // Limpiar errores visuales si los hubiera
+        const inputsConError = modal.querySelectorAll('.border-red-500');
+        inputsConError.forEach(input => {
+            input.classList.remove('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+            input.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+            input.setCustomValidity('');
+        });
+        const mensajesError = modal.querySelectorAll('.mensaje-error-campo');
+        mensajesError.forEach(msg => msg.remove());
 
         // Si el modal está contenido en un contenedor dinámico HTMX, limpiar el contenedor
         const contenedorDinamico = modal.closest('#contenedor-modal');

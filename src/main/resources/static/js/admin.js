@@ -121,8 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const filas = table.querySelectorAll('tbody tr');
 
             filas.forEach(fila => {
-                const texto = fila.textContent.toLowerCase();
-                if (texto.includes(termino)) {
+                const permisosExtra = fila.getAttribute('data-permisos') || '';
+                const textoCompleto = (fila.textContent + ' ' + permisosExtra).toLowerCase();
+                if (textoCompleto.includes(termino)) {
                     fila.style.display = '';
                 } else {
                     fila.style.display = 'none';
@@ -148,11 +149,11 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Configura dinámicamente las restricciones temporales en los calendarios nativos:
      * - Fecha de Nacimiento: entre 18 y 100 años respecto a hoy.
-     * - Fecha de Contratación: +- 1 mes respecto a hoy.
+     * - Fecha de Contratación: +- 1 mes respecto a hoy tanto en alta como en edición.
      */
-    function configurarRestriccionesFechasModalProfesor() {
-        const inputNacimiento = document.getElementById('profesor-nacimiento');
-        const inputContratacion = document.getElementById('profesor-fecha');
+    function configurarRestriccionesFechasModalProfesor(sufijo = '') {
+        const inputNacimiento = document.getElementById(`profesor-nacimiento${sufijo}`);
+        const inputContratacion = document.getElementById(`profesor-fecha${sufijo}`);
         const hoy = new Date();
 
         if (inputNacimiento) {
@@ -207,19 +208,151 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function validarFechaNacimientoProfesor() {
-        const input = document.getElementById('profesor-nacimiento');
+    function validarNombreProfesor(sufijo = '') {
+        const inputId = `profesor-nombre${sufijo}`;
+        const feedbackId = `feedback-nombre${sufijo}`;
+        const input = document.getElementById(inputId);
         if (!input) return true;
 
         const valor = input.value?.trim();
         if (!valor) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'La fecha de nacimiento es obligatoria.');
+            mostrarErrorCampo(inputId, feedbackId, 'El nombre es obligatorio.');
+            return false;
+        }
+        if (valor.length > 50) {
+            mostrarErrorCampo(inputId, feedbackId, 'El nombre no puede superar los 50 caracteres.');
+            return false;
+        }
+        limpiarErrorCampo(inputId, feedbackId);
+        return true;
+    }
+
+    function validarApellidosProfesor(sufijo = '') {
+        const inputId = `profesor-apellidos${sufijo}`;
+        const feedbackId = `feedback-apellidos${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'Los apellidos son obligatorios.');
+            return false;
+        }
+        if (valor.length > 100) {
+            mostrarErrorCampo(inputId, feedbackId, 'Los apellidos no pueden superar los 100 caracteres.');
+            return false;
+        }
+        limpiarErrorCampo(inputId, feedbackId);
+        return true;
+    }
+
+    function validarDniProfesor(sufijo = '') {
+        const inputId = `profesor-dni${sufijo}`;
+        const feedbackId = `feedback-dni${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim().toUpperCase();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'El DNI / NIE es obligatorio.');
+            return false;
+        }
+        const regexDni = /^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$/;
+        if (!regexDni.test(valor)) {
+            mostrarErrorCampo(inputId, feedbackId, 'El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
+            return false;
+        }
+        const feedback = document.getElementById(feedbackId);
+        if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+            limpiarErrorCampo(inputId, feedbackId);
+        }
+        return true;
+    }
+
+    function validarTelefonoProfesor(sufijo = '') {
+        const inputId = `profesor-telefono${sufijo}`;
+        const feedbackId = `feedback-telefono${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'El teléfono móvil es obligatorio.');
+            return false;
+        }
+        const regexTel = /^(\+34|0034)?[6789]\d{8}$/;
+        if (!regexTel.test(valor)) {
+            mostrarErrorCampo(inputId, feedbackId, 'El formato del teléfono no es válido (ej. 600123456).');
+            return false;
+        }
+        const feedback = document.getElementById(feedbackId);
+        if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+            limpiarErrorCampo(inputId, feedbackId);
+        }
+        return true;
+    }
+
+    function validarCorreoProfesor(sufijo = '') {
+        const inputId = `profesor-correo${sufijo}`;
+        const feedbackId = `feedback-correo${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'El correo electrónico es obligatorio.');
+            return false;
+        }
+        const regexCorreo = /^[A-Za-z0-9+_.-]+@(.+)$/;
+        if (!regexCorreo.test(valor)) {
+            mostrarErrorCampo(inputId, feedbackId, 'El formato del correo electrónico no es válido.');
+            return false;
+        }
+        if (valor.length > 50) {
+            mostrarErrorCampo(inputId, feedbackId, 'El correo no puede superar los 50 caracteres.');
+            return false;
+        }
+        const feedback = document.getElementById(feedbackId);
+        if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+            limpiarErrorCampo(inputId, feedbackId);
+        }
+        return true;
+    }
+
+    function validarDireccionProfesor(sufijo = '') {
+        const inputId = `profesor-direccion${sufijo}`;
+        const feedbackId = `feedback-direccion${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'La dirección de residencia es obligatoria.');
+            return false;
+        }
+        if (valor.length > 150) {
+            mostrarErrorCampo(inputId, feedbackId, 'La dirección no puede superar los 150 caracteres.');
+            return false;
+        }
+        limpiarErrorCampo(inputId, feedbackId);
+        return true;
+    }
+
+    function validarFechaNacimientoProfesor(sufijo = '') {
+        const inputId = `profesor-nacimiento${sufijo}`;
+        const feedbackId = `feedback-nacimiento${sufijo}`;
+        const input = document.getElementById(inputId);
+        if (!input) return true;
+
+        const valor = input.value?.trim();
+        if (!valor) {
+            mostrarErrorCampo(inputId, feedbackId, 'La fecha de nacimiento es obligatoria.');
             return false;
         }
 
         const partes = valor.split('-');
         if (partes.length !== 3) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'Formato de fecha inválido.');
+            mostrarErrorCampo(inputId, feedbackId, 'Formato de fecha inválido.');
             return false;
         }
 
@@ -229,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fechaNac = new Date(anio, mes, dia);
 
         if (isNaN(fechaNac.getTime())) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'Introduce una fecha de nacimiento válida.');
+            mostrarErrorCampo(inputId, feedbackId, 'Introduce una fecha de nacimiento válida.');
             return false;
         }
 
@@ -237,45 +370,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
 
         if (fechaNac > hoySinHora) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'La fecha de nacimiento debe ser una fecha pasada.');
+            mostrarErrorCampo(inputId, feedbackId, 'La fecha de nacimiento debe ser una fecha pasada.');
             return false;
         }
 
         const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
         if (fechaNac < hace100Anios) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'La fecha de nacimiento no puede ser anterior a hace 100 años.');
+            mostrarErrorCampo(inputId, feedbackId, 'La fecha de nacimiento no puede ser anterior a hace 100 años.');
             return false;
         }
 
         const fechaMinima18 = new Date(anio + 18, mes, dia);
         if (hoySinHora < fechaMinima18) {
-            mostrarErrorCampo('profesor-nacimiento', 'feedback-nacimiento', 'El profesor debe ser mayor de edad (al menos 18 años).');
+            mostrarErrorCampo(inputId, feedbackId, 'El profesor debe ser mayor de edad (al menos 18 años).');
             return false;
         }
 
-        limpiarErrorCampo('profesor-nacimiento', 'feedback-nacimiento');
+        limpiarErrorCampo(inputId, feedbackId);
         return true;
     }
 
-    function validarFechaContratacionProfesor() {
-        const input = document.getElementById('profesor-fecha');
+    function validarFechaContratacionProfesor(sufijo = '') {
+        const inputId = `profesor-fecha${sufijo}`;
+        const feedbackId = `feedback-fecha-contratacion${sufijo}`;
+        const input = document.getElementById(inputId);
         if (!input) return true;
 
         const valor = input.value?.trim();
         if (!valor) {
-            mostrarErrorCampo('profesor-fecha', 'feedback-fecha-contratacion', 'La fecha de contratación es obligatoria.');
+            mostrarErrorCampo(inputId, feedbackId, 'La fecha de contratación es obligatoria.');
             return false;
         }
 
         const partes = valor.split('-');
         if (partes.length !== 3) {
-            mostrarErrorCampo('profesor-fecha', 'feedback-fecha-contratacion', 'Formato de fecha inválido.');
+            mostrarErrorCampo(inputId, feedbackId, 'Formato de fecha inválido.');
             return false;
         }
 
         const fechaContrato = new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
         if (isNaN(fechaContrato.getTime())) {
-            mostrarErrorCampo('profesor-fecha', 'feedback-fecha-contratacion', 'Introduce una fecha de contratación válida.');
+            mostrarErrorCampo(inputId, feedbackId, 'Introduce una fecha de contratación válida.');
             return false;
         }
 
@@ -283,18 +418,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const hace1Mes = new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
         const en1Mes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate());
 
+        // Restricción a +- 1 mes respecto a la fecha actual tanto en alta como en edición
         if (fechaContrato < hace1Mes || fechaContrato > en1Mes) {
-            mostrarErrorCampo('profesor-fecha', 'feedback-fecha-contratacion', 'La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.');
+            mostrarErrorCampo(inputId, feedbackId, 'La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.');
             return false;
         }
 
-        limpiarErrorCampo('profesor-fecha', 'feedback-fecha-contratacion');
+        limpiarErrorCampo(inputId, feedbackId);
         return true;
     }
 
-    function validarPermisosProfesor() {
-        const checkboxes = document.querySelectorAll('#modal-alta-profesor input[name="permisos"]:checked');
-        const feedback = document.getElementById('feedback-permisos');
+    function validarPermisosProfesor(modalId = 'modal-alta-profesor', sufijo = '') {
+        const modal = document.getElementById(modalId);
+        if (!modal) return true;
+
+        const checkboxes = modal.querySelectorAll('input[name="permisos"]:checked');
+        const feedbackId = `feedback-permisos${sufijo}`;
+        const feedback = document.getElementById(feedbackId);
 
         if (checkboxes.length === 0) {
             if (feedback) {
@@ -316,9 +456,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    function validarCompatibilidadVehiculo() {
-        const selectVehiculo = document.getElementById('profesor-vehiculo');
-        const feedback = document.getElementById('feedback-vehiculo-compatibilidad');
+    function validarCompatibilidadVehiculo(modalId = 'modal-alta-profesor', sufijo = '') {
+        const selectId = `profesor-vehiculo${sufijo}`;
+        const feedbackId = `feedback-vehiculo-compatibilidad${sufijo}`;
+        const selectVehiculo = document.getElementById(selectId);
+        const feedback = document.getElementById(feedbackId);
         if (!selectVehiculo) return true;
 
         const selectedOption = selectVehiculo.options[selectVehiculo.selectedIndex];
@@ -335,7 +477,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Comprobar si entre los checkboxes de permisos marcados está el carnet del vehículo
-        const checkboxCarnet = document.querySelector(`#modal-alta-profesor input[name="permisos"][value="${tipoVehiculo}"]`);
+        const modal = document.getElementById(modalId);
+        const checkboxCarnet = modal ? modal.querySelector(`input[name="permisos"][value="${tipoVehiculo}"]`) : null;
         const estaMarcado = checkboxCarnet && checkboxCarnet.checked;
 
         if (!estaMarcado) {
@@ -365,54 +508,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    function validarFormularioAltaProfesor() {
-        const form = document.getElementById('form-alta-profesor');
+    function validarFormularioProfesor(formId, modalId, sufijo = '') {
+        const form = document.getElementById(formId);
         if (!form) return true;
 
-        // 1. Validaciones HTML5 de campos obligatorios
-        const inputs = form.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), select');
-        for (const input of inputs) {
-            if (!input.checkValidity()) {
-                input.reportValidity();
-                input.focus();
-                return false;
-            }
-        }
+        const vNombre = validarNombreProfesor(sufijo);
+        const vApellidos = validarApellidosProfesor(sufijo);
+        const vDni = validarDniProfesor(sufijo);
+        const vTelefono = validarTelefonoProfesor(sufijo);
+        const vCorreo = validarCorreoProfesor(sufijo);
+        const vNacimiento = validarFechaNacimientoProfesor(sufijo);
+        const vDireccion = validarDireccionProfesor(sufijo);
+        const vContratacion = validarFechaContratacionProfesor(sufijo);
+        const vPermisos = validarPermisosProfesor(modalId, sufijo);
+        const vVehiculo = validarCompatibilidadVehiculo(modalId, sufijo);
 
-        // 2. Validación de Fecha de Nacimiento
-        if (!validarFechaNacimientoProfesor()) {
-            const inputNac = document.getElementById('profesor-nacimiento');
-            if (inputNac) inputNac.focus();
-            return false;
-        }
-
-        // 3. Validación de Fecha de Contratación
-        if (!validarFechaContratacionProfesor()) {
-            const inputFecha = document.getElementById('profesor-fecha');
-            if (inputFecha) inputFecha.focus();
-            return false;
-        }
-
-        // 4. Validación de Permisos (al menos uno)
-        if (!validarPermisosProfesor()) {
-            return false;
-        }
-
-        // 5. Validación de Compatibilidad Vehículo - Permisos
-        if (!validarCompatibilidadVehiculo()) {
-            const selectVehiculo = document.getElementById('profesor-vehiculo');
-            if (selectVehiculo) selectVehiculo.focus();
-            return false;
-        }
-
-        // 6. Comprobar si existen mensajes de error asíncronos devueltos por HTMX
         const errorActivo = form.querySelector('.mensaje-error-campo');
-        if (errorActivo) {
-            const feedbackContainer = errorActivo.closest('[id^="feedback-"]');
-            if (feedbackContainer) {
-                const nombreCampo = feedbackContainer.id.replace('feedback-', '');
-                const inputAsociado = document.getElementById(`profesor-${nombreCampo}`);
-                if (inputAsociado) inputAsociado.focus();
+
+        if (!vNombre || !vApellidos || !vDni || !vTelefono || !vCorreo || !vNacimiento || !vDireccion || !vContratacion || !vPermisos || !vVehiculo || errorActivo) {
+            const primerInvalido = form.querySelector('.border-red-500') || form.querySelector(':invalid');
+            if (primerInvalido) {
+                primerInvalido.focus();
             }
             return false;
         }
@@ -420,46 +536,119 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    function inicializarEventosModalProfesor() {
-        configurarRestriccionesFechasModalProfesor();
+    function inicializarEventosModalProfesorGenerico(modalId, formId, sufijo = '') {
+        const modal = document.getElementById(modalId);
+        const form = document.getElementById(formId);
+        if (!modal && !form) return;
 
-        const inputNacimiento = document.getElementById('profesor-nacimiento');
-        if (inputNacimiento) {
-            inputNacimiento.addEventListener('change', validarFechaNacimientoProfesor);
-            inputNacimiento.addEventListener('blur', validarFechaNacimientoProfesor);
+        configurarRestriccionesFechasModalProfesor(sufijo);
+
+        if (form) {
+            if (form._eventosProfesorInicializados) return;
+            form._eventosProfesorInicializados = true;
         }
 
-        const inputContratacion = document.getElementById('profesor-fecha');
-        if (inputContratacion) {
-            inputContratacion.addEventListener('change', validarFechaContratacionProfesor);
-            inputContratacion.addEventListener('blur', validarFechaContratacionProfesor);
-        }
-
-        const selectVehiculo = document.getElementById('profesor-vehiculo');
-        if (selectVehiculo) {
-            selectVehiculo.addEventListener('change', validarCompatibilidadVehiculo);
-        }
-
-        // Escuchar cambios en los checkboxes de permisos para limpiar el error reactivamente
-        // y sincronizar la compatibilidad con el vehículo asignado
-        const modalProfesor = document.getElementById('modal-alta-profesor');
-        if (modalProfesor) {
-            modalProfesor.addEventListener('change', (e) => {
-                if (e.target && e.target.name === 'permisos') {
-                    validarPermisosProfesor();
-                    validarCompatibilidadVehiculo();
+        const inputNombre = document.getElementById(`profesor-nombre${sufijo}`);
+        if (inputNombre) {
+            inputNombre.addEventListener('blur', () => validarNombreProfesor(sufijo));
+            inputNombre.addEventListener('input', () => {
+                if (inputNombre.classList.contains('border-red-500') || inputNombre.value.trim()) {
+                    validarNombreProfesor(sufijo);
                 }
             });
         }
 
-        // Ejecutar validación inicial de compatibilidad por si el formulario se inicializa con vehículo y permisos preseleccionados
-        validarCompatibilidadVehiculo();
+        const inputApellidos = document.getElementById(`profesor-apellidos${sufijo}`);
+        if (inputApellidos) {
+            inputApellidos.addEventListener('blur', () => validarApellidosProfesor(sufijo));
+            inputApellidos.addEventListener('input', () => {
+                if (inputApellidos.classList.contains('border-red-500') || inputApellidos.value.trim()) {
+                    validarApellidosProfesor(sufijo);
+                }
+            });
+        }
 
-        // Interceptar el envío nativo del formulario
-        const form = document.getElementById('form-alta-profesor');
+        const inputDni = document.getElementById(`profesor-dni${sufijo}`);
+        if (inputDni) {
+            inputDni.addEventListener('blur', () => validarDniProfesor(sufijo));
+            inputDni.addEventListener('input', () => {
+                if (inputDni.classList.contains('border-red-500') || inputDni.value.trim()) {
+                    validarDniProfesor(sufijo);
+                }
+            });
+        }
+
+        const inputTelefono = document.getElementById(`profesor-telefono${sufijo}`);
+        if (inputTelefono) {
+            inputTelefono.addEventListener('blur', () => validarTelefonoProfesor(sufijo));
+            inputTelefono.addEventListener('input', () => {
+                if (inputTelefono.classList.contains('border-red-500') || inputTelefono.value.trim()) {
+                    validarTelefonoProfesor(sufijo);
+                }
+            });
+        }
+
+        const inputCorreo = document.getElementById(`profesor-correo${sufijo}`);
+        if (inputCorreo) {
+            inputCorreo.addEventListener('blur', () => validarCorreoProfesor(sufijo));
+            inputCorreo.addEventListener('input', () => {
+                if (inputCorreo.classList.contains('border-red-500') || inputCorreo.value.trim()) {
+                    validarCorreoProfesor(sufijo);
+                }
+            });
+        }
+
+        const inputNacimiento = document.getElementById(`profesor-nacimiento${sufijo}`);
+        if (inputNacimiento) {
+            inputNacimiento.addEventListener('change', () => validarFechaNacimientoProfesor(sufijo));
+            inputNacimiento.addEventListener('blur', () => validarFechaNacimientoProfesor(sufijo));
+            inputNacimiento.addEventListener('input', () => {
+                if (inputNacimiento.classList.contains('border-red-500')) {
+                    validarFechaNacimientoProfesor(sufijo);
+                }
+            });
+        }
+
+        const inputDireccion = document.getElementById(`profesor-direccion${sufijo}`);
+        if (inputDireccion) {
+            inputDireccion.addEventListener('blur', () => validarDireccionProfesor(sufijo));
+            inputDireccion.addEventListener('input', () => {
+                if (inputDireccion.classList.contains('border-red-500') || inputDireccion.value.trim()) {
+                    validarDireccionProfesor(sufijo);
+                }
+            });
+        }
+
+        const inputContratacion = document.getElementById(`profesor-fecha${sufijo}`);
+        if (inputContratacion) {
+            inputContratacion.addEventListener('change', () => validarFechaContratacionProfesor(sufijo));
+            inputContratacion.addEventListener('blur', () => validarFechaContratacionProfesor(sufijo));
+            inputContratacion.addEventListener('input', () => {
+                if (inputContratacion.classList.contains('border-red-500')) {
+                    validarFechaContratacionProfesor(sufijo);
+                }
+            });
+        }
+
+        const selectVehiculo = document.getElementById(`profesor-vehiculo${sufijo}`);
+        if (selectVehiculo) {
+            selectVehiculo.addEventListener('change', () => validarCompatibilidadVehiculo(modalId, sufijo));
+        }
+
+        if (modal) {
+            modal.addEventListener('change', (e) => {
+                if (e.target && e.target.name === 'permisos') {
+                    validarPermisosProfesor(modalId, sufijo);
+                    validarCompatibilidadVehiculo(modalId, sufijo);
+                }
+            });
+        }
+
+        validarCompatibilidadVehiculo(modalId, sufijo);
+
         if (form) {
             form.addEventListener('submit', (e) => {
-                if (!validarFormularioAltaProfesor()) {
+                if (!validarFormularioProfesor(formId, modalId, sufijo)) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
                 }
@@ -467,20 +656,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function inicializarEventosModalesProfesor() {
+        inicializarEventosModalProfesorGenerico('modal-alta-profesor', 'form-alta-profesor', '');
+        inicializarEventosModalProfesorGenerico('modal-editar-profesor', 'form-editar-profesor', '-editar');
+    }
+
     // Interceptar evento HTMX para abortar la petición si no pasa las validaciones de cliente
     document.body.addEventListener('htmx:confirm', (e) => {
         if (e.target && e.target.id === 'form-alta-profesor') {
-            if (!validarFormularioAltaProfesor()) {
+            if (!validarFormularioProfesor('form-alta-profesor', 'modal-alta-profesor', '')) {
+                e.preventDefault();
+            }
+        } else if (e.target && e.target.id === 'form-editar-profesor') {
+            if (!validarFormularioProfesor('form-editar-profesor', 'modal-editar-profesor', '-editar')) {
                 e.preventDefault();
             }
         }
     });
 
-    // Sincronizar clases visuales de inputs tras peticiones HTMX (/usuario/validar-*) y al reabrir el modal
+    // Sincronizar clases visuales de inputs tras peticiones HTMX (/usuario/validar-*) y al reabrir los modales
     document.body.addEventListener('htmx:afterSwap', (event) => {
         const targetId = event.detail.target?.id;
 
-        // Feedback de campos individuales (soporta tanto modales profesor-... como perfil admin)
+        // Feedback de campos individuales (soporta modales alta/edición profesor y perfil admin)
         if (targetId && targetId.startsWith('feedback-')) {
             const campoNombre = targetId.replace('feedback-', '');
             const input = document.getElementById(`profesor-${campoNombre}`) || document.getElementById(campoNombre);
@@ -497,9 +695,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Si HTMX re-renderizó el modal por completo tras validaciones del servidor
-        if (targetId === 'modal-alta-profesor' || event.detail.target?.querySelector('#form-alta-profesor')) {
-            inicializarEventosModalProfesor();
+        // Si HTMX re-renderizó el modal de alta o edición
+        if (targetId === 'contenedor-modal-alta-profesor' || targetId === 'modal-alta-profesor' || event.detail.target?.querySelector('#form-alta-profesor')) {
+            inicializarEventosModalProfesorGenerico('modal-alta-profesor', 'form-alta-profesor', '');
+        }
+
+        if (targetId === 'contenedor-modal-editar-profesor' || targetId === 'modal-editar-profesor' || event.detail.target?.querySelector('#form-editar-profesor')) {
+            inicializarEventosModalProfesorGenerico('modal-editar-profesor', 'form-editar-profesor', '-editar');
         }
     });
 
@@ -715,6 +917,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    inicializarEventosModalProfesor();
+    inicializarEventosModalesProfesor();
     inicializarValidacionesPerfilAdmin();
 });

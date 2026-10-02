@@ -21,6 +21,7 @@ import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -65,6 +66,13 @@ public class ProfesorService
         if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
         {
             throw new ReglaNegocioException("El profesor debe ser mayor de edad (al menos 18 años).");
+        }
+
+        LocalDate haceUnMesAlta = LocalDate.now().minusMonths(1);
+        LocalDate enUnMesAlta = LocalDate.now().plusMonths(1);
+        if (dto.fechaContratacion() == null || dto.fechaContratacion().isBefore(haceUnMesAlta) || dto.fechaContratacion().isAfter(enUnMesAlta))
+        {
+            throw new ReglaNegocioException("La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.");
         }
 
         if (dto.permisos() == null || dto.permisos().isEmpty())
@@ -179,6 +187,25 @@ public class ProfesorService
     }
 
     /**
+     * Obtiene la totalidad de los datos informativos del profesor para su visualización
+     * en el modal de detalle del panel de administración.
+     *
+     * @param id Identificador único del profesor.
+     * @return DTO inmutable poblado con datos personales, contractuales, antigüedad y flota asignada.
+     */
+    @Transactional(readOnly = true)
+    public ProfesorDetalleDTO obtenerProfesorParaDetalle(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador del profesor no puede ser nulo.");
+        }
+        Profesor profesor = this.profesorRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + id));
+        return this.profesorMapper.toProfesorDetalleDTO(profesor);
+    }
+
+    /**
      * Modifica los datos de un profesor existente aplicando las mismas restricciones de negocio
      * que en el alta, asegurando la unicidad de datos y la regla 7.3 (asignación 1 a 1 de flota y compatibilidad de carnet).
      *
@@ -211,9 +238,11 @@ public class ProfesorService
             throw new ReglaNegocioException("La fecha de contratación no puede ser anterior a la fecha en que el profesor cumplió la mayoría de edad.");
         }
 
-        if (dto.fechaContratacion().isAfter(LocalDate.now().plusMonths(1)))
+        LocalDate haceUnMesMod = LocalDate.now().minusMonths(1);
+        LocalDate enUnMesMod = LocalDate.now().plusMonths(1);
+        if (dto.fechaContratacion().isBefore(haceUnMesMod) || dto.fechaContratacion().isAfter(enUnMesMod))
         {
-            throw new ReglaNegocioException("La fecha de contratación no puede situarse a más de 1 mes en el futuro.");
+            throw new ReglaNegocioException("La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.");
         }
 
         if (dto.permisos() == null || dto.permisos().isEmpty())

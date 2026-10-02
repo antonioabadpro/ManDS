@@ -393,4 +393,95 @@ class AltaProfesorIntegrationTest
                 .andExpect(model().attribute("abrirModalAltaProfesor", true))
                 .andExpect(model().attribute("errorAltaProfesor", containsString("El profesor no cuenta con el Permiso A2 requerido")));
     }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con fecha de contratación anterior a 1 mes falla por validación de backend")
+    void testAltaProfesorFechaContratacionAntiguaFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Antiguo")
+                .param("apellidos", "Docente")
+                .param("dni", "98765432W")
+                .param("fechaNacimiento", "1990-05-15")
+                .param("correo", "antiguo@autoescuela.es")
+                .param("telefono", "611222336")
+                .param("direccion", "Calle Pasada 1")
+                .param("fechaContratacion", LocalDate.now().minusMonths(2).toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar con fecha de contratación anterior a 1 mes falla por validación de backend")
+    void testEditarProfesorFechaContratacionAntiguaFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "2")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789B")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", LocalDate.now().minusMonths(2).toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attribute("abrirModalEditarProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar con fecha de contratación posterior a 1 mes falla por validación de backend")
+    void testEditarProfesorFechaContratacionFuturaFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "2")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789B")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", LocalDate.now().plusMonths(2).toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attribute("abrirModalEditarProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar con fecha de contratación dentro del rango +- 1 mes tiene éxito")
+    void testEditarProfesorFechaContratacionValidaExito() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "2")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789B")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", LocalDate.now().toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/profesores"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
 }

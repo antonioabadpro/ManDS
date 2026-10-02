@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -95,6 +96,25 @@ public interface ProfesorMapper
     @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
     @Mapping(target = "permisos", source = "listaTiposCarnet")
     EditarProfesorDTO toEditarProfesorDTO(Profesor profesor);
+
+    /**
+     * Mapea una entidad Profesor a su DTO de detalle completo para la visualización en el modal de ficha del docente.
+     *
+     * @param profesor Entidad del docente.
+     * @return DTO inmutable con datos personales, laborales, antigüedad calculada y flota asignada.
+     */
+    @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
+    @Mapping(target = "iniciales", expression = "java(calcularIniciales(profesor))")
+    @Mapping(target = "edad", expression = "java(profesor.getFechaNacimiento() != null ? java.time.Period.between(profesor.getFechaNacimiento(), java.time.LocalDate.now()).getYears() : null)")
+    @Mapping(target = "anioContratacion", expression = "java(profesor.getFechaContratacion() != null ? profesor.getFechaContratacion().getYear() : null)")
+    @Mapping(target = "antiguedadAnios", expression = "java(profesor.getFechaContratacion() != null ? java.time.Period.between(profesor.getFechaContratacion(), java.time.LocalDate.now()).getYears() : 0)")
+    @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
+    @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : null)")
+    @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : null)")
+    @Mapping(target = "vehiculoTipoDescripcion", expression = "java(profesor.getVehiculo() != null && profesor.getVehiculo().getTipo() != null ? profesor.getVehiculo().getTipo().getDescripcion() : null)")
+    @Mapping(target = "permisos", source = "listaTiposCarnet")
+    @Mapping(target = "totalAlumnos", expression = "java(profesor.getListaAlumnos() != null ? profesor.getListaAlumnos().size() : 0)")
+    ProfesorDetalleDTO toProfesorDetalleDTO(Profesor profesor);
 
     /**
      * Calcula las iniciales del nombre y primer apellido de un docente para el avatar.

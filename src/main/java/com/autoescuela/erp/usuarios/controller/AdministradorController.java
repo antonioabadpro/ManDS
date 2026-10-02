@@ -29,6 +29,7 @@ import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
@@ -210,6 +211,19 @@ public class AdministradorController
         model.addAttribute("abrirModalEditarProfesor", true);
 
         return "fragments/modal-editar-profesor :: modal-editar-profesor";
+    }
+
+    /**
+     * Endpoint HTMX para cargar y presentar los datos informativos del profesor en el modal de detalle.
+     */
+    @GetMapping("/profesores/detalle/{id}")
+    public String cargarModalDetalleProfesor(@PathVariable("id") Long id, Model model)
+    {
+        ProfesorDetalleDTO dto = this.profesorService.obtenerProfesorParaDetalle(id);
+        model.addAttribute("profesor", dto);
+        model.addAttribute("abrirModalDetalleProfesor", true);
+
+        return "fragments/modal-detalle-profesor :: modal-detalle-profesor";
     }
 
     /**

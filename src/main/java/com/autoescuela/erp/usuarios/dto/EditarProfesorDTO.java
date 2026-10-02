@@ -122,15 +122,17 @@ public record EditarProfesorDTO(
     }
 
     /**
-     * Valida que la fecha de contratación no se sitúe más de 1 mes en el futuro.
+     * Valida que la fecha de contratación esté acotada a +- 1 mes respecto a la fecha actual.
      */
-    @AssertTrue(message = "La fecha de contratación no puede situarse a más de 1 mes en el futuro.")
-    public boolean isFechaContratacionNoFuturaExcesiva()
+    @AssertTrue(message = "La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.")
+    public boolean isFechaContratacionEnRango()
     {
         if (this.fechaContratacion == null)
         {
             return true;
         }
-        return !this.fechaContratacion.isAfter(LocalDate.now().plusMonths(1));
+        LocalDate haceUnMes = LocalDate.now().minusMonths(1);
+        LocalDate enUnMes = LocalDate.now().plusMonths(1);
+        return !this.fechaContratacion.isBefore(haceUnMes) && !this.fechaContratacion.isAfter(enUnMes);
     }
 }
