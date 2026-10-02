@@ -79,6 +79,7 @@ class UsuarioServiceTest
         when(this.personaRepository.existsByTelefonoAndIdNot("611223344", 1L)).thenReturn(true);
 
         EditarPerfilAdminDTO dto = EditarPerfilAdminDTO.builder()
+                .dni("12345678Z")
                 .telefono("611223344")
                 .nombre("Nuevo Nombre")
                 .apellidos("Nuevos Apellidos")
@@ -100,6 +101,7 @@ class UsuarioServiceTest
         when(this.personaRepository.existsByTelefonoAndIdNot("611223344", 1L)).thenReturn(false);
 
         EditarPerfilAdminDTO dto = EditarPerfilAdminDTO.builder()
+                .dni("12345678Z")
                 .telefono("611223344")
                 .nombre("Carlos Modificado")
                 .apellidos("García Moreno")

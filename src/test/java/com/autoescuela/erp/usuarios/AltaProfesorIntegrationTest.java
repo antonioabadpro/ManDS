@@ -145,7 +145,7 @@ class AltaProfesorIntegrationTest
                 .param("correo", nuevoCorreo)
                 .param("telefono", "699887766")
                 .param("direccion", "Calle de la Primavera 12, Madrid")
-                .param("fechaContratacion", "2026-09-01")
+                .param("fechaContratacion", LocalDate.now().toString())
                 .param("turno", "TARDE")
                 .param("vehiculoId", "3")
                 .param("permisos", "PERMISO_B", "PERMISO_A2"))
@@ -161,7 +161,7 @@ class AltaProfesorIntegrationTest
         assertEquals("Roberto", profesor.getNombre());
         assertEquals("Gómez Bolaños", profesor.getApellidos());
         assertEquals(TipoTurno.TARDE, profesor.getTurno());
-        assertEquals(LocalDate.of(2026, 9, 1), profesor.getFechaContratacion());
+        assertEquals(LocalDate.now(), profesor.getFechaContratacion());
         assertNotNull(profesor.getPassword(), "Debe poseer una contraseña provisional no nula.");
         assertNotNull(profesor.getNombreUsuario(), "Debe poseer un nombre de usuario provisional.");
         assertTrue(profesor.getListaTiposCarnet().contains(TipoCarnet.PERMISO_B));
@@ -198,7 +198,7 @@ class AltaProfesorIntegrationTest
                 .param("correo", "otro.correo@autoescuela.es")
                 .param("telefono", "611000111")
                 .param("direccion", "Calle Falsa 123")
-                .param("fechaContratacion", "2026-09-01")
+                .param("fechaContratacion", LocalDate.now().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())

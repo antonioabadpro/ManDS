@@ -215,6 +215,7 @@ class VistaAdminTest
     {
         this.mockMvc.perform(post("/admin/perfil")
                 .with(csrf())
+                .param("dni", "00000000T")
                 .param("nombre", "Carlos Modificado")
                 .param("apellidos", "García Moreno")
                 .param("telefono", "611223344")

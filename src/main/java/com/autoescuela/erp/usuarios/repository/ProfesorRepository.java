@@ -1,13 +1,25 @@
 package com.autoescuela.erp.usuarios.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
 public interface ProfesorRepository extends JpaRepository<Profesor, Long>
 {
+    /**
+     * Recupera todos los profesores ordenados alfabéticamente por nombre y apellidos.
+     */
+    List<Profesor> findAllByOrderByNombreAscApellidosAsc();
+
+    /**
+     * Cuenta el número de profesores adscritos a un turno específico.
+     */
+    long countByTurno(TipoTurno turno);
+
     /**
      * Cuenta el número de profesores en un estado determinado.
      */

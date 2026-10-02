@@ -39,4 +39,11 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
      * Recupera los primeros 5 vehículos ordenados por ID para el resumen del dashboard.
      */
     List<Vehiculo> findTop5ByOrderByIdAsc();
+
+    /**
+     * Busca un vehículo asignado a un profesor específico.
+     * @param profesorId El ID del profesor.
+     * @return Optional con el Vehículo asignado al profesor o vacío si no existe.
+     */
+    Optional<Vehiculo> findByProfesorId(Long profesorId);
 }

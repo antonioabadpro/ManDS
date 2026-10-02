@@ -1,5 +1,6 @@
 package com.autoescuela.erp.flota.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -24,6 +25,26 @@ public class FlotaService
     public List<Vehiculo> obtenerVehiculosDisponiblesParaProfesor()
     {
         return this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE);
+    }
+
+    /**
+     * Obtiene los vehículos para el formulario de edición de profesor: los disponibles
+     * más el vehículo actualmente asignado al propio profesor si posee uno.
+     */
+    @Transactional(readOnly = true)
+    public List<Vehiculo> obtenerVehiculosParaEdicionProfesor(Long profesorId)
+    {
+        List<Vehiculo> vehiculos = new ArrayList<>(this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
+        if (profesorId != null)
+        {
+            this.vehiculoRepository.findByProfesorId(profesorId).ifPresent(vehiculo -> {
+                if (!vehiculos.contains(vehiculo))
+                {
+                    vehiculos.add(0, vehiculo);
+                }
+            });
+        }
+        return vehiculos;
     }
 
     /**

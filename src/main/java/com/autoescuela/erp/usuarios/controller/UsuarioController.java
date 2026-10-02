@@ -56,7 +56,7 @@ public class UsuarioController
      * Endpoint HTMX para validar de forma temprana el formato y unicidad del correo electrónico.
      */
     @PostMapping("/validar-correo")
-    public String validarCorreo(@RequestParam(name = "correo", required = false) String correo, Model model)
+    public String validarCorreo(@RequestParam(name = "correo", required = false) String correo, @RequestParam(name = "id", required = false) Long id, @RequestParam(name = "usuarioId", required = false) Long usuarioId, Model model)
     {
         if (correo == null || correo.isBlank())
         {
@@ -71,7 +71,8 @@ public class UsuarioController
             return "auth/registro :: mensaje-error";
         }
 
-        if (this.usuarioService.existeCorreo(limpio))
+        Long idExcluir = id != null ? id : usuarioId;
+        if (this.usuarioService.existeCorreoOtroUsuario(limpio, idExcluir))
         {
             model.addAttribute("mensaje", "El correo electrónico ya está registrado en el sistema.");
             return "auth/registro :: mensaje-error";
@@ -84,10 +85,7 @@ public class UsuarioController
      * Endpoint HTMX para validar de forma temprana el formato y unicidad del DNI/NIE.
      */
     @PostMapping("/validar-dni")
-    public String validarDni(@RequestParam(name = "dni", required = false) String dni,
-                             @RequestParam(name = "id", required = false) Long id,
-                             @RequestParam(name = "usuarioId", required = false) Long usuarioId,
-                             Model model)
+    public String validarDni(@RequestParam(name = "dni", required = false) String dni, @RequestParam(name = "id", required = false) Long id, @RequestParam(name = "usuarioId", required = false) Long usuarioId, Model model)
     {
         if (dni == null || dni.isBlank())
         {
@@ -113,10 +111,7 @@ public class UsuarioController
     }
 
     @PostMapping("/validar-telefono")
-    public String validarTelefono(@RequestParam(name = "telefono", required = false) String telefono,
-                                  @RequestParam(name = "id", required = false) Long id,
-                                  @RequestParam(name = "usuarioId", required = false) Long usuarioId,
-                                  Model model)
+    public String validarTelefono(@RequestParam(name = "telefono", required = false) String telefono, @RequestParam(name = "id", required = false) Long id, @RequestParam(name = "usuarioId", required = false) Long usuarioId, Model model)
     {
         if (telefono == null || telefono.isBlank())
         {

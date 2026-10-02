@@ -5,11 +5,13 @@ import org.mapstruct.Mapping;
 
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
 /**
  * Mapeador de MapStruct para transformaciones estructurales entre la entidad
- * {@link Profesor} y sus DTOs asociados (como {@link AltaProfesorDTO} y {@link EditarPerfilProfesorDTO}).
+ * {@link Profesor} y sus DTOs asociados (como {@link AltaProfesorDTO}, {@link EditarProfesorDTO} y {@link ProfesorResumenDTO}).
  */
 @Mapper(componentModel = "spring")
 public interface ProfesorMapper
@@ -66,4 +68,50 @@ public interface ProfesorMapper
     @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : \"\")")
     @Mapping(target = "permisos", source = "profesor.listaTiposCarnet")
     EditarPerfilProfesorDTO repoblarPerfilDTO(Profesor profesor, EditarPerfilProfesorDTO dto);
+
+    /**
+     * Mapea una entidad Profesor a su DTO de resumen para el listado reactivo del panel de administración.
+     *
+     * @param profesor Entidad del docente.
+     * @return DTO inmutable para presentación en la tabla.
+     */
+    @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
+    @Mapping(target = "iniciales", expression = "java(calcularIniciales(profesor))")
+    @Mapping(target = "anioContratacion", expression = "java(profesor.getFechaContratacion() != null ? profesor.getFechaContratacion().getYear() : null)")
+    @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
+    @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : null)")
+    @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : null)")
+    @Mapping(target = "vehiculoDescripcion", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() + \" (\" + profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() + \")\" : \"Sin vehículo asignado\")")
+    @Mapping(target = "permisos", source = "listaTiposCarnet")
+    @Mapping(target = "totalAlumnos", expression = "java(profesor.getListaAlumnos() != null ? profesor.getListaAlumnos().size() : 0)")
+    ProfesorResumenDTO toProfesorResumenDTO(Profesor profesor);
+
+    /**
+     * Mapea una entidad Profesor a su DTO de edición completa para el modal de administración.
+     *
+     * @param profesor Entidad del docente a editar.
+     * @return DTO poblado con los datos actuales del profesor.
+     */
+    @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
+    @Mapping(target = "permisos", source = "listaTiposCarnet")
+    EditarProfesorDTO toEditarProfesorDTO(Profesor profesor);
+
+    /**
+     * Calcula las iniciales del nombre y primer apellido de un docente para el avatar.
+     */
+    default String calcularIniciales(Profesor profesor)
+    {
+        if (profesor == null)
+        {
+            return "PR";
+        }
+        String n = (profesor.getNombre() != null && !profesor.getNombre().isBlank())
+                ? profesor.getNombre().trim().substring(0, 1).toUpperCase()
+                : "";
+        String a = (profesor.getApellidos() != null && !profesor.getApellidos().isBlank())
+                ? profesor.getApellidos().trim().substring(0, 1).toUpperCase()
+                : "";
+        String res = n + a;
+        return res.isBlank() ? "PR" : res;
+    }
 }

@@ -45,6 +45,14 @@
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
+            <!-- Mensajes Flash de Feedback -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${mensajeExito}">Operación completada con éxito.</p>
+            </div>
+
             <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
             <div class="lg:hidden space-y-1">
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gestión de Profesores</h1>
@@ -55,7 +63,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">Equipo Docente</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: 2 profesores en plantilla (Turno Matinal y Tarde)</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalProfesores != null ? totalProfesores : #lists.size(profesores)}">0</span> profesores en plantilla (<span th:text="|${totalMatinal != null ? totalMatinal : 0} Turno Matinal y ${totalTarde != null ? totalTarde : 0} Tarde|">0 Turno Matinal y 0 Tarde</span>)</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative w-full sm:w-64">
@@ -92,105 +100,67 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <!-- Profesor 1 -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center shrink-0">
-                                            LS
-                                        </div>
-                                        <div>
-                                            <p class="font-semibold text-slate-900 dark:text-white">Laura Sánchez Romero</p>
-                                            <p class="text-[11px] text-slate-400">DNI: 23456789B · Desde 2022</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <p class="font-medium text-slate-800 dark:text-slate-200">laura.profesor@autoescuela.es</p>
-                                    <p class="text-[11px] text-slate-400">Tel: 600222333</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">MATINAL</span>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5 font-medium text-slate-900 dark:text-white">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span>1234-LMN (SEAT Ibiza)</span>
-                                    </div>
-                                    <p class="text-[10px] text-slate-400">1 vehículo asignado (Regla 7.3)</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex flex-wrap gap-1">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Permiso B</span>
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Permiso A2</span>
-                                    </div>
-                                </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                    2 alumnos
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACTIVO</span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-profesor" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Editar profesor y vehículo">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" data-modal-target="modal-baja-profesor" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition" title="Baja lógica (Regla 7.3)">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
+                            <!-- Fila de Estado Vacío -->
+                            <tr th:if="${#lists.isEmpty(profesores)}">
+                                <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                                    No hay profesores registrados actualmente en el sistema.
                                 </td>
                             </tr>
 
-                            <!-- Profesor 2 -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                            <!-- Iteración dinámica de profesores desde la base de datos -->
+                            <tr th:each="p : ${profesores}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
                                 <td class="py-3 px-4">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center shrink-0">
-                                            MN
+                                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center shrink-0" th:text="${p.iniciales}">
+                                            LS
                                         </div>
                                         <div>
-                                            <p class="font-semibold text-slate-900 dark:text-white">Manuel Navarro Torres</p>
-                                            <p class="text-[11px] text-slate-400">DNI: 34567890C · Desde 2023</p>
+                                            <p class="font-semibold text-slate-900 dark:text-white" th:text="${p.nombreCompleto}">Laura Sánchez Romero</p>
+                                            <p class="text-[11px] text-slate-400" th:text="|DNI: ${p.dni} · Desde ${p.anioContratacion != null ? p.anioContratacion : '-'}|">DNI: 23456789B · Desde 2022</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <p class="font-medium text-slate-800 dark:text-slate-200">manuel.profesor@autoescuela.es</p>
-                                    <p class="text-[11px] text-slate-400">Tel: 600333444</p>
+                                    <p class="font-medium text-slate-800 dark:text-slate-200" th:text="${p.correo}">laura.profesor@autoescuela.es</p>
+                                    <p class="text-[11px] text-slate-400" th:text="|Tel: ${p.telefono}|">Tel: 600222333</p>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">TARDE</span>
+                                    <span th:if="${p.turno?.name() == 'MATINAL'}" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">MATINAL</span>
+                                    <span th:if="${p.turno?.name() == 'TARDE'}" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">TARDE</span>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5 font-medium text-slate-900 dark:text-white">
+                                    <div th:if="${p.vehiculoMatricula != null}" class="flex items-center space-x-1.5 font-medium text-slate-900 dark:text-white">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span>5678-KPR (Renault Clio)</span>
+                                        <span th:text="${p.vehiculoModelo}"></span>
                                     </div>
-                                    <p class="text-[10px] text-slate-400">1 vehículo asignado (Regla 7.3)</p>
+                                    <div>
+                                        <span th:text="${p.vehiculoMatricula}"></span>
+                                    </div>
+                                    <div th:if="${p.vehiculoMatricula == null}" class="flex items-center space-x-1.5 font-medium text-slate-400 dark:text-slate-500">
+                                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                        <span>Sin vehículo asignado</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400" th:if="${p.vehiculoMatricula == null}">Disponible para asignación</p>
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex flex-wrap gap-1">
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Permiso B</span>
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Permiso C</span>
+                                        <span th:each="carnet : ${p.permisos}" th:text="${carnet.descripcion}" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Permiso B</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                    1 alumno
+                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white" th:text="|${p.totalAlumnos} alumnos|">
+                                    2 alumnos
                                 </td>
                                 <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACTIVO</span>
+                                    <span th:if="${p.estado?.name() == 'ACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACTIVO</span>
+                                    <span th:if="${p.estado?.name() != 'ACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400">INACTIVO</span>
                                 </td>
                                 <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-profesor" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Editar profesor y vehículo">
+                                    <button type="button" th:attr="hx-get=@{/admin/profesores/editar/{id}(id=${p.id})}" hx-target="#contenedor-modal-editar-profesor" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Editar profesor y vehículo">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
-                                    <button type="button" data-modal-target="modal-baja-profesor" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition" title="Baja lógica (Regla 7.3)">
+                                    <button type="button" data-modal-target="modal-baja-profesor" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition cursor-pointer" title="Baja lógica (Regla 7.3)">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -206,75 +176,13 @@
     </div>
 
     <!-- Modal 1: Alta de Nuevo Profesor (Fragmento Reutilizable) -->
-    <div th:replace="~{fragments/modal-alta-profesor}"></div>
+    <div id="contenedor-modal-alta-profesor">
+        <div th:replace="~{fragments/modal-alta-profesor :: modal-alta-profesor}"></div>
+    </div>
 
-    <!-- Modal 2: Editar Profesor y Asignación de Vehículo (1 a 1) -->
-    <div id="modal-editar-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-editar" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
-        <div class="relative z-10 w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div class="space-y-1">
-                    <h3 id="titulo-modal-editar" class="text-lg font-bold text-slate-900 dark:text-white">Modificar Profesor y Vehículo</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Asignación estricta de 1 vehículo por docente (Regla 7.3).</p>
-                </div>
-                <button type="button" data-modal-close="modal-editar-profesor" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <form action="#" method="post" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre Completo</label>
-                        <input type="text" value="Laura Sánchez Romero" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm text-slate-500 cursor-not-allowed" disabled />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Turno Laboral</label>
-                        <select name="turno" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white">
-                            <option value="MATINAL" selected>Turno Matinal</option>
-                            <option value="TARDE">Turno de Tarde</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Asignación de Vehículo (1 a 1) -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Vehículo Asignado (Relación 1 a 1)</label>
-                    <select name="vehiculoId" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600">
-                        <option value="1" selected>1234-LMN · SEAT Ibiza (Actual)</option>
-                        <option value="3">9012-HJK · Yamaha MT-07 (Disponible)</option>
-                        <option value="">-- Desvincular Vehículo (Dejar Libre) --</option>
-                    </select>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Al desvincularlo, el coche pasa a estado DISPONIBLE para otros profesores.</p>
-                </div>
-
-                <!-- Permisos Autorizados -->
-                <div>
-                    <span class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Permisos Autorizados</span>
-                    <div class="grid grid-cols-3 gap-2 text-xs">
-                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                            <input type="checkbox" name="permisos" value="PERMISO_B" checked class="rounded text-blue-600">
-                            <span>Permiso B</span>
-                        </label>
-                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                            <input type="checkbox" name="permisos" value="PERMISO_A2" checked class="rounded text-blue-600">
-                            <span>Permiso A2</span>
-                        </label>
-                        <label class="flex items-center space-x-2 p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
-                            <input type="checkbox" name="permisos" value="PERMISO_C" class="rounded text-blue-600">
-                            <span>Permiso C</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
-                    <button type="button" data-modal-close="modal-editar-profesor" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm transition">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
+    <!-- Modal 2: Editar Profesor y Asignación de Vehículo (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-editar-profesor">
+        <div th:replace="~{fragments/modal-editar-profesor :: modal-editar-profesor}"></div>
     </div>
 
     <!-- Modal 3: Baja Lógica de Profesor (Regla 7.3) -->

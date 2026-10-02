@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +28,8 @@ import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
+import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
 
@@ -165,7 +169,8 @@ public class AdministradorController
     }
 
     /**
-     * Muestra la vista de gestión de profesores con carga de flota disponible, catálogo de carnets y turnos.
+     * Muestra la vista de gestión de profesores con carga en tiempo real de todo el profesorado de la BD,
+     * catálogos de flota, carnets y turnos.
      */
     @GetMapping("/profesores")
     public String mostrarProfesores(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
@@ -175,9 +180,109 @@ public class AdministradorController
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
 
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerTodosLosProfesores();
+        model.addAttribute("profesores", profesores);
+        model.addAttribute("totalProfesores", profesores.size());
+        model.addAttribute("totalMatinal", profesores.stream().filter(p -> p.turno() == TipoTurno.MATINAL).count());
+        model.addAttribute("totalTarde", profesores.stream().filter(p -> p.turno() == TipoTurno.TARDE).count());
+
         cargarCatalogosAltaProfesor(model);
 
+        if (!model.containsAttribute("editarProfesorDTO"))
+        {
+            model.addAttribute("editarProfesorDTO", new EditarProfesorDTO());
+        }
+
         return "admin/profesores";
+    }
+
+    /**
+     * Endpoint HTMX para cargar los datos del profesor en el modal de edición.
+     */
+    @GetMapping("/profesores/editar/{id}")
+    public String cargarModalEditarProfesor(@PathVariable("id") Long id, Model model)
+    {
+        EditarProfesorDTO dto = this.profesorService.obtenerProfesorParaEdicion(id);
+        model.addAttribute("editarProfesorDTO", dto);
+        model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(id));
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
+        model.addAttribute("turnos", TipoTurno.values());
+        model.addAttribute("abrirModalEditarProfesor", true);
+
+        return "fragments/modal-editar-profesor :: modal-editar-profesor";
+    }
+
+    /**
+     * Procesa la modificación de los datos de un profesor existente.
+     */
+    @PostMapping("/profesores/editar")
+    public String editarProfesor(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("editarProfesorDTO") EditarProfesorDTO editarProfesorDTO, BindingResult bindingResult, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        if (bindingResult.hasErrors())
+        {
+            Long profesorId = editarProfesorDTO != null ? editarProfesorDTO.id() : null;
+            model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
+            model.addAttribute("tiposCarnet", TipoCarnet.values());
+            model.addAttribute("turnos", TipoTurno.values());
+            model.addAttribute("abrirModalEditarProfesor", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-editar-profesor :: modal-editar-profesor";
+            }
+            cargarCatalogosAltaProfesor(model);
+            model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
+            return "admin/profesores";
+        }
+
+        try
+        {
+            this.profesorService.modificarProfesor(editarProfesorDTO);
+            String mensajeExito = "El profesor " + editarProfesorDTO.nombre() + " " + editarProfesorDTO.apellidos()
+                    + " ha sido modificado correctamente.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/profesores";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/profesores";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            Long profesorId = editarProfesorDTO != null ? editarProfesorDTO.id() : null;
+            model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
+            model.addAttribute("tiposCarnet", TipoCarnet.values());
+            model.addAttribute("turnos", TipoTurno.values());
+            model.addAttribute("errorEditarProfesor", ex.getMessage());
+            model.addAttribute("abrirModalEditarProfesor", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-editar-profesor :: modal-editar-profesor";
+            }
+            cargarCatalogosAltaProfesor(model);
+            model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
+            return "admin/profesores";
+        }
     }
 
     /**

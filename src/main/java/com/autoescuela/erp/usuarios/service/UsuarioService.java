@@ -57,6 +57,23 @@ public class UsuarioService
     }
 
     /**
+     * Comprueba si un correo ya está registrado por otro usuario (distinto ID).
+     */
+    @Transactional(readOnly = true)
+    public boolean existeCorreoOtroUsuario(String correo, Long id)
+    {
+        if (correo == null || correo.isBlank())
+        {
+            return false;
+        }
+        if (id == null)
+        {
+            return existeCorreo(correo);
+        }
+        return this.personaRepository.existsByCorreoAndIdNot(correo.trim().toLowerCase(), id);
+    }
+
+    /**
      * Comprueba si un DNI/NIE ya está registrado en el sistema.
      *
      * @param dni DNI/NIE a comprobar.
