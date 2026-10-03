@@ -26,6 +26,11 @@ public interface ExamenRepository extends JpaRepository<Examen, Long>
     List<Examen> findByAlumnoOrderByFechaHoraDesc(Alumno alumno);
 
     /**
+     * Recupera los últimos 2 exámenes oficiales realizados por un alumno ordenados por fecha y hora descendente.
+     */
+    List<Examen> findTop2ByAlumnoOrderByFechaHoraDesc(Alumno alumno);
+
+    /**
      * Contabiliza los exámenes aprobados (esApto = true) de un alumno.
      */
     long countByAlumnoAndEsAptoTrue(Alumno alumno);

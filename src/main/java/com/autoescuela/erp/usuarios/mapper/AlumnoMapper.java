@@ -1,12 +1,20 @@
 package com.autoescuela.erp.usuarios.mapper;
 
+import java.util.List;
+import java.util.Locale;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.examenes.model.Examen;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
+import com.autoescuela.erp.usuarios.dto.ClasePracticaExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
+import com.autoescuela.erp.usuarios.dto.ExamenExpedienteDTO;
 import com.autoescuela.erp.usuarios.model.Alumno;
 
 /**
@@ -107,6 +115,50 @@ public interface AlumnoMapper
     AlumnoDetalleDTO toAlumnoDetalleDTO(Alumno alumno, Matricula matriculaActiva);
 
     /**
+     * Mapea una clase práctica a su DTO de resumen para el expediente del alumno.
+     */
+    @Mapping(target = "id", source = "clase.id")
+    @Mapping(target = "fechaHora", source = "clase.fechaHora")
+    @Mapping(target = "duracion", source = "clase.duracion")
+    @Mapping(target = "puntoRecogida", source = "clase.puntoRecogida")
+    @Mapping(target = "kmInicio", source = "clase.kmInicio")
+    @Mapping(target = "kmFin", source = "clase.kmFin")
+    @Mapping(target = "kmFormateado", expression = "java(formatearKilometraje(clase))")
+    @Mapping(target = "estadoClase", source = "clase.estadoClase")
+    @Mapping(target = "profesorNombre", expression = "java(clase != null && clase.getProfesor() != null ? clase.getProfesor().getNombre() + \" \" + clase.getProfesor().getApellidos() : null)")
+    @Mapping(target = "observaciones", source = "clase.observaciones")
+    ClasePracticaExpedienteDTO toClasePracticaExpedienteDTO(ClasePractica clase);
+
+    /**
+     * Mapea una prueba oficial de examen a su DTO para el expediente del alumno.
+     */
+    @Mapping(target = "id", source = "examen.id")
+    @Mapping(target = "tipo", source = "examen.tipo")
+    @Mapping(target = "titulo", expression = "java(calcularTituloExamen(examen))")
+    @Mapping(target = "fechaHora", source = "examen.fechaHora")
+    @Mapping(target = "duracion", source = "examen.duracion")
+    @Mapping(target = "esApto", source = "examen.esApto")
+    @Mapping(target = "centroDgt", expression = "java(obtenerCentroDgt(examen))")
+    ExamenExpedienteDTO toExamenExpedienteDTO(Examen examen);
+
+    /**
+     * Construye el DTO completo del expediente del alumno agrupando métricas, últimas clases y últimos exámenes.
+     */
+    @Mapping(target = "id", source = "alumno.id")
+    @Mapping(target = "nombreCompleto", expression = "java(alumno != null ? alumno.getNombre() + \" \" + alumno.getApellidos() : null)")
+    @Mapping(target = "tipoCarnet", expression = "java(matriculaActiva != null ? matriculaActiva.getPermisoCarnet() : null)")
+    @Mapping(target = "tipoCarnetDescripcion", expression = "java(matriculaActiva != null && matriculaActiva.getPermisoCarnet() != null ? matriculaActiva.getPermisoCarnet().getDescripcion() : null)")
+    @Mapping(target = "tieneMatriculaActiva", expression = "java(matriculaActiva != null)")
+    @Mapping(target = "saldoClases", expression = "java(matriculaActiva != null && matriculaActiva.getSaldoClases() != null ? matriculaActiva.getSaldoClases() : 0)")
+    @Mapping(target = "clasesRealizadas", source = "clasesRealizadas")
+    @Mapping(target = "convocatoriasRestantes", expression = "java(matriculaActiva != null && matriculaActiva.getConvocatorias() != null ? matriculaActiva.getConvocatorias() : 0)")
+    @Mapping(target = "ultimasClases", source = "ultimasClases")
+    @Mapping(target = "ultimosExamenes", source = "ultimosExamenes")
+    AlumnoExpedienteDTO toAlumnoExpedienteDTO(Alumno alumno, Matricula matriculaActiva, long clasesRealizadas,
+                                             List<ClasePracticaExpedienteDTO> ultimasClases,
+                                             List<ExamenExpedienteDTO> ultimosExamenes);
+
+    /**
      * Calcula las iniciales del alumno a partir de su nombre y apellidos para el avatar.
      *
      * @param alumno Entidad del alumno.
@@ -161,5 +213,38 @@ public interface AlumnoMapper
         {
             return "Menos de 1 mes";
         }
+    }
+
+    /**
+     * Formatea el intervalo de kilometraje recorrido durante la clase práctica.
+     */
+    default String formatearKilometraje(ClasePractica clase)
+    {
+        if (clase == null || clase.getKmInicio() == null || clase.getKmFin() == null)
+        {
+            return "Km no registrados";
+        }
+        String textoKm = "Km: " + clase.getKmInicio() + " a " + clase.getKmFin();
+        return String.format(Locale.GERMAN, "%s (Total: %,d km)", textoKm, clase.getKmFin() - clase.getKmInicio());
+    }
+
+    /**
+     * Devuelve el título oficial según el tipo de examen DGT.
+     */
+    default String calcularTituloExamen(Examen examen)
+    {
+        if (examen == null || examen.getTipo() == null)
+        {
+            return "Examen Oficial DGT";
+        }
+        return "Examen " + (examen.getTipo().name().equals("TEORICO") ? "Teórico" : "Práctico") + " Oficial";
+    }
+
+    /**
+     * Devuelve el centro examinador oficial asignado al examen DGT.
+     */
+    default String obtenerCentroDgt(Examen examen)
+    {
+        return "Centro DGT Móstoles";
     }
 }

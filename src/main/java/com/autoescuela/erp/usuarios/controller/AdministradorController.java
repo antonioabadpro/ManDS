@@ -29,6 +29,7 @@ import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
@@ -500,6 +501,19 @@ public class AdministradorController
         model.addAttribute("abrirModalDetalleAlumno", true);
 
         return "fragments/modal-detalle-alumno :: modal-detalle-alumno";
+    }
+
+    /**
+     * Endpoint HTMX para cargar y presentar el expediente del alumno con su historial de clases y exámenes.
+     */
+    @GetMapping("/alumnos/expediente/{id}")
+    public String cargarModalExpedienteAlumno(@PathVariable("id") Long id, Model model)
+    {
+        AlumnoExpedienteDTO expediente = this.alumnoService.obtenerExpedienteAlumno(id);
+        model.addAttribute("expediente", expediente);
+        model.addAttribute("abrirModalExpedienteAlumno", true);
+
+        return "fragments/modal-expediente-alumno :: modal-expediente-alumno";
     }
 
     /**

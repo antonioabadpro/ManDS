@@ -1,6 +1,8 @@
 package com.autoescuela.erp.usuarios;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,14 +10,21 @@ import org.mapstruct.factory.Mappers;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
+import com.autoescuela.erp.usuarios.dto.ClasePracticaExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
+import com.autoescuela.erp.usuarios.dto.ExamenExpedienteDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -268,5 +277,98 @@ class AlumnoMapperTest
         assertThat(dto.vehiculoTipoDescripcion()).isNull();
         assertThat(dto.tipoCarnet()).isNull();
         assertThat(dto.tipoCarnetDescripcion()).isNull();
+    }
+
+    @Test
+    @DisplayName("toClasePracticaExpedienteDTO mapea correctamente clase con profesor y kilometraje formateado")
+    void testToClasePracticaExpedienteDTO()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Laura");
+        profesor.setApellidos("Sánchez Romero");
+
+        ClasePractica clase = new ClasePractica();
+        ReflectionTestUtils.setField(clase, "id", 101L);
+        clase.setFechaHora(LocalDateTime.of(2026, 9, 10, 10, 0));
+        clase.setDuracion(45);
+        clase.setPuntoRecogida("Calle Alcalá 45");
+        clase.setKmInicio(44955);
+        clase.setKmFin(45000);
+        clase.setEstadoClase(EstadoClase.RECIBIDA);
+        clase.setObservaciones("Excelente dominio del embrague");
+        clase.setProfesor(profesor);
+
+        ClasePracticaExpedienteDTO dto = this.mapper.toClasePracticaExpedienteDTO(clase);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.id()).isEqualTo(101L);
+        assertThat(dto.fechaHora()).isEqualTo(LocalDateTime.of(2026, 9, 10, 10, 0));
+        assertThat(dto.duracion()).isEqualTo(45);
+        assertThat(dto.puntoRecogida()).isEqualTo("Calle Alcalá 45");
+        assertThat(dto.kmFormateado()).contains("44.955").contains("45.000");
+        assertThat(dto.estadoClase()).isEqualTo(EstadoClase.RECIBIDA);
+        assertThat(dto.profesorNombre()).isEqualTo("Laura Sánchez Romero");
+        assertThat(dto.observaciones()).isEqualTo("Excelente dominio del embrague");
+    }
+
+    @Test
+    @DisplayName("toExamenExpedienteDTO mapea correctamente examen DGT con resultado y centro oficial")
+    void testToExamenExpedienteDTO()
+    {
+        Examen examen = new Examen();
+        ReflectionTestUtils.setField(examen, "id", 201L);
+        examen.setTipo(TipoExamen.TEORICO);
+        examen.setFechaHora(LocalDateTime.of(2026, 7, 20, 9, 0));
+        examen.setDuracion(30);
+        examen.setEsApto(true);
+
+        ExamenExpedienteDTO dto = this.mapper.toExamenExpedienteDTO(examen);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.id()).isEqualTo(201L);
+        assertThat(dto.tipo()).isEqualTo(TipoExamen.TEORICO);
+        assertThat(dto.titulo()).isEqualTo("Examen Teórico Oficial");
+        assertThat(dto.duracion()).isEqualTo(30);
+        assertThat(dto.esApto()).isTrue();
+        assertThat(dto.centroDgt()).isEqualTo("Centro DGT Móstoles");
+    }
+
+    @Test
+    @DisplayName("toAlumnoExpedienteDTO agrupa métricas, clases y exámenes del alumno")
+    void testToAlumnoExpedienteDTO()
+    {
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 5L);
+        alumno.setNombre("Elena");
+        alumno.setApellidos("Martínez López");
+
+        Matricula matricula = new Matricula();
+        matricula.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        matricula.setSaldoClases(5);
+        matricula.setConvocatorias(2);
+
+        ClasePracticaExpedienteDTO claseDto = new ClasePracticaExpedienteDTO(
+                1L, LocalDateTime.now(), 45, "Calle Alcalá 45", 44955, 45000,
+                "Km: 44.955 a 45.000", EstadoClase.RECIBIDA, "Laura Sánchez", "OK"
+        );
+        ExamenExpedienteDTO examenDto = new ExamenExpedienteDTO(
+                1L, TipoExamen.TEORICO, "Examen Teórico Oficial", LocalDateTime.now(), 30, true, "Centro DGT Móstoles"
+        );
+
+        AlumnoExpedienteDTO expediente = this.mapper.toAlumnoExpedienteDTO(
+                alumno, matricula, 1L, List.of(claseDto), List.of(examenDto)
+        );
+
+        assertThat(expediente).isNotNull();
+        assertThat(expediente.id()).isEqualTo(5L);
+        assertThat(expediente.nombreCompleto()).isEqualTo("Elena Martínez López");
+        assertThat(expediente.tipoCarnet()).isEqualTo(TipoCarnet.PERMISO_B);
+        assertThat(expediente.tipoCarnetDescripcion()).isEqualTo("Permiso B");
+        assertThat(expediente.tieneMatriculaActiva()).isTrue();
+        assertThat(expediente.saldoClases()).isEqualTo(5);
+        assertThat(expediente.clasesRealizadas()).isEqualTo(1L);
+        assertThat(expediente.convocatoriasRestantes()).isEqualTo(2);
+        assertThat(expediente.ultimasClases()).hasSize(1);
+        assertThat(expediente.ultimosExamenes()).hasSize(1);
     }
 }

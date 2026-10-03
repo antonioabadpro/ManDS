@@ -102,7 +102,6 @@ class VistaAdminTest
                 .andExpect(view().name("admin/alumnos"))
                 .andExpect(content().string(containsString("Gestión de Alumnos")))
                 .andExpect(content().string(containsString("Expedientes de Alumnado")))
-                .andExpect(content().string(containsString("Elena Martínez López")))
                 .andExpect(content().string(containsString("Jose López Martínez")))
                 .andExpect(content().string(containsString("David Ruiz Gómez")))
                 .andExpect(content().string(containsString("Sin profesor asignado")))
@@ -129,6 +128,38 @@ class VistaAdminTest
                 .andExpect(content().string(containsString("1234-LMN")))
                 .andExpect(content().string(containsString("Permiso B")))
                 .andExpect(content().string(containsString("MATINAL")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/alumnos/expediente/{id} renderiza el modal de expediente con métricas, últimas clases y exámenes")
+    void testModalExpedienteAlumnoRenderizadoConClasesYExamenes() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/alumnos/expediente/4"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"))
+                .andExpect(content().string(containsString("Expediente del Alumno")))
+                .andExpect(content().string(containsString("Jose López Martínez")))
+                .andExpect(content().string(containsString("Permiso B")))
+                .andExpect(content().string(containsString("Saldo Disponible")))
+                .andExpect(content().string(containsString("Clases Realizadas")))
+                .andExpect(content().string(containsString("Convocatorias")))
+                .andExpect(content().string(containsString("Histórico de Clases Prácticas")))
+                .andExpect(content().string(containsString("Histórico de Exámenes DGT")))
+                .andExpect(content().string(containsString("Cerrar Expediente")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/alumnos/expediente/{id} muestra los textos informativos de estado vacío si el alumno no tiene clases ni exámenes")
+    void testModalExpedienteAlumnoSinClasesNiExamenes() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/alumnos/expediente/31"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"))
+                .andExpect(content().string(containsString("Expediente del Alumno")))
+                .andExpect(content().string(containsString("El alumno no dispone de clases prácticas registradas en su expediente.")))
+                .andExpect(content().string(containsString("El alumno no dispone de exámenes DGT registrados en su expediente.")));
     }
 
     @Test

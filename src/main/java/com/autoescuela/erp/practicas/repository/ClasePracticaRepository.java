@@ -52,6 +52,11 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     List<ClasePractica> findByAlumnoOrderByFechaHoraDesc(Alumno alumno);
 
     /**
+     * Recupera las últimas 3 clases prácticas asociadas a un alumno ordenadas descendentemente por fecha/hora.
+     */
+    List<ClasePractica> findTop3ByAlumnoOrderByFechaHoraDesc(Alumno alumno);
+
+    /**
      * Recupera las clases prácticas de un alumno con un determinado estado.
      */
     List<ClasePractica> findByAlumnoAndEstadoClase(Alumno alumno, EstadoClase estadoClase);

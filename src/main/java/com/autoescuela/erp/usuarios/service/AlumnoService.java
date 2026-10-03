@@ -11,9 +11,15 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.examenes.model.Examen;
+import com.autoescuela.erp.examenes.repository.ExamenRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
+import com.autoescuela.erp.usuarios.dto.ClasePracticaExpedienteDTO;
+import com.autoescuela.erp.usuarios.dto.ExamenExpedienteDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -30,6 +36,7 @@ public class AlumnoService
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
     private final ClasePracticaRepository clasePracticaRepository;
+    private final ExamenRepository examenRepository;
     private final AlumnoMapper alumnoMapper;
 
     /**
@@ -80,5 +87,44 @@ public class AlumnoService
                 .orElse(null);
 
         return this.alumnoMapper.toAlumnoDetalleDTO(alumno, matriculaActiva);
+    }
+
+    /**
+     * Obtiene la información académica y el expediente completo del alumno para su visualización
+     * en el modal de expediente del panel de administración (últimas 3 clases y últimos 2 exámenes).
+     *
+     * @param id Identificador único del alumno.
+     * @return DTO inmutable poblado con saldos, convocatorias, histórico reciente de clases y exámenes.
+     */
+    @Transactional(readOnly = true)
+    public AlumnoExpedienteDTO obtenerExpedienteAlumno(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
+        }
+        Alumno alumno = this.alumnoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + id));
+
+        Matricula matriculaActiva = this.matriculaRepository
+                .findByAlumnoAndEstaActivaTrue(alumno)
+                .orElse(null);
+
+        long clasesRealizadas = this.clasePracticaRepository
+                .countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
+
+        List<ClasePractica> clasesEntidades = this.clasePracticaRepository
+                .findTop3ByAlumnoOrderByFechaHoraDesc(alumno);
+        List<ClasePracticaExpedienteDTO> ultimasClases = clasesEntidades.stream()
+                .map(this.alumnoMapper::toClasePracticaExpedienteDTO)
+                .toList();
+
+        List<Examen> examenesEntidades = this.examenRepository
+                .findTop2ByAlumnoOrderByFechaHoraDesc(alumno);
+        List<ExamenExpedienteDTO> ultimosExamenes = examenesEntidades.stream()
+                .map(this.alumnoMapper::toExamenExpedienteDTO)
+                .toList();
+
+        return this.alumnoMapper.toAlumnoExpedienteDTO(alumno, matriculaActiva, clasesRealizadas, ultimasClases, ultimosExamenes);
     }
 }
