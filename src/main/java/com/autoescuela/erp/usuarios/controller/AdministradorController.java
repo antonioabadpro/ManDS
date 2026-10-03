@@ -19,6 +19,7 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -27,12 +28,14 @@ import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.model.Profesor;
+import com.autoescuela.erp.usuarios.service.AlumnoService;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
 
@@ -48,6 +51,7 @@ public class AdministradorController
 {
     private final UsuarioService usuarioService;
     private final ProfesorService profesorService;
+    private final AlumnoService alumnoService;
     private final FlotaService flotaService;
     private final ExamenService examenService;
     private final EstadisticaService estadisticaService;
@@ -465,6 +469,7 @@ public class AdministradorController
 
     /**
      * Muestra la vista de gestión y expedientes de alumnos.
+     * Muestra la vista de gestión y expedientes de alumnos con datos reales del servidor.
      */
     @GetMapping("/alumnos")
     public String mostrarAlumnos(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
@@ -473,6 +478,13 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+
+        List<AlumnoResumenDTO> alumnos = this.alumnoService.obtenerTodosLosAlumnos();
+        model.addAttribute("alumnos", alumnos);
+        model.addAttribute("totalAlumnos", alumnos.size());
+        model.addAttribute("totalActivos", alumnos.stream().filter(a -> a.estado() == EstadoUsuario.ACTIVO).count());
+        model.addAttribute("totalSinProfesor", alumnos.stream().filter(a -> a.profesorId() == null).count());
+
         return "admin/alumnos";
     }
 

@@ -3,6 +3,7 @@ package com.autoescuela.erp.usuarios.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
@@ -50,4 +51,11 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
      * @return Número de alumnos activos.
      */
     long countByEstado(EstadoUsuario estado);
+
+    /**
+     * Recupera todos los alumnos ordenados alfabéticamente cargando en una sola consulta
+     * su profesor asignado y sus matrículas para evitar consultas N+1.
+     */
+    @EntityGraph(attributePaths = {"profesor", "historialMatriculas"})
+    List<Alumno> findAllByOrderByNombreAscApellidosAsc();
 }

@@ -94,7 +94,7 @@ class VistaAdminTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("GET /admin/alumnos renderiza correctamente la gestión de alumnos")
+    @DisplayName("GET /admin/alumnos renderiza correctamente la gestión de alumnos con datos reales")
     void testAlumnosRenderizado() throws Exception
     {
         this.mockMvc.perform(get("/admin/alumnos"))
@@ -102,7 +102,15 @@ class VistaAdminTest
                 .andExpect(view().name("admin/alumnos"))
                 .andExpect(content().string(containsString("Gestión de Alumnos")))
                 .andExpect(content().string(containsString("Expedientes de Alumnado")))
-                .andExpect(content().string(containsString("Elena Martínez López")));
+                .andExpect(content().string(containsString("Elena Martínez López")))
+                .andExpect(content().string(containsString("Jose López Martínez")))
+                .andExpect(content().string(containsString("David Ruiz Gómez")))
+                .andExpect(content().string(containsString("Sin profesor asignado")))
+                .andExpect(content().string(containsString("Mostrar datos del Alumno")))
+                .andExpect(content().string(containsString("Consultar expediente del Alumno")))
+                .andExpect(content().string(containsString("Reasignar Profesor")))
+                .andExpect(content().string(containsString("Eliminar alumno (baja lógica)")))
+                .andExpect(content().string(containsString("Reactivar alumno")));
     }
 
     @Test
