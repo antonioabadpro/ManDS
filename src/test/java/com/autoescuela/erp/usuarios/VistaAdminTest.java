@@ -115,6 +115,24 @@ class VistaAdminTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/alumnos/detalle/{id} renderiza correctamente el fragmento modal con los datos del alumno")
+    void testModalDetalleAlumnoRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/alumnos/detalle/4"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-detalle-alumno :: modal-detalle-alumno"))
+                .andExpect(content().string(containsString("Jose López Martínez")))
+                .andExpect(content().string(containsString("45678901D")))
+                .andExpect(content().string(containsString("jose.alumno@autoescuela.es")))
+                .andExpect(content().string(containsString("Laura Sánchez Romero")))
+                .andExpect(content().string(containsString("SEAT Ibiza")))
+                .andExpect(content().string(containsString("1234-LMN")))
+                .andExpect(content().string(containsString("Permiso B")))
+                .andExpect(content().string(containsString("MATINAL")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("GET /admin/flota renderiza correctamente la gestión de flota")
     void testFlotaRenderizado() throws Exception
     {

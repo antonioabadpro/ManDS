@@ -28,6 +28,7 @@ import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
@@ -486,6 +487,19 @@ public class AdministradorController
         model.addAttribute("totalSinProfesor", alumnos.stream().filter(a -> a.profesorId() == null).count());
 
         return "admin/alumnos";
+    }
+
+    /**
+     * Endpoint HTMX para cargar y presentar los datos informativos del alumno en el modal de detalle.
+     */
+    @GetMapping("/alumnos/detalle/{id}")
+    public String cargarModalDetalleAlumno(@PathVariable("id") Long id, Model model)
+    {
+        AlumnoDetalleDTO dto = this.alumnoService.obtenerAlumnoParaDetalle(id);
+        model.addAttribute("alumno", dto);
+        model.addAttribute("abrirModalDetalleAlumno", true);
+
+        return "fragments/modal-detalle-alumno :: modal-detalle-alumno";
     }
 
     /**
