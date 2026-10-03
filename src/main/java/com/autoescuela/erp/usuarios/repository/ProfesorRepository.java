@@ -16,6 +16,17 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
     List<Profesor> findAllByOrderByNombreAscApellidosAsc();
 
     /**
+     * Recupera todos los profesores en un estado determinado ordenados alfabéticamente por nombre y apellidos.
+     */
+    List<Profesor> findByEstadoOrderByNombreAscApellidosAsc(EstadoUsuario estado);
+
+    /**
+     * Recupera todos los profesores en un estado determinado excluyendo a uno en particular por su ID,
+     * ordenados alfabéticamente por nombre y apellidos.
+     */
+    List<Profesor> findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario estado, Long id);
+
+    /**
      * Cuenta el número de profesores adscritos a un turno específico.
      */
     long countByTurno(TipoTurno turno);

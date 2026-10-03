@@ -350,10 +350,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const mensajesError = modal.querySelectorAll('.mensaje-error-campo');
         mensajesError.forEach(msg => msg.remove());
 
-        // Si el modal está contenido en un contenedor dinámico HTMX, limpiar el contenedor
-        const contenedorDinamico = modal.closest('#contenedor-modal');
-        if (contenedorDinamico) {
-            contenedorDinamico.innerHTML = '';
+        // Si el modal está contenido en un contenedor dinámico HTMX, limpiar el contenedor tras ocultarlo
+        const contenedorDinamico = modal.closest('[id^="contenedor-modal-"]');
+        if (contenedorDinamico && contenedorDinamico.id !== 'contenedor-modal-alta-profesor') {
+            setTimeout(() => {
+                if (modal.classList.contains('hidden')) {
+                    contenedorDinamico.innerHTML = '';
+                }
+            }, 100);
+        } else {
+            const contenedorLegacy = modal.closest('#contenedor-modal');
+            if (contenedorLegacy) {
+                contenedorLegacy.innerHTML = '';
+            }
         }
     }
 
@@ -368,9 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const triggerCerrar = event.target.closest('[data-modal-close]');
         if (triggerCerrar) {
-            event.preventDefault();
             const modalId = triggerCerrar.getAttribute('data-modal-close');
             cerrarModal(modalId);
+            // Solo prevenir default si no es un disparador de petición HTMX
+            if (!triggerCerrar.hasAttribute('hx-get') && !triggerCerrar.hasAttribute('hx-post')) {
+                event.preventDefault();
+            }
             return;
         }
 

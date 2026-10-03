@@ -27,10 +27,12 @@ import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
+import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
 
@@ -189,11 +191,6 @@ public class AdministradorController
 
         cargarCatalogosAltaProfesor(model);
 
-        if (!model.containsAttribute("editarProfesorDTO"))
-        {
-            model.addAttribute("editarProfesorDTO", new EditarProfesorDTO());
-        }
-
         return "admin/profesores";
     }
 
@@ -292,6 +289,148 @@ public class AdministradorController
             if (esPeticionHtmx)
             {
                 return "fragments/modal-editar-profesor :: modal-editar-profesor";
+            }
+            cargarCatalogosAltaProfesor(model);
+            model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
+            return "admin/profesores";
+        }
+    }
+
+    /**
+     * Endpoint HTMX para cargar el modal de confirmación de baja lógica de un profesor (Regla 7.3).
+     */
+    @GetMapping("/profesores/baja/{id}")
+    public String cargarModalBajaProfesor(@PathVariable("id") Long id, Model model)
+    {
+        ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(id);
+        List<ProfesorResumenDTO> profesoresDisponibles = this.profesorService.obtenerProfesoresActivosExcluyendo(id);
+
+        model.addAttribute("profesor", profesor);
+        model.addAttribute("profesoresDisponibles", profesoresDisponibles);
+        model.addAttribute("bajaProfesorDTO", new BajaProfesorDTO(id, "REASIGNAR", null));
+        model.addAttribute("abrirModalBajaProfesor", true);
+
+        return "fragments/modal-baja-profesor :: modal-baja-profesor";
+    }
+
+    /**
+     * Procesa la solicitud de baja lógica de un profesor conforme a la Regla 7.3.
+     */
+    @PostMapping("/profesores/baja")
+    public String darBajaProfesor(@ModelAttribute BajaProfesorDTO bajaProfesorDTO, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        try
+        {
+            Profesor profesorBaja = this.profesorService.darBajaProfesor(bajaProfesorDTO);
+            String mensajeExito = "El profesor " + profesorBaja.getNombre() + " " + profesorBaja.getApellidos()
+                    + " ha sido dado de baja correctamente (estado INACTIVO). Su vehículo ha quedado libre y sus clases pendientes han sido canceladas.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/profesores";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/profesores";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            Long profesorId = bajaProfesorDTO != null ? bajaProfesorDTO.profesorId() : null;
+            if (profesorId != null)
+            {
+                model.addAttribute("profesor", this.profesorService.obtenerProfesorParaDetalle(profesorId));
+                model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId));
+            }
+            model.addAttribute("bajaProfesorDTO", bajaProfesorDTO);
+            model.addAttribute("errorBajaProfesor", ex.getMessage());
+            model.addAttribute("abrirModalBajaProfesor", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-baja-profesor :: modal-baja-profesor";
+            }
+            cargarCatalogosAltaProfesor(model);
+            model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
+            return "admin/profesores";
+        }
+    }
+
+    /**
+     * Endpoint HTMX para cargar el modal de confirmación de reactivación de un profesor inactivo.
+     */
+    @GetMapping("/profesores/reactivar/{id}")
+    public String cargarModalReactivarProfesor(@PathVariable("id") Long id, Model model)
+    {
+        ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(id);
+        model.addAttribute("profesor", profesor);
+        model.addAttribute("abrirModalReactivarProfesor", true);
+
+        return "fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
+    }
+
+    /**
+     * Procesa la reactivación de un profesor inactivo (alta sin vehículo asignado).
+     */
+    @PostMapping("/profesores/reactivar/{id}")
+    public String reactivarProfesor(@PathVariable("id") Long id, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        try
+        {
+            Profesor profesorReactivado = this.profesorService.reactivarProfesor(id);
+            String mensajeExito = "El profesor " + profesorReactivado.getNombre() + " " + profesorReactivado.getApellidos()
+                    + " ha sido reactivado correctamente en estado ACTIVO y sin vehículo asignado. Puede editar su ficha para asignarle un vehículo si lo desea.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/profesores";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/profesores";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            model.addAttribute("profesor", this.profesorService.obtenerProfesorParaDetalle(id));
+            model.addAttribute("errorReactivarProfesor", ex.getMessage());
+            model.addAttribute("abrirModalReactivarProfesor", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
             }
             cargarCatalogosAltaProfesor(model);
             model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());

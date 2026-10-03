@@ -27,6 +27,11 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     List<ClasePractica> findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(Profesor profesor, LocalDateTime inicio, LocalDateTime fin);
 
     /**
+     * Recupera todas las clases prácticas de un profesor en un determinado estado (RECIBIDA, PENDIENTE, CANCELADA).
+     */
+    List<ClasePractica> findByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);
+
+    /**
      * Contabiliza las clases de un profesor en un determinado estado (RECIBIDA, PENDIENTE, CANCELADA).
      */
     long countByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);

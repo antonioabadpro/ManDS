@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.service.TokenVerificacionService;
 import com.autoescuela.erp.core.email.EmailService;
+import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoTurno;
@@ -19,12 +20,17 @@ import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
@@ -40,6 +46,8 @@ public class ProfesorService
     private final ProfesorRepository profesorRepository;
     private final PersonaRepository personaRepository;
     private final VehiculoRepository vehiculoRepository;
+    private final AlumnoRepository alumnoRepository;
+    private final ClasePracticaRepository clasePracticaRepository;
     private final TokenVerificacionService tokenVerificacionService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -183,6 +191,12 @@ public class ProfesorService
         }
         Profesor profesor = this.profesorRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + id));
+
+        if (profesor.getEstado() != EstadoUsuario.ACTIVO)
+        {
+            throw new ReglaNegocioException("Solo se pueden editar profesores en estado ACTIVO. Los profesores inactivos deben ser reactivados previamente.");
+        }
+
         return this.profesorMapper.toEditarProfesorDTO(profesor);
     }
 
@@ -222,6 +236,11 @@ public class ProfesorService
 
         Profesor profesor = this.profesorRepository.findById(dto.id())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + dto.id()));
+
+        if (profesor.getEstado() != EstadoUsuario.ACTIVO)
+        {
+            throw new ReglaNegocioException("Solo se pueden modificar profesores en estado ACTIVO. Los profesores inactivos deben ser reactivados previamente.");
+        }
 
         if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
         {
@@ -337,6 +356,182 @@ public class ProfesorService
         profesor.setListaTiposCarnet(new ArrayList<>(dto.permisos()));
 
         return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Tramita la baja lógica de un profesor conforme a la Regla de Negocio 7.3:
+     * - Su estado pasa a INACTIVO preservando todo su historial.
+     * - El vehículo asignado se libera y pasa a estado DISPONIBLE.
+     * - Se cancelan automáticamente todas sus clases prácticas pendientes.
+     * - Si posee alumnos asignados, se reasignan a otro profesor activo o se dejan temporalmente sin docente, notificando en ambos casos a los alumnos por correo electrónico.
+     *
+     * @param dto Parámetros de la baja (profesorId, opcionAlumnos, nuevoProfesorId).
+     * @return Entidad Profesor en estado INACTIVO.
+     */
+    @Transactional
+    public Profesor darBajaProfesor(BajaProfesorDTO dto)
+    {
+        if (dto == null || dto.profesorId() == null)
+        {
+            throw new ReglaNegocioException("El identificador del profesor es obligatorio para tramitar la baja.");
+        }
+
+        Profesor profesor = this.profesorRepository.findById(dto.profesorId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + dto.profesorId()));
+
+        if (profesor.getEstado() == EstadoUsuario.INACTIVO)
+        {
+            throw new ReglaNegocioException("El profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " ya se encuentra en estado INACTIVO.");
+        }
+
+        // Liberamos el vehículo asignado si lo tuviese (Regla 7.3)
+        Vehiculo vehiculoActual = profesor.getVehiculo();
+        if (vehiculoActual != null)
+        {
+            vehiculoActual.setProfesor(null);
+            vehiculoActual.setEstado(EstadoVehiculo.DISPONIBLE);
+            this.vehiculoRepository.save(vehiculoActual);
+            profesor.setVehiculo(null);
+        }
+
+        // Cancelamos clases prácticas pendientes del profesor directamente desde la BD (Regla 7.3)
+        List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE);
+
+        for (ClasePractica clase : clasesPendientes)
+        {
+            clase.setEstadoClase(EstadoClase.CANCELADA);
+            this.clasePracticaRepository.save(clase);
+        }
+
+        // Gestionamos los alumnos del profesor que vamos a dar de baja
+        List<Alumno> alumnosAsignados = this.alumnoRepository.findByProfesor(profesor);
+        if (!alumnosAsignados.isEmpty())
+        {
+            String opcion = dto.opcionAlumnos() != null ? dto.opcionAlumnos().trim().toUpperCase() : "";
+
+            if ("REASIGNAR".equals(opcion))
+            {
+                if (dto.nuevoProfesorId() == null)
+                {
+                    throw new ReglaNegocioException("Debe seleccionar un profesor activo para reasignar los alumnos.");
+                }
+
+                if (dto.nuevoProfesorId().equals(profesor.getId()))
+                {
+                    throw new ReglaNegocioException("No se pueden reasignar los alumnos al mismo profesor que causa baja.");
+                }
+
+                Profesor nuevoProfesor = this.profesorRepository.findById(dto.nuevoProfesorId())
+                        .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor sustituto con ID: " + dto.nuevoProfesorId()));
+
+                if (nuevoProfesor.getEstado() != EstadoUsuario.ACTIVO)
+                {
+                    throw new ReglaNegocioException("El profesor seleccionado para la reasignación debe estar en estado ACTIVO.");
+                }
+
+                String nombreProfesorBaja = profesor.getNombre() + " " + profesor.getApellidos();
+                String nombreNuevoProfesor = nuevoProfesor.getNombre() + " " + nuevoProfesor.getApellidos();
+
+                for (Alumno alumno : alumnosAsignados)
+                {
+                    alumno.setProfesor(nuevoProfesor);
+                    this.alumnoRepository.save(alumno);
+
+                    String asunto = "Aviso importante: Asignación de nuevo profesor de prácticas";
+                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                            + "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
+                            + "A partir de este momento, tu nuevo profesor asignado es " + nombreNuevoProfesor + ".\n\n"
+                            + "Conforme al protocolo del centro, todas tus clases prácticas pendientes han sido canceladas automáticamente. "
+                            + "Te invitamos a acceder a tu panel de alumno para programar tus próximas sesiones prácticas con tu nuevo profesor.\n\n"
+                            + "Un cordial saludo,\n"
+                            + "Equipo de Coordinación - ManDS Autoescuela";
+
+                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                }
+            }
+            else
+            {
+                if ("SIN_PROFESOR".equals(opcion))
+                {
+                    String nombreProfesorBaja = profesor.getNombre() + " " + profesor.getApellidos();
+
+                    for (Alumno alumno : alumnosAsignados)
+                    {
+                        alumno.setProfesor(null);
+                        this.alumnoRepository.save(alumno);
+
+                        String asunto = "Aviso importante: Baja de tu profesor de prácticas";
+                        String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                                + "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
+                                + "Actualmente tu expediente queda temporalmente sin profesor asignado y tus clases prácticas pendientes "
+                                + "han sido canceladas de forma automática.\n\n"
+                                + "El equipo de administración te asignará un nuevo profesor a la mayor brevedad posible para que puedas retomar tus clases.\n\n"
+                                + "Un cordial saludo,\n"
+                                + "Equipo de Coordinación - ManDS Autoescuela";
+
+                        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                    }
+                }
+                else
+                {
+                    throw new ReglaNegocioException("Debe seleccionar una opción válida para la gestión de los alumnos (Reasignar o Dejar sin profesor).");
+                }
+            }
+        }
+
+        // Cambiamos el estado del profesor a INACTIVO
+        profesor.setEstado(EstadoUsuario.INACTIVO);
+        return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Vuelve a dar de alta a un profesor inactivo (reactivación):
+     * - Su estado pasa a ACTIVO.
+     * - Se garantiza que NO se le asigna ningún vehículo (vehiculo = null).
+     *   Para asignarle un vehículo, el administrador deberá editarlo posteriormente.
+     *
+     * @param id Identificador único del profesor.
+     * @return Entidad Profesor reactivada en estado ACTIVO.
+     */
+    @Transactional
+    public Profesor reactivarProfesor(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador del profesor es obligatorio para la reactivación.");
+        }
+
+        Profesor profesor = this.profesorRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + id));
+
+        if (profesor.getEstado() == EstadoUsuario.ACTIVO)
+        {
+            throw new ReglaNegocioException("El profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " ya se encuentra en estado ACTIVO.");
+        }
+
+        profesor.setEstado(EstadoUsuario.ACTIVO);
+        profesor.setVehiculo(null);
+
+        return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Recupera el listado de profesores activos excluyendo al profesor indicado,
+     * útil para el selector de reasignación de alumnos en la baja lógica.
+     *
+     * @param profesorId Identificador del profesor a excluir.
+     * @return Lista de DTOs de resumen de los docentes activos disponibles.
+     */
+    @Transactional(readOnly = true)
+    public List<ProfesorResumenDTO> obtenerProfesoresActivosExcluyendo(Long profesorId)
+    {
+        List<Profesor> profesores = (profesorId != null)
+                ? this.profesorRepository.findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO, profesorId)
+                : this.profesorRepository.findByEstadoOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO);
+
+        return profesores.stream()
+                .map(this.profesorMapper::toProfesorResumenDTO)
+                .toList();
     }
 
     /**
