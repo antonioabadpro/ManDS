@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -25,6 +28,35 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * ordenados alfabéticamente por nombre y apellidos.
      */
     List<Profesor> findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario estado, Long id);
+
+    /**
+     * Recupera los profesores en estado ACTIVO que cuenten con el permiso de carnet especificado,
+     * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga)
+     * y por nombre y apellidos en caso de empate.
+     */
+    @Query("""
+        SELECT p FROM Profesor p
+        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
+          AND :tipoCarnet MEMBER OF p.listaTiposCarnet
+        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
+    """)
+    List<Profesor> findActivosPorCarnetOrderByAlumnosAsc(@Param("tipoCarnet") TipoCarnet tipoCarnet);
+
+    /**
+     * Recupera los profesores en estado ACTIVO que cuenten con el permiso de carnet especificado,
+     * excluyendo a un profesor en particular por su ID, ordenados ascendentemente por número de alumnos asignados
+     * (para balanceo de carga) y por nombre y apellidos en caso de empate.
+     */
+    @Query("""
+        SELECT p FROM Profesor p
+        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
+          AND p.id != :profesorId
+          AND :tipoCarnet MEMBER OF p.listaTiposCarnet
+        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
+    """)
+    List<Profesor> findActivosPorCarnetExcluyendoIdOrderByAlumnosAsc(
+            @Param("tipoCarnet") TipoCarnet tipoCarnet,
+            @Param("profesorId") Long profesorId);
 
     /**
      * Cuenta el número de profesores adscritos a un turno específico.

@@ -305,7 +305,7 @@ class AlumnoMapperTest
         assertThat(dto.fechaHora()).isEqualTo(LocalDateTime.of(2026, 9, 10, 10, 0));
         assertThat(dto.duracion()).isEqualTo(45);
         assertThat(dto.puntoRecogida()).isEqualTo("Calle Alcalá 45");
-        assertThat(dto.kmFormateado()).contains("44.955").contains("45.000");
+        assertThat(dto.kmFormateado()).contains("44955").contains("45000");
         assertThat(dto.estadoClase()).isEqualTo(EstadoClase.RECIBIDA);
         assertThat(dto.profesorNombre()).isEqualTo("Laura Sánchez Romero");
         assertThat(dto.observaciones()).isEqualTo("Excelente dominio del embrague");

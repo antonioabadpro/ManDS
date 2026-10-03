@@ -1,0 +1,265 @@
+<th:block th:fragment="modal-reasignar-alumno">
+    <!-- MODAL 1: Selección y Advertencia de Reasignación -->
+    <div id="modal-reasignar-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-reasignar" th:classappend="${abrirModalReasignarAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-reasignar-alumno"></div>
+        <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
+
+            <!-- Cabecera del Modal -->
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="titulo-modal-reasignar" class="text-base font-bold text-slate-900 dark:text-white">Reasignar Profesor al Alumno</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Gestión de asignación docente y protocolo de clases</p>
+                    </div>
+                </div>
+                <button type="button" data-modal-close="modal-reasignar-alumno" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar modal">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Alerta de Error de Negocio -->
+            <div th:if="${errorReasignarAlumno}" class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs flex items-center space-x-2.5">
+                <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span th:text="${errorReasignarAlumno}">Ha ocurrido un error al tramitar la reasignación.</span>
+            </div>
+
+            <!-- Ficha Resumen del Alumno -->
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-900 dark:text-white" th:text="${alumno.nombreCompleto}">Alumno</span>
+                    <span class="text-[11px] font-mono text-slate-500" th:text="|DNI: ${alumno.dni}|">12345678Z</span>
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+                    <p>
+                        <span class="font-medium text-slate-700 dark:text-slate-300">Permiso matriculado:</span>
+                        <span th:if="${alumno.tipoCarnet != null}" th:text="${alumno.tipoCarnetDescripcion}" class="font-semibold text-indigo-600 dark:text-indigo-400">Permiso B - Automóviles</span>
+                        <span th:if="${alumno.tipoCarnet == null}" class="text-amber-600 dark:text-amber-400 font-semibold">Sin matrícula activa</span>
+                    </p>
+                    <p>
+                        <span class="font-medium text-slate-700 dark:text-slate-300">Profesor actual:</span>
+                        <span th:if="${alumno.profesorNombre != null}" th:text="|${alumno.profesorNombre} (Turno ${alumno.turno?.name() == 'MATINAL' ? 'Matinal' : 'Tarde'})|" class="font-semibold text-slate-800 dark:text-slate-200">Laura Sánchez</span>
+                        <span th:if="${alumno.profesorNombre == null}" class="text-amber-600 dark:text-amber-400 font-semibold">Sin profesor asignado actualmente</span>
+                    </p>
+                    <p>
+                        <span class="font-medium text-slate-700 dark:text-slate-300">Clases pendientes:</span>
+                        <span th:if="${clasesPendientes > 0}" th:text="|${clasesPendientes} clase${clasesPendientes > 1 ? 's' : ''} pendiente${clasesPendientes > 1 ? 's' : ''}|" class="font-bold text-amber-600 dark:text-amber-400">1 pendiente</span>
+                        <span th:if="${clasesPendientes == 0}" class="text-emerald-600 dark:text-emerald-400 font-medium">0 clases pendientes</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Aviso Informativo Normativo: Cancelación de Clases y Notificación por Correo -->
+            <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-amber-500/5 dark:bg-amber-500/10 p-3.5 rounded-xl border border-amber-500/20">
+                <div class="flex items-center space-x-2 text-amber-800 dark:text-amber-300 font-semibold">
+                    <svg class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Consecuencias operativas de la reasignación:</span>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-400 text-[11px]">
+                    <li>
+                        <strong>Cancelación de clases:</strong> Todas las clases prácticas pendientes del alumno
+                        <span th:if="${clasesPendientes > 0}" th:text="|(${clasesPendientes})|" class="font-semibold text-amber-600 dark:text-amber-400"></span>
+                        pasarán a cancelarse de forma automática para evitar incompatibilidades horarias.
+                    </li>
+                    <li>
+                        <strong>Notificación por correo:</strong> Se enviará un correo electrónico informativo a
+                        <span class="font-mono font-medium text-slate-800 dark:text-slate-200" th:text="${alumno.correo}"></span>
+                        notificándole su nueva situación docente (nuevo profesor o desasignación temporal).
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Formulario de Selección Docente -->
+            <form id="form-reasignar-alumno" onsubmit="event.preventDefault(); pasoConfirmacionReasignar();" class="space-y-4">
+                <div class="space-y-2.5">
+                    <label class="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        Selecciona el nuevo destino docente:
+                    </label>
+
+                    <!-- Opción 1: Reasignar a un profesor activo -->
+                    <label class="flex items-start space-x-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition">
+                        <input type="radio" id="radio-opcion-reasignar" name="opcion" value="REASIGNAR" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" th:checked="${!#lists.isEmpty(profesoresDisponibles)}" onchange="document.getElementById('select-nuevo-profesor').disabled = false;" class="mt-1 text-indigo-600 focus:ring-indigo-500" />
+                        <div class="flex-1 min-w-0">
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Asignar a otro profesor activo</span>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet != null}" th:text="|Profesores activos habilitados para ${alumno.tipoCarnetDescripcion} (ordenados por menor número de alumnos).|">Profesores activos habilitados para el permiso.</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet == null}">Se asignará al docente elegido y se cancelarán sus prácticas pendientes.</p>
+
+                            <div th:if="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
+                                <select id="select-nuevo-profesor" name="nuevoProfesorId" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500">
+                                    <option th:each="pDispo : ${profesoresDisponibles}" th:value="${pDispo.id}" th:text="|${pDispo.nombreCompleto} (Turno ${pDispo.turno?.name() == 'MATINAL' ? 'Matinal' : 'Tarde'} · ${pDispo.totalAlumnos} ${pDispo.totalAlumnos == 1 ? 'alumno' : 'alumnos'})|"></option>
+                                </select>
+                            </div>
+                            <p th:if="${#lists.isEmpty(profesoresDisponibles)}" class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                                <span th:if="${alumno.tipoCarnet != null}" th:text="|No hay otros profesores activos habilitados para ${alumno.tipoCarnetDescripcion}.|">No hay otros profesores activos disponibles en plantilla.</span>
+                                <span th:if="${alumno.tipoCarnet == null}">El alumno no cuenta con una matrícula activa para consultar profesores habilitados.</span>
+                            </p>
+                        </div>
+                    </label>
+
+                    <!-- Opción 2: Dejar temporalmente sin profesor -->
+                    <label class="flex items-start space-x-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition" th:classappend="${alumno.profesorId == null} ? 'opacity-60 cursor-not-allowed' : ''">
+                        <input type="radio" id="radio-opcion-sin-profesor" name="opcion" value="SIN_PROFESOR" th:disabled="${alumno.profesorId == null}" th:checked="${#lists.isEmpty(profesoresDisponibles) && alumno.profesorId != null}" onchange="document.getElementById('select-nuevo-profesor').disabled = true;" class="mt-1 text-indigo-600 focus:ring-indigo-500" />
+                        <div>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Dejar temporalmente sin profesor</span>
+                            <span th:if="${alumno.profesorId == null}" class="text-[10px] text-amber-600 dark:text-amber-400 ml-1 font-normal">(Ya se encuentra sin profesor)</span>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">El expediente queda sin docente asignado a la espera de una nueva asignación.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Botones de Acción de Paso 1 -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" data-modal-close="modal-reasignar-alumno" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-paso-siguiente-reasignar" class="inline-flex items-center space-x-1.5 px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/20 transition cursor-pointer">
+                        <span>Reasignar Profesor</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Confirmación Previa a la Reasignación -->
+    <div id="modal-confirmar-reasignacion-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-confirmar-reasignar" class="fixed inset-0 z-50 hidden items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity" data-modal-close="modal-confirmar-reasignacion-alumno"></div>
+        <div class="relative z-10 w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-4 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
+
+            <!-- Cabecera de Confirmación -->
+            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-3 text-amber-600 dark:text-amber-400">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="titulo-modal-confirmar-reasignar" class="text-base font-bold text-slate-900 dark:text-white">Confirmar Reasignación</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Verificación previa obligatoria</p>
+                    </div>
+                </div>
+                <button type="button" data-modal-close="modal-confirmar-reasignacion-alumno" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar modal">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Detalle de la Operación a Confirmar -->
+            <div class="space-y-3 text-xs">
+                <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+                    ¿Confirmas la reasignación de <strong class="text-slate-900 dark:text-white" th:text="${alumno.nombreCompleto}"></strong>?
+                </p>
+
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-slate-500 dark:text-slate-400">Nuevo profesor:</span>
+                        <span id="resumen-confirmacion-destino" class="font-bold text-indigo-600 dark:text-indigo-400 text-right">Laura Sánchez</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-slate-500 dark:text-slate-400">Clases que se cancelarán:</span>
+                        <span th:text="|${clasesPendientes} clase(s) pendiente(s)|" class="font-semibold text-amber-600 dark:text-amber-400">1 pendiente</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-slate-500 dark:text-slate-400">Notificación al alumno:</span>
+                        <span th:text="${alumno.correo}" class="font-mono text-slate-700 dark:text-slate-300 text-right">correo@alumno.es</span>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                    Esta acción actualizará el expediente del alumno de inmediato y enviará un correo transaccional informativo.
+                </p>
+            </div>
+
+            <!-- Formulario Final de Envío con Botón Reactivo (hx-disabled y animate-spin) -->
+            <form th:action="@{/admin/alumnos/reasignar}" th:attr="hx-post=@{/admin/alumnos/reasignar}" hx-target="#contenedor-modal-reasignar-alumno" hx-swap="innerHTML" hx-disabled-elt="#btn-confirmar-reasignar" method="post" class="space-y-4">
+                <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                <input type="hidden" name="alumnoId" th:value="${alumno.id}" />
+                <input type="hidden" id="input-confirmacion-opcion" name="opcion" value="REASIGNAR" />
+                <input type="hidden" id="input-confirmacion-nuevo-profesor" name="nuevoProfesorId" value="" />
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <button type="button" onclick="volverAModalSeleccion()" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Volver
+                    </button>
+                    <button id="btn-confirmar-reasignar" type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl shadow-sm shadow-indigo-500/20 transition cursor-pointer flex items-center space-x-2 shrink-0">
+                        <span class="htmx-indicator-none flex items-center space-x-1.5">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Confirmar Reasignación</span>
+                        </span>
+                        <svg class="w-4 h-4 animate-spin htmx-indicator" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span class="htmx-indicator">Reasignando y enviando correo...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Transición entre Modal 1 y Modal 2 de Confirmación -->
+    <script>
+        window.pasoConfirmacionReasignar = function () {
+            const form = document.getElementById('form-reasignar-alumno');
+            if (!form) return;
+
+            const opcion = form.querySelector('input[name="opcion"]:checked')?.value || 'REASIGNAR';
+            const selectProfesor = document.getElementById('select-nuevo-profesor');
+            const resumenDestino = document.getElementById('resumen-confirmacion-destino');
+            const inputOpcion = document.getElementById('input-confirmacion-opcion');
+            const inputProfesor = document.getElementById('input-confirmacion-nuevo-profesor');
+
+            if (opcion === 'SIN_PROFESOR') {
+                if (resumenDestino) resumenDestino.textContent = 'Sin profesor asignado (temporalmente)';
+                if (inputOpcion) inputOpcion.value = 'SIN_PROFESOR';
+                if (inputProfesor) inputProfesor.value = '';
+            } else {
+                if (!selectProfesor || !selectProfesor.value) {
+                    alert('Debes seleccionar un profesor activo disponible.');
+                    return;
+                }
+                if (resumenDestino && selectProfesor.selectedOptions.length > 0) {
+                    resumenDestino.textContent = selectProfesor.selectedOptions[0].text;
+                }
+                if (inputProfesor) inputProfesor.value = selectProfesor.value;
+                if (inputOpcion) inputOpcion.value = 'REASIGNAR';
+            }
+
+            const modal1 = document.getElementById('modal-reasignar-alumno');
+            const modal2 = document.getElementById('modal-confirmar-reasignacion-alumno');
+            if (modal1 && modal2) {
+                modal1.classList.add('hidden');
+                modal1.classList.remove('flex');
+                modal2.classList.remove('hidden');
+                modal2.classList.add('flex');
+            }
+        };
+
+        window.volverAModalSeleccion = function () {
+            const modal1 = document.getElementById('modal-reasignar-alumno');
+            const modal2 = document.getElementById('modal-confirmar-reasignacion-alumno');
+            if (modal1 && modal2) {
+                modal2.classList.add('hidden');
+                modal2.classList.remove('flex');
+                modal1.classList.remove('hidden');
+                modal1.classList.add('flex');
+            }
+        };
+    </script>
+</th:block>

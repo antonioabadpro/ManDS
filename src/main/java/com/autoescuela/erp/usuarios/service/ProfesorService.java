@@ -15,6 +15,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -528,6 +529,32 @@ public class ProfesorService
         List<Profesor> profesores = (profesorId != null)
                 ? this.profesorRepository.findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO, profesorId)
                 : this.profesorRepository.findByEstadoOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO);
+
+        return profesores.stream()
+                .map(this.profesorMapper::toProfesorResumenDTO)
+                .toList();
+    }
+
+    /**
+     * Recupera el listado de profesores activos que cuentan con la habilitación para el tipo de carnet indicado,
+     * excluyendo al docente actual si procede, y ordenados de menor a mayor número de alumnos asignados
+     * (con desempate alfabético por nombre completo) para favorecer el balanceo de carga docente.
+     *
+     * @param tipoCarnet Permiso de conducción requerido conforme a la matrícula del alumno.
+     * @param profesorId Identificador del profesor a excluir (por ejemplo, el actual del alumno).
+     * @return Lista ordenada de DTOs de resumen de los docentes activos habilitados.
+     */
+    @Transactional(readOnly = true)
+    public List<ProfesorResumenDTO> obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet tipoCarnet, Long profesorId)
+    {
+        if (tipoCarnet == null)
+        {
+            return List.of();
+        }
+
+        List<Profesor> profesores = (profesorId != null)
+                ? this.profesorRepository.findActivosPorCarnetExcluyendoIdOrderByAlumnosAsc(tipoCarnet, profesorId)
+                : this.profesorRepository.findActivosPorCarnetOrderByAlumnosAsc(tipoCarnet);
 
         return profesores.stream()
                 .map(this.profesorMapper::toProfesorResumenDTO)
