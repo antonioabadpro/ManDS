@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -109,7 +110,7 @@ class VistaAdminTest
                 .andExpect(content().string(containsString("Consultar expediente del Alumno")))
                 .andExpect(content().string(containsString("Reasignar Profesor")))
                 .andExpect(content().string(containsString("Eliminar alumno (baja lógica)")))
-                .andExpect(content().string(containsString("Reactivar alumno")));
+                .andExpect(content().string(not(containsString("Reactivar alumno"))));
     }
 
     @Test
