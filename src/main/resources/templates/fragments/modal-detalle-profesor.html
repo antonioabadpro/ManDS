@@ -156,8 +156,13 @@
 
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">Alumnos Asignados</dt>
-                        <dd class="mt-0.5 font-bold text-slate-900 dark:text-white" th:text="|${profesor.totalAlumnos} alumnos activos|">
-                            2 alumnos activos
+                        <dd class="mt-0.5">
+                            <span class="font-bold text-slate-900 dark:text-white block" th:text="${profesor.totalAlumnos == 1} ? '1 alumno activo' : |${profesor.totalAlumnos} alumnos activos|">
+                                2 alumnos activos
+                            </span>
+                            <span th:if="${profesor.totalClasesPendientes > 0}" class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 block mt-0.5" th:text="|(${profesor.totalClasesPendientes} ${profesor.totalClasesPendientes == 1 ? 'clase pendiente' : 'clases pendientes'})|">
+                                (3 clases pendientes)
+                            </span>
                         </dd>
                     </div>
                 </dl>

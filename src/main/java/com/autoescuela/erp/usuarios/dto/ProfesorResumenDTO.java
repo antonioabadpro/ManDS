@@ -29,6 +29,7 @@ public record ProfesorResumenDTO(
     String vehiculoDescripcion,
     List<TipoCarnet> permisos,
     int totalAlumnos,
+    int totalClasesPendientes,
     EstadoUsuario estado
 )
 {

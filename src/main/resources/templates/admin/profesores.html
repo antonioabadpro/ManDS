@@ -149,8 +149,11 @@
                                         <p class="text-[10px] text-slate-400">Disponible para asignación</p>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 text-center whitespace-nowrap font-medium text-slate-900 dark:text-white" th:text="|${p.totalAlumnos} alumnos|">
-                                    2 alumnos
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex flex-col items-center justify-center">
+                                        <span class="font-medium text-slate-900 dark:text-white" th:text="${p.totalAlumnos == 1} ? '1 alumno' : |${p.totalAlumnos} alumnos|">2 alumnos</span>
+                                        <span th:if="${p.totalClasesPendientes > 0}" class="text-[10px] font-semibold text-amber-600 dark:text-amber-400" th:text="|(${p.totalClasesPendientes} ${p.totalClasesPendientes == 1 ? 'clase pendiente' : 'clases pendientes'})|">(3 clases pendientes)</span>
+                                    </div>
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <div class="flex justify-center">

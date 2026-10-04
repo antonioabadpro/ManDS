@@ -35,6 +35,7 @@ public record ProfesorDetalleDTO(
     String vehiculoTipoDescripcion,
     List<TipoCarnet> permisos,
     int totalAlumnos,
+    int totalClasesPendientes,
     EstadoUsuario estado
 )
 {

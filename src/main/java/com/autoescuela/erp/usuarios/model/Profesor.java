@@ -5,6 +5,7 @@ import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,6 +43,9 @@ public class Profesor extends Persona
 
     @OneToMany(mappedBy = "profesor")
     private List<Alumno> listaAlumnos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profesor")
+    private List<ClasePractica> listaClasesPracticas = new ArrayList<>();
 
     @OneToMany(mappedBy = "profesor")
     private List<SolicitudExamen> listaSolicitudesExamen = new ArrayList<>();

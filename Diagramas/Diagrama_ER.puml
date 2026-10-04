@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v11
+@startuml Diagrama_ER_v12
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -138,6 +138,7 @@ package "Usuarios" {
   class Profesor {
     - fechaContratacion: LocalDate
     - listaAlumnos: List<Alumno>
+    - listaClasesPracticas: List<ClasePractica>
     - listaSolicitudesExamen: List<SolicitudExamen>
     - listaTiposCarnet: List<TipoCarnet>
     - turno: TipoTurno

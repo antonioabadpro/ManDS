@@ -31,6 +31,7 @@ public interface ProfesorMapper
     @Mapping(target = "estado", ignore = true)
     @Mapping(target = "vehiculo", ignore = true)
     @Mapping(target = "listaAlumnos", ignore = true)
+    @Mapping(target = "listaClasesPracticas", ignore = true)
     @Mapping(target = "listaSolicitudesExamen", ignore = true)
     @Mapping(target = "listaTiposCarnet", source = "permisos")
     Profesor toProfesor(AltaProfesorDTO dto);
@@ -85,6 +86,7 @@ public interface ProfesorMapper
     @Mapping(target = "vehiculoDescripcion", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() + \" (\" + profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() + \")\" : \"Sin vehículo asignado\")")
     @Mapping(target = "permisos", source = "listaTiposCarnet")
     @Mapping(target = "totalAlumnos", expression = "java(profesor.getListaAlumnos() != null ? profesor.getListaAlumnos().size() : 0)")
+    @Mapping(target = "totalClasesPendientes", expression = "java(profesor.getListaClasesPracticas() != null ? (int) profesor.getListaClasesPracticas().stream().filter(c -> c.getEstadoClase() == com.autoescuela.erp.core.enums.EstadoClase.PENDIENTE).count() : 0)")
     ProfesorResumenDTO toProfesorResumenDTO(Profesor profesor);
 
     /**
@@ -115,6 +117,7 @@ public interface ProfesorMapper
     @Mapping(target = "vehiculoTipoDescripcion", expression = "java(profesor.getVehiculo() != null && profesor.getVehiculo().getTipo() != null ? profesor.getVehiculo().getTipo().getDescripcion() : null)")
     @Mapping(target = "permisos", source = "listaTiposCarnet")
     @Mapping(target = "totalAlumnos", expression = "java(profesor.getListaAlumnos() != null ? profesor.getListaAlumnos().size() : 0)")
+    @Mapping(target = "totalClasesPendientes", expression = "java(profesor.getListaClasesPracticas() != null ? (int) profesor.getListaClasesPracticas().stream().filter(c -> c.getEstadoClase() == com.autoescuela.erp.core.enums.EstadoClase.PENDIENTE).count() : 0)")
     ProfesorDetalleDTO toProfesorDetalleDTO(Profesor profesor);
 
     /**
