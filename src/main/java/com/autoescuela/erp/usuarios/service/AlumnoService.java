@@ -267,4 +267,75 @@ public class AlumnoService
             this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
         }
     }
+
+    /**
+     * Tramita la baja lógica de un alumno conforme a las reglas de negocio del ERP:
+     * - Su estado pasa a INACTIVO preservando todo el histórico de clases, exámenes y facturación.
+     * - Se desvincula a su profesor actual para liberar el recuento de alumnos a su cargo.
+     * - Se cancelan automáticamente todas sus clases prácticas en estado PENDIENTE.
+     * - Se envía un correo electrónico de notificación tanto al alumno como al profesor asignado.
+     *
+     * @param alumnoId Identificador único del alumno a dar de baja.
+     * @return Entidad Alumno actualizada en estado INACTIVO.
+     */
+    @Transactional
+    public Alumno darBajaAlumno(Long alumnoId)
+    {
+        if (alumnoId == null)
+        {
+            throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
+        }
+
+        Alumno alumno = this.alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + alumnoId));
+
+        if (alumno.getEstado() == EstadoUsuario.INACTIVO)
+        {
+            throw new ReglaNegocioException("El alumno " + alumno.getNombre() + " " + alumno.getApellidos() + " ya se encuentra en estado INACTIVO.");
+        }
+
+        // Desvinculación del profesor asignado para liberar su cupo
+        Profesor profesorAsignado = alumno.getProfesor();
+
+        // Eliminamos el alumno
+        alumno.setEstado(EstadoUsuario.INACTIVO);
+        alumno.setProfesor(null);
+
+        // Cancelación de clases prácticas pendientes
+        List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        for (ClasePractica clase : clasesPendientes)
+        {
+            clase.setEstadoClase(EstadoClase.CANCELADA);
+            this.clasePracticaRepository.save(clase);
+        }
+
+        Alumno alumnoGuardado = this.alumnoRepository.save(alumno);
+
+        // Notificación por correo electrónico al alumno
+        String asuntoAlumno = "Aviso importante: Tramitación de baja de tu expediente de alumno";
+        String mensajeAlumno = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                + "Te comunicamos que tu expediente de alumno en ManDS Autoescuela ha sido dado de baja.\n"
+                + "Conforme al protocolo de la autoescuela, todas tus clases prácticas pendientes (" + clasesPendientes.size() + ") "
+                + "han sido canceladas de forma automática y se ha desvinculado a tu profesor asignado.\n\n"
+                + "Para cualquier consulta sobre tu expediente o una futura reactivación, por favor ponte en contacto con la administración del centro.\n\n"
+                + "Un cordial saludo,\n"
+                + "Equipo de Coordinación - ManDS Autoescuela";
+        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asuntoAlumno, mensajeAlumno);
+
+        // Notificación por correo electrónico al profesor asignado si tuviese uno
+        if (profesorAsignado != null && profesorAsignado.getCorreo() != null)
+        {
+            String asuntoProfesor = "Aviso: Baja de alumno asignado";
+            String mensajeProfesor = "Estimado/a " + profesorAsignado.getNombre() + ",\n\n"
+                    + "Te informamos de que el alumno " + alumno.getNombre() + " " + alumno.getApellidos() + " (DNI: " + alumno.getDni() + ") "
+                    + "ha sido dado de baja en la autoescuela.\n"
+                    + "Como consecuencia, dicho alumno ha sido desvinculado de tu lista de alumnos y todas las clases prácticas pendientes "
+                    + "que tenía reservadas contigo (" + clasesPendientes.size() + ") han sido canceladas de forma automática, liberando dichos tramos de tu calendario de prácticas.\n\n"
+                    + "Un cordial saludo,\n"
+                    + "Equipo de Coordinación - ManDS Autoescuela";
+            this.emailService.enviarNotificacionProfesor(profesorAsignado.getCorreo(), asuntoProfesor, mensajeProfesor);
+        }
+
+        return alumnoGuardado;
+    }
 }

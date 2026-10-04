@@ -37,6 +37,7 @@ import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.dto.ReasignarAlumnoDTO;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.service.AlumnoService;
 import com.autoescuela.erp.usuarios.service.ProfesorService;
@@ -579,7 +580,7 @@ public class AdministradorController
         try
         {
             this.alumnoService.reasignarProfesor(reasignarAlumnoDTO);
-            String mensajeExito = "El profesor del alumno ha sido actualizado correctamente. Se han cancelado sus clases pendientes y se le ha notificado por correo electrónico.";
+            String mensajeExito = "El profesor del alumno ha sido actualizado correctamente. Se han cancelado sus clases pendientes y se le ha notificado por correo electrónico tanto al alumno como al profesor asignado.";
             redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
 
             String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
@@ -620,6 +621,82 @@ public class AdministradorController
             {
                 return "fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
             }
+            return "admin/alumnos";
+        }
+    }
+
+    /**
+     * Endpoint HTMX para cargar el modal de confirmación y advertencia de baja lógica de un alumno.
+     */
+    @GetMapping("/alumnos/baja/{id}")
+    public String cargarModalBajaAlumno(@PathVariable("id") Long id, Model model)
+    {
+        AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(id);
+        int clasesPendientes = this.alumnoService.contarClasesPendientes(id);
+
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("clasesPendientes", clasesPendientes);
+        model.addAttribute("abrirModalBajaAlumno", true);
+
+        return "fragments/modal-baja-alumno :: modal-baja-alumno";
+    }
+
+    /**
+     * Procesa la solicitud de baja lógica de un alumno en el sistema:
+     * - Estado a INACTIVO con preservación de histórico.
+     * - Desvinculación de su profesor asignado.
+     * - Cancelación automática de clases prácticas pendientes.
+     * - Envío de notificaciones informativas por correo tanto al alumno como al profesor asignado.
+     */
+    @PostMapping("/alumnos/baja/{id}")
+    public String darBajaAlumno(@PathVariable("id") Long id, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        try
+        {
+            Alumno alumnoBaja = this.alumnoService.darBajaAlumno(id);
+            String mensajeExito = "El alumno " + alumnoBaja.getNombre() + " " + alumnoBaja.getApellidos()
+                    + " ha sido dado de baja correctamente (estado INACTIVO). Sus clases pendientes han sido canceladas y se ha notificado por correo electrónico tanto al alumno como al profesor asignado.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/alumnos";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/alumnos";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(id);
+            int clasesPendientes = this.alumnoService.contarClasesPendientes(id);
+
+            model.addAttribute("alumno", alumno);
+            model.addAttribute("clasesPendientes", clasesPendientes);
+            model.addAttribute("errorBajaAlumno", ex.getMessage());
+            model.addAttribute("abrirModalBajaAlumno", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-baja-alumno :: modal-baja-alumno";
+            }
+            model.addAttribute("alumnos", this.alumnoService.obtenerTodosLosAlumnos());
             return "admin/alumnos";
         }
     }

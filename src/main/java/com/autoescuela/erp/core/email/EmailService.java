@@ -38,6 +38,15 @@ public interface EmailService
     void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje);
 
     /**
+     * Envía un correo electrónico de notificación o comunicación directa a un profesor.
+     *
+     * @param correoDestinatario Dirección de correo del profesor.
+     * @param asunto Asunto del correo electrónico.
+     * @param mensaje Cuerpo del mensaje en texto plano o aviso informativo.
+     */
+    void enviarNotificacionProfesor(String correoDestinatario, String asunto, String mensaje);
+
+    /**
      * Envía un correo electrónico de bienvenida y confirmación de matrícula a un nuevo alumno tras el pago.
      *
      * @param correoDestinatario Dirección de correo del alumno.
