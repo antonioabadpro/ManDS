@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,6 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
 @SpringBootTest
 @TestPropertySource(properties =
@@ -40,6 +47,12 @@ class VistaProfesorTest
 {
     @Autowired
     private WebApplicationContext contexto;
+
+    @Autowired
+    private AlumnoRepository alumnoRepository;
+
+    @Autowired
+    private MatriculaRepository matriculaRepository;
 
     private MockMvc mockMvc;
 
@@ -255,5 +268,25 @@ class VistaProfesorTest
                 .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
                 .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"))
                 .andExpect(content().string(containsString("Clase práctica cancelada correctamente")));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con APTO en examen práctico cierra la matrícula y desvincula al profesor")
+    void testCalificarExamenPracticoAptoCierraMatriculaYDesvinculaProfesor() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "3")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attribute("mensajeExito", containsString("APTO")));
+
+        Alumno alumno = this.alumnoRepository.findById(4L).orElseThrow();
+        assertNull(alumno.getProfesor(), "El profesor debe quedar desvinculado tras aprobar el examen práctico.");
+
+        Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
+        assertFalse(matricula.getEstaActiva(), "La matrícula debe finalizar (estaActiva = false) tras aprobar el práctico.");
     }
 }

@@ -165,4 +165,47 @@ class AcademicoServiceTest
         assertNotNull(resultado);
         assertEquals(TipoCarnet.PERMISO_B, resultado.getPermisoCarnet());
     }
+
+    @Test
+    @DisplayName("matricularTrasPago lanza ReglaNegocioException si el alumno ya tiene otra matrícula activa diferente")
+    void testMatricularTrasPagoLanzaExcepcionSiYaTieneMatriculaActivaParaOtroCarnet()
+    {
+        String dni = "12345678Z";
+        Alumno alumno = new Alumno();
+        alumno.setDni(dni);
+
+        Matricula matriculaExistente = new Matricula();
+        matriculaExistente.setEstaActiva(true);
+        matriculaExistente.setPermisoCarnet(TipoCarnet.PERMISO_B);
+
+        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matriculaExistente));
+
+        ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
+                this.academicoService.matricularTrasPago(dni, "PERMISO_C", 450.00f)
+        );
+
+        assertTrue(excepcion.getMessage().contains("No es posible cursar dos permisos de conducir simultáneamente"));
+    }
+
+    @Test
+    @DisplayName("matricularTrasPago crea nueva matrícula activa si el alumno tenía una matrícula previa cerrada/inactiva")
+    void testMatricularTrasPagoCreaNuevaMatriculaSiMatriculaPreviaEstabaInactiva()
+    {
+        String dni = "12345678Z";
+        Alumno alumno = new Alumno();
+        alumno.setDni(dni);
+
+        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Matricula nueva = this.academicoService.matricularTrasPago(dni, "PERMISO_C", 450.00f);
+
+        assertNotNull(nueva);
+        assertEquals(TipoCarnet.PERMISO_C, nueva.getPermisoCarnet());
+        assertTrue(nueva.getEstaActiva());
+        assertEquals(450.00f, nueva.getPrecio());
+        verify(this.matriculaRepository).save(any(Matricula.class));
+    }
 }

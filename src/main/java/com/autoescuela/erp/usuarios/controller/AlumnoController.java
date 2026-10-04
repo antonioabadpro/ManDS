@@ -38,6 +38,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
+import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
@@ -189,10 +190,13 @@ public class AlumnoController
         }
 
         boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
+        boolean sinMatriculaActiva = (matricula == null);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
+        model.addAttribute("sinMatriculaActiva", sinMatriculaActiva);
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
         model.addAttribute("profesor", profesor);
         model.addAttribute("capacidadReserva", capacidadReserva);
         model.addAttribute("proximaClase", proximaClase);
@@ -230,7 +234,7 @@ public class AlumnoController
     /**
      * Endpoint API JSON que provee los eventos para FullCalendar v6 en la vista del alumno:
      * - Clases propias (Pendiente en ámbar, Recibida en verde, Cancelada en gris)
-     * - Horarios ocupados del profesor tutor (bloqueados en gris)
+     * - Horarios ocupados del profesor asignado (bloqueados en gris)
      * - Jornadas oficiales de examen DGT (bloqueadas en índigo)
      */
     @GetMapping("/calendario/eventos")
@@ -890,6 +894,51 @@ public class AlumnoController
         {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/alumno/pagos";
+        }
+    }
+
+    /**
+     * Inicia el proceso de pago para matricularse en un nuevo permiso de conducir
+     * para un alumno que ya no tiene una matrícula activa en vigor (Regla de negocio: 1 carnet activo simultáneo).
+     */
+    @PostMapping("/matricular")
+    public String matricularNuevoCarnet(@RequestParam("tipoCarnet") TipoCarnet tipoCarnet, @AuthenticationPrincipal Object principal, RedirectAttributes redirectAttributes, HttpSession sesion)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return "redirect:/login";
+        }
+
+        if (tipoCarnet == null)
+        {
+            redirectAttributes.addFlashAttribute("error", "Debes seleccionar un tipo de permiso para formalizar la matrícula.");
+            return "redirect:/alumno/dashboard";
+        }
+
+        Optional<Matricula> matriculaActiva = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+        if (matriculaActiva.isPresent())
+        {
+            redirectAttributes.addFlashAttribute("error", "Ya tienes una matrícula activa para el " +
+                    matriculaActiva.get().getPermisoCarnet().getDescripcion() + ". No puedes cursar más de un permiso simultáneamente.");
+            return "redirect:/alumno/dashboard";
+        }
+
+        try
+        {
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(tipoCarnet, alumno.getDni());
+
+            // Almacenamos datos en sesión para la confirmación tras el retorno de Stripe
+            sesion.setAttribute("dniAlumno", alumno.getDni());
+            sesion.setAttribute("tipoCarnet", tipoCarnet.name());
+            sesion.setAttribute("importeTotal", sesionPago.importeTotal() / 100.0f);
+
+            return "redirect:" + sesionPago.urlStripe();
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/alumno/dashboard";
         }
     }
 

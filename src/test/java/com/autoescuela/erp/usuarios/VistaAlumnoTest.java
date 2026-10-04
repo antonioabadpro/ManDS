@@ -13,6 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
 
@@ -357,5 +358,45 @@ class VistaAlumnoTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/alumno/perfil"))
                 .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @DisplayName("GET /alumno/dashboard para alumno sin matrícula activa renderiza bloque de nueva matriculación")
+    void testDashboardAlumnoSinMatriculaActivaRenderizaBloque() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/dashboard"))
+                .andExpect(content().string(containsString("¿Deseas matricularte en un nuevo permiso de conducir?")))
+                .andExpect(content().string(containsString("Matricularme y Pagar con Stripe")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @DisplayName("POST /alumno/matricular inicia sesión de pago en Stripe para alumno sin matrícula activa")
+    void testMatricularNuevoCarnetExito() throws Exception
+    {
+        when(this.pagoStripeService.crearSesionPagoMatricula(eq(TipoCarnet.PERMISO_C), any()))
+                .thenReturn(new SesionPagoDTO("cs_test_mock_matricula", "https://checkout.stripe.com/pay/cs_test_mock_matricula", 45000L, "EUR"));
+
+        this.mockMvc.perform(post("/alumno/matricular")
+                .with(csrf())
+                .param("tipoCarnet", "PERMISO_C"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_test_mock_matricula"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/matricular rechaza la solicitud si el alumno ya tiene un permiso activo")
+    void testMatricularNuevoCarnetRechazadoPorPermisoActivo() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/matricular")
+                .with(csrf())
+                .param("tipoCarnet", "PERMISO_A2"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("Ya tienes una matrícula activa")));
     }
 }

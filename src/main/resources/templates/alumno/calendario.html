@@ -45,7 +45,7 @@
 
     <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-        <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Reservar Clases Prácticas', subtituloSeccion='Agenda interactiva de tu profesor tutor y reserva de sesiones')}"></header>
+        <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Reservar Clases Prácticas', subtituloSeccion='Agenda interactiva de tu profesor asignado y reserva de sesiones')}"></header>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
@@ -59,23 +59,31 @@
                 <div class="space-y-1">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-xl font-bold text-slate-900 dark:text-white">Agenda de Prácticas</h2>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${profesor != null ? 'Prof. ' + profesor.nombre : 'Sin Tutor'}">
-                            Prof. Tutor
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${profesor != null ? 'Prof. ' + profesor.nombre : 'Sin Profesor'}">
+                            Prof. Asignado
                         </span>
                     </div>
                     <p th:replace="~{alumno/fragments/indicador-capacidad :: indicadorCapacidad(esOob=false)}"></p>
                 </div>
 
-                <!-- Botón de Nueva Reserva con HTMX -->
+                <!-- Botón de Nueva Reserva con HTMX o Enlace a Nueva Matrícula -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <button type="button" hx-get="/alumno/clases/reservar-modal" hx-target="#contenedor-modal" hx-swap="innerHTML" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition transform active:scale-95">
+                    <th:block th:if="${matricula != null}">
+                        <button type="button" hx-get="/alumno/clases/reservar-modal" hx-target="#contenedor-modal" hx-swap="innerHTML" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition transform active:scale-95">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>Nueva Reserva</span>
+                        </button>
+                        <a th:href="@{/alumno/pagos}" class="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition">
+                            <span>Comprar Saldo</span>
+                        </a>
+                    </th:block>
+                    <a th:if="${matricula == null}" th:href="@{/alumno/dashboard#seccion-nueva-matricula}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition transform active:scale-95">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        <span>Nueva Reserva</span>
-                    </button>
-                    <a th:href="@{/alumno/pagos}" class="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition">
-                        <span>Comprar Saldo</span>
+                        <span>Matricularme en un Permiso</span>
                     </a>
                 </div>
             </div>

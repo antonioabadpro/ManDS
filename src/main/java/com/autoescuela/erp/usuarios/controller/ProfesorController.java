@@ -33,6 +33,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.model.Examen;
@@ -667,6 +668,50 @@ public class ProfesorController
                 int gastadas = matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
                 matricula.setConvocatoriasGastadas(gastadas + 1);
                 this.matriculaRepository.save(matricula);
+            }
+        }
+        // Si aprueba el examen práctico, finalizar el expediente del carnet y liberar cupo del profesor
+        else if (Boolean.TRUE.equals(dto.esApto()) && examen.getAlumno() != null && examen.getTipo() == TipoExamen.PRACTICO)
+        {
+            Alumno alumno = examen.getAlumno();
+            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+            String nombreCarnet = "";
+            if (matriculaOptional.isPresent())
+            {
+                Matricula matricula = matriculaOptional.get();
+                matricula.setEstaActiva(false);
+                this.matriculaRepository.save(matricula);
+                if (matricula.getPermisoCarnet() != null)
+                {
+                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
+                }
+            }
+
+            // Desvinculación de profesor asignado para liberar su cupo oficial
+            alumno.setProfesor(null);
+            this.alumnoRepository.save(alumno);
+
+            // Cancelación de clases prácticas futuras pendientes si quedase alguna agendada
+            List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+            for (ClasePractica clase : clasesPendientes)
+            {
+                clase.setEstadoClase(EstadoClase.CANCELADA);
+                this.clasePracticaRepository.save(clase);
+            }
+
+            // Notificación por correo electrónico oficial de felicitación al alumno
+            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
+            {
+                String asunto = "¡Enhorabuena! Has aprobado tu examen práctico en ManDS Autoescuela";
+                String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                        + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen práctico de conducir"
+                        + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + ".\n\n"
+                        + "Tu expediente para este permiso ha finalizado con éxito. A partir de ahora podrás consultar todo tu historial de clases y notas desde tu panel de usuario.\n\n"
+                        + "Si en el futuro deseas matricularte en un nuevo permiso de conducir, podrás gestionarlo directamente desde tu panel personal.\n\n"
+                        + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
+                        + "Un cordial saludo,\n"
+                        + "Equipo de Coordinación - ManDS Autoescuela";
+                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
             }
         }
 

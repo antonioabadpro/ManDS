@@ -87,6 +87,9 @@ public class AcademicoService
                         dniAlumno, tipoCarnet, matriculaActiva.getId());
                 return matriculaActiva;
             }
+            throw new ReglaNegocioException("El alumno ya dispone de una matrícula activa para el "
+                    + matriculaActiva.getPermisoCarnet().getDescripcion()
+                    + ". No es posible cursar dos permisos de conducir simultáneamente.");
         }
 
         Matricula matriculaGuardada = null;
