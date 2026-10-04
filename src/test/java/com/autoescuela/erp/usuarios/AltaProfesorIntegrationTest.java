@@ -479,6 +479,7 @@ class AltaProfesorIntegrationTest
                 .param("direccion", "Calle Gran Vía 45, Madrid")
                 .param("fechaContratacion", "2022-01-15")
                 .param("turno", "MATINAL")
+                .param("vehiculoId", "1")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/profesores"))

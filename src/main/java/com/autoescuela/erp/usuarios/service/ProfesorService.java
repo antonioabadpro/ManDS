@@ -3,6 +3,7 @@ package com.autoescuela.erp.usuarios.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -221,6 +222,27 @@ public class ProfesorService
     }
 
     /**
+     * Comprueba si un profesor cuenta con clases prácticas pendientes de impartir.
+     *
+     * @param id Identificador único del profesor.
+     * @return true si tiene al menos una clase práctica en estado PENDIENTE, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean tieneClasesPracticasPendientes(Long id)
+    {
+        if (id == null)
+        {
+            return false;
+        }
+        Profesor profesor = this.profesorRepository.findById(id).orElse(null);
+        if (profesor == null)
+        {
+            return false;
+        }
+        return this.clasePracticaRepository.countByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE) > 0;
+    }
+
+    /**
      * Modifica los datos de un profesor existente aplicando las mismas restricciones de negocio
      * que en el alta, asegurando la unicidad de datos y la regla 7.3 (asignación 1 a 1 de flota y compatibilidad de carnet).
      *
@@ -281,9 +303,16 @@ public class ProfesorService
             throw new ReglaNegocioException("Ya existe un usuario registrado con el número de teléfono " + telefonoLimpio + ".");
         }
 
-        // Gestión de la asignación 1 a 1 de flota (Regla 7.3)
+        // Gestión de la asignación 1 a 1 de flota y bloqueo si existen clases prácticas pendientes (Regla 6.3)
         Vehiculo vehiculoActual = profesor.getVehiculo();
+        Long vehiculoActualId = vehiculoActual != null ? vehiculoActual.getId() : null;
         Long nuevoVehiculoId = dto.vehiculoId();
+        boolean vehiculoModificado = !Objects.equals(vehiculoActualId, nuevoVehiculoId);
+
+        if (vehiculoModificado && this.clasePracticaRepository.countByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE) > 0)
+        {
+            throw new ReglaNegocioException("No se puede modificar ni desvincular el vehículo de un profesor que tiene clases prácticas pendientes de impartir.");
+        }
 
         if (nuevoVehiculoId == null)
         {

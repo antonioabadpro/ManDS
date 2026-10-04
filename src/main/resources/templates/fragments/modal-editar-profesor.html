@@ -130,21 +130,45 @@
                     <!-- Vehículo Asignado -->
                     <div>
                         <label for="profesor-vehiculo-editar" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Vehículo Asignado (1 a 1)</label>
-                        <div class="relative">
-                            <select id="profesor-vehiculo-editar" th:field="*{vehiculoId}" class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
-                                <option value="">-- Sin Vehículo Asignado (Dejar Libre) --</option>
-                                <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipo},data-tipo-nombre=${v.tipo.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id ? ' (Actual)' : ''}|">
-                                    1234-LMN · SEAT Ibiza (Permiso B)
-                                </option>
-                            </select>
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        <th:block th:if="${tieneClasesPendientes}">
+                            <input type="hidden" th:field="*{vehiculoId}" />
+                            <div class="relative">
+                                <select id="profesor-vehiculo-editar" disabled class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed appearance-none transition">
+                                    <option th:if="${editarProfesorDTO.vehiculoId == null}" value="">-- Sin Vehículo Asignado --</option>
+                                    <option th:each="v : ${vehiculosDisponibles}" th:if="${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id}" th:value="${v.id}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})|" selected>
+                                        1234-LMN · SEAT Ibiza (Permiso B)
+                                    </option>
+                                </select>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mt-1 font-medium">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
-                            </span>
-                        </div>
-                        <span class="text-[10px] text-slate-400 mt-0.5 block">Al desvincularlo, el vehículo queda disponible para otros profesores.</span>
-                        <div id="feedback-vehiculo-compatibilidad-editar"></div>
+                                <span>No se puede modificar ni desvincular el vehículo porque el profesor tiene clases prácticas pendientes.</span>
+                            </p>
+                        </th:block>
+                        <th:block th:unless="${tieneClasesPendientes}">
+                            <div class="relative">
+                                <select id="profesor-vehiculo-editar" th:field="*{vehiculoId}" class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
+                                    <option value="">-- Sin Vehículo Asignado (Dejar Libre) --</option>
+                                    <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipo},data-tipo-nombre=${v.tipo.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id ? ' (Actual)' : ''}|">
+                                        1234-LMN · SEAT Ibiza (Permiso B)
+                                    </option>
+                                </select>
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-0.5 block">Al desvincularlo, el vehículo queda disponible para otros profesores.</span>
+                            <div id="feedback-vehiculo-compatibilidad-editar"></div>
+                        </th:block>
                     </div>
 
                     <!-- Turno Laboral -->

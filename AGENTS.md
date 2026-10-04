@@ -158,6 +158,7 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
   - El vehículo queda en estado `DISPONIBLE`.
 - **Bloqueo por Examen Práctico:** Al calendarizar un examen oficial en un vehículo, se cancelan automáticamente todas las clases prácticas de ese día en dicho vehículo y se envía correo explicativo a los alumnos.
 - **Turnos de Profesor:** Cada profesor opera bajo un `TipoTurno` fijo (`MATINAL` o `TARDE`), delimitando sus tramos hábiles para reservas en FullCalendar.
+- **Inmutabilidad de Vehículo con Clases Pendientes:** Queda terminantemente prohibido modificar (reasignar o desvincular) el vehículo asignado a un profesor si este cuenta con clases prácticas pendientes de impartir (`EstadoClase.PENDIENTE`). Para poder cambiar o desvincular su vehículo, dichas clases deben ser completadas (`RECIBIDA`) o canceladas (`CANCELADA`) previamente.
 
 ## 6.4. Algoritmo y Control de Reserva de Clases
 - **Fórmula de Capacidad de Reserva:**

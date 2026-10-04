@@ -461,7 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const feedbackId = `feedback-vehiculo-compatibilidad${sufijo}`;
         const selectVehiculo = document.getElementById(selectId);
         const feedback = document.getElementById(feedbackId);
-        if (!selectVehiculo) return true;
+        if (!selectVehiculo || selectVehiculo.disabled) {
+            if (feedback) feedback.innerHTML = '';
+            return true;
+        }
 
         const selectedOption = selectVehiculo.options[selectVehiculo.selectedIndex];
         const tipoVehiculo = selectedOption ? selectedOption.getAttribute('data-tipo') : null;

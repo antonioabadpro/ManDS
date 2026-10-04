@@ -352,7 +352,7 @@ class ProfesorBajaReactivacionIntegrationTest
     }
 
     @Test
-    @DisplayName("Modificar profesor con la misma fechaContratacion actualiza con éxito los demás campos")
+    @DisplayName("Modificar profesor con la misma fechaContratacion y vehículo actualiza con éxito los demás campos")
     void testModificarProfesorConFechaContratacionInmutableExito()
     {
         Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
@@ -361,7 +361,7 @@ class ProfesorBajaReactivacionIntegrationTest
                 profesor.getTelefono(), profesor.getCorreo(),
                 profesor.getFechaNacimiento(), "Calle Inmutable 42",
                 profesor.getFechaContratacion(),
-                profesor.getTurno(), null,
+                profesor.getTurno(), profesor.getVehiculo().getId(),
                 profesor.getListaTiposCarnet()
         );
 
@@ -369,5 +369,78 @@ class ProfesorBajaReactivacionIntegrationTest
         assertEquals("Laura Modificada", modificado.getNombre());
         assertEquals("Calle Inmutable 42", modificado.getDireccion());
         assertEquals(profesor.getFechaContratacion(), modificado.getFechaContratacion());
+        assertEquals(profesor.getVehiculo().getId(), modificado.getVehiculo().getId());
+    }
+
+    @Test
+    @DisplayName("Modificar profesor con clases pendientes intentando desvincular o cambiar vehículo lanza ReglaNegocioException")
+    void testModificarProfesorConClasesPendientesCambiandoVehiculoFalla()
+    {
+        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        assertTrue(this.profesorService.tieneClasesPracticasPendientes(2L));
+
+        // Intento 1: Desvincular vehículo a null teniendo clases pendientes
+        EditarProfesorDTO dtoDesvincular = new EditarProfesorDTO(
+                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), null,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException exDesvincular = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoDesvincular));
+        assertTrue(exDesvincular.getMessage().contains("clases prácticas pendientes"));
+
+        // Intento 2: Cambiar a otro vehículo teniendo clases pendientes
+        EditarProfesorDTO dtoCambiar = new EditarProfesorDTO(
+                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), 6L,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException exCambiar = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoCambiar));
+        assertTrue(exCambiar.getMessage().contains("clases prácticas pendientes"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/editar/{id} puebla tieneClasesPendientes a true y bloquea visualmente el vehículo")
+    void testGetModalEditarProfesorConClasesPendientes() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores/editar/2"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("tieneClasesPendientes", true))
+                .andExpect(content().string(containsString("No se puede modificar ni desvincular el vehículo porque el profesor tiene clases prácticas pendientes.")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar intentando cambiar vehículo con clases pendientes retorna error en el modelo")
+    void testPostEditarProfesorCambiandoVehiculoConClasesPendientesFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "2")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789B")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", "2022-01-15")
+                .param("turno", "MATINAL")
+                .param("vehiculoId", "6")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("errorEditarProfesor"))
+                .andExpect(model().attribute("errorEditarProfesor", containsString("clases prácticas pendientes")))
+                .andExpect(model().attribute("tieneClasesPendientes", true));
     }
 }

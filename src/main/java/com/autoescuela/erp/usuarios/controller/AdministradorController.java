@@ -208,7 +208,9 @@ public class AdministradorController
     public String cargarModalEditarProfesor(@PathVariable("id") Long id, Model model)
     {
         EditarProfesorDTO dto = this.profesorService.obtenerProfesorParaEdicion(id);
+        boolean tieneClasesPendientes = this.profesorService.tieneClasesPracticasPendientes(id);
         model.addAttribute("editarProfesorDTO", dto);
+        model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
         model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(id));
         model.addAttribute("tiposCarnet", TipoCarnet.values());
         model.addAttribute("turnos", TipoTurno.values());
@@ -241,6 +243,8 @@ public class AdministradorController
         if (bindingResult.hasErrors())
         {
             Long profesorId = editarProfesorDTO != null ? editarProfesorDTO.id() : null;
+            boolean tieneClasesPendientes = profesorId != null && this.profesorService.tieneClasesPracticasPendientes(profesorId);
+            model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
             model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
             model.addAttribute("tiposCarnet", TipoCarnet.values());
             model.addAttribute("turnos", TipoTurno.values());
@@ -287,6 +291,8 @@ public class AdministradorController
         catch (ReglaNegocioException ex)
         {
             Long profesorId = editarProfesorDTO != null ? editarProfesorDTO.id() : null;
+            boolean tieneClasesPendientes = profesorId != null && this.profesorService.tieneClasesPracticasPendientes(profesorId);
+            model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
             model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
             model.addAttribute("tiposCarnet", TipoCarnet.values());
             model.addAttribute("turnos", TipoTurno.values());
