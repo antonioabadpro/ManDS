@@ -42,7 +42,7 @@
 
     <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Gestión de Profesores', subtituloSeccion='Equipo docente, asignación 1-a-1 de vehículos y turnos')}"></header>
+        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Gestión de Profesores', subtituloSeccion='Profesorado, asignación 1-a-1 de vehículos y turnos')}"></header>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
@@ -57,13 +57,13 @@
             <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
             <div class="lg:hidden space-y-1">
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gestión de Profesores</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Equipo docente, asignación 1-a-1 de vehículos y turnos</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Profesorado, asignación 1-a-1 de vehículos y turnos</p>
             </div>
 
             <!-- Cabecera de Página con Acciones Principales -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Equipo Docente</h2>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Profesorado</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalProfesores != null ? totalProfesores : #lists.size(profesores)}">0</span> profesores en plantilla (<span th:text="|${totalMatinal != null ? totalMatinal : 0} Turno Matinal y ${totalTarde != null ? totalTarde : 0} Tarde|">0 Turno Matinal y 0 Tarde</span>)</p>
                 </div>
                 <div class="flex items-center space-x-3">

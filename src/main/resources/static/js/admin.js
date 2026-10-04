@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputNacimiento.setAttribute('min', formatearFechaISO(hace100Anios));
         }
 
-        if (inputContratacion) {
+        if (inputContratacion && sufijo !== '-editar') {
             const hace1Mes = new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
             const en1Mes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate());
             inputContratacion.setAttribute('min', formatearFechaISO(hace1Mes));
@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const vCorreo = validarCorreoProfesor(sufijo);
         const vNacimiento = validarFechaNacimientoProfesor(sufijo);
         const vDireccion = validarDireccionProfesor(sufijo);
-        const vContratacion = validarFechaContratacionProfesor(sufijo);
+        const vContratacion = sufijo === '-editar' ? true : validarFechaContratacionProfesor(sufijo);
         const vPermisos = validarPermisosProfesor(modalId, sufijo);
         const vVehiculo = validarCompatibilidadVehiculo(modalId, sufijo);
 
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const inputContratacion = document.getElementById(`profesor-fecha${sufijo}`);
-        if (inputContratacion) {
+        if (inputContratacion && sufijo !== '-editar') {
             inputContratacion.addEventListener('change', () => validarFechaContratacionProfesor(sufijo));
             inputContratacion.addEventListener('blur', () => validarFechaContratacionProfesor(sufijo));
             inputContratacion.addEventListener('input', () => {

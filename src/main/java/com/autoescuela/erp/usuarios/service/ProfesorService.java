@@ -115,7 +115,7 @@ public class ProfesorService
 
             if (vehiculo.getProfesor() != null)
             {
-                throw new ReglaNegocioException("El vehículo con matrícula " + vehiculo.getMatricula() + " ya se encuentra asignado a otro docente.");
+                throw new ReglaNegocioException("El vehículo con matrícula " + vehiculo.getMatricula() + " ya se encuentra asignado a otro profesor.");
             }
 
             if (dto.permisos() == null || !dto.permisos().contains(vehiculo.getTipo()))
@@ -253,16 +253,9 @@ public class ProfesorService
             throw new ReglaNegocioException("La fecha de nacimiento no puede ser anterior a hace 100 años.");
         }
 
-        if (dto.fechaContratacion() == null || dto.fechaContratacion().isBefore(dto.fechaNacimiento().plusYears(18)))
+        if (dto.fechaContratacion() == null || !dto.fechaContratacion().isEqual(profesor.getFechaContratacion()))
         {
-            throw new ReglaNegocioException("La fecha de contratación no puede ser anterior a la fecha en que el profesor cumplió la mayoría de edad.");
-        }
-
-        LocalDate haceUnMesMod = LocalDate.now().minusMonths(1);
-        LocalDate enUnMesMod = LocalDate.now().plusMonths(1);
-        if (dto.fechaContratacion().isBefore(haceUnMesMod) || dto.fechaContratacion().isAfter(enUnMesMod))
-        {
-            throw new ReglaNegocioException("La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.");
+            throw new ReglaNegocioException("La fecha de contratación no puede ser modificada.");
         }
 
         if (dto.permisos() == null || dto.permisos().isEmpty())
@@ -312,7 +305,7 @@ public class ProfesorService
 
                 if (nuevoVehiculo.getProfesor() != null && !nuevoVehiculo.getProfesor().getId().equals(profesor.getId()))
                 {
-                    throw new ReglaNegocioException("El vehículo con matrícula " + nuevoVehiculo.getMatricula() + " ya se encuentra asignado a otro docente.");
+                    throw new ReglaNegocioException("El vehículo con matrícula " + nuevoVehiculo.getMatricula() + " ya se encuentra asignado a otro profesor.");
                 }
 
                 if (!dto.permisos().contains(nuevoVehiculo.getTipo()))
@@ -352,7 +345,6 @@ public class ProfesorService
         profesor.setTelefono(telefonoLimpio);
         profesor.setFechaNacimiento(dto.fechaNacimiento());
         profesor.setDireccion(dto.direccion().trim());
-        profesor.setFechaContratacion(dto.fechaContratacion());
         profesor.setTurno(dto.turno());
         profesor.setListaTiposCarnet(new ArrayList<>(dto.permisos()));
 
@@ -364,7 +356,7 @@ public class ProfesorService
      * - Su estado pasa a INACTIVO preservando todo su historial.
      * - El vehículo asignado se libera y pasa a estado DISPONIBLE.
      * - Se cancelan automáticamente todas sus clases prácticas pendientes.
-     * - Si posee alumnos asignados, se reasignan a otro profesor activo o se dejan temporalmente sin docente, notificando en ambos casos a los alumnos por correo electrónico.
+     * - Si posee alumnos asignados, se reasignan a otro profesor activo o se dejan temporalmente sin profesor, notificando en ambos casos a los alumnos por correo electrónico.
      *
      * @param dto Parámetros de la baja (profesorId, opcionAlumnos, nuevoProfesorId).
      * @return Entidad Profesor en estado INACTIVO.
@@ -529,10 +521,10 @@ public class ProfesorService
     /**
      * Recupera el listado de profesores activos excluyendo al profesor indicado,
      * ordenados ascendentemente de menor a mayor número de alumnos asignados
-     * para favorecer el balanceo de carga docente al reasignar los alumnos del profesor dado de baja.
+     * para favorecer el balanceo de carga de alumnos al reasignar los alumnos del profesor dado de baja.
      *
      * @param profesorId Identificador del profesor a excluir.
-     * @return Lista de DTOs de resumen de los docentes activos disponibles ordenados por carga docente.
+     * @return Lista de DTOs de resumen de los profesores activos disponibles ordenados por carga de alumnos.
      */
     @Transactional(readOnly = true)
     public List<ProfesorResumenDTO> obtenerProfesoresActivosExcluyendo(Long profesorId)
@@ -548,12 +540,12 @@ public class ProfesorService
 
     /**
      * Recupera el listado de profesores activos que cuentan con la habilitación para el tipo de carnet indicado,
-     * excluyendo al docente actual si procede, y ordenados de menor a mayor número de alumnos asignados
-     * (con desempate alfabético por nombre completo) para favorecer el balanceo de carga docente.
+     * excluyendo al profesor actual si procede, y ordenados de menor a mayor número de alumnos asignados
+     * (con desempate alfabético por nombre completo) para favorecer el balanceo de carga de alumnos.
      *
      * @param tipoCarnet Permiso de conducción requerido conforme a la matrícula del alumno.
      * @param profesorId Identificador del profesor a excluir (por ejemplo, el actual del alumno).
-     * @return Lista ordenada de DTOs de resumen de los docentes activos habilitados.
+     * @return Lista ordenada de DTOs de resumen de los profesores activos habilitados.
      */
     @Transactional(readOnly = true)
     public List<ProfesorResumenDTO> obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet tipoCarnet, Long profesorId)

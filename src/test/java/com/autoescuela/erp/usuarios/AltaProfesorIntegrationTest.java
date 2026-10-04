@@ -464,8 +464,8 @@ class AltaProfesorIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("POST /admin/profesores/editar con fecha de contratación dentro del rango +- 1 mes tiene éxito")
-    void testEditarProfesorFechaContratacionValidaExito() throws Exception
+    @DisplayName("POST /admin/profesores/editar con fecha de contratación inmutable tiene éxito")
+    void testEditarProfesorFechaContratacionInmutableExito() throws Exception
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
@@ -477,11 +477,34 @@ class AltaProfesorIntegrationTest
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
                 .param("direccion", "Calle Gran Vía 45, Madrid")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", "2022-01-15")
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/profesores"))
                 .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar alterando fecha de contratación retorna error en el modelo")
+    void testEditarProfesorFechaContratacionAlteradaRetornaError() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "2")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789B")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", "2026-10-01")
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("errorEditarProfesor"))
+                .andExpect(model().attribute("errorEditarProfesor", "La fecha de contratación no puede ser modificada."));
     }
 }

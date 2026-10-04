@@ -88,7 +88,7 @@ class VistaAdminTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/profesores"))
                 .andExpect(content().string(containsString("Gestión de Profesores")))
-                .andExpect(content().string(containsString("Equipo Docente")))
+                .andExpect(content().string(containsString("Profesorado")))
                 .andExpect(content().string(containsString("Laura Sánchez Romero")));
     }
 

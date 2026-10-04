@@ -331,4 +331,43 @@ class ProfesorBajaReactivacionIntegrationTest
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.profesorService.darBajaProfesor(dto));
         assertTrue(ex.getMessage().contains("no dispone del carnet"));
     }
+
+    @Test
+    @DisplayName("Modificar profesor intentando alterar fechaContratacion lanza ReglaNegocioException")
+    void testModificarProfesorAlterandoFechaContratacionFalla()
+    {
+        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        EditarProfesorDTO dtoMod = new EditarProfesorDTO(
+                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion().plusDays(5),
+                profesor.getTurno(), null,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoMod));
+        assertEquals("La fecha de contratación no puede ser modificada.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Modificar profesor con la misma fechaContratacion actualiza con éxito los demás campos")
+    void testModificarProfesorConFechaContratacionInmutableExito()
+    {
+        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        EditarProfesorDTO dtoMod = new EditarProfesorDTO(
+                2L, "Laura Modificada", profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), "Calle Inmutable 42",
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), null,
+                profesor.getListaTiposCarnet()
+        );
+
+        Profesor modificado = this.profesorService.modificarProfesor(dtoMod);
+        assertEquals("Laura Modificada", modificado.getNombre());
+        assertEquals("Calle Inmutable 42", modificado.getDireccion());
+        assertEquals(profesor.getFechaContratacion(), modificado.getFechaContratacion());
+    }
 }

@@ -68,7 +68,7 @@ public record EditarProfesorDTO(
     Long vehiculoId,
 
     /**
-     * Lista de permisos de carnet autorizados que puede impartir el docente.
+     * Lista de permisos de carnet autorizados que puede impartir el profesor.
      */
     @NotEmpty(message = "Debe seleccionar al menos un permiso de conducción autorizado.")
     List<TipoCarnet> permisos
@@ -106,33 +106,5 @@ public record EditarProfesorDTO(
             return true;
         }
         return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
-    }
-
-    /**
-     * Valida que la fecha de contratación no sea previa a la mayoría de edad del profesor.
-     */
-    @AssertTrue(message = "La fecha de contratación no puede ser anterior a la fecha en que el profesor cumplió la mayoría de edad.")
-    public boolean isFechaContratacionValida()
-    {
-        if (this.fechaNacimiento == null || this.fechaContratacion == null)
-        {
-            return true;
-        }
-        return !this.fechaContratacion.isBefore(this.fechaNacimiento.plusYears(18));
-    }
-
-    /**
-     * Valida que la fecha de contratación esté acotada a +- 1 mes respecto a la fecha actual.
-     */
-    @AssertTrue(message = "La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.")
-    public boolean isFechaContratacionEnRango()
-    {
-        if (this.fechaContratacion == null)
-        {
-            return true;
-        }
-        LocalDate haceUnMes = LocalDate.now().minusMonths(1);
-        LocalDate enUnMes = LocalDate.now().plusMonths(1);
-        return !this.fechaContratacion.isBefore(haceUnMes) && !this.fechaContratacion.isAfter(enUnMes);
     }
 }
