@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -24,6 +25,7 @@ import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -209,7 +211,26 @@ class ProfesorBajaReactivacionIntegrationTest
                 .andExpect(model().attributeExists("profesoresDisponibles"))
                 .andExpect(content().string(containsString("Baja Lógica del Profesor")))
                 .andExpect(content().string(containsString("Laura Sánchez Romero")))
-                .andExpect(content().string(containsString("1234-LMN")));
+                .andExpect(content().string(containsString("1234-LMN")))
+                .andExpect(content().string(containsString("id=\"modal-baja-profesor\"")))
+                .andExpect(content().string(containsString("id=\"modal-confirmar-baja-profesor\"")))
+                .andExpect(content().string(containsString("Confirmar Baja Definitiva")))
+                .andExpect(content().string(containsString("id=\"form-baja-profesor\"")))
+                .andExpect(content().string(containsString("id=\"btn-volver-modal-baja\"")));
+    }
+
+    @Test
+    @DisplayName("Los profesores disponibles para reasignación en baja lógica se ordenan de menor a mayor número de alumnos")
+    void testProfesoresParaBajaOrdenadosDeMenorAMayorNumeroDeAlumnos()
+    {
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosExcluyendo(2L);
+        assertTrue(profesores.size() > 1);
+
+        for (int i = 0; i < profesores.size() - 1; i++)
+        {
+            assertTrue(profesores.get(i).totalAlumnos() <= profesores.get(i + 1).totalAlumnos(),
+                    "El profesor en la posición " + i + " tiene más alumnos que el siguiente");
+        }
     }
 
     @Test
@@ -257,7 +278,7 @@ class ProfesorBajaReactivacionIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("GET /admin/profesores oculta botón editar y papelera en inactivos, mostrando botón de reactivar")
+    @DisplayName("GET /admin/profesores/oculta botón editar y papelera en inactivos, mostrando botón de reactivar")
     void testRenderizadoCondicionalBotonesSegunEstado() throws Exception
     {
         // Dejamos inactivo al profesor 2
@@ -267,5 +288,47 @@ class ProfesorBajaReactivacionIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("INACTIVO")))
                 .andExpect(content().string(containsString("Reactivar profesor (Dar de alta sin vehículo)")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/baja/{id} solo muestra profesores que disponen del permiso del vehículo asignado")
+    void testModalBajaProfesorFiltraPorPermisoVehiculo() throws Exception
+    {
+        // Asignamos al profesor 2 un vehículo de PERMISO_C (vehículo 4 en data.sql)
+        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(4L).orElseThrow();
+        vehiculoC.setProfesor(profesor);
+        profesor.setVehiculo(vehiculoC);
+        this.profesorRepository.save(profesor);
+
+        MvcResult result = this.mockMvc.perform(get("/admin/profesores/baja/2"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("profesoresDisponibles"))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
+
+        // En data.sql, de los profesores activos excluyendo al 2 (3, 7, 8, 12), únicamente el 3 tiene PERMISO_C
+        assertEquals(1, disponibles.size());
+        assertEquals(3L, disponibles.get(0).id());
+    }
+
+    @Test
+    @DisplayName("Baja lógica con reasignación a un profesor que no tiene el permiso del vehículo lanza ReglaNegocioException")
+    void testBajaProfesorReasignacionSinPermisoFalla()
+    {
+        // Asignamos al profesor 2 un vehículo de PERMISO_C
+        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(4L).orElseThrow();
+        vehiculoC.setProfesor(profesor);
+        profesor.setVehiculo(vehiculoC);
+        this.profesorRepository.save(profesor);
+
+        // Profesor 7 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
+        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "REASIGNAR", 7L);
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.profesorService.darBajaProfesor(dto));
+        assertTrue(ex.getMessage().contains("no dispone del carnet"));
     }
 }

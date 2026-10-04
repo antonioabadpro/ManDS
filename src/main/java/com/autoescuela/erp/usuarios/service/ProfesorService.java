@@ -430,6 +430,16 @@ public class ProfesorService
                     throw new ReglaNegocioException("El profesor seleccionado para la reasignación debe estar en estado ACTIVO.");
                 }
 
+                if (vehiculoActual != null && vehiculoActual.getTipo() != null)
+                {
+                    TipoCarnet permisoRequerido = vehiculoActual.getTipo();
+                    if (nuevoProfesor.getListaTiposCarnet() == null || !nuevoProfesor.getListaTiposCarnet().contains(permisoRequerido))
+                    {
+                        throw new ReglaNegocioException("El profesor seleccionado no dispone del carnet "
+                                + permisoRequerido.getDescripcion() + " requerido para la formación de los alumnos asignados.");
+                    }
+                }
+
                 String nombreProfesorBaja = profesor.getNombre() + " " + profesor.getApellidos();
                 String nombreNuevoProfesor = nuevoProfesor.getNombre() + " " + nuevoProfesor.getApellidos();
 
@@ -518,17 +528,18 @@ public class ProfesorService
 
     /**
      * Recupera el listado de profesores activos excluyendo al profesor indicado,
-     * útil para el selector de reasignación de alumnos en la baja lógica.
+     * ordenados ascendentemente de menor a mayor número de alumnos asignados
+     * para favorecer el balanceo de carga docente al reasignar los alumnos del profesor dado de baja.
      *
      * @param profesorId Identificador del profesor a excluir.
-     * @return Lista de DTOs de resumen de los docentes activos disponibles.
+     * @return Lista de DTOs de resumen de los docentes activos disponibles ordenados por carga docente.
      */
     @Transactional(readOnly = true)
     public List<ProfesorResumenDTO> obtenerProfesoresActivosExcluyendo(Long profesorId)
     {
         List<Profesor> profesores = (profesorId != null)
-                ? this.profesorRepository.findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO, profesorId)
-                : this.profesorRepository.findByEstadoOrderByNombreAscApellidosAsc(EstadoUsuario.ACTIVO);
+                ? this.profesorRepository.findActivosExcluyendoIdOrderByAlumnosAsc(profesorId)
+                : this.profesorRepository.findActivosOrderByAlumnosAsc();
 
         return profesores.stream()
                 .map(this.profesorMapper::toProfesorResumenDTO)
@@ -577,5 +588,26 @@ public class ProfesorService
     public long contarProfesoresPorTurno(TipoTurno turno)
     {
         return this.profesorRepository.countByTurno(turno);
+    }
+
+    /**
+     * Cuenta el número de clases prácticas en estado PENDIENTE que tiene actualmente un profesor.
+     *
+     * @param profesorId Identificador del profesor.
+     * @return Total de clases prácticas pendientes de impartición.
+     */
+    @Transactional(readOnly = true)
+    public int contarClasesPendientes(Long profesorId)
+    {
+        if (profesorId == null)
+        {
+            return 0;
+        }
+        Profesor profesor = this.profesorRepository.findById(profesorId).orElse(null);
+        if (profesor == null)
+        {
+            return 0;
+        }
+        return this.clasePracticaRepository.countByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE);
     }
 }

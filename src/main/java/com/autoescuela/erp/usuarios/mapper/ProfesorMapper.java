@@ -111,6 +111,7 @@ public interface ProfesorMapper
     @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
     @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : null)")
     @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : null)")
+    @Mapping(target = "vehiculoTipo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getTipo() : null)")
     @Mapping(target = "vehiculoTipoDescripcion", expression = "java(profesor.getVehiculo() != null && profesor.getVehiculo().getTipo() != null ? profesor.getVehiculo().getTipo().getDescripcion() : null)")
     @Mapping(target = "permisos", source = "listaTiposCarnet")
     @Mapping(target = "totalAlumnos", expression = "java(profesor.getListaAlumnos() != null ? profesor.getListaAlumnos().size() : 0)")

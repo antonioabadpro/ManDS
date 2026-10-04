@@ -310,7 +310,9 @@ public class AdministradorController
     public String cargarModalBajaProfesor(@PathVariable("id") Long id, Model model)
     {
         ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(id);
-        List<ProfesorResumenDTO> profesoresDisponibles = this.profesorService.obtenerProfesoresActivosExcluyendo(id);
+        List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
+                ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), id)
+                : this.profesorService.obtenerProfesoresActivosExcluyendo(id);
 
         model.addAttribute("profesor", profesor);
         model.addAttribute("profesoresDisponibles", profesoresDisponibles);
@@ -362,8 +364,13 @@ public class AdministradorController
             Long profesorId = bajaProfesorDTO != null ? bajaProfesorDTO.profesorId() : null;
             if (profesorId != null)
             {
-                model.addAttribute("profesor", this.profesorService.obtenerProfesorParaDetalle(profesorId));
-                model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId));
+                ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(profesorId);
+                List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
+                        ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), profesorId)
+                        : this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId);
+
+                model.addAttribute("profesor", profesor);
+                model.addAttribute("profesoresDisponibles", profesoresDisponibles);
             }
             model.addAttribute("bajaProfesorDTO", bajaProfesorDTO);
             model.addAttribute("errorBajaProfesor", ex.getMessage());

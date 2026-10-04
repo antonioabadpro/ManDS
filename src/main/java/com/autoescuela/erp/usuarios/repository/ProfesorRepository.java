@@ -30,6 +30,30 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
     List<Profesor> findByEstadoAndIdNotOrderByNombreAscApellidosAsc(EstadoUsuario estado, Long id);
 
     /**
+     * Recupera los profesores en estado ACTIVO excluyendo a un profesor en particular por su ID,
+     * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga en sustituciones)
+     * y por nombre y apellidos en caso de empate.
+     */
+    @Query("""
+        SELECT p FROM Profesor p
+        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
+          AND p.id != :profesorId
+        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
+    """)
+    List<Profesor> findActivosExcluyendoIdOrderByAlumnosAsc(@Param("profesorId") Long profesorId);
+
+    /**
+     * Recupera todos los profesores en estado ACTIVO ordenados ascendentemente por número de alumnos asignados
+     * y por nombre y apellidos en caso de empate.
+     */
+    @Query("""
+        SELECT p FROM Profesor p
+        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
+        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
+    """)
+    List<Profesor> findActivosOrderByAlumnosAsc();
+
+    /**
      * Recupera los profesores en estado ACTIVO que cuenten con el permiso de carnet especificado,
      * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga)
      * y por nombre y apellidos en caso de empate.

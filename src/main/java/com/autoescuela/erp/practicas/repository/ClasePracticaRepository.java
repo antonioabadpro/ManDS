@@ -34,12 +34,12 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     /**
      * Contabiliza las clases de un profesor en un determinado estado (RECIBIDA, PENDIENTE, CANCELADA).
      */
-    long countByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);
+    int countByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);
 
     /**
      * Contabiliza el total de clases asociadas a un profesor.
      */
-    long countByProfesor(Profesor profesor);
+    int countByProfesor(Profesor profesor);
 
     /**
      * Recupera todas las clases prácticas asociadas a un alumno ordenadas ascendentemente por fecha/hora.
