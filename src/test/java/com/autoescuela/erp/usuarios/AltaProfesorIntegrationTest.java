@@ -4,19 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.repository.TokenVerificacionRepository;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
@@ -34,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -44,25 +35,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@SpringBootTest
-@TestPropertySource(properties =
-{
-        "spring.sql.init.mode=always",
-        "spring.sql.init.data-locations=classpath:data.sql",
-        "spring.jpa.defer-datasource-initialization=true",
-        "spring.mail.host=localhost",
-        "spring.mail.port=1025"
-})
-@Transactional
+import com.autoescuela.erp.BaseIntegrationTest;
+
 /**
  * Pruebas de integración para el flujo completo de Alta de Profesor desde el Dashboard
  * y activación de cuenta con configuración de credenciales (Regla de negocio 7.1).
  */
-class AltaProfesorIntegrationTest
+class AltaProfesorIntegrationTest extends BaseIntegrationTest
 {
-    @Autowired
-    private WebApplicationContext contexto;
-
     @Autowired
     private ProfesorRepository profesorRepository;
 
@@ -74,17 +54,6 @@ class AltaProfesorIntegrationTest
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp()
-    {
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.contexto)
-                .apply(springSecurity())
-                .build();
-    }
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")

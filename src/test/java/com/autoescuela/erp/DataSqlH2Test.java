@@ -3,20 +3,10 @@ package com.autoescuela.erp;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.TestPropertySource;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
-@TestPropertySource(properties =
-{
-        "spring.sql.init.mode=always",
-        "spring.sql.init.data-locations=classpath:data.sql",
-        "spring.jpa.defer-datasource-initialization=true"
-})
-class DataSqlH2Test
+class DataSqlH2Test extends BaseIntegrationTest
 {
     @Autowired
     private JdbcTemplate jdbcTemplate;

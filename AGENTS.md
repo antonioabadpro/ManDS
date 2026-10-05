@@ -104,6 +104,11 @@
 - **Uso Obligatorio de `this.` para Atributos de Instancia:** En todo el código Java del backend, es obligatorio anteponer `this.` a cualquier lectura o asignación de campos de clase (`this.campo = valor;`, `return this.campo;`) para prevenir *shadowing*.
 - **Prohibición Léxica Expresa:** Queda terminantemente prohibido utilizar los términos *"profesor tutor"* o *"docente"* en cualquier texto, vista, variable o comentario de la aplicación.
 - **Estructuración Semilla de Datos (`data.sql`):** Los IDs de `persona` siguen orden estricto por rol: Administrador (ID 1), Profesores (IDs 2..6) y Alumnos (IDs 7..32). Los vehículos se agrupan correlativamente por tipo de carnet (B, A2, C, D, B_E, AM).
+- **Pirámide de Testing (Foco Unitario):** Prohibido `@SpringBootTest` en servicios, mappers o utilidades; validar su lógica exclusivamente con tests unitarios rápidos en JUnit 5 + Mockito (`@ExtendWith(MockitoExtension.class)`).
+- **Aserciones Web sin Acoplamiento HTML:** Prohibido validar texto o etiquetas HTML estáticas en Thymeleaf (`content().string(containsString(...))`). Los tests de controladores se limitan estrictamente a: 1) Estado HTTP (`status().isOk()`, `status().is3xxRedirection()`), 2) Vista/redirección (`view().name(...)`, `redirectedUrl(...)`), 3) Atributos del modelo (`model().attributeExists(...)`).
+- **Centralización de Seguridad RBAC:** Las comprobaciones de autorización (rutas anónimas como `/login` o accesos `403 Forbidden` por rol) pertenecen exclusivamente a `SeguridadIntegrationTest`. Prohibido replicar estas baterías en clases `Vista*Test`.
+- **Reutilización del Contexto Spring (`BaseIntegrationTest`):** Todo `@SpringBootTest` debe extender de `com.autoescuela.erp.BaseIntegrationTest`. Prohibido declarar `@TestPropertySource` o `@MockitoBean` en clases hijas para evitar invalidar el *Spring Test Context Caching*.
+- **Ejecución Selectiva en Desarrollo Activo:** Ejecutar únicamente el test de la clase afectada (`mvn test -Dtest=NombreTest`) durante la implementación, reservando la suite completa para la fase pre-commit.
 
 ---
 

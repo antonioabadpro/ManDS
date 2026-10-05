@@ -7,15 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -25,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -35,53 +27,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
-import com.autoescuela.erp.pagos.service.PagoStripeService;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-    "spring.sql.init.mode=always",
-    "spring.sql.init.data-locations=classpath:data.sql",
-    "spring.jpa.defer-datasource-initialization=true"
-})
+import com.autoescuela.erp.BaseIntegrationTest;
+
 /**
  * Pruebas de integración para el circuito completo de registro público de alumnos.
  * Cubre peticiones HTTP POST /registro, validaciones declarativas, reglas de negocio de unicidad,
  * encriptación segura de contraseña con BCrypt y persistencia en la base de datos tras pago exitoso.
  */
-@Transactional
-class RegistroAlumnoIntegrationTest
+class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
 {
-    @Autowired
-    private WebApplicationContext contexto;
-
     @Autowired
     private AlumnoRepository alumnoRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
-    private PagoStripeService pagoStripeService;
-
-    private MockMvc mockMvc;
-
     @BeforeEach
-    void setUp()
+    void setUpRegistro()
     {
         when(this.pagoStripeService.crearSesionPagoMatricula(any(), any()))
                 .thenReturn(new SesionPagoDTO("cs_123", "https://checkout.stripe.com/pay/cs_123", 25000L, "EUR"));
-
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.contexto)
-                .apply(springSecurity())
-                .build();
     }
 
     @Test

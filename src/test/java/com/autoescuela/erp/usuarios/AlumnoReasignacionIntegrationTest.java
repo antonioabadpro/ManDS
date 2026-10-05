@@ -2,18 +2,10 @@ package com.autoescuela.erp.usuarios;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoCarnet;
@@ -35,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -46,25 +37,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@SpringBootTest
-@TestPropertySource(properties =
-{
-        "spring.sql.init.mode=always",
-        "spring.sql.init.data-locations=classpath:data.sql",
-        "spring.jpa.defer-datasource-initialization=true",
-        "spring.mail.host=localhost",
-        "spring.mail.port=1025"
-})
-@Transactional
+import com.autoescuela.erp.BaseIntegrationTest;
+
 /**
  * Pruebas de integración para la reasignación de profesores a alumnos,
  * cancelación de clases prácticas pendientes y notificaciones por correo.
  */
-class AlumnoReasignacionIntegrationTest
+class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
 {
-    @Autowired
-    private WebApplicationContext contexto;
-
     @Autowired
     private AlumnoService alumnoService;
 
@@ -76,17 +56,6 @@ class AlumnoReasignacionIntegrationTest
 
     @Autowired
     private ProfesorService profesorService;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp()
-    {
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.contexto)
-                .apply(springSecurity())
-                .build();
-    }
 
     @Test
     @DisplayName("Reasignar alumno a otro profesor activo actualiza el profesor y cancela clases pendientes")

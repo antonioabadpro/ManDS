@@ -1,17 +1,9 @@
 package com.autoescuela.erp.auth;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.repository.TokenVerificacionRepository;
 import com.autoescuela.erp.auth.service.TokenVerificacionService;
@@ -22,7 +14,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -34,24 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
-@SpringBootTest
-@TestPropertySource(properties =
-{
-    "spring.sql.init.mode=always",
-    "spring.sql.init.data-locations=classpath:data.sql",
-    "spring.jpa.defer-datasource-initialization=true"
-})
+import com.autoescuela.erp.BaseIntegrationTest;
+
 /**
  * Pruebas de integración del circuito completo de recuperación y restablecimiento de contraseña.
  * RecuperarPasswordIntegrationTest contiene pruebas para verificar el flujo completo de recuperación de contraseña, incluyendo la generación de tokens, validación de tokens, restablecimiento de contraseña y verificación de acceso con la nueva contraseña.
  * Se utilizan Mocks para simular solicitudes HTTP y se verifican los resultados esperados en cada paso del flujo.
  */
-@Transactional
-class RecuperarPasswordIntegrationTest
+class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
 {
-    @Autowired
-    private WebApplicationContext contexto;
-
     @Autowired
     private PersonaRepository personaRepository;
 
@@ -63,17 +45,6 @@ class RecuperarPasswordIntegrationTest
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp()
-    {
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.contexto)
-                .apply(springSecurity())
-                .build();
-    }
 
     @Test
     @DisplayName("POST /recuperar-password con correo existente genera token y redirige a ?enviado=true")
