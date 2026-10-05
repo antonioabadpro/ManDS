@@ -283,7 +283,7 @@ class VistaProfesorTest
                 .andExpect(redirectedUrl("/profesor/examenes"))
                 .andExpect(flash().attribute("mensajeExito", containsString("APTO")));
 
-        Alumno alumno = this.alumnoRepository.findById(4L).orElseThrow();
+        Alumno alumno = this.alumnoRepository.findById(7L).orElseThrow();
         assertNull(alumno.getProfesor(), "El profesor debe quedar desvinculado tras aprobar el examen práctico.");
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();

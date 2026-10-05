@@ -147,7 +147,7 @@ class AltaProfesorIntegrationTest
                 .param("direccion", "Calle de la Primavera 12, Madrid")
                 .param("fechaContratacion", LocalDate.now().toString())
                 .param("turno", "TARDE")
-                .param("vehiculoId", "3")
+                .param("vehiculoId", "8")
                 .param("permisos", "PERMISO_B", "PERMISO_A2"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/dashboard"))
@@ -169,8 +169,8 @@ class AltaProfesorIntegrationTest
 
         // Comprobación de cambio de estado del vehículo asignado
         assertNotNull(profesor.getVehiculo());
-        assertEquals(3L, profesor.getVehiculo().getId());
-        Vehiculo vehiculoActualizado = this.vehiculoRepository.findById(3L).orElseThrow();
+        assertEquals(8L, profesor.getVehiculo().getId());
+        Vehiculo vehiculoActualizado = this.vehiculoRepository.findById(8L).orElseThrow();
         assertEquals(EstadoVehiculo.OCUPADO, vehiculoActualizado.getEstado());
 
         // Comprobación de emisión del token de verificación para activación de cuenta
@@ -374,7 +374,7 @@ class AltaProfesorIntegrationTest
     @DisplayName("POST /admin/profesores/alta con vehículo incompatible con los permisos del profesor falla con alerta de negocio")
     void testAltaProfesorVehiculoIncompatibleConPermisos() throws Exception
     {
-        // Vehículo 3 es Yamaha MT-07 que requiere PERMISO_A2, pero solo se pasa PERMISO_B
+        // Vehículo 8 es Yamaha MT-07 que requiere PERMISO_A2, pero solo se pasa PERMISO_B
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Incompatible")
@@ -386,7 +386,7 @@ class AltaProfesorIntegrationTest
                 .param("direccion", "Calle Incompatible 3")
                 .param("fechaContratacion", "2026-09-15")
                 .param("turno", "MATINAL")
-                .param("vehiculoId", "3")
+                .param("vehiculoId", "8")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/dashboard"))

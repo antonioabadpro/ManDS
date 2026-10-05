@@ -37,16 +37,16 @@ class DataSqlH2Test
         Integer solicitudes = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM solicitud_examen", Integer.class);
         Integer examenes = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM examen", Integer.class);
 
-        assertEquals(11, vehiculos, "Debe haber 11 vehículos");
+        assertEquals(19, vehiculos, "Debe haber 19 vehículos");
         assertEquals(32, personas, "Debe haber 32 personas registradas");
         assertEquals(1, admins, "Debe haber 1 administrador");
         assertEquals(5, profesores, "Debe haber 5 profesores");
         assertEquals(10, permisos, "Debe haber 10 permisos asignados a profesores");
         assertEquals(26, alumnos, "Debe haber 26 alumnos");
         assertEquals(8, incidencias, "Debe haber 8 incidencias registradas");
-        assertEquals(19, matriculas, "Debe haber 19 matrículas");
-        assertEquals(24, clases, "Debe haber 24 clases prácticas");
-        assertEquals(9, solicitudes, "Debe haber 9 solicitudes de examen");
-        assertEquals(8, examenes, "Debe haber 8 exámenes registrados");
+        assertEquals(27, matriculas, "Debe haber 27 matrículas");
+        assertEquals(243, clases, "Debe haber 243 clases prácticas");
+        assertEquals(43, solicitudes, "Debe haber 43 solicitudes de examen");
+        assertEquals(36, examenes, "Debe haber 36 exámenes registrados");
     }
 }

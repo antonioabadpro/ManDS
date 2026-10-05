@@ -295,9 +295,9 @@ class ProfesorBajaReactivacionIntegrationTest
     @DisplayName("GET /admin/profesores/baja/{id} solo muestra profesores que disponen del permiso del vehículo asignado")
     void testModalBajaProfesorFiltraPorPermisoVehiculo() throws Exception
     {
-        // Asignamos al profesor 2 un vehículo de PERMISO_C (vehículo 4 en data.sql)
+        // Asignamos al profesor 2 un vehículo de PERMISO_C (vehículo 11 en data.sql)
         Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
-        Vehiculo vehiculoC = this.vehiculoRepository.findById(4L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
         vehiculoC.setProfesor(profesor);
         profesor.setVehiculo(vehiculoC);
         this.profesorRepository.save(profesor);
@@ -310,7 +310,7 @@ class ProfesorBajaReactivacionIntegrationTest
         @SuppressWarnings("unchecked")
         List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
 
-        // En data.sql, de los profesores activos excluyendo al 2 (3, 7, 8, 12), únicamente el 3 tiene PERMISO_C
+        // En data.sql, de los profesores activos excluyendo al 2 (3, 4, 5, 6), únicamente el 3 tiene PERMISO_C
         assertEquals(1, disponibles.size());
         assertEquals(3L, disponibles.get(0).id());
     }
@@ -321,13 +321,13 @@ class ProfesorBajaReactivacionIntegrationTest
     {
         // Asignamos al profesor 2 un vehículo de PERMISO_C
         Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
-        Vehiculo vehiculoC = this.vehiculoRepository.findById(4L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
         vehiculoC.setProfesor(profesor);
         profesor.setVehiculo(vehiculoC);
         this.profesorRepository.save(profesor);
 
-        // Profesor 7 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
-        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "REASIGNAR", 7L);
+        // Profesor 4 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
+        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "REASIGNAR", 4L);
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.profesorService.darBajaProfesor(dto));
         assertTrue(ex.getMessage().contains("no dispone del carnet"));
     }

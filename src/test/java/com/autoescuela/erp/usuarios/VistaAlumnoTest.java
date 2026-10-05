@@ -131,10 +131,10 @@ class VistaAlumnoTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("GET /alumno/clases/1/modal devuelve el fragmento con detalle de clase")
+    @DisplayName("GET /alumno/clases/35/modal devuelve el fragmento con detalle de clase")
     void testModalDetalleClase() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/clases/1/modal"))
+        this.mockMvc.perform(get("/alumno/clases/35/modal"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-detalle-clase :: modalDetalleClase"))
                 .andExpect(content().string(containsString("Ficha de Clase Práctica")));
@@ -160,14 +160,14 @@ class VistaAlumnoTest
     }
 
     @Test
-    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @WithMockUser(username = "alumno2", roles = "ALUMNO")
     @DisplayName("POST /alumno/clases/cancelar cancela una clase en PENDIENTE con HTMX")
     void testCancelarClasePracticaHtmx() throws Exception
     {
         this.mockMvc.perform(post("/alumno/clases/cancelar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("claseId", "8"))
+                .param("claseId", "23"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
                 .andExpect(content().string(containsString("cancelada con éxito")))

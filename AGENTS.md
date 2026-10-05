@@ -145,7 +145,10 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 - **Límite de Carnet:** 1 carnet activo simultáneamente por alumno.
 - **Tipos de Matrícula:** *Teórico + Prácticas*, *Sólo Prácticas*, *Individual* (mejora futura, NO tener en cuenta ahora).
 - **Modalidades:** *Nueva Matriculación* y *Renovación de Matrícula*.
-- **Gestión de Convocatorias:** Cada matrícula concede **2 convocatorias iniciales**. Al suspender ambas, se bloquean nuevas solicitudes de examen hasta pagar la Renovación de Matrícula vía Stripe. La renovación mantiene obligatoriamente el mismo tipo de carnet.
+- **Vinculación Estricta Alumno-Profesor:** Un alumno **únicamente puede tener profesor asignado si dispone de una matrícula activa**. Si no tiene matrícula activa (carnet ya obtenido, sin matricular o baja lógica), su campo `profesor` es obligatoriamente `null`. El profesor asignado debe estar habilitado para el carnet de la matrícula del alumno.
+- **Gestión de Convocatorias y Suspensos:** Cada matrícula concede **2 convocatorias iniciales**. Las convocatorias consumidas ($2 - \text{convocatoriasRestantes}$) equivalen exactamente a los exámenes oficiales (`NO APTO`) registrados. Al suspender ambas, se bloquea la adquisición de saldo y reserva hasta pagar la Renovación de Matrícula vía Stripe.
+- **Secuencia Temporal en Modalidad TEORICO_PRACTICA:** Un alumno matriculado bajo la modalidad `TEORICO_PRACTICA` **NO puede realizar clases prácticas ni solicitar presentarse al examen práctico hasta haber aprobado previamente el examen teórico** (`esApto = true`). Toda clase práctica o citación a prueba práctica exige que el examen teórico conste como superado en una fecha anterior.
+- **Cierre por Examen Aprobado:** Al calificar el examen práctico como `APTO`, la matrícula pasa a inactiva (`estaActiva = false`), se desvincula al profesor (`alumno.setProfesor(null)`), se cancelan clases futuras pendientes y se habilita la nueva matriculación en otro permiso.
 
 ## 6.3. Flota de Vehículos y Profesores
 - **Propiedad:** Los vehículos pertenecen siempre a la autoescuela, nunca al profesor.
@@ -171,6 +174,9 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
   - Ejecución transaccional bajo `@Transactional` con bloqueo pesimista o verificación atómica.
   - En caso de colisión, se captura la excepción y se devuelve feedback inmediato con error 409/alerta HTMX.
 - **Cancelación de clases:** Al cancelar una clase en estado `PENDIENTE` (por alumno o profesor), pasa a `CANCELADA` y se decrementa atómicamente `clasesReservadasPendientes -= 1` sin alterar `saldoClases`, restituyendo de inmediato la capacidad de reserva.
+- **Ventana Temporal y Precedencia de Clases Prácticas:**
+  - La fecha de toda clase práctica debe estar estrictamente comprendida entre la fecha de matriculación (`fechaMatriculacion`) y la fecha del examen práctico oficial (`fechaHora` del examen).
+  - La fecha de celebración de cualquier examen práctico oficial debe ser **estrictamente posterior a la fecha de la última clase práctica recibida**.
 
 ## 6.5. Circuito y Gestión de Solicitudes de Examen (DGT)
 - **Control Centralizado por el Administrador:** Solo el Administrador puede fijar fechas, aceptar o rechazar solicitudes de examen DGT.
@@ -181,6 +187,11 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 - **Resolución:**
   - Rechazo: Pasa a `RECHAZADA` con justificación obligatoria enviada por email al alumno.
   - Aceptación: Pasa a `ACEPTADA`, valida el cupo introducido por el administrador para ese tipo de carnet, dispara citación por correo y bloquea reservas del vehículo ese día.
+- **Incompatibilidad de Clases Pendientes con Examen Práctico Citado / Presentado:**
+  - Un alumno **NO puede tener clases prácticas pendientes de impartir (`EstadoClase.PENDIENTE`) si ya se ha presentado a examen práctico oficial o se encuentra citado formalmente para dicha prueba**. Toda su formación previa obligatoria debe constar en estado `RECIBIDA` (o `CANCELADA`).
+- **Obligatoriedad de Clases Previas en Examen Práctico:**
+  - Un alumno **NUNCA puede ser citado, examinarse ni aprobar un examen práctico oficial DGT sin haber realizado clases prácticas previamente**.
+  - Todo examen práctico (citado, suspenso o aprobado) exige clases en estado `RECIBIDA` previas en fecha. Un examen práctico con 0 clases realizadas es una incongruencia de dominio inadmisible.
 
 ---
 
@@ -205,6 +216,7 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 - **Prioridad de Legibilidad sobre Concisión (Anti-One-Liners):** Prohibido compactar lógica compleja en streams ilegibles o lambdas anidadas. Priorizar bucles imperativos claros y métodos auxiliares descriptivos.
 - **Uso Obligatorio de `this.` para Atributos de Instancia:** En todo el código Java del backend, es obligatorio anteponer `this.` a cualquier lectura o asignación de campos de clase (`this.nombre = nombre;`, `return this.estado;`) para evitar *shadowing*.
 - **Prohibición Léxica Expresa:** Queda terminantemente prohibido utilizar los términos *"profesor tutor"* o *"docente"* en cualquier texto, vista, variable o comentario de la aplicación.
+- **Estructuración Semilla de Datos (`data.sql`):** Los IDs de `persona` siguen orden estricto por rol: Administrador (ID 1), Profesores (IDs 2..6) y Alumnos (IDs 7..32). Los vehículos se agrupan correlativamente por tipo de carnet (B, A2, C, D, B_E, AM).
 
 ---
 

@@ -118,7 +118,7 @@ class VistaAdminTest
     @DisplayName("GET /admin/alumnos/detalle/{id} renderiza correctamente el fragmento modal con los datos del alumno")
     void testModalDetalleAlumnoRenderizado() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/detalle/4"))
+        this.mockMvc.perform(get("/admin/alumnos/detalle/7"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-detalle-alumno :: modal-detalle-alumno"))
                 .andExpect(content().string(containsString("Jose López Martínez")))
@@ -136,7 +136,7 @@ class VistaAdminTest
     @DisplayName("GET /admin/alumnos/expediente/{id} renderiza el modal de expediente con métricas, últimas clases y exámenes")
     void testModalExpedienteAlumnoRenderizadoConClasesYExamenes() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/expediente/4"))
+        this.mockMvc.perform(get("/admin/alumnos/expediente/7"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"))
                 .andExpect(content().string(containsString("Expediente del Alumno")))
@@ -161,6 +161,21 @@ class VistaAdminTest
                 .andExpect(content().string(containsString("Expediente del Alumno")))
                 .andExpect(content().string(containsString("El alumno no dispone de clases prácticas registradas en su expediente.")))
                 .andExpect(content().string(containsString("El alumno no dispone de exámenes DGT registrados en su expediente.")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/alumnos/expediente/{id} renderiza clases prácticas recibidas y exámenes para alumno con expediente de carnet previo")
+    void testModalExpedienteAlumnoConClasesPreviasYExamenesAprobados() throws Exception
+    {
+        // Alumno ID 27 (Jorge Romero Gil): tiene clases prácticas recibidas que respaldan sus exámenes DGT
+        this.mockMvc.perform(get("/admin/alumnos/expediente/27"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"))
+                .andExpect(content().string(containsString("Jorge Romero Gil")))
+                .andExpect(content().string(containsString("11 recibidas")))
+                .andExpect(content().string(containsString("APTO")))
+                .andExpect(content().string(not(containsString("El alumno no dispone de clases prácticas registradas en su expediente."))));
     }
 
     @Test
