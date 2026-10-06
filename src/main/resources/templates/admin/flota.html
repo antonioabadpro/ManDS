@@ -31,6 +31,7 @@
     <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
     <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
     <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <script src="../../static/js/admin-flota.js" th:src="@{/js/admin-flota.js}" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
@@ -184,7 +185,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                         </button>
-                                        <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                        <button th:if="${v.estado?.name() != 'INACTIVO'}" type="button" th:attr="hx-get=@{/admin/flota/editar/{id}(id=${v.id})}" hx-target="#contenedor-modal-editar-vehiculo" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Modificar vehículo">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                             </svg>
@@ -204,53 +205,6 @@
             </div>
 
         </main>
-    </div>
-
-    <!-- Modal 2: Modificar Vehículo -->
-    <div id="modal-editar-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-vehiculo" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
-        <div class="relative z-10 w-full max-w-xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <h3 id="titulo-editar-vehiculo" class="text-lg font-bold text-slate-900 dark:text-white">Modificar Datos del Vehículo</h3>
-                <button type="button" data-modal-close="modal-editar-vehiculo" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <form action="#" method="post" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kilometraje Actual (km) *</label>
-                        <input type="number" name="km" value="45000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Estado Operativo *</label>
-                        <select name="estado" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white">
-                            <option value="DISPONIBLE" selected>DISPONIBLE</option>
-                            <option value="OCUPADO">OCUPADO</option>
-                            <option value="MANTENIMIENTO">MANTENIMIENTO (Taller)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Última Revisión Pasada</label>
-                        <input type="date" name="fechaUltimaRevision" value="2026-01-10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Próxima Revisión / ITV *</label>
-                        <input type="date" name="fechaProximaRevision" value="2027-01-10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white" />
-                    </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
-                    <button type="button" data-modal-close="modal-editar-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 rounded-xl">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">Guardar Modificaciones</button>
-                </div>
-            </form>
-        </div>
     </div>
 
     <!-- Modal 3: Baja Lógica de Vehículo -->
@@ -286,6 +240,9 @@
 
     <!-- Modal: Detalle de Vehículo -->
     <div id="contenedor-modal-detalle-vehiculo"></div>
+
+    <!-- Modal: Modificar Vehículo (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-editar-vehiculo"></div>
 
 </body>
 

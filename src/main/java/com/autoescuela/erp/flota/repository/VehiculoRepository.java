@@ -51,4 +51,14 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
      * @return Optional con el Vehículo asignado al profesor o vacío si no existe.
      */
     Optional<Vehiculo> findByProfesorId(Long profesorId);
+
+    /**
+     * Comprueba si existe un vehículo con la misma matrícula excluyendo un ID determinado.
+     * Utilizado para la validación de unicidad en la modificación de vehículos.
+     *
+     * @param matricula Matrícula en formato canónico.
+     * @param id Identificador del vehículo actual a excluir.
+     * @return true si existe otro vehículo con esa matrícula, false en caso contrario.
+     */
+    boolean existsByMatriculaAndIdNot(String matricula, Long id);
 }

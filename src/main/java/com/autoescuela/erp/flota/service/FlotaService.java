@@ -10,6 +10,7 @@ import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
+import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.mapper.VehiculoMapper;
@@ -155,5 +156,168 @@ public class FlotaService
         String limpia = matricula.trim().toUpperCase().replace(" ", "").replace("-", "");
         String formateada = limpia.length() == 7 ? limpia.substring(0, 4) + "-" + limpia.substring(4) : limpia;
         return this.vehiculoRepository.findByMatricula(formateada).isPresent();
+    }
+
+    /**
+     * Comprueba si una matrícula ya se encuentra registrada en la base de datos de la flota
+     * excluyendo un ID específico (utilizado para validación en la edición de vehículos).
+     * Normaliza la cadena para comparar en formato canónico '0000-XXX'.
+     *
+     * @param matricula Matrícula a comprobar.
+     * @param id Identificador del vehículo a excluir de la búsqueda.
+     * @return true si ya existe otro vehículo con esa matrícula, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean existeMatriculaOtroVehiculo(String matricula, Long id)
+    {
+        if (matricula == null || matricula.isBlank())
+        {
+            return false;
+        }
+        String limpia = matricula.trim().toUpperCase().replace(" ", "").replace("-", "");
+        String formateada = limpia.length() == 7 ? limpia.substring(0, 4) + "-" + limpia.substring(4) : limpia;
+        return this.vehiculoRepository.existsByMatriculaAndIdNot(formateada, id);
+    }
+
+    /**
+     * Obtiene los datos de un vehículo mapeados a su DTO de edición para poblar el formulario de modificación.
+     * Valida la existencia del vehículo y que no se encuentre en estado INACTIVO.
+     *
+     * @param id Identificador único del vehículo.
+     * @return DTO inmutable con los datos del vehículo para su edición.
+     * @throws RecursoNoEncontradoException Si no existe ningún vehículo con el ID especificado.
+     * @throws ReglaNegocioException Si el vehículo se encuentra en estado INACTIVO.
+     */
+    @Transactional(readOnly = true)
+    public EditarVehiculoDTO obtenerVehiculoParaEdicion(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador del vehículo no puede ser nulo.");
+        }
+
+        Vehiculo vehiculo = this.vehiculoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + id));
+
+        if (vehiculo.getEstado() == EstadoVehiculo.INACTIVO)
+        {
+            throw new ReglaNegocioException("No se puede modificar un vehículo en estado INACTIVO.");
+        }
+
+        return this.vehiculoMapper.toEditarVehiculoDTO(vehiculo);
+    }
+
+    /**
+     * Comprueba si un vehículo tiene un profesor asignado actualmente.
+     *
+     * @param id Identificador único del vehículo.
+     * @return true si el vehículo existe y tiene profesor asignado, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean tieneProfesorAsignado(Long id)
+    {
+        if (id == null)
+        {
+            return false;
+        }
+        return this.vehiculoRepository.findById(id)
+                .map(v -> v.getProfesor() != null)
+                .orElse(false);
+    }
+
+    /**
+     * Modifica los datos de un vehículo existente en el parque móvil aplicando las restricciones de negocio:
+     * 1. No se puede modificar un vehículo en estado INACTIVO.
+     * 2. Si el vehículo tiene un profesor asignado, no se puede alterar el tipo de carnet ni la matrícula.
+     * 3. Unicidad de matrícula comprobando que no exista otro vehículo con la misma mediante existsByMatriculaAndIdNot.
+     * 4. Validaciones de fechas de matriculación, revisiones e ITV coherentes.
+     * 5. Kilometraje, potencia y año no pueden ser negativos.
+     *
+     * @param dto DTO con los datos actualizados del vehículo.
+     * @return Entidad Vehiculo modificada y persistida.
+     * @throws ReglaNegocioException Si se vulnera alguna de las restricciones de dominio.
+     */
+    @Transactional
+    public Vehiculo modificarVehiculo(EditarVehiculoDTO dto)
+    {
+        if (dto == null || dto.id() == null)
+        {
+            throw new ReglaNegocioException("Los datos del vehículo no pueden ser nulos.");
+        }
+
+        Vehiculo vehiculo = this.vehiculoRepository.findById(dto.id())
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + dto.id()));
+
+        if (vehiculo.getEstado() == EstadoVehiculo.INACTIVO)
+        {
+            throw new ReglaNegocioException("No se puede modificar un vehículo en estado INACTIVO.");
+        }
+
+        if (dto.km() != null && dto.km() < 0)
+        {
+            throw new ReglaNegocioException("El kilometraje no puede ser negativo.");
+        }
+
+        if (dto.cv() != null && (dto.cv() < 0 || dto.cv() > 1000))
+        {
+            throw new ReglaNegocioException("La potencia no puede ser negativa ni superar los 1000 CV.");
+        }
+
+        if (!dto.isFechaMatriculacionValida())
+        {
+            throw new ReglaNegocioException("El año de matriculación debe estar comprendido entre 1990 y el año actual.");
+        }
+
+        if (!dto.isFechaUltimaRevisionValida())
+        {
+            throw new ReglaNegocioException("La fecha de la última revisión no puede ser anterior a hace 4 años ni posterior a hoy.");
+        }
+
+        if (!dto.isRevisionesCoherentes())
+        {
+            throw new ReglaNegocioException("La fecha de la próxima revisión debe ser estrictamente posterior a la fecha de la última revisión.");
+        }
+
+        if (!dto.isFechaProximaRevisionValida())
+        {
+            throw new ReglaNegocioException("La fecha de la próxima revisión no puede superar los 10 años en el futuro, ni puede ser anterior a la fecha actual.");
+        }
+
+        boolean tieneProfesor = vehiculo.getProfesor() != null;
+        String matriculaFormateada = dto.formatearMatricula();
+
+        if (tieneProfesor)
+        {
+            if (dto.tipoPermiso() != vehiculo.getTipoPermiso())
+            {
+                throw new ReglaNegocioException("No se puede modificar el tipo de carnet de un vehículo que tiene un profesor asignado.");
+            }
+            if (matriculaFormateada != null && !matriculaFormateada.equalsIgnoreCase(vehiculo.getMatricula()))
+            {
+                throw new ReglaNegocioException("No se puede modificar la matrícula de un vehículo que tiene un profesor asignado.");
+            }
+        }
+        else
+        {
+            if (this.vehiculoRepository.existsByMatriculaAndIdNot(matriculaFormateada, dto.id()))
+            {
+                throw new ReglaNegocioException("Ya existe un vehículo registrado en la flota con la matrícula " + matriculaFormateada + ".");
+            }
+            vehiculo.setMatricula(matriculaFormateada);
+            vehiculo.setTipoPermiso(dto.tipoPermiso());
+        }
+
+        vehiculo.setMarca(dto.marca().trim());
+        vehiculo.setModelo(dto.modelo().trim());
+        vehiculo.setColor(dto.color().trim());
+        vehiculo.setKm(dto.km());
+        vehiculo.setCv(dto.cv());
+        vehiculo.setAnio(dto.anio());
+        vehiculo.setTipoCombustible(dto.tipoCombustible());
+        vehiculo.setCajaCambios(dto.cajaCambios());
+        vehiculo.setFechaUltimaRevision(dto.fechaUltimaRevision());
+        vehiculo.setFechaProximaRevision(dto.fechaProximaRevision());
+
+        return this.vehiculoRepository.save(vehiculo);
     }
 }

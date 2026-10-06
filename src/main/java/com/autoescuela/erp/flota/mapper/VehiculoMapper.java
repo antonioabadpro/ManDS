@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
+import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
@@ -60,6 +61,14 @@ public interface VehiculoMapper
     @Mapping(target = "totalIncidencias", expression = "java(vehiculo.getIncidencias() != null ? vehiculo.getIncidencias().size() : 0)")
     @Mapping(target = "incidenciasPendientes", expression = "java(calcularIncidenciasPendientes(vehiculo))")
     VehiculoDetalleDTO toVehiculoDetalleDTO(Vehiculo vehiculo);
+
+    /**
+     * Mapea una entidad Vehiculo a su DTO de edición para poblar el formulario de modificación.
+     *
+     * @param vehiculo Entidad del vehículo persistente.
+     * @return DTO inmutable con los datos del vehículo listos para el formulario de edición.
+     */
+    EditarVehiculoDTO toEditarVehiculoDTO(Vehiculo vehiculo);
 
     /**
      * Extrae el prefijo numérico identificativo de la matrícula (ej: "1234" de "1234-LMN")

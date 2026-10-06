@@ -69,11 +69,12 @@
 - **Turnos de Profesor:** Cada profesor opera bajo un `TipoTurno` fijo (`MATINAL` o `TARDE`), delimitando sus tramos hábiles para reservas en FullCalendar.
 - **Inmutabilidad de Vehículo con Clases Pendientes:** PROHIBIDO modificar (reasignar o desvincular) el vehículo asignado a un profesor si este cuenta con clases prácticas pendientes (`EstadoClase.PENDIENTE`). Para cambiarlo, dichas clases deben completarse (`RECIBIDA`) o cancelarse (`CANCELADA`) previamente.
 - **Borrado Lógico e Irreversibilidad de Vehículos:** Un vehículo `INACTIVO` no puede eliminarse físicamente de la BD (borrado lógico) y tiene prohibida su reactivación tras la baja (al igual que el alumno).
+- **Condición de Borrado Lógico:** Un Vehículo solo puede eliminarse si está `DISPONIBLE`.
 - **Gestión de Incidencias y Estado MANTENIMIENTO:**
   - *Transición a MANTENIMIENTO:* Si el Administrador pone el vehículo en `MANTENIMIENTO` o una incidencia pasa a `EN_PROCESO`, el vehículo entra en `MANTENIMIENTO`, cancela todas sus clases y notifica por email al profesor (aviso único) y a sus alumnos (suspensión hasta nuevo aviso).
   - *Bloqueo en Gestión de Flota:* El Administrador NO puede cambiar el estado de un vehículo en `MANTENIMIENTO` desde Flota; exige resolver previamente la incidencia desde el panel de Incidencias de Flota.
   - *Resolución (`RESUELTA`):* Al resolver la incidencia, el vehículo recupera automáticamente su estado previo (`DISPONIBLE` u `OCUPADO`) y notifica por email al profesor y a sus alumnos la reapertura de reservas.
-  - *Bloqueo de Reservas:* Alumno no puede reservar si su vehículo está en `MANTENIMIENTO` (aviso reactivo al pulsar en FullCalendar).
+  - *Bloqueo de Reservas:* Alumno no puede reservar si su vehículo está en `MANTENIMIENTO` o no tiene profesor (aviso reactivo al pulsar en FullCalendar).
 
 ## 3.4. Algoritmo y Control de Reserva de Clases
 - **Fórmula de Capacidad de Reserva:**

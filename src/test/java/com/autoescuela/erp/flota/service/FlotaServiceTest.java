@@ -17,11 +17,13 @@ import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
+import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.mapper.VehiculoMapper;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.usuarios.model.Profesor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -315,5 +317,285 @@ class FlotaServiceTest
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("La fecha de la próxima revisión no puede superar los 10 años en el futuro.");
+    }
+
+    @Test
+    @DisplayName("existeMatriculaOtroVehiculo devuelve true si existe la matrícula en otro vehículo")
+    void testExisteMatriculaOtroVehiculoDevuelveTrueSiExiste()
+    {
+        when(this.vehiculoRepository.existsByMatriculaAndIdNot("1234-LMN", 1L)).thenReturn(true);
+
+
+        boolean resultado = this.flotaService.existeMatriculaOtroVehiculo("1234-LMN", 1L);
+        boolean resultadoSinGuion = this.flotaService.existeMatriculaOtroVehiculo("1234lmn", 1L);
+
+        assertThat(resultado).isTrue();
+        assertThat(resultadoSinGuion).isTrue();
+        verify(this.vehiculoRepository, org.mockito.Mockito.times(2)).existsByMatriculaAndIdNot("1234-LMN", 1L);
+    }
+
+    @Test
+    @DisplayName("existeMatriculaOtroVehiculo devuelve false si no existe o es nula")
+    void testExisteMatriculaOtroVehiculoDevuelveFalseSiNoExiste()
+    {
+        when(this.vehiculoRepository.existsByMatriculaAndIdNot("9999-ZZZ", 1L)).thenReturn(false);
+
+        assertThat(this.flotaService.existeMatriculaOtroVehiculo("9999-ZZZ", 1L)).isFalse();
+        assertThat(this.flotaService.existeMatriculaOtroVehiculo(null, 1L)).isFalse();
+        assertThat(this.flotaService.existeMatriculaOtroVehiculo("", 1L)).isFalse();
+    }
+
+    @Test
+    @DisplayName("obtenerVehiculoParaEdicion recupera el DTO mapeado correctamente si el vehículo está activo")
+    void testObtenerVehiculoParaEdicionExito()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setMarca("SEAT");
+        vehiculo.setModelo("Ibiza");
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoMapper.toEditarVehiculoDTO(vehiculo)).thenReturn(dto);
+
+        EditarVehiculoDTO resultado = this.flotaService.obtenerVehiculoParaEdicion(1L);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.matricula()).isEqualTo("1234-LMN");
+        verify(this.vehiculoRepository).findById(1L);
+        verify(this.vehiculoMapper).toEditarVehiculoDTO(vehiculo);
+    }
+
+    @Test
+    @DisplayName("obtenerVehiculoParaEdicion lanza excepción si el id es nulo o no existe")
+    void testObtenerVehiculoParaEdicionIdInvalido()
+    {
+        assertThatThrownBy(() -> this.flotaService.obtenerVehiculoParaEdicion(null))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El identificador del vehículo no puede ser nulo.");
+
+        when(this.vehiculoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> this.flotaService.obtenerVehiculoParaEdicion(99L))
+                .isInstanceOf(RecursoNoEncontradoException.class)
+                .hasMessageContaining("No se encontró el vehículo con ID: 99");
+    }
+
+    @Test
+    @DisplayName("obtenerVehiculoParaEdicion lanza excepción si el vehículo está INACTIVO")
+    void testObtenerVehiculoParaEdicionVehiculoInactivo()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.INACTIVO);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.obtenerVehiculoParaEdicion(1L))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se puede modificar un vehículo en estado INACTIVO.");
+    }
+
+    @Test
+    @DisplayName("tieneProfesorAsignado verifica correctamente la presencia de profesor vinculado")
+    void testTieneProfesorAsignado()
+    {
+        Vehiculo conProfesor = new Vehiculo();
+        conProfesor.setProfesor(new Profesor());
+
+        Vehiculo sinProfesor = new Vehiculo();
+        sinProfesor.setProfesor(null);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(conProfesor));
+        when(this.vehiculoRepository.findById(2L)).thenReturn(Optional.of(sinProfesor));
+        when(this.vehiculoRepository.findById(3L)).thenReturn(Optional.empty());
+
+        assertThat(this.flotaService.tieneProfesorAsignado(1L)).isTrue();
+        assertThat(this.flotaService.tieneProfesorAsignado(2L)).isFalse();
+        assertThat(this.flotaService.tieneProfesorAsignado(3L)).isFalse();
+        assertThat(this.flotaService.tieneProfesorAsignado(null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo actualiza satisfactoriamente matrícula y permiso cuando NO tiene profesor asignado")
+    void testModificarVehiculoSinProfesorPermiteCambiarPermisoYMatricula()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(null);
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "5678-XYZ", "Toyota", "Yaris", "Rojo", 35000L, 90, 2023,
+                TipoCombustible.HIBRIDO, TipoCambio.AUTOMATICO, TipoCarnet.PERMISO_A2,
+                LocalDate.now().minusMonths(6), LocalDate.now().plusMonths(6)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.existsByMatriculaAndIdNot("5678-XYZ", 1L)).thenReturn(false);
+        when(this.vehiculoRepository.save(vehiculo)).thenReturn(vehiculo);
+
+        Vehiculo resultado = this.flotaService.modificarVehiculo(dto);
+
+        assertThat(resultado.getMatricula()).isEqualTo("5678-XYZ");
+        assertThat(resultado.getTipoPermiso()).isEqualTo(TipoCarnet.PERMISO_A2);
+        assertThat(resultado.getMarca()).isEqualTo("Toyota");
+        assertThat(resultado.getModelo()).isEqualTo("Yaris");
+        assertThat(resultado.getKm()).isEqualTo(35000L);
+        verify(this.vehiculoRepository).save(vehiculo);
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo actualiza ficha técnica pero mantiene intactos permiso y matrícula cuando TIENE profesor asignado")
+    void testModificarVehiculoConProfesorMantienePermisoYMatricula()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(new Profesor());
+        vehiculo.setEstado(EstadoVehiculo.OCUPADO);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza Nuevo", "Gris", 60000L, 115, 2022,
+                TipoCombustible.DIESEL, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(12)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.save(vehiculo)).thenReturn(vehiculo);
+
+        Vehiculo resultado = this.flotaService.modificarVehiculo(dto);
+
+        assertThat(resultado.getMatricula()).isEqualTo("1234-LMN");
+        assertThat(resultado.getTipoPermiso()).isEqualTo(TipoCarnet.PERMISO_B);
+        assertThat(resultado.getModelo()).isEqualTo("Ibiza Nuevo");
+        assertThat(resultado.getKm()).isEqualTo(60000L);
+        verify(this.vehiculoRepository).save(vehiculo);
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo lanza ReglaNegocioException si tiene profesor e intenta modificar el permiso")
+    void testModificarVehiculoConProfesorErrorCambiarPermiso()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(new Profesor());
+        vehiculo.setEstado(EstadoVehiculo.OCUPADO);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_A2,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se puede modificar el tipo de carnet de un vehículo que tiene un profesor asignado.");
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo lanza ReglaNegocioException si tiene profesor e intenta modificar la matrícula")
+    void testModificarVehiculoConProfesorErrorCambiarMatricula()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(new Profesor());
+        vehiculo.setEstado(EstadoVehiculo.OCUPADO);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "9999-ZZZ", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se puede modificar la matrícula de un vehículo que tiene un profesor asignado.");
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo lanza ReglaNegocioException si la matrícula ya pertenece a otro vehículo")
+    void testModificarVehiculoErrorMatriculaDuplicada()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(null);
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "9999-ZZZ", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.existsByMatriculaAndIdNot("9999-ZZZ", 1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Ya existe un vehículo registrado en la flota con la matrícula 9999-ZZZ.");
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo lanza ReglaNegocioException si km o cv son negativos")
+    void testModificarVehiculoValoresNegativos()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        EditarVehiculoDTO dtoKmNegativo = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", -10L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dtoKmNegativo))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El kilometraje no puede ser negativo.");
+
+        EditarVehiculoDTO dtoCvNegativo = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, -5, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dtoCvNegativo))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("La potencia no puede ser negativa ni superar los 1000 CV.");
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo lanza ReglaNegocioException si el vehículo está INACTIVO")
+    void testModificarVehiculoInactivoLanzaExcepcion()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.INACTIVO);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusMonths(6)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se puede modificar un vehículo en estado INACTIVO.");
     }
 }

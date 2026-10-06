@@ -30,6 +30,7 @@ import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
+import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -803,9 +804,10 @@ public class AdministradorController
 
     /**
      * Endpoint HTMX para validar de forma temprana el formato y unicidad de la matrícula en la BD.
+     * Permite validar tanto en alta (sin id) como en edición (excluyendo el id del vehículo actual).
      */
     @PostMapping("/flota/validar-matricula")
-    public String validarMatricula(@RequestParam(name = "matricula", required = false) String matricula, Model model)
+    public String validarMatricula(@RequestParam(name = "matricula", required = false) String matricula, @RequestParam(name = "id", required = false) Long id, Model model)
     {
         if (matricula == null || matricula.isBlank())
         {
@@ -820,13 +822,137 @@ public class AdministradorController
             return "auth/registro :: mensaje-error";
         }
 
-        if (this.flotaService.existeMatricula(matricula))
+        if(this.flotaService.existeMatriculaOtroVehiculo(matricula, id))
         {
-            model.addAttribute("mensaje", "La matrícula ya está registrada en el sistema.");
+            model.addAttribute("mensaje", "La matrícula ya está registrada en otro vehículo del sistema.");
             return "auth/registro :: mensaje-error";
         }
 
         return "auth/registro :: fragmento-vacio";
+    }
+
+    /**
+     * Endpoint HTMX para cargar los datos del vehículo en el modal de edición.
+     */
+    @GetMapping("/flota/editar/{id}")
+    public String cargarModalEditarVehiculo(@PathVariable("id") Long id, Model model)
+    {
+        EditarVehiculoDTO dto = this.flotaService.obtenerVehiculoParaEdicion(id);
+        VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(id);
+        boolean tieneProfesorAsignado = detalle.profesorId() != null;
+
+        model.addAttribute("editarVehiculoDTO", dto);
+        model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
+        model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
+        model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
+        model.addAttribute("estadoVehiculo", detalle.estado());
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
+        model.addAttribute("tiposCombustible", TipoCombustible.values());
+        model.addAttribute("tiposCambio", TipoCambio.values());
+        model.addAttribute("abrirModalEditarVehiculo", true);
+
+        return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+    }
+
+    /**
+     * Procesa la modificación de los datos de un vehículo existente en el parque móvil.
+     */
+    @PostMapping("/flota/editar")
+    public String editarVehiculo(
+            @AuthenticationPrincipal Object principal,
+            @Valid @ModelAttribute("editarVehiculoDTO") EditarVehiculoDTO editarVehiculoDTO,
+            BindingResult bindingResult,
+            Model model,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
+        }
+
+        Long vehiculoId = editarVehiculoDTO != null ? editarVehiculoDTO.id() : null;
+
+        if (bindingResult.hasErrors())
+        {
+            if (vehiculoId != null)
+            {
+                VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(vehiculoId);
+                model.addAttribute("tieneProfesorAsignado", detalle.profesorId() != null);
+                model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
+                model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
+                model.addAttribute("estadoVehiculo", detalle.estado());
+            }
+            model.addAttribute("tiposCarnet", TipoCarnet.values());
+            model.addAttribute("tiposCombustible", TipoCombustible.values());
+            model.addAttribute("tiposCambio", TipoCambio.values());
+            model.addAttribute("abrirModalEditarVehiculo", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+            }
+            this.cargarDatosMetricasFlota(model);
+            this.cargarCatalogosAltaVehiculo(model);
+            return "admin/flota";
+        }
+
+        try
+        {
+            Vehiculo vehiculoModificado = this.flotaService.modificarVehiculo(editarVehiculoDTO);
+            String mensajeExito = "El vehículo " + vehiculoModificado.getMarca() + " " + vehiculoModificado.getModelo()
+                    + " (" + vehiculoModificado.getMatricula() + ") ha sido modificado correctamente.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/flota";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/flota";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            if (vehiculoId != null)
+            {
+                VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(vehiculoId);
+                model.addAttribute("tieneProfesorAsignado", detalle.profesorId() != null);
+                model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
+                model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
+                model.addAttribute("estadoVehiculo", detalle.estado());
+            }
+            model.addAttribute("tiposCarnet", TipoCarnet.values());
+            model.addAttribute("tiposCombustible", TipoCombustible.values());
+            model.addAttribute("tiposCambio", TipoCambio.values());
+            model.addAttribute("errorEditarVehiculo", ex.getMessage());
+            model.addAttribute("abrirModalEditarVehiculo", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+            }
+            this.cargarDatosMetricasFlota(model);
+            this.cargarCatalogosAltaVehiculo(model);
+            return "admin/flota";
+        }
     }
 
     /**
