@@ -68,12 +68,18 @@
 - **Bloqueo por Examen Práctico:** Al calendarizar un examen oficial en un vehículo, se cancelan automáticamente todas las clases prácticas de ese día en dicho vehículo con correo explicativo a los alumnos.
 - **Turnos de Profesor:** Cada profesor opera bajo un `TipoTurno` fijo (`MATINAL` o `TARDE`), delimitando sus tramos hábiles para reservas en FullCalendar.
 - **Inmutabilidad de Vehículo con Clases Pendientes:** PROHIBIDO modificar (reasignar o desvincular) el vehículo asignado a un profesor si este cuenta con clases prácticas pendientes (`EstadoClase.PENDIENTE`). Para cambiarlo, dichas clases deben completarse (`RECIBIDA`) o cancelarse (`CANCELADA`) previamente.
+- **Borrado Lógico e Irreversibilidad de Vehículos:** Un vehículo `INACTIVO` no puede eliminarse físicamente de la BD (borrado lógico) y tiene prohibida su reactivación tras la baja (al igual que el alumno).
+- **Gestión de Incidencias y Estado MANTENIMIENTO:**
+  - *Transición a MANTENIMIENTO:* Si el Administrador pone el vehículo en `MANTENIMIENTO` o una incidencia pasa a `EN_PROCESO`, el vehículo entra en `MANTENIMIENTO`, cancela todas sus clases y notifica por email al profesor (aviso único) y a sus alumnos (suspensión hasta nuevo aviso).
+  - *Bloqueo en Gestión de Flota:* El Administrador NO puede cambiar el estado de un vehículo en `MANTENIMIENTO` desde Flota; exige resolver previamente la incidencia desde el panel de Incidencias de Flota.
+  - *Resolución (`RESUELTA`):* Al resolver la incidencia, el vehículo recupera automáticamente su estado previo (`DISPONIBLE` u `OCUPADO`) y notifica por email al profesor y a sus alumnos la reapertura de reservas.
+  - *Bloqueo de Reservas:* Alumno no puede reservar si su vehículo está en `MANTENIMIENTO` (aviso reactivo al pulsar en FullCalendar).
 
 ## 3.4. Algoritmo y Control de Reserva de Clases
 - **Fórmula de Capacidad de Reserva:**
   $$\text{CapacidadReserva} = \text{saldoClases} - \text{clasesReservadasPendientes}$$
 - **Condición de Compra:** Un alumno solo puede adquirir clases sueltas o bonos cuando su saldo restante sea cero ($\text{saldoClases} = 0$). Comprar suma clases al saldo (`saldoClases += cantidadComprada`).
-- **Condición de Reserva:** El alumno solo puede reservar si $\text{CapacidadReserva} > 0$. Si es $\le 0$, el calendario bloquea nuevas reservas.
+- **Condición de Reserva:** El alumno solo puede reservar si $\text{CapacidadReserva} > 0$ y su vehículo no está en `MANTENIMIENTO` y ha seleccionado una hora que corresponde con la del horario de su profesor. En caso de NO cumplir alguna de estas condiciones, FullCalendar bloquea la reserva con aviso.
 - **Deducción Atómica de Clases:** Tras la clase, el profesor cumplimenta ficha técnica (`kmInicio`, `kmFin >= kmInicio`, observaciones pedagógicas). Al registrarla, pasa a `RECIBIDA` y atómicamente se descuenta 1 unidad de saldo (`saldoClases -= 1`) y 1 unidad de pendientes (`clasesReservadasPendientes -= 1`).
 - **Concurrencia en Reservas (First-Come, First-Served):** Restricción única en BD `UNIQUE(profesor_id, fecha_hora)` para clases activas. Ejecución bajo `@Transactional` con bloqueo pesimista o verificación atómica. En colisión, devolver HTTP 409 o feedback reactivo HTMX.
 - **Cancelación de Clases:** Al cancelar una clase `PENDIENTE` (por alumno o profesor), pasa a `CANCELADA` y se decrementa atómicamente `clasesReservadasPendientes -= 1` sin alterar `saldoClases` (restituye de inmediato capacidad de reserva).
