@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
+import com.autoescuela.erp.flota.mapper.VehiculoMapper;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 
@@ -17,9 +19,22 @@ import lombok.RequiredArgsConstructor;
 public class FlotaService
 {
     private final VehiculoRepository vehiculoRepository;
+    private final VehiculoMapper vehiculoMapper;
 
     /**
-     * Obtiene los vehículos disponibles y sin profesor asignado para la creación/asignación docente.
+     * Obtiene el listado completo de vehículos del parque móvil mapeados a su DTO de resumen.
+     */
+    @Transactional(readOnly = true)
+    public List<VehiculoResumenDTO> obtenerTodosLosVehiculos()
+    {
+        return this.vehiculoRepository.findAllByOrderByTipoAsc()
+                .stream()
+                .map(this.vehiculoMapper::toVehiculoResumenDTO)
+                .toList();
+    }
+
+    /**
+     * Obtiene los vehículos disponibles y sin profesor asignado para la creación o asignación a un profesor.
      */
     @Transactional(readOnly = true)
     public List<Vehiculo> obtenerVehiculosDisponiblesParaProfesor()

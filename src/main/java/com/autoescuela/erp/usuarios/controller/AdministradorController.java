@@ -20,12 +20,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
@@ -702,7 +704,7 @@ public class AdministradorController
     }
 
     /**
-     * Muestra la vista de gestión de flota de vehículos.
+     * Muestra la vista de gestión de flota de vehículos con datos reales del parque móvil.
      */
     @GetMapping("/flota")
     public String mostrarFlota(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
@@ -711,6 +713,14 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+
+        List<VehiculoResumenDTO> vehiculos = this.flotaService.obtenerTodosLosVehiculos();
+        model.addAttribute("vehiculos", vehiculos);
+        model.addAttribute("totalVehiculos", vehiculos.size());
+        model.addAttribute("totalDisponibles", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.DISPONIBLE).count());
+        model.addAttribute("totalOcupados", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.OCUPADO).count());
+        model.addAttribute("totalMantenimiento", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.MANTENIMIENTO).count());
+
         return "admin/flota";
     }
 

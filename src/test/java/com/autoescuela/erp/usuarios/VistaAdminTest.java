@@ -10,6 +10,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -97,7 +98,8 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/flota"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/flota"));
+                .andExpect(view().name("admin/flota"))
+                .andExpect(model().attributeExists("vehiculos", "totalVehiculos", "totalDisponibles", "totalOcupados", "totalMantenimiento"));
     }
 
     @Test

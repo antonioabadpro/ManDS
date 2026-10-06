@@ -55,7 +55,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">Parque Móvil de la Autoescuela</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">4 vehículos registrados · 2 turismos, 1 motocicleta y 1 camión pesado</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" th:text="|${totalVehiculos} vehículos registrados (${totalDisponibles} disponibles, ${totalOcupados} ocupados y ${totalMantenimiento} en mantenimiento)|">4 vehículos registrados (2 disponibles, 1 ocupado y 1 en mantenimiento)</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative w-full sm:w-64">
@@ -77,202 +77,109 @@
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table id="tabla-flota" class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                        <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                             <tr>
-                                <th class="py-3 px-4">Vehículo</th>
-                                <th class="py-3 px-4">Permiso</th>
-                                <th class="py-3 px-4">Profesor Asignado</th>
-                                <th class="py-3 px-4">Kilometraje</th>
-                                <th class="py-3 px-4">Próxima ITV / Revisión</th>
-                                <th class="py-3 px-4">Estado</th>
-                                <th class="py-3 px-4 text-right">Acciones</th>
+                                <th class="py-3 px-4 text-center">Vehículo</th>
+                                <th class="py-3 px-4 text-center">Permiso</th>
+                                <th class="py-3 px-4 text-center">Profesor Asignado</th>
+                                <th class="py-3 px-4 text-center">Kilometraje</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Próxima ITV / Revisión</th>
+                                <th class="py-3 px-4 text-center">Estado</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
 
-                            <!-- Vehículo 1 -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4">
+                            <!-- Fila de Estado Vacío -->
+                            <tr th:if="${#lists.isEmpty(vehiculos)}">
+                                <td colspan="7" class="py-8 text-center text-slate-400 text-xs">
+                                    No hay vehículos registrados actualmente en el parque móvil.
+                                </td>
+                            </tr>
+
+                            <!-- Iteración dinámica de vehículos desde la base de datos -->
+                            <tr th:each="v : ${vehiculos}" th:attr="data-permisos=${v.tipoDescripcion}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 text-left">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0" th:text="${v.matriculaPrefijo}">
                                             1234
                                         </div>
                                         <div>
-                                            <p class="font-bold text-slate-900 dark:text-white">1234-LMN</p>
-                                            <p class="text-[11px] text-slate-400">SEAT Ibiza 1.0 TSI · Blanco Nevada</p>
+                                            <p class="font-bold text-slate-900 dark:text-white" th:text="${v.matricula}">1234-LMN</p>
+                                            <p class="text-[11px] text-slate-400" th:text="|${v.marca} ${v.modelo} · ${v.color}|">SEAT Ibiza 1.0 TSI · Blanco Nevada</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">Permiso B</span>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex justify-center">
+                                        <span th:if="${v.tipo?.name() == 'PERMISO_A' || v.tipo?.name() == 'PERMISO_A1' || v.tipo?.name() == 'PERMISO_A2' || v.tipo?.name() == 'PERMISO_AM'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400" th:text="${v.tipoDescripcion}">Permiso A2</span>
+                                        <span th:if="${v.tipo?.name() == 'PERMISO_B'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${v.tipoDescripcion}">Permiso B</span>
+                                        <span th:if="${v.tipo?.name() == 'PERMISO_B_E' || v.tipo?.name() == 'PERMISO_B1' || v.tipo?.name() == 'PERMISO_LVA'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" th:text="${v.tipoDescripcion}">Permiso B+E</span>
+                                        <span th:if="${v.tipo?.name() == 'PERMISO_C' || v.tipo?.name() == 'PERMISO_C_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400" th:text="${v.tipoDescripcion}">Permiso C</span>
+                                        <span th:if="${v.tipo?.name() == 'PERMISO_D' || v.tipo?.name() == 'PERMISO_D_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" th:text="${v.tipoDescripcion}">Permiso D</span>
+                                    </div>
                                 </td>
-                                <td class="py-3 px-4">
-                                    <p class="font-medium text-slate-900 dark:text-white">Laura Sánchez Romero</p>
-                                    <p class="text-[10px] text-slate-400">Turno Matinal</p>
+                                <td class="py-3 px-4 text-center">
+                                    <div th:if="${v.profesorNombreCompleto != null}" class="inline-flex flex-col items-center justify-center">
+                                        <p class="font-medium text-slate-900 dark:text-white" th:text="${v.profesorNombreCompleto}">Laura Sánchez Romero</p>
+                                        <p th:if="${v.profesorTurno != null}" class="text-[10px] text-slate-400" th:text="|Turno ${v.profesorTurno.name() == 'MATINAL' ? 'Matinal' : 'Tarde'}|">Turno Matinal</p>
+                                    </div>
+                                    <div th:if="${v.profesorNombreCompleto == null}" class="flex justify-center">
+                                        <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
+                                    </div>
                                 </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                                <td class="py-3 px-4 text-center font-semibold text-slate-900 dark:text-white whitespace-nowrap" th:text="${v.km != null ? #numbers.formatInteger(v.km, 1, 'POINT') + ' km' : '0 km'}">
                                     45.000 km
                                 </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200">10/01/2027</span>
-                                    </div>
-                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Vehículo 2 -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs shrink-0">
-                                            5678
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div th:if="${v.fechaProximaRevision != null}" class="inline-flex flex-col items-center justify-center text-center">
+                                        <div th:if="${v.isRevisionVencida()}" class="space-y-0.5 flex flex-col items-center justify-center">
+                                            <div class="flex items-center justify-center space-x-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                                <span class="font-medium text-red-600 dark:text-red-400" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
+                                            </div>
+                                            <p class="text-[10px] text-red-600 dark:text-red-400 font-bold text-center">¡Revisión Vencida!</p>
                                         </div>
-                                        <div>
-                                            <p class="font-bold text-slate-900 dark:text-white">5678-KPR</p>
-                                            <p class="text-[11px] text-slate-400">Renault Clio E-Tech · Azul Rayo</p>
+                                        <div th:if="${v.isRevisionProxima()}" class="space-y-0.5 flex flex-col items-center justify-center">
+                                            <div class="flex items-center justify-center space-x-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
+                                            </div>
+                                            <p class="text-[10px] text-amber-600 dark:text-amber-400 text-center">Próxima revisión (&lt; 60 días)</p>
+                                        </div>
+                                        <div th:if="${v.isRevisionAlDia()}" class="space-y-0.5 flex flex-col items-center justify-center">
+                                            <div class="flex items-center justify-center space-x-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
+                                            </div>
+                                            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 text-center">Al día</p>
                                         </div>
                                     </div>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">Permiso B</span>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <p class="font-medium text-slate-900 dark:text-white">Manuel Navarro Torres</p>
-                                    <p class="text-[10px] text-slate-400">Turno Tarde</p>
-                                </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                    32.000 km
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200">20/11/2026</span>
-                                    </div>
-                                    <p class="text-[10px] text-amber-600 dark:text-amber-400">Próxima revisión (< 60 días)</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Vehículo 3 -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs shrink-0">
-                                            9012
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-slate-900 dark:text-white">9012-HJK</p>
-                                            <p class="text-[11px] text-slate-400">Yamaha MT-07 · Negro Midnight</p>
-                                        </div>
+                                    <div th:if="${v.fechaProximaRevision == null}" class="flex justify-center">
+                                        <span class="text-[11px] text-slate-400 italic">Sin programar</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400">Permiso A2</span>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
-                                </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                    12.000 km
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200">15/02/2027</span>
-                                    </div>
-                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Vehículo 4 (En Taller / Mantenimiento) -->
-                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
-                                            3456
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-slate-900 dark:text-white">3456-FGH</p>
-                                            <p class="text-[11px] text-slate-400">Mercedes-Benz Actros 1845 · Rojo</p>
-                                        </div>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex justify-center">
+                                        <span th:if="${v.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
+                                        <span th:if="${v.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
+                                        <span th:if="${v.estado?.name() == 'MANTENIMIENTO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
+                                        <span th:if="${v.estado?.name() == 'INACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400">INACTIVO</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">Permiso C</span>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
-                                </td>
-                                <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                                    180.000 km
-                                </td>
-                                <td class="py-3 px-4">
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                        <span class="font-medium text-red-600 dark:text-red-400">05/09/2026</span>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-center space-x-1 whitespace-nowrap">
+                                        <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                    <p class="text-[10px] text-red-600 dark:text-red-400 font-bold">¡Revisión Vencida!</p>
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-1">
-                                    <button type="button" data-modal-target="modal-editar-vehiculo" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button type="button" data-modal-target="modal-baja-vehiculo" class="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
                                 </td>
                             </tr>
 
