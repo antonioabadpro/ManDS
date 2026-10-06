@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Si el modal está contenido en un contenedor dinámico HTMX, limpiar el contenedor tras ocultarlo
         const contenedorDinamico = modal.closest('[id^="contenedor-modal-"]');
-        if (contenedorDinamico && contenedorDinamico.id !== 'contenedor-modal-alta-profesor') {
+        if (contenedorDinamico && contenedorDinamico.id !== 'contenedor-modal-alta-profesor' && contenedorDinamico.id !== 'contenedor-modal-alta-vehiculo') {
             setTimeout(() => {
                 if (modal.classList.contains('hidden')) {
                     contenedorDinamico.innerHTML = '';

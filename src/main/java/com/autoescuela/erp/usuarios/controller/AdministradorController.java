@@ -21,14 +21,18 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
+import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
@@ -715,14 +719,114 @@ public class AdministradorController
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
 
-        List<VehiculoResumenDTO> vehiculos = this.flotaService.obtenerTodosLosVehiculos();
-        model.addAttribute("vehiculos", vehiculos);
-        model.addAttribute("totalVehiculos", vehiculos.size());
-        model.addAttribute("totalDisponibles", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.DISPONIBLE).count());
-        model.addAttribute("totalOcupados", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.OCUPADO).count());
-        model.addAttribute("totalMantenimiento", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.MANTENIMIENTO).count());
+        this.cargarDatosMetricasFlota(model);
+        this.cargarCatalogosAltaVehiculo(model);
 
         return "admin/flota";
+    }
+
+    /**
+     * Procesa el formulario de alta de un nuevo vehículo en el parque móvil de la autoescuela.
+     */
+    @PostMapping("/flota/alta")
+    public String darAltaVehiculo(
+            @AuthenticationPrincipal Object principal,
+            @Valid @ModelAttribute("altaVehiculoDTO") AltaVehiculoDTO altaVehiculoDTO,
+            BindingResult bindingResult,
+            Model model,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
+        }
+
+        if (bindingResult.hasErrors())
+        {
+            this.cargarCatalogosAltaVehiculo(model);
+            this.cargarDatosMetricasFlota(model);
+            model.addAttribute("abrirModalAltaVehiculo", true);
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
+            }
+            return "admin/flota";
+        }
+
+        try
+        {
+            Vehiculo vehiculoRegistrado = this.flotaService.darAltaVehiculo(altaVehiculoDTO);
+            String mensajeExito = "El vehículo " + vehiculoRegistrado.getMarca() + " " + vehiculoRegistrado.getModelo()
+                    + " (" + vehiculoRegistrado.getMatricula() + ") ha sido dado de alta correctamente en estado DISPONIBLE.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/flota";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/flota";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            this.cargarCatalogosAltaVehiculo(model);
+            this.cargarDatosMetricasFlota(model);
+            bindingResult.rejectValue("matricula", "error.matricula", ex.getMessage());
+            model.addAttribute("errorAltaVehiculo", ex.getMessage());
+            model.addAttribute("abrirModalAltaVehiculo", true);
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
+            }
+            return "admin/flota";
+        }
+    }
+
+    /**
+     * Endpoint HTMX para validar de forma temprana el formato y unicidad de la matrícula en la BD.
+     */
+    @PostMapping("/flota/validar-matricula")
+    public String validarMatricula(@RequestParam(name = "matricula", required = false) String matricula, Model model)
+    {
+        if (matricula == null || matricula.isBlank())
+        {
+            model.addAttribute("mensaje", "La matrícula es obligatoria.");
+            return "auth/registro :: mensaje-error";
+        }
+
+        String limpia = matricula.trim().toUpperCase().replace(" ", "").replace("-", "");
+        if (!limpia.matches("^[0-9]{4}[A-Za-z]{3}$"))
+        {
+            model.addAttribute("mensaje", "Formato de matrícula inválido (ej. 1234-LMN o 1234LMN).");
+            return "auth/registro :: mensaje-error";
+        }
+
+        if (this.flotaService.existeMatricula(matricula))
+        {
+            model.addAttribute("mensaje", "La matrícula ya está registrada en el sistema.");
+            return "auth/registro :: mensaje-error";
+        }
+
+        return "auth/registro :: fragmento-vacio";
     }
 
     /**
@@ -879,5 +983,36 @@ public class AdministradorController
             perfilDTO.setCorreo(original.getCorreo());
             perfilDTO.setRol(original.getRol());
         }
+    }
+
+    /**
+     * Carga en el modelo los catálogos y el DTO necesarios para renderizar el modal de alta de vehículo.
+     * Se utiliza en la vista de gestión de flota para dar de alta un nuevo vehículo en el parque móvil.
+     * @param model
+     */
+    private void cargarCatalogosAltaVehiculo(Model model)
+    {
+        if (!model.containsAttribute("altaVehiculoDTO"))
+        {
+            model.addAttribute("altaVehiculoDTO", new AltaVehiculoDTO());
+        }
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
+        model.addAttribute("tiposCombustible", TipoCombustible.values());
+        model.addAttribute("tiposCambio", TipoCambio.values());
+    }
+
+    /**
+     * Carga en el modelo las métricas y estadísticas de la flota de vehículos para mostrar en el dashboard.
+     * Se utiliza en la vista de gestión de flota para mostrar el total de vehículos, los disponibles, ocupados y en mantenimiento.
+     * @param model
+     */
+    private void cargarDatosMetricasFlota(Model model)
+    {
+        List<VehiculoResumenDTO> vehiculos = this.flotaService.obtenerTodosLosVehiculos();
+        model.addAttribute("vehiculos", vehiculos);
+        model.addAttribute("totalVehiculos", vehiculos.size());
+        model.addAttribute("totalDisponibles", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.DISPONIBLE).count());
+        model.addAttribute("totalOcupados", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.OCUPADO).count());
+        model.addAttribute("totalMantenimiento", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.MANTENIMIENTO).count());
     }
 }

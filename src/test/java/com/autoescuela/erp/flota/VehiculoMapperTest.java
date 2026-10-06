@@ -79,4 +79,33 @@ class VehiculoMapperTest
         assertThat(dto.tipoDescripcion()).isEqualTo("Permiso B");
         assertThat(dto.isRevisionAlDia()).isTrue();
     }
+
+    @Test
+    @DisplayName("toEntity mapea AltaVehiculoDTO a una entidad Vehiculo con estado DISPONIBLE y matrícula normalizada")
+    void testToEntityMapeoAltaVehiculo()
+    {
+        com.autoescuela.erp.flota.dto.AltaVehiculoDTO dto = new com.autoescuela.erp.flota.dto.AltaVehiculoDTO(
+                "5678-bvc", "Renault", "Clio 1.5", "Rojo Pasión", 500L, 95, 2023,
+                com.autoescuela.erp.core.enums.TipoCombustible.DIESEL,
+                com.autoescuela.erp.core.enums.TipoCambio.MANUAL,
+                TipoCarnet.PERMISO_B,
+                LocalDate.now().minusMonths(1),
+                LocalDate.now().plusMonths(11)
+        );
+
+        Vehiculo entidad = this.mapper.toEntity(dto);
+
+        assertThat(entidad).isNotNull();
+        assertThat(entidad.getMatricula()).isEqualTo("5678-BVC");
+        assertThat(entidad.getMarca()).isEqualTo("Renault");
+        assertThat(entidad.getModelo()).isEqualTo("Clio 1.5");
+        assertThat(entidad.getColor()).isEqualTo("Rojo Pasión");
+        assertThat(entidad.getKm()).isEqualTo(500L);
+        assertThat(entidad.getCv()).isEqualTo(95);
+        assertThat(entidad.getAnio()).isEqualTo(2023);
+        assertThat(entidad.getTipoCombustible()).isEqualTo(com.autoescuela.erp.core.enums.TipoCombustible.DIESEL);
+        assertThat(entidad.getCajaCambios()).isEqualTo(com.autoescuela.erp.core.enums.TipoCambio.MANUAL);
+        assertThat(entidad.getTipoPermiso()).isEqualTo(TipoCarnet.PERMISO_B);
+        assertThat(entidad.getEstado()).isEqualTo(EstadoVehiculo.DISPONIBLE);
+    }
 }

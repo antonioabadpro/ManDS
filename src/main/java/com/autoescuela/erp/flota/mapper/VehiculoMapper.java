@@ -4,8 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
+import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
+import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
 import com.autoescuela.erp.flota.model.Vehiculo;
 
 /**
@@ -15,6 +17,19 @@ import com.autoescuela.erp.flota.model.Vehiculo;
 @Mapper(componentModel = "spring")
 public interface VehiculoMapper
 {
+    /**
+     * Mapea un DTO de alta a una nueva entidad Vehiculo persistible.
+     *
+     * @param dto DTO con los datos recogidos en el formulario.
+     * @return Entidad Vehiculo lista para su persistencia.
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "estado", constant = "DISPONIBLE")
+    @Mapping(target = "matricula", expression = "java(dto.formatearMatricula())")
+    @Mapping(target = "profesor", ignore = true)
+    @Mapping(target = "incidencias", ignore = true)
+    Vehiculo toEntity(AltaVehiculoDTO dto);
+
     /**
      * Mapea una entidad Vehiculo a su DTO de resumen para la tabla del parque móvil.
      *
@@ -99,7 +114,7 @@ public interface VehiculoMapper
             return 0;
         }
         int pendientes = 0;
-        for (var inc : vehiculo.getIncidencias())
+        for (IncidenciaVehiculo inc : vehiculo.getIncidencias())
         {
             if (inc != null && inc.getEstado() != null && inc.getEstado() != EstadoIncidencia.RESUELTA)
             {

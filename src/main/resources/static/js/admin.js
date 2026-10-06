@@ -664,6 +664,424 @@ document.addEventListener('DOMContentLoaded', () => {
         inicializarEventosModalProfesorGenerico('modal-editar-profesor', 'form-editar-profesor', '-editar');
     }
 
+    // =========================================================================
+    // VALIDACIÓN Y CONTROL DE CAMPOS: MODAL ALTA DE VEHÍCULO
+    // =========================================================================
+
+    function validarMatriculaVehiculo() {
+        const input = document.getElementById('vehiculo-matricula');
+        const feedbackId = 'feedback-matricula';
+        if (!input) return true;
+
+        const valor = input.value.trim().toUpperCase();
+        if (!valor) {
+            mostrarErrorCampo('vehiculo-matricula', feedbackId, 'La matrícula es obligatoria.');
+            return false;
+        }
+
+        const regexMatricula = /^[0-9]{4}[ -]?[A-Za-z]{3}$/;
+        if (!regexMatricula.test(valor)) {
+            mostrarErrorCampo('vehiculo-matricula', feedbackId, 'Formato de matrícula inválido (ej. 1234-LMN o 1234LMN).');
+            return false;
+        }
+
+        const feedback = document.getElementById(feedbackId);
+        if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+            limpiarErrorCampo('vehiculo-matricula', feedbackId);
+        }
+        return true;
+    }
+
+    function validarMarcaVehiculo() {
+        const input = document.getElementById('vehiculo-marca');
+        const feedbackId = 'feedback-marca';
+        if (!input) return true;
+
+        const valor = input.value.trim();
+        if (!valor) {
+            mostrarErrorCampo('vehiculo-marca', feedbackId, 'La marca es obligatoria.');
+            return false;
+        }
+        if (valor.length > 50) {
+            mostrarErrorCampo('vehiculo-marca', feedbackId, 'La marca no puede superar los 50 caracteres.');
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-marca', feedbackId);
+        return true;
+    }
+
+    function validarModeloVehiculo() {
+        const input = document.getElementById('vehiculo-modelo');
+        const feedbackId = 'feedback-modelo';
+        if (!input) return true;
+
+        const valor = input.value.trim();
+        if (!valor) {
+            mostrarErrorCampo('vehiculo-modelo', feedbackId, 'El modelo es obligatorio.');
+            return false;
+        }
+        if (valor.length > 50) {
+            mostrarErrorCampo('vehiculo-modelo', feedbackId, 'El modelo no puede superar los 50 caracteres.');
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-modelo', feedbackId);
+        return true;
+    }
+
+    function validarColorVehiculo() {
+        const input = document.getElementById('vehiculo-color');
+        const feedbackId = 'feedback-color';
+        if (!input) return true;
+
+        const valor = input.value.trim();
+        if (!valor) {
+            mostrarErrorCampo('vehiculo-color', feedbackId, 'El color es obligatorio.');
+            return false;
+        }
+        if (valor.length > 30) {
+            mostrarErrorCampo('vehiculo-color', feedbackId, 'El color no puede superar los 30 caracteres.');
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-color', feedbackId);
+        return true;
+    }
+
+    function validarAnioVehiculo() {
+        const input = document.getElementById('vehiculo-anio');
+        const feedbackId = 'feedback-anio';
+        if (!input) return true;
+
+        const valorStr = input.value.trim();
+        if (!valorStr) {
+            mostrarErrorCampo('vehiculo-anio', feedbackId, 'El año de matriculación es obligatorio.');
+            return false;
+        }
+
+        const anio = parseInt(valorStr, 10);
+        const anioActual = new Date().getFullYear();
+        if (isNaN(anio) || anio < 1990 || anio > anioActual) {
+            mostrarErrorCampo('vehiculo-anio', feedbackId, `El año de matriculación debe estar comprendido entre 1990 y ${anioActual}.`);
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-anio', feedbackId);
+        return true;
+    }
+
+    function validarCvVehiculo() {
+        const input = document.getElementById('vehiculo-cv');
+        const feedbackId = 'feedback-cv';
+        if (!input) return true;
+
+        const valorStr = input.value.trim();
+        if (!valorStr) {
+            mostrarErrorCampo('vehiculo-cv', feedbackId, 'La potencia del motor es obligatoria.');
+            return false;
+        }
+
+        const cv = parseInt(valorStr, 10);
+        if (isNaN(cv) || cv < 0 || cv > 1000) {
+            mostrarErrorCampo('vehiculo-cv', feedbackId, 'La potencia debe ser un valor válido entre 0 y 1000 CV.');
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-cv', feedbackId);
+        return true;
+    }
+
+    function validarKmVehiculo() {
+        const input = document.getElementById('vehiculo-km');
+        const feedbackId = 'feedback-km';
+        if (!input) return true;
+
+        const valorStr = input.value.trim();
+        if (!valorStr) {
+            mostrarErrorCampo('vehiculo-km', feedbackId, 'El kilometraje inicial es obligatorio.');
+            return false;
+        }
+
+        const km = parseInt(valorStr, 10);
+        if (isNaN(km) || km < 0) {
+            mostrarErrorCampo('vehiculo-km', feedbackId, 'El kilometraje inicial no puede ser negativo.');
+            return false;
+        }
+
+        limpiarErrorCampo('vehiculo-km', feedbackId);
+        return true;
+    }
+
+    /**
+     * Configura y sincroniza dinámicamente las restricciones temporales (min y max) en los inputs del modal de vehículo:
+     * - Año de matriculación: entre 1990 y el año actual.
+     * - Última revisión: entre hace 4 años y hoy (y estrictamente anterior a la próxima revisión si ya está elegida).
+     * - Próxima revisión / ITV: entre hoy (o día posterior a última revisión) y un máximo de 10 años en el futuro.
+     */
+    function configurarRestriccionesFechasModalVehiculo() {
+        const inputAnio = document.getElementById('vehiculo-anio');
+        const inputUltima = document.getElementById('vehiculo-fecha-ultima');
+        const inputProxima = document.getElementById('vehiculo-fecha-proxima');
+        const hoy = new Date();
+
+        if (inputAnio) {
+            inputAnio.setAttribute('min', '1990');
+            inputAnio.setAttribute('max', hoy.getFullYear().toString());
+        }
+
+        const hace4Anios = new Date(hoy.getFullYear() - 4, hoy.getMonth(), hoy.getDate());
+        const en10Anios = new Date(hoy.getFullYear() + 10, hoy.getMonth(), hoy.getDate());
+
+        if (inputUltima) {
+            inputUltima.setAttribute('min', formatearFechaISO(hace4Anios));
+            let maxUltima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+            if (inputProxima && inputProxima.value.trim()) {
+                const partesProxima = inputProxima.value.trim().split('-');
+                if (partesProxima.length === 3) {
+                    const fProx = new Date(parseInt(partesProxima[0], 10), parseInt(partesProxima[1], 10) - 1, parseInt(partesProxima[2], 10));
+                    if (!isNaN(fProx.getTime())) {
+                        const diaAntes = new Date(fProx.getFullYear(), fProx.getMonth(), fProx.getDate() - 1);
+                        if (diaAntes < maxUltima) {
+                            maxUltima = diaAntes;
+                        }
+                    }
+                }
+            }
+            inputUltima.setAttribute('max', formatearFechaISO(maxUltima));
+        }
+
+        if (inputProxima) {
+            inputProxima.setAttribute('max', formatearFechaISO(en10Anios));
+            let minProxima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+            if (inputUltima && inputUltima.value.trim()) {
+                const partesUltima = inputUltima.value.trim().split('-');
+                if (partesUltima.length === 3) {
+                    const fUlt = new Date(parseInt(partesUltima[0], 10), parseInt(partesUltima[1], 10) - 1, parseInt(partesUltima[2], 10));
+                    if (!isNaN(fUlt.getTime())) {
+                        const diaDespues = new Date(fUlt.getFullYear(), fUlt.getMonth(), fUlt.getDate() + 1);
+                        minProxima = diaDespues;
+                    }
+                }
+            }
+            inputProxima.setAttribute('min', formatearFechaISO(minProxima));
+        }
+    }
+
+    function validarFechasRevisionVehiculo() {
+        const inputUltima = document.getElementById('vehiculo-fecha-ultima');
+        const inputProxima = document.getElementById('vehiculo-fecha-proxima');
+        const feedbackProximaId = 'feedback-fecha-proxima';
+        const feedbackUltimaId = 'feedback-fecha-ultima';
+        if (!inputProxima) return true;
+
+        configurarRestriccionesFechasModalVehiculo();
+
+        const hoy = new Date();
+        const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        const en10Anios = new Date(hoy.getFullYear() + 10, hoy.getMonth(), hoy.getDate());
+        const hace4Anios = new Date(hoy.getFullYear() - 4, hoy.getMonth(), hoy.getDate());
+
+        let esUltimaValida = true;
+        let fechaUltima = null;
+
+        if (inputUltima && inputUltima.value.trim()) {
+            const valUltima = inputUltima.value.trim();
+            const partesUltima = valUltima.split('-');
+            if (partesUltima.length !== 3) {
+                mostrarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId, 'Formato de fecha inválido.');
+                esUltimaValida = false;
+            } else {
+                fechaUltima = new Date(parseInt(partesUltima[0], 10), parseInt(partesUltima[1], 10) - 1, parseInt(partesUltima[2], 10));
+                if (isNaN(fechaUltima.getTime())) {
+                    mostrarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId, 'Introduce una fecha de última revisión válida.');
+                    esUltimaValida = false;
+                } else if (fechaUltima > hoySinHora) {
+                    mostrarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId, 'La fecha de la última revisión no puede ser posterior a hoy.');
+                    esUltimaValida = false;
+                } else if (fechaUltima < hace4Anios) {
+                    mostrarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId, 'La fecha de la última revisión no puede ser anterior a hace 4 años.');
+                    esUltimaValida = false;
+                } else {
+                    limpiarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId);
+                }
+            }
+        } else if (inputUltima) {
+            limpiarErrorCampo('vehiculo-fecha-ultima', feedbackUltimaId);
+        }
+
+        let esProximaValida = true;
+        let fechaProxima = null;
+        const valProxima = inputProxima.value.trim();
+
+        if (!valProxima) {
+            mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'La fecha de próxima revisión o ITV es obligatoria.');
+            esProximaValida = false;
+        } else {
+            const partesProxima = valProxima.split('-');
+            if (partesProxima.length !== 3) {
+                mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'Formato de fecha inválido.');
+                esProximaValida = false;
+            } else {
+                fechaProxima = new Date(parseInt(partesProxima[0], 10), parseInt(partesProxima[1], 10) - 1, parseInt(partesProxima[2], 10));
+                if (isNaN(fechaProxima.getTime())) {
+                    mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'Introduce una fecha de próxima revisión válida.');
+                    esProximaValida = false;
+                } else if (fechaProxima > en10Anios) {
+                    mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'La fecha de la próxima revisión no puede superar los 10 años en el futuro.');
+                    esProximaValida = false;
+                } else if (fechaProxima < hoySinHora) {
+                    mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'La fecha de la próxima revisión no puede ser anterior a la fecha actual.');
+                    esProximaValida = false;
+                } else {
+                    limpiarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId);
+                }
+            }
+        }
+
+        if (esUltimaValida && esProximaValida && fechaUltima && fechaProxima && fechaProxima <= fechaUltima) {
+            mostrarErrorCampo('vehiculo-fecha-proxima', feedbackProximaId, 'La fecha de la próxima revisión debe ser estrictamente posterior a la fecha de la última revisión.');
+            esProximaValida = false;
+        }
+
+        return esUltimaValida && esProximaValida;
+    }
+
+    function validarFormularioAltaVehiculo() {
+        const form = document.getElementById('form-alta-vehiculo');
+        if (!form) return true;
+
+        const vMatricula = validarMatriculaVehiculo();
+        const vMarca = validarMarcaVehiculo();
+        const vModelo = validarModeloVehiculo();
+        const vColor = validarColorVehiculo();
+        const vAnio = validarAnioVehiculo();
+        const vCv = validarCvVehiculo();
+        const vKm = validarKmVehiculo();
+        const vFechas = validarFechasRevisionVehiculo();
+
+        const errorActivo = form.querySelector('.mensaje-error-campo');
+
+        if (!vMatricula || !vMarca || !vModelo || !vColor || !vAnio || !vCv || !vKm || !vFechas || errorActivo) {
+            const primerInvalido = form.querySelector('.border-red-500') || form.querySelector(':invalid');
+            if (primerInvalido) {
+                primerInvalido.focus();
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    function inicializarEventosModalVehiculo() {
+        const form = document.getElementById('form-alta-vehiculo');
+        if (!form) return;
+
+        if (form._eventosVehiculoInicializados) return;
+        form._eventosVehiculoInicializados = true;
+
+        // Configurar restricciones dinámicas de fechas y límites cruzados (min y max)
+        configurarRestriccionesFechasModalVehiculo();
+
+        // Listeners interactivos
+        const inputMatricula = document.getElementById('vehiculo-matricula');
+        if (inputMatricula) {
+            inputMatricula.addEventListener('blur', validarMatriculaVehiculo);
+            inputMatricula.addEventListener('input', () => {
+                if (inputMatricula.classList.contains('border-red-500') || inputMatricula.value.trim()) {
+                    validarMatriculaVehiculo();
+                }
+            });
+        }
+
+        const inputMarca = document.getElementById('vehiculo-marca');
+        if (inputMarca) {
+            inputMarca.addEventListener('blur', validarMarcaVehiculo);
+            inputMarca.addEventListener('input', () => {
+                if (inputMarca.classList.contains('border-red-500') || inputMarca.value.trim()) {
+                    validarMarcaVehiculo();
+                }
+            });
+        }
+
+        const inputModelo = document.getElementById('vehiculo-modelo');
+        if (inputModelo) {
+            inputModelo.addEventListener('blur', validarModeloVehiculo);
+            inputModelo.addEventListener('input', () => {
+                if (inputModelo.classList.contains('border-red-500') || inputModelo.value.trim()) {
+                    validarModeloVehiculo();
+                }
+            });
+        }
+
+        const inputColor = document.getElementById('vehiculo-color');
+        if (inputColor) {
+            inputColor.addEventListener('blur', validarColorVehiculo);
+            inputColor.addEventListener('input', () => {
+                if (inputColor.classList.contains('border-red-500') || inputColor.value.trim()) {
+                    validarColorVehiculo();
+                }
+            });
+        }
+
+        const inputAnio = document.getElementById('vehiculo-anio');
+        if (inputAnio) {
+            inputAnio.addEventListener('blur', validarAnioVehiculo);
+            inputAnio.addEventListener('input', () => {
+                if (inputAnio.classList.contains('border-red-500') || inputAnio.value.trim()) {
+                    validarAnioVehiculo();
+                }
+            });
+        }
+
+        const inputCv = document.getElementById('vehiculo-cv');
+        if (inputCv) {
+            inputCv.addEventListener('blur', validarCvVehiculo);
+            inputCv.addEventListener('input', () => {
+                if (inputCv.classList.contains('border-red-500') || inputCv.value.trim()) {
+                    validarCvVehiculo();
+                }
+            });
+        }
+
+        const inputKm = document.getElementById('vehiculo-km');
+        if (inputKm) {
+            inputKm.addEventListener('blur', validarKmVehiculo);
+            inputKm.addEventListener('input', () => {
+                if (inputKm.classList.contains('border-red-500') || inputKm.value.trim()) {
+                    validarKmVehiculo();
+                }
+            });
+        }
+
+        const inputProxima = document.getElementById('vehiculo-fecha-proxima');
+        if (inputProxima) {
+            inputProxima.addEventListener('change', validarFechasRevisionVehiculo);
+            inputProxima.addEventListener('input', validarFechasRevisionVehiculo);
+            inputProxima.addEventListener('blur', validarFechasRevisionVehiculo);
+        }
+
+        const inputUltima = document.getElementById('vehiculo-fecha-ultima');
+        if (inputUltima) {
+            inputUltima.addEventListener('change', validarFechasRevisionVehiculo);
+            inputUltima.addEventListener('input', validarFechasRevisionVehiculo);
+            inputUltima.addEventListener('blur', validarFechasRevisionVehiculo);
+        }
+
+        form.addEventListener('submit', (e) => {
+            if (!validarFormularioAltaVehiculo()) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            } else {
+                // Deshabilitar botón para prevenir doble envío accidental
+                const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                }
+            }
+        });
+    }
+
     // Interceptar evento HTMX para abortar la petición si no pasa las validaciones de cliente
     document.body.addEventListener('htmx:confirm', (e) => {
         if (e.target && e.target.id === 'form-alta-profesor') {
@@ -674,6 +1092,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!validarFormularioProfesor('form-editar-profesor', 'modal-editar-profesor', '-editar')) {
                 e.preventDefault();
             }
+        } else if (e.target && e.target.id === 'form-alta-vehiculo') {
+            if (!validarFormularioAltaVehiculo()) {
+                e.preventDefault();
+            } else {
+                // Deshabilitar botón para prevenir doble alta durante la petición HTMX
+                const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                }
+            }
+        }
+    });
+
+    // Re-habilitar botón de envío de vehículo en caso de fallo de red en HTMX
+    document.body.addEventListener('htmx:responseError', (e) => {
+        if (e.target && e.target.id === 'form-alta-vehiculo') {
+            const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
+            if (btnSubmit) btnSubmit.disabled = false;
+        }
+    });
+    document.body.addEventListener('htmx:sendError', (e) => {
+        if (e.target && e.target.id === 'form-alta-vehiculo') {
+            const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
+            if (btnSubmit) btnSubmit.disabled = false;
         }
     });
 
@@ -684,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Feedback de campos individuales (soporta modales alta/edición profesor y perfil admin)
         if (targetId && targetId.startsWith('feedback-')) {
             const campoNombre = targetId.replace('feedback-', '');
-            const input = document.getElementById(`profesor-${campoNombre}`) || document.getElementById(campoNombre);
+            const input = document.getElementById(`profesor-${campoNombre}`) || document.getElementById(`vehiculo-${campoNombre}`) || document.getElementById(campoNombre);
             const tieneError = event.detail.target.querySelector('.mensaje-error-campo') !== null;
 
             if (input) {
@@ -705,6 +1147,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (targetId === 'contenedor-modal-editar-profesor' || targetId === 'modal-editar-profesor' || event.detail.target?.querySelector('#form-editar-profesor')) {
             inicializarEventosModalProfesorGenerico('modal-editar-profesor', 'form-editar-profesor', '-editar');
+        }
+
+        if (targetId === 'contenedor-modal-alta-vehiculo' || targetId === 'modal-alta-vehiculo' || event.detail.target?.querySelector('#form-alta-vehiculo')) {
+            inicializarEventosModalVehiculo();
         }
     });
 
@@ -921,5 +1367,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inicializarEventosModalesProfesor();
+    inicializarEventosModalVehiculo();
     inicializarValidacionesPerfilAdmin();
 });

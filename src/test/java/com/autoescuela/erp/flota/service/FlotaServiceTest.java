@@ -11,8 +11,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.mapper.VehiculoMapper;
@@ -138,5 +142,178 @@ class FlotaServiceTest
                 .hasMessageContaining("No se encontró el vehículo con ID: 999");
 
         verify(this.vehiculoRepository).findById(999L);
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo persiste correctamente un nuevo vehículo en estado DISPONIBLE")
+    void testDarAltaVehiculoExitoso()
+    {
+        AltaVehiculoDTO dto = new AltaVehiculoDTO(
+                "9876-XYZ", "Toyota", "Yaris", "Gris", 0L, 90, 2024,
+                TipoCombustible.HIBRIDO, TipoCambio.AUTOMATICO, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusYears(1)
+        );
+
+        Vehiculo entidadMapeada = new Vehiculo();
+        entidadMapeada.setMatricula("9876-XYZ");
+        entidadMapeada.setMarca("Toyota");
+        entidadMapeada.setModelo("Yaris");
+        entidadMapeada.setColor("Gris");
+        entidadMapeada.setEstado(EstadoVehiculo.DISPONIBLE);
+
+        when(this.vehiculoRepository.findByMatricula("9876-XYZ")).thenReturn(Optional.empty());
+        when(this.vehiculoMapper.toEntity(dto)).thenReturn(entidadMapeada);
+        when(this.vehiculoRepository.save(entidadMapeada)).thenReturn(entidadMapeada);
+
+        Vehiculo resultado = this.flotaService.darAltaVehiculo(dto);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getMatricula()).isEqualTo("9876-XYZ");
+        assertThat(resultado.getEstado()).isEqualTo(EstadoVehiculo.DISPONIBLE);
+        verify(this.vehiculoRepository).findByMatricula("9876-XYZ");
+        verify(this.vehiculoMapper).toEntity(dto);
+        verify(this.vehiculoRepository).save(entidadMapeada);
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si la matrícula ya se encuentra registrada")
+    void testDarAltaVehiculoMatriculaDuplicada()
+    {
+        AltaVehiculoDTO dto = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusYears(1)
+        );
+
+        Vehiculo existente = new Vehiculo();
+        existente.setMatricula("1234-LMN");
+
+        when(this.vehiculoRepository.findByMatricula("1234-LMN")).thenReturn(Optional.of(existente));
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Ya existe un vehículo registrado en la flota con la matrícula 1234-LMN.");
+
+        verify(this.vehiculoRepository).findByMatricula("1234-LMN");
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si el DTO proporcionado es nulo")
+    void testDarAltaVehiculoDtoNulo()
+    {
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(null))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Los datos del vehículo no pueden ser nulos.");
+    }
+
+    @Test
+    @DisplayName("existeMatricula devuelve true cuando la matrícula normalizada existe en el repositorio")
+    void testExisteMatriculaDevuelveTrueSiExiste()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+
+        when(this.vehiculoRepository.findByMatricula("1234-LMN")).thenReturn(Optional.of(vehiculo));
+
+        boolean resultadoConGuion = this.flotaService.existeMatricula("1234-LMN");
+        boolean resultadoSinGuion = this.flotaService.existeMatricula("1234lmn");
+
+        assertThat(resultadoConGuion).isTrue();
+        assertThat(resultadoSinGuion).isTrue();
+        verify(this.vehiculoRepository, org.mockito.Mockito.times(2)).findByMatricula("1234-LMN");
+    }
+
+    @Test
+    @DisplayName("existeMatricula devuelve false cuando la matrícula no existe o es nula/vacía")
+    void testExisteMatriculaDevuelveFalseSiNoExisteOEsInvalida()
+    {
+        when(this.vehiculoRepository.findByMatricula("9999-ZZZ")).thenReturn(Optional.empty());
+
+        assertThat(this.flotaService.existeMatricula("9999-ZZZ")).isFalse();
+        assertThat(this.flotaService.existeMatricula(null)).isFalse();
+        assertThat(this.flotaService.existeMatricula("")).isFalse();
+        assertThat(this.flotaService.existeMatricula("   ")).isFalse();
+
+        verify(this.vehiculoRepository).findByMatricula("9999-ZZZ");
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si el año de matriculación es inválido")
+    void testDarAltaVehiculoAnioInvalido()
+    {
+        AltaVehiculoDTO dtoAnioPasado = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 1980,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusYears(1)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoAnioPasado))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El año de matriculación debe estar comprendido entre 1990 y el año actual.");
+
+        AltaVehiculoDTO dtoAnioFuturo = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, LocalDate.now().getYear() + 2,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusYears(1)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoAnioFuturo))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El año de matriculación debe estar comprendido entre 1990 y el año actual.");
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si la fecha de última revisión es inválida")
+    void testDarAltaVehiculoFechaUltimaRevisionInvalida()
+    {
+        AltaVehiculoDTO dtoMuyAntigua = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                LocalDate.now().minusYears(5), LocalDate.now().plusYears(1)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoMuyAntigua))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("La fecha de la última revisión no puede ser anterior a hace 4 años ni posterior a hoy.");
+
+        AltaVehiculoDTO dtoFutura = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                LocalDate.now().plusDays(2), LocalDate.now().plusYears(1)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoFutura))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("La fecha de la última revisión no puede ser anterior a hace 4 años ni posterior a hoy.");
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si la fecha de próxima revisión no es posterior a la última")
+    void testDarAltaVehiculoRevisionesIncoherentes()
+    {
+        AltaVehiculoDTO dto = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                LocalDate.now().minusMonths(6), LocalDate.now().minusMonths(7)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("La fecha de la próxima revisión debe ser estrictamente posterior a la fecha de la última revisión.");
+    }
+
+    @Test
+    @DisplayName("darAltaVehiculo lanza ReglaNegocioException si la fecha de próxima revisión es superior a 10 años")
+    void testDarAltaVehiculoFechaProximaRevisionInvalida()
+    {
+        AltaVehiculoDTO dto = new AltaVehiculoDTO(
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                null, LocalDate.now().plusYears(11)
+        );
+
+        assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("La fecha de la próxima revisión no puede superar los 10 años en el futuro.");
     }
 }

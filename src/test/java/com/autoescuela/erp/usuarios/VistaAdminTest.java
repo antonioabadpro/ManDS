@@ -99,7 +99,45 @@ class VistaAdminTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/admin/flota"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/flota"))
-                .andExpect(model().attributeExists("vehiculos", "totalVehiculos", "totalDisponibles", "totalOcupados", "totalMantenimiento"));
+                .andExpect(model().attributeExists("vehiculos", "totalVehiculos", "totalDisponibles", "totalOcupados", "totalMantenimiento", "altaVehiculoDTO", "tiposCarnet", "tiposCombustible", "tiposCambio"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/alta da de alta un vehículo válido y redirige con mensaje flash")
+    void testDarAltaVehiculoExitoso() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/alta")
+                        .with(csrf())
+                        .param("matricula", "9988-ZZZ")
+                        .param("marca", "Hyundai")
+                        .param("modelo", "i20 N Line")
+                        .param("color", "Rojo Dragón")
+                        .param("km", "150")
+                        .param("cv", "120")
+                        .param("anio", "2024")
+                        .param("tipoCombustible", "GASOLINA")
+                        .param("cajaCambios", "MANUAL")
+                        .param("tipoPermiso", "PERMISO_B")
+                        .param("fechaProximaRevision", "2027-10-01"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/flota"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/alta con errores de validación mantiene la vista y abre el modal con errores")
+    void testDarAltaVehiculoErroresValidacion() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/alta")
+                        .with(csrf())
+                        .param("matricula", "")
+                        .param("marca", "")
+                        .param("modelo", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/flota"))
+                .andExpect(model().attributeExists("abrirModalAltaVehiculo"));
     }
 
     @Test
@@ -111,6 +149,44 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo"))
                 .andExpect(model().attributeExists("vehiculo", "abrirModalDetalleVehiculo"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/validar-matricula devuelve fragmento de error cuando la matrícula ya existe en la BD")
+    void testValidarMatriculaExistenteDevuelveMensajeError() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/validar-matricula")
+                        .with(csrf())
+                        .param("matricula", "1234-LMN"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro :: mensaje-error"))
+                .andExpect(model().attributeExists("mensaje"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/validar-matricula devuelve fragmento vacío cuando la matrícula está disponible y es válida")
+    void testValidarMatriculaNuevaDisponibleDevuelveFragmentoVacio() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/validar-matricula")
+                        .with(csrf())
+                        .param("matricula", "0001-AAA"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro :: fragmento-vacio"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/validar-matricula devuelve fragmento de error cuando el formato es inválido o está vacía")
+    void testValidarMatriculaFormatoInvalidoDevuelveMensajeError() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/validar-matricula")
+                        .with(csrf())
+                        .param("matricula", "123-A"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro :: mensaje-error"))
+                .andExpect(model().attributeExists("mensaje"));
     }
 
     @Test

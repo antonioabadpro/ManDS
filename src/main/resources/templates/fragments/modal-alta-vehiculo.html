@@ -1,0 +1,267 @@
+<div id="modal-alta-vehiculo" th:fragment="modal-alta-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-vehiculo" th:classappend="${abrirModalAltaVehiculo} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+    <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-alta-vehiculo"></div>
+    <div class="relative z-10 w-full max-w-7xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-5 lg:p-7 space-y-3 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden lg:max-h-none lg:overflow-visible">
+
+        <!-- Cabecera del Modal -->
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                    <span class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                        <!-- Icono Coche con distintivo de adición + -->
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 4v4m2-2h-4M5 11l1.5-4.5A2 2 0 018.4 5h5.2a2 2 0 011.9 1.5L17 11M3 15v4a1 1 0 001 1h1a1 1 0 001-1v-1h12v1a1 1 0 001 1h1a1 1 0 001-1v-4a2 2 0 00-2-2H5a2 2 0 00-2 2zM7 15h.01M17 15h.01" />
+                        </svg>
+                    </span>
+                    <h3 id="titulo-modal-vehiculo" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                        Alta de Nuevo Vehículo en Flota
+                    </h3>
+                </div>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                    Registra un nuevo vehículo en el parque móvil de la autoescuela con sus especificaciones técnicas y calendario de revisiones.
+                </p>
+            </div>
+            <button type="button" data-modal-close="modal-alta-vehiculo" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" aria-label="Cerrar ventana">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Alerta de Error de Negocio dentro del Modal -->
+        <div th:if="${errorAltaVehiculo}" class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 text-xs flex items-center space-x-2.5">
+            <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span th:text="${errorAltaVehiculo}">Ha ocurrido un error al dar de alta el vehículo.</span>
+        </div>
+
+        <!-- Formulario Principal -->
+        <form id="form-alta-vehiculo" th:action="@{/admin/flota/alta}" th:attr="hx-post=@{/admin/flota/alta}" hx-target="#contenedor-modal-alta-vehiculo" hx-swap="innerHTML" hx-disabled-elt="#btn-submit-alta-vehiculo" th:object="${altaVehiculoDTO}" method="post" class="space-y-3" novalidate>
+
+            <!-- GRID PRINCIPAL: 1 col (móvil) → 2 col (md) → 3 col (lg+) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-3">
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- COLUMNA 1: Identificación y Registro    -->
+                <!-- ═══════════════════════════════════════ -->
+                <div class="space-y-2.5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>1. Identificación y Registro</span>
+                    </h4>
+
+                    <!-- Matrícula -->
+                    <div>
+                        <label for="vehiculo-matricula" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Matrícula <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="text" id="vehiculo-matricula" th:field="*{matricula}" required maxlength="8" placeholder="1234-LMN" hx-post="/admin/flota/validar-matricula" hx-trigger="blur, change delay:300ms" hx-target="#feedback-matricula" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-mono tracking-wider transition" />
+                        <p th:if="${#fields.hasErrors('matricula')}" th:errors="*{matricula}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-matricula"></div>
+                    </div>
+
+                    <!-- Permiso DGT Requerido -->
+                    <div>
+                        <label for="vehiculo-permiso" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Permiso DGT Habilitado <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <div class="relative">
+                            <select id="vehiculo-permiso" th:field="*{tipoPermiso}" required class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
+                                <option th:each="carnet : ${tiposCarnet}" th:value="${carnet}" th:text="${carnet.descripcion}">Permiso B</option>
+                            </select>
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </div>
+                        <p th:if="${#fields.hasErrors('tipoPermiso')}" th:errors="*{tipoPermiso}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                    </div>
+
+                    <!-- Marca -->
+                    <div>
+                        <label for="vehiculo-marca" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Marca <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="text" id="vehiculo-marca" th:field="*{marca}" required maxlength="50" placeholder="Ej. SEAT" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <p th:if="${#fields.hasErrors('marca')}" th:errors="*{marca}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-marca"></div>
+                    </div>
+
+                    <!-- Modelo -->
+                    <div>
+                        <label for="vehiculo-modelo" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Modelo <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="text" id="vehiculo-modelo" th:field="*{modelo}" required maxlength="50" placeholder="Ej. Ibiza 1.0 TSI" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <p th:if="${#fields.hasErrors('modelo')}" th:errors="*{modelo}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-modelo"></div>
+                    </div>
+
+                    <!-- Color de Carrocería -->
+                    <div>
+                        <label for="vehiculo-color" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Color de Carrocería <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="text" id="vehiculo-color" th:field="*{color}" required maxlength="30" placeholder="Ej. Blanco Nevada" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <p th:if="${#fields.hasErrors('color')}" th:errors="*{color}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-color"></div>
+                    </div>
+
+                    <!-- Año de Matriculación -->
+                    <div>
+                        <label for="vehiculo-anio" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Año de Matriculación <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="number" id="vehiculo-anio" th:field="*{anio}" min="1990" th:max="${T(java.time.LocalDate).now().year}" required placeholder="Ej. 2024" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Comprendido entre 1990 y el año en curso.</span>
+                        <p th:if="${#fields.hasErrors('anio')}" th:errors="*{anio}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <p th:if="${#fields.hasErrors('fechaMatriculacionValida')}" th:errors="*{fechaMatriculacionValida}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-anio"></div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- COLUMNA 2: Ficha Técnica y Motor       -->
+                <!-- ═══════════════════════════════════════ -->
+                <div class="space-y-2.5">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>2. Ficha Técnica y Motor</span>
+                    </h4>
+
+                    <!-- Potencia (CV) -->
+                    <div>
+                        <label for="vehiculo-cv" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Potencia del Motor (CV) <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="number" id="vehiculo-cv" th:field="*{cv}" min="0" max="1000" required placeholder="110" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Indicar 0 CV si es un remolque (Permiso B+E).</span>
+                        <p th:if="${#fields.hasErrors('cv')}" th:errors="*{cv}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-cv"></div>
+                    </div>
+
+                    <!-- Kilometraje Inicial -->
+                    <div>
+                        <label for="vehiculo-km" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kilometraje Inicial (km) <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="number" id="vehiculo-km" th:field="*{km}" min="0" required placeholder="0" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <p th:if="${#fields.hasErrors('km')}" th:errors="*{km}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-km"></div>
+                    </div>
+
+                    <!-- Tipo de Combustible -->
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Tipo de Combustible <span class="text-rose-500 font-bold" aria-hidden="true">*</span></span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label th:each="comb : ${tiposCombustible}" class="relative flex items-center p-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 dark:has-[:checked]:bg-blue-950/40 has-[:checked]:ring-1 has-[:checked]:ring-blue-500 group">
+                                <input type="radio" name="tipoCombustible" th:value="${comb}" th:field="*{tipoCombustible}" class="sr-only peer" />
+                                <div class="flex items-center space-x-2 w-full">
+                                    <div class="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 flex items-center justify-center transition-all group-has-[:checked]:border-blue-600 group-has-[:checked]:bg-blue-600 shrink-0">
+                                        <svg class="w-2 h-2 text-white opacity-0 group-has-[:checked]:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-900 dark:text-white leading-tight" th:text="${comb.descripcion}">Gasolina</span>
+                                </div>
+                            </label>
+                        </div>
+                        <p th:if="${#fields.hasErrors('tipoCombustible')}" th:errors="*{tipoCombustible}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                    </div>
+
+                    <!-- Caja de Cambios -->
+                    <div>
+                        <span class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Caja de Cambios <span class="text-rose-500 font-bold" aria-hidden="true">*</span></span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label th:each="cambio : ${tiposCambio}" class="relative flex items-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/60 dark:has-[:checked]:bg-blue-950/40 has-[:checked]:ring-1 has-[:checked]:ring-blue-500 group">
+                                <input type="radio" name="cajaCambios" th:value="${cambio}" th:field="*{cajaCambios}" class="sr-only peer" />
+                                <div class="flex items-center space-x-2 w-full">
+                                    <div class="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 flex items-center justify-center transition-all group-has-[:checked]:border-blue-600 group-has-[:checked]:bg-blue-600 shrink-0">
+                                        <svg class="w-2 h-2 text-white opacity-0 group-has-[:checked]:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-xs font-semibold text-slate-900 dark:text-white" th:text="${cambio.descripcion}">Manual</span>
+                                </div>
+                            </label>
+                        </div>
+                        <p th:if="${#fields.hasErrors('cajaCambios')}" th:errors="*{cajaCambios}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- COLUMNA 3: Mantenimiento y Operativa    -->
+                <!-- ═══════════════════════════════════════ -->
+                <div class="space-y-2.5 md:col-span-2 lg:col-span-1">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center space-x-1.5">
+                        <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>3. Mantenimiento y Operativa</span>
+                    </h4>
+
+                    <!-- Fecha de Última Revisión -->
+                    <div>
+                        <label for="vehiculo-fecha-ultima" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Última Revisión Pasada <span class="text-slate-400 font-normal">(Opcional)</span></label>
+                        <input type="date" id="vehiculo-fecha-ultima" th:field="*{fechaUltimaRevision}" th:min="${T(java.time.LocalDate).now().minusYears(4)}" th:max="${T(java.time.LocalDate).now()}" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Fecha en la que pasó su revisión anterior (pasada).</span>
+                        <p th:if="${#fields.hasErrors('fechaUltimaRevision')}" th:errors="*{fechaUltimaRevision}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <p th:if="${#fields.hasErrors('fechaUltimaRevisionValida')}" th:errors="*{fechaUltimaRevisionValida}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-fecha-ultima"></div>
+                    </div>
+
+                    <!-- Fecha de Próxima Revisión / ITV -->
+                    <div>
+                        <label for="vehiculo-fecha-proxima" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Próxima Revisión / ITV <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
+                        <input type="date" id="vehiculo-fecha-proxima" th:field="*{fechaProximaRevision}" th:min="${T(java.time.LocalDate).now()}" th:max="${T(java.time.LocalDate).now().plusYears(10)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Debe ser estrictamente posterior a la última revisión.</span>
+                        <p th:if="${#fields.hasErrors('fechaProximaRevision')}" th:errors="*{fechaProximaRevision}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <p th:if="${#fields.hasErrors('revisionesCoherentes')}" th:errors="*{revisionesCoherentes}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <p th:if="${#fields.hasErrors('fechaProximaRevisionValida')}" th:errors="*{fechaProximaRevisionValida}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
+                        <div id="feedback-fecha-proxima"></div>
+                    </div>
+
+                    <!-- Tarjeta Informativa de Normativa de Flota y Estado Operativo Inicial -->
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-2 text-xs">
+                        <div class="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
+                            <span class="font-medium text-slate-500 dark:text-slate-400">Estado Inicial</span>
+                            <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                DISPONIBLE
+                            </span>
+                        </div>
+                        <div class="space-y-1.5 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <p class="font-semibold text-slate-800 dark:text-slate-200 flex items-center space-x-1">
+                                <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Normativa del Parque Móvil</span>
+                            </p>
+                            <p>El vehículo se creará disponible sin profesor asignado. La asignación se realiza de forma exclusiva 1 a 1 desde la gestión de profesores.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Botones de Acción Inferiores y Aviso Informativo -->
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <!-- Alerta Informativa a la izquierda -->
+                <div class="flex items-start sm:items-center space-x-2 p-2 sm:p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-300 text-[11px] leading-tight">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                        El vehículo quedará inmediatamente habilitado para la impartición de clases prácticas y citaciones oficiales DGT.
+                    </span>
+                </div>
+
+                <!-- Botones a la derecha -->
+                <div class="flex items-center justify-end space-x-3 shrink-0 w-full sm:w-auto">
+                    <button type="button" data-modal-close="modal-alta-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="btn-submit-alta-vehiculo" type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl shadow-md shadow-blue-500/20 transition cursor-pointer flex items-center space-x-2 shrink-0">
+                        <span class="htmx-indicator-none">Registrar Vehículo</span>
+
+                        <!-- Spinner animado y texto reactivo de carga durante la petición HTMX -->
+                        <svg class="w-4 h-4 animate-spin htmx-indicator" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                        <span class="htmx-indicator">Registrando vehículo...</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</div>
