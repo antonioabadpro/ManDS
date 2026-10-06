@@ -1,0 +1,266 @@
+<div id="modal-detalle-vehiculo" th:fragment="modal-detalle-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle" th:classappend="${abrirModalDetalleVehiculo} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+    <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-detalle-vehiculo"></div>
+    <div class="relative z-10 w-full max-w-4xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 lg:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
+
+        <!-- Cabecera del Modal con Avatar / Matrícula y Estado -->
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center space-x-3.5 sm:space-x-4">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-extrabold text-sm sm:text-base flex items-center justify-center shrink-0 border border-blue-500/20" th:text="${vehiculo.matriculaPrefijo}">
+                    1234
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 id="titulo-modal-detalle" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white" th:text="|${vehiculo.marca} ${vehiculo.modelo}|">
+                            SEAT Ibiza 1.0 TSI
+                        </h3>
+                        <!-- Badge Estado Operativo -->
+                        <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            DISPONIBLE
+                        </span>
+                        <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            OCUPADO
+                        </span>
+                        <span th:if="${vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            MANTENIMIENTO
+                        </span>
+                        <span th:if="${vehiculo.estado?.name() == 'INACTIVO'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                            INACTIVO
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center space-x-2">
+                        <span th:text="|Matrícula: ${vehiculo.matricula}|">Matrícula: 1234-LMN</span>
+                        <span>·</span>
+                        <span th:text="|ID: #${vehiculo.id}|">ID: #1</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Botón de Cerrar -->
+            <button type="button" data-modal-close="modal-detalle-vehiculo" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar ventana">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Cuadrícula de Información Organizada en Bloques -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+
+            <!-- Bloque 1: Identificación y Registro del Vehículo -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Identificación y Registro</span>
+                </h4>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Matrícula</dt>
+                        <dd class="mt-0.5 font-mono font-semibold text-slate-800 dark:text-slate-200" th:text="${vehiculo.matricula}">
+                            1234-LMN
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Permiso DGT Requerido</dt>
+                        <dd class="mt-0.5">
+                            <span class="inline-flex px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${vehiculo.tipoDescripcion}">
+                                Permiso B
+                            </span>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Marca</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${vehiculo.marca}">
+                            SEAT
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Modelo</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${vehiculo.modelo}">
+                            Ibiza 1.0 TSI
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Color de Carrocería</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-300 dark:bg-slate-600"></span>
+                            <span th:text="${vehiculo.color}">Blanco Nevada</span>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Año de Matriculación</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${vehiculo.anio}">
+                            2022
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Bloque 2: Ficha Técnica y Motor -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Ficha Técnica y Motor</span>
+                </h4>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Potencia</dt>
+                        <dd class="mt-0.5 font-semibold text-slate-800 dark:text-slate-200" th:text="${vehiculo.cv != null and vehiculo.cv > 0 ? vehiculo.cv + ' CV' : 'Sin motor (Remolque)'}">
+                            110 CV
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Tipo de Combustible</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${vehiculo.combustibleDescripcion}">
+                            Gasolina
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Caja de Cambios</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${vehiculo.cambioDescripcion}">
+                            Manual
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Kilometraje Acumulado</dt>
+                        <dd class="mt-0.5 font-bold text-slate-900 dark:text-white" th:text="${vehiculo.km != null ? #numbers.formatInteger(vehiculo.km, 1, 'POINT') + ' km' : '0 km'}">
+                            45.000 km
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Bloque 3: Mantenimiento, Revisiones e ITV -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Mantenimiento, Revisiones e ITV</span>
+                </h4>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Última Revisión Pasada</dt>
+                        <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200">
+                            <span th:if="${vehiculo.fechaUltimaRevision != null}" th:text="${#temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy')}">10/01/2026</span>
+                            <span th:if="${vehiculo.fechaUltimaRevision == null}" class="text-slate-400 italic">Sin registrar</span>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Próxima Revisión / ITV</dt>
+                        <dd class="mt-0.5">
+                            <div th:if="${vehiculo.fechaProximaRevision != null}">
+                                <div th:if="${vehiculo.isRevisionVencida()}" class="space-y-0.5">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                        <span class="font-bold text-red-600 dark:text-red-400" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
+                                    </div>
+                                    <p class="text-[10px] text-red-600 dark:text-red-400 font-bold">¡Revisión Vencida!</p>
+                                </div>
+                                <div th:if="${vehiculo.isRevisionProxima()}" class="space-y-0.5">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
+                                    </div>
+                                    <p class="text-[10px] text-amber-600 dark:text-amber-400">Próxima (&lt; 60 días)</p>
+                                </div>
+                                <div th:if="${vehiculo.isRevisionAlDia()}" class="space-y-0.5">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
+                                    </div>
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
+                                </div>
+                            </div>
+                            <span th:if="${vehiculo.fechaProximaRevision == null}" class="text-slate-400 italic">Sin programar</span>
+                        </dd>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <dt class="text-slate-400 dark:text-slate-500 font-medium">Partes de Incidencias Mecánicas</dt>
+                        <dd class="mt-1">
+                            <span th:if="${vehiculo.totalIncidencias == 0}" class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                Sin incidencias registradas
+                            </span>
+                            <span th:if="${vehiculo.totalIncidencias > 0 and vehiculo.incidenciasPendientes == 0}" class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" th:text="|${vehiculo.totalIncidencias} incidencias (todas resueltas)|">
+                                2 incidencias (todas resueltas)
+                            </span>
+                            <span th:if="${vehiculo.incidenciasPendientes > 0}" class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="|${vehiculo.incidenciasPendientes} pendiente${vehiculo.incidenciasPendientes > 1 ? 's' : ''} de ${vehiculo.totalIncidencias} totales|">
+                                1 pendiente de 2 totales
+                            </span>
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Bloque 4: Profesor Asignado y Operativa -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profesor Asignado y Operativa</span>
+                </h4>
+
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 dark:text-slate-500 font-medium block">Profesor Asignado (Relación 1 a 1)</span>
+                        <div th:if="${vehiculo.profesorId != null}" class="mt-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                <div>
+                                    <p class="font-bold text-slate-900 dark:text-white" th:text="${vehiculo.profesorNombreCompleto}">Laura Sánchez Romero</p>
+                                    <p th:if="${vehiculo.profesorDni != null}" class="text-[11px] font-mono text-slate-500 dark:text-slate-400" th:text="|DNI: ${vehiculo.profesorDni}|">DNI: 12345678Z</p>
+                                </div>
+                            </div>
+                            <span th:if="${vehiculo.profesorTurno?.name() == 'MATINAL'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                MATINAL
+                            </span>
+                            <span th:if="${vehiculo.profesorTurno?.name() == 'TARDE'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                                TARDE
+                            </span>
+                        </div>
+                        <div th:if="${vehiculo.profesorId == null}" class="mt-1 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-400 flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                            <span class="italic">Sin profesor asignado (Disponible para asignación)</span>
+                        </div>
+                    </div>
+
+                    <div class="p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-[11px] text-slate-600 dark:text-slate-400 space-y-1">
+                        <p class="font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Normativa de Flota ManDS</span>
+                        </p>
+                        <p>Asignación exclusiva 1 a 1. Los vehículos pertenecen a la autoescuela y quedan reservados automáticamente durante convocatorias oficiales de examen práctico DGT.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botón Inferior de Acción -->
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-3">
+            <button type="button" data-modal-close="modal-detalle-vehiculo" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>

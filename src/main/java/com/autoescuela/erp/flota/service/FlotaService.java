@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
+import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.mapper.VehiculoMapper;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -69,5 +71,20 @@ public class FlotaService
     public List<Vehiculo> obtenerVehiculosDashboard()
     {
         return this.vehiculoRepository.findTop5ByOrderByIdAsc();
+    }
+
+    /**
+     * Obtiene los datos detallados de un vehículo para su visualización en el modal de detalle.
+     *
+     * @param id Identificador único del vehículo.
+     * @return DTO inmutable con la información integral del vehículo.
+     * @throws RecursoNoEncontradoException Si no existe ningún vehículo con el ID especificado.
+     */
+    @Transactional(readOnly = true)
+    public VehiculoDetalleDTO obtenerVehiculoParaDetalle(Long id)
+    {
+        return this.vehiculoRepository.findById(id)
+                .map(this.vehiculoMapper::toVehiculoDetalleDTO)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + id));
     }
 }

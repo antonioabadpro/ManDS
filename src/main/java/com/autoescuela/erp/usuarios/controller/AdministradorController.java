@@ -27,6 +27,7 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
 import com.autoescuela.erp.flota.service.FlotaService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
@@ -722,6 +723,19 @@ public class AdministradorController
         model.addAttribute("totalMantenimiento", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.MANTENIMIENTO).count());
 
         return "admin/flota";
+    }
+
+    /**
+     * Endpoint HTMX para cargar y presentar los datos informativos del vehículo en el modal de detalle.
+     */
+    @GetMapping("/flota/detalle/{id}")
+    public String cargarModalDetalleVehiculo(@PathVariable("id") Long id, Model model)
+    {
+        VehiculoDetalleDTO dto = this.flotaService.obtenerVehiculoParaDetalle(id);
+        model.addAttribute("vehiculo", dto);
+        model.addAttribute("abrirModalDetalleVehiculo", true);
+
+        return "fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo";
     }
 
     /**
