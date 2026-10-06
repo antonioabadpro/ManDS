@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
 import jakarta.persistence.Column;
@@ -52,8 +54,23 @@ public class Vehiculo
     @Column(nullable = false)
     private Long km;
 
+    @Column(nullable = false)
+    private Integer cv;
+
+    @Column(nullable = false)
+    private Integer anio;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoCombustible tipoCombustible;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoCambio cajaCambios;
+
     private LocalDate fechaUltimaRevision;
 
+    @Column(nullable = false)
     private LocalDate fechaProximaRevision;
 
     @Enumerated(EnumType.STRING)
@@ -62,7 +79,7 @@ public class Vehiculo
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TipoCarnet tipo;
+    private TipoCarnet tipoPermiso;
 
     @OneToOne(mappedBy = "vehiculo", fetch = FetchType.LAZY)
     private Profesor profesor;

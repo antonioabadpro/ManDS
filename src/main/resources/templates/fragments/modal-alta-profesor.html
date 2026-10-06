@@ -131,7 +131,7 @@
                         <div class="relative">
                             <select id="profesor-vehiculo" th:field="*{vehiculoId}" class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
                                 <option value="">-- Sin Vehículo Asignado --</option>
-                                <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipo},data-tipo-nombre=${v.tipo.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})|">
+                                <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipoPermiso},data-tipo-nombre=${v.tipoPermiso.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipoPermiso.descripcion})|">
                                     1234-LMN · SEAT Ibiza (Permiso B)
                                 </option>
                             </select>

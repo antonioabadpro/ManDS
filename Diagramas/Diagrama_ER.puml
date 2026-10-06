@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v12
+@startuml Diagrama_ER_v13
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -31,6 +31,16 @@ package "Enums" {
     - PERMISO_D
     - PERMISO_D_E
     - PERMISO_LVA
+  }
+  enum TipoCombustible {
+    - GASOLINA
+    - DIESEL
+    - ELECTRICO
+    - HIBRIDO
+  }
+  enum TipoCambio {
+    - MANUAL
+    - AUTOMATICO
   }
   enum TipoMatricula {
     - NUEVA
@@ -176,10 +186,14 @@ package "Autoescuela" {
     - modelo: String
     - color: String
     - km: Long
+    - cv: Integer
+    - anio: Integer
+    - tipoCombustible: TipoCombustible
+    - tipoCambio: TipoCambio
     - fechaUltimaRevision: LocalDate
     - fechaProximaRevision: LocalDate
     - estado: EstadoVehiculo
-    - tipo: TipoCarnet
+    - tipoPermiso: TipoCarnet
     - profesor: Profesor
     - incidencias: List<IncidenciaVehiculo>
   }

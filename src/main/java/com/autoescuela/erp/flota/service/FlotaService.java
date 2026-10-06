@@ -27,7 +27,7 @@ public class FlotaService
     @Transactional(readOnly = true)
     public List<VehiculoResumenDTO> obtenerTodosLosVehiculos()
     {
-        return this.vehiculoRepository.findAllByOrderByTipoAsc()
+        return this.vehiculoRepository.findAllByOrderByTipoPermisoAsc()
                 .stream()
                 .map(this.vehiculoMapper::toVehiculoResumenDTO)
                 .toList();

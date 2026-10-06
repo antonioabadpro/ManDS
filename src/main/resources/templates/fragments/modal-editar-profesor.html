@@ -135,7 +135,7 @@
                             <div class="relative">
                                 <select id="profesor-vehiculo-editar" disabled class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/60 text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed appearance-none transition">
                                     <option th:if="${editarProfesorDTO.vehiculoId == null}" value="">-- Sin Vehículo Asignado --</option>
-                                    <option th:each="v : ${vehiculosDisponibles}" th:if="${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id}" th:value="${v.id}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})|" selected>
+                                    <option th:each="v : ${vehiculosDisponibles}" th:if="${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id}" th:value="${v.id}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipoPermiso.descripcion})|" selected>
                                         1234-LMN · SEAT Ibiza (Permiso B)
                                     </option>
                                 </select>
@@ -156,7 +156,7 @@
                             <div class="relative">
                                 <select id="profesor-vehiculo-editar" th:field="*{vehiculoId}" class="w-full px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer transition">
                                     <option value="">-- Sin Vehículo Asignado (Dejar Libre) --</option>
-                                    <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipo},data-tipo-nombre=${v.tipo.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipo.descripcion})${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id ? ' (Actual)' : ''}|">
+                                    <option th:each="v : ${vehiculosDisponibles}" th:value="${v.id}" th:attr="data-tipo=${v.tipoPermiso},data-tipo-nombre=${v.tipoPermiso.descripcion}" th:text="|${v.matricula} · ${v.marca} ${v.modelo} (${v.tipoPermiso.descripcion})${editarProfesorDTO.vehiculoId != null and editarProfesorDTO.vehiculoId == v.id ? ' (Actual)' : ''}|">
                                         1234-LMN · SEAT Ibiza (Permiso B)
                                     </option>
                                 </select>

@@ -24,67 +24,67 @@
 -- 1. FLOTA DE VEHÍCULOS (vehiculo)
 -- ------------------------------------------------------------------------------
 -- Permiso B (Turismos): id = 1 .. 7
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (1, '1234-LMN', 'SEAT', 'Ibiza 1.0 TSI', 'Blanco Nevada', 45080, '2026-01-10', '2027-01-10', 'OCUPADO', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (1, '1234-LMN', 'SEAT', 'Ibiza 1.0 TSI', 'Blanco Nevada', 45080, 95, 2021, 'GASOLINA', 'MANUAL', '2026-01-10', '2027-01-10', 'OCUPADO', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (2, '5678-KPR', 'Renault', 'Clio E-Tech', 'Azul Rayo', 32050, '2025-11-20', '2026-11-20', 'OCUPADO', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (2, '5678-KPR', 'Renault', 'Clio E-Tech', 'Azul Rayo', 32050, 140, 2022, 'HIBRIDO', 'AUTOMATICO', '2025-11-20', '2026-11-20', 'OCUPADO', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (3, '7890-XYZ', 'Peugeot', '208 PureTech', 'Gris Platino', 62050, '2026-03-12', '2027-03-12', 'OCUPADO', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (3, '7890-XYZ', 'Peugeot', '208 PureTech', 'Gris Platino', 62050, 100, 2020, 'GASOLINA', 'MANUAL', '2026-03-12', '2027-03-12', 'OCUPADO', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (4, '4321-BCD', 'Volkswagen', 'Golf 2.0 TDI', 'Blanco Puro', 28000, '2026-04-05', '2027-04-05', 'OCUPADO', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (4, '4321-BCD', 'Volkswagen', 'Golf 2.0 TDI', 'Blanco Puro', 28000, 115, 2021, 'DIESEL', 'MANUAL', '2026-04-05', '2027-04-05', 'OCUPADO', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (5, '5522-KZX', 'Ford', 'Focus 1.5 EcoBoost', 'Blanco Glaciar', 15200, '2026-02-10', '2027-02-10', 'DISPONIBLE', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (5, '5522-KZX', 'Ford', 'Focus 1.5 EcoBoost', 'Blanco Glaciar', 15200, 125, 2022, 'GASOLINA', 'MANUAL', '2026-02-10', '2027-02-10', 'DISPONIBLE', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (6, '9966-PBR', 'Toyota', 'Yaris Hybrid', 'Plata Metalizado', 18400, '2026-01-25', '2027-01-25', 'DISPONIBLE', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (6, '9966-PBR', 'Toyota', 'Yaris Hybrid', 'Plata Metalizado', 18400, 116, 2023, 'HIBRIDO', 'AUTOMATICO', '2026-01-25', '2027-01-25', 'DISPONIBLE', 'PERMISO_B');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (7, '8642-TUV', 'Citroën', 'C3 1.2 PureTech', 'Rojo Rubí', 78000, '2025-08-01', CURRENT_DATE - INTERVAL '15' DAY, 'MANTENIMIENTO', 'PERMISO_B');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (7, '8642-TUV', 'Citroën', 'C3 1.2 PureTech', 'Rojo Rubí', 78000, 83, 2019, 'GASOLINA', 'MANUAL', '2025-08-01', CURRENT_DATE - INTERVAL '15' DAY, 'MANTENIMIENTO', 'PERMISO_B');
 
 -- Permiso A2 (Motocicletas): id = 8 .. 10
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (8, '9012-HJK', 'Yamaha', 'MT-07', 'Negro Midnight', 12040, '2026-02-15', '2027-02-15', 'DISPONIBLE', 'PERMISO_A2');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (8, '9012-HJK', 'Yamaha', 'MT-07', 'Negro Midnight', 12040, 73, 2022, 'GASOLINA', 'MANUAL', '2026-02-15', '2027-02-15', 'DISPONIBLE', 'PERMISO_A2');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (9, '6633-MTR', 'Honda', 'CB500F', 'Rojo Victory', 9300, '2026-03-20', '2027-03-20', 'DISPONIBLE', 'PERMISO_A2');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (9, '6633-MTR', 'Honda', 'CB500F', 'Rojo Victory', 9300, 47, 2021, 'GASOLINA', 'MANUAL', '2026-03-20', '2027-03-20', 'DISPONIBLE', 'PERMISO_A2');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (10, '8765-FVK', 'Kawasaki', 'Z650', 'Verde Lime', 8500, '2025-10-18', '2026-10-18', 'INACTIVO', 'PERMISO_A2');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (10, '8765-FVK', 'Kawasaki', 'Z650', 'Verde Lime', 8500, 68, 2020, 'GASOLINA', 'MANUAL', '2025-10-18', '2026-10-18', 'INACTIVO', 'PERMISO_A2');
 
 -- Permiso C (Camiones pesados): id = 11 .. 13
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (11, '3456-FGH', 'Mercedes-Benz', 'Actros 1845', 'Rojo Carmesí', 180100, '2025-09-05', '2026-09-05', 'MANTENIMIENTO', 'PERMISO_C');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (11, '3456-FGH', 'Mercedes-Benz', 'Actros 1845', 'Rojo Carmesí', 180100, 450, 2019, 'DIESEL', 'AUTOMATICO', '2025-09-05', '2026-09-05', 'MANTENIMIENTO', 'PERMISO_C');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (12, '7744-LPS', 'MAN', 'TGX 18.480', 'Blanco Puro', 142000, '2026-01-15', '2027-01-15', 'DISPONIBLE', 'PERMISO_C');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (12, '7744-LPS', 'MAN', 'TGX 18.480', 'Blanco Puro', 142000, 480, 2020, 'DIESEL', 'AUTOMATICO', '2026-01-15', '2027-01-15', 'DISPONIBLE', 'PERMISO_C');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (13, '1928-KLM', 'Volvo', 'FH 500', 'Azul Océano', 165000, '2026-02-28', '2027-02-28', 'DISPONIBLE', 'PERMISO_C');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (13, '1928-KLM', 'Volvo', 'FH 500', 'Azul Océano', 165000, 500, 2021, 'DIESEL', 'AUTOMATICO', '2026-02-28', '2027-02-28', 'DISPONIBLE', 'PERMISO_C');
 
 -- Permiso D (Autobuses): id = 14 .. 15
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (14, '1357-NMB', 'Scania', 'Touring HD', 'Blanco Ártico', 195000, '2025-12-10', '2026-12-10', 'DISPONIBLE', 'PERMISO_D');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (14, '1357-NMB', 'Scania', 'Touring HD', 'Blanco Ártico', 195000, 410, 2018, 'DIESEL', 'AUTOMATICO', '2025-12-10', '2026-12-10', 'DISPONIBLE', 'PERMISO_D');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (15, '8855-NWD', 'Iveco', 'Crossway Line', 'Azul Real', 134000, '2026-03-05', '2027-03-05', 'DISPONIBLE', 'PERMISO_D');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (15, '8855-NWD', 'Iveco', 'Crossway Line', 'Azul Real', 134000, 360, 2020, 'DIESEL', 'AUTOMATICO', '2026-03-05', '2027-03-05', 'DISPONIBLE', 'PERMISO_D');
 
 -- Permiso B+E (Remolques pesados): id = 16 .. 17
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (16, '9753-RST', 'Schmitz', 'Cargobull Remolque', 'Azul Marino', 42000, '2026-02-20', '2027-02-20', 'DISPONIBLE', 'PERMISO_B_E');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (16, '9753-RST', 'Schmitz', 'Cargobull Remolque', 'Azul Marino', 42000, 0, 2021, 'DIESEL', 'MANUAL', '2026-02-20', '2027-02-20', 'DISPONIBLE', 'PERMISO_B_E');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (17, '4582-WXZ', 'Leciñena', 'Remolque B+E', 'Gris Metalizado', 28000, '2026-01-30', '2027-01-30', 'DISPONIBLE', 'PERMISO_B_E');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (17, '4582-WXZ', 'Leciñena', 'Remolque B+E', 'Gris Metalizado', 28000, 0, 2020, 'DIESEL', 'MANUAL', '2026-01-30', '2027-01-30', 'DISPONIBLE', 'PERMISO_B_E');
 
 -- Permiso AM (Ciclomotores): id = 18 .. 19
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (18, '2468-KLP', 'Peugeot', 'Tweet 125 Pro', 'Gris Grafito', 14500, '2026-03-01', '2027-03-01', 'DISPONIBLE', 'PERMISO_AM');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (18, '2468-KLP', 'Peugeot', 'Tweet 125 Pro', 'Gris Grafito', 14500, 11, 2022, 'GASOLINA', 'AUTOMATICO', '2026-03-01', '2027-03-01', 'DISPONIBLE', 'PERMISO_AM');
 
-INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, fecha_ultima_revision, fecha_proxima_revision, estado, tipo)
-VALUES (19, '1177-QDF', 'Kymco', 'Agility City 50', 'Negro Cosmos', 7200, '2026-02-18', '2027-02-18', 'DISPONIBLE', 'PERMISO_AM');
+INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_combustible, caja_cambios, fecha_ultima_revision, fecha_proxima_revision, estado, tipo_permiso)
+VALUES (19, '1177-QDF', 'Kymco', 'Agility City 50', 'Negro Cosmos', 7200, 4, 2021, 'GASOLINA', 'AUTOMATICO', '2026-02-18', '2027-02-18', 'DISPONIBLE', 'PERMISO_AM');
 
 -- ------------------------------------------------------------------------------
 -- 2. USUARIOS BASE (persona)

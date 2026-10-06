@@ -119,9 +119,9 @@ public class ProfesorService
                 throw new ReglaNegocioException("El vehículo con matrícula " + vehiculo.getMatricula() + " ya se encuentra asignado a otro profesor.");
             }
 
-            if (dto.permisos() == null || !dto.permisos().contains(vehiculo.getTipo()))
+            if (dto.permisos() == null || !dto.permisos().contains(vehiculo.getTipoPermiso()))
             {
-                throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculo.getTipo().getDescripcion()
+                throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculo.getTipoPermiso().getDescripcion()
                         + " requerido para conducir el vehículo asignado (" + vehiculo.getMatricula() + ").");
             }
 
@@ -337,9 +337,9 @@ public class ProfesorService
                     throw new ReglaNegocioException("El vehículo con matrícula " + nuevoVehiculo.getMatricula() + " ya se encuentra asignado a otro profesor.");
                 }
 
-                if (!dto.permisos().contains(nuevoVehiculo.getTipo()))
+                if (!dto.permisos().contains(nuevoVehiculo.getTipoPermiso()))
                 {
-                    throw new ReglaNegocioException("El profesor no cuenta con el " + nuevoVehiculo.getTipo().getDescripcion()
+                    throw new ReglaNegocioException("El profesor no cuenta con el " + nuevoVehiculo.getTipoPermiso().getDescripcion()
                             + " requerido para conducir el vehículo asignado (" + nuevoVehiculo.getMatricula() + ").");
                 }
 
@@ -359,9 +359,9 @@ public class ProfesorService
             else
             {
                 // Mantiene el mismo vehículo: verificar compatibilidad con los nuevos permisos
-                if (!dto.permisos().contains(vehiculoActual.getTipo()))
+                if (!dto.permisos().contains(vehiculoActual.getTipoPermiso()))
                 {
-                    throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculoActual.getTipo().getDescripcion()
+                    throw new ReglaNegocioException("El profesor no cuenta con el " + vehiculoActual.getTipoPermiso().getDescripcion()
                             + " requerido para conducir el vehículo asignado (" + vehiculoActual.getMatricula() + ").");
                 }
             }
@@ -451,9 +451,9 @@ public class ProfesorService
                     throw new ReglaNegocioException("El profesor seleccionado para la reasignación debe estar en estado ACTIVO.");
                 }
 
-                if (vehiculoActual != null && vehiculoActual.getTipo() != null)
+                if (vehiculoActual != null && vehiculoActual.getTipoPermiso() != null)
                 {
-                    TipoCarnet permisoRequerido = vehiculoActual.getTipo();
+                    TipoCarnet permisoRequerido = vehiculoActual.getTipoPermiso();
                     if (nuevoProfesor.getListaTiposCarnet() == null || !nuevoProfesor.getListaTiposCarnet().contains(permisoRequerido))
                     {
                         throw new ReglaNegocioException("El profesor seleccionado no dispone del carnet "

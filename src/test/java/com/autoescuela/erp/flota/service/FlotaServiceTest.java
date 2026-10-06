@@ -48,7 +48,7 @@ class FlotaServiceTest
                 null, null, null
         );
 
-        when(this.vehiculoRepository.findAllByOrderByTipoAsc()).thenReturn(List.of(vehiculo1));
+        when(this.vehiculoRepository.findAllByOrderByTipoPermisoAsc()).thenReturn(List.of(vehiculo1));
         when(this.vehiculoMapper.toVehiculoResumenDTO(vehiculo1)).thenReturn(dto1);
 
         List<VehiculoResumenDTO> resultado = this.flotaService.obtenerTodosLosVehiculos();
@@ -56,7 +56,7 @@ class FlotaServiceTest
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).matricula()).isEqualTo("1234-LMN");
         assertThat(resultado.get(0).matriculaPrefijo()).isEqualTo("1234");
-        verify(this.vehiculoRepository).findAllByOrderByTipoAsc();
+        verify(this.vehiculoRepository).findAllByOrderByTipoPermisoAsc();
         verify(this.vehiculoMapper).toVehiculoResumenDTO(vehiculo1);
     }
 

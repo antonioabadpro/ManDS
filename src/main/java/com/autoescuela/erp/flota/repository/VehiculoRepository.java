@@ -43,7 +43,7 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
     /**
      * Recupera todos los vehículos ordenados por TipoCarnet para la gestión del parque móvil.
      */
-    List<Vehiculo> findAllByOrderByTipoAsc();
+    List<Vehiculo> findAllByOrderByTipoPermisoAsc();
 
     /**
      * Busca un vehículo asignado a un profesor específico.

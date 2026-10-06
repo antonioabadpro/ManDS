@@ -318,7 +318,7 @@
                                 <tr th:each="vehiculo : ${vehiculos}">
                                     <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white" th:text="${vehiculo.matricula}">1234-LMN</td>
                                     <td class="py-2.5 px-3" th:text="|${vehiculo.marca} ${vehiculo.modelo}|">SEAT Ibiza 1.0 TSI</td>
-                                    <td class="py-2.5 px-3" th:text="${vehiculo.tipo?.descripcion ?: vehiculo.tipo}">Permiso B</td>
+                                    <td class="py-2.5 px-3" th:text="${vehiculo.tipoPermiso?.descripcion ?: vehiculo.tipoPermiso}">Permiso B</td>
                                     <td class="py-2.5 px-3">
                                         <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
                                         <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>

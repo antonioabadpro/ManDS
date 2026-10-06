@@ -21,7 +21,7 @@ public record VehiculoResumenDTO(
     LocalDate fechaUltimaRevision,
     LocalDate fechaProximaRevision,
     EstadoVehiculo estado,
-    TipoCarnet tipo,
+    TipoCarnet tipoPermiso,
     String tipoDescripcion,
     Long profesorId,
     String profesorNombreCompleto,

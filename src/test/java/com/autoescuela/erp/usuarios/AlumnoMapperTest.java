@@ -181,7 +181,7 @@ class AlumnoMapperTest
         vehiculo.setMatricula("7890-XYZ");
         vehiculo.setMarca("Peugeot");
         vehiculo.setModelo("208 PureTech");
-        vehiculo.setTipo(TipoCarnet.PERMISO_B);
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
 
         Profesor profesor = new Profesor();
         ReflectionTestUtils.setField(profesor, "id", 7L);

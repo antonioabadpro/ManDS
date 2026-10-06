@@ -109,7 +109,7 @@ public interface AlumnoMapper
     @Mapping(target = "vehiculoId", expression = "java((alumno != null && alumno.getProfesor() != null && alumno.getProfesor().getVehiculo() != null) ? alumno.getProfesor().getVehiculo().getId() : null)")
     @Mapping(target = "vehiculoMatricula", expression = "java((alumno != null && alumno.getProfesor() != null && alumno.getProfesor().getVehiculo() != null) ? alumno.getProfesor().getVehiculo().getMatricula() : null)")
     @Mapping(target = "vehiculoModelo", expression = "java((alumno != null && alumno.getProfesor() != null && alumno.getProfesor().getVehiculo() != null) ? alumno.getProfesor().getVehiculo().getMarca() + \" \" + alumno.getProfesor().getVehiculo().getModelo() : null)")
-    @Mapping(target = "vehiculoTipoDescripcion", expression = "java((alumno != null && alumno.getProfesor() != null && alumno.getProfesor().getVehiculo() != null && alumno.getProfesor().getVehiculo().getTipo() != null) ? alumno.getProfesor().getVehiculo().getTipo().getDescripcion() : null)")
+    @Mapping(target = "vehiculoTipoDescripcion", expression = "java((alumno != null && alumno.getProfesor() != null && alumno.getProfesor().getVehiculo() != null && alumno.getProfesor().getVehiculo().getTipoPermiso() != null) ? alumno.getProfesor().getVehiculo().getTipoPermiso().getDescripcion() : null)")
     @Mapping(target = "tipoCarnet", expression = "java(matriculaActiva != null ? matriculaActiva.getPermisoCarnet() : null)")
     @Mapping(target = "tipoCarnetDescripcion", expression = "java(matriculaActiva != null && matriculaActiva.getPermisoCarnet() != null ? matriculaActiva.getPermisoCarnet().getDescripcion() : null)")
     AlumnoDetalleDTO toAlumnoDetalleDTO(Alumno alumno, Matricula matriculaActiva);

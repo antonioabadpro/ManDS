@@ -47,10 +47,13 @@ public class Matricula
     @Column(nullable = false)
     private TipoCarnet permisoCarnet;
 
+    @Column(nullable = false)
     private Integer convocatorias = 2;
 
+    @Column(nullable = false)
     private Integer saldoClases = 0;
 
+    @Column(nullable = false)
     private Integer convocatoriasGastadas = 0;
 
     @Column(nullable = false)

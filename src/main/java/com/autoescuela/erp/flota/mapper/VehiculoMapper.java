@@ -20,7 +20,7 @@ public interface VehiculoMapper
      * @return DTO inmutable con datos de identificación, especificaciones y profesor asignado.
      */
     @Mapping(target = "matriculaPrefijo", expression = "java(calcularPrefijoMatricula(vehiculo))")
-    @Mapping(target = "tipoDescripcion", expression = "java(vehiculo.getTipo() != null ? vehiculo.getTipo().getDescripcion() : \"\")")
+    @Mapping(target = "tipoDescripcion", expression = "java(vehiculo.getTipoPermiso() != null ? vehiculo.getTipoPermiso().getDescripcion() : \"\")")
     @Mapping(target = "profesorId", expression = "java(vehiculo.getProfesor() != null ? vehiculo.getProfesor().getId() : null)")
     @Mapping(target = "profesorNombreCompleto", expression = "java(vehiculo.getProfesor() != null ? vehiculo.getProfesor().getNombre() + \" \" + vehiculo.getProfesor().getApellidos() : null)")
     @Mapping(target = "profesorTurno", expression = "java(vehiculo.getProfesor() != null ? vehiculo.getProfesor().getTurno() : null)")
