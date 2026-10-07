@@ -156,7 +156,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/flota/baja/{id} renderiza el modal de baja con opción de tramitación para vehículo disponible")
     void testModalBajaVehiculoDisponibleRenderizado() throws Exception
     {
-        this.mockMvc.perform(get("/admin/flota/baja/5"))
+        this.mockMvc.perform(get("/admin/flota/baja/6"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
                 .andExpect(model().attributeExists("vehiculo", "abrirModalBajaVehiculo", "tieneProfesorAsignado", "puedeDarBaja"))

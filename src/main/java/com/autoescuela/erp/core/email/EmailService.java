@@ -55,4 +55,17 @@ public interface EmailService
      * @param importeAbonado Importe abonado de la matrícula en euros.
      */
     void enviarBienvenidaAlumno(String correoDestinatario, String nombreDestinatario, String descripcionCarnet, float importeAbonado);
+
+    /**
+     * Envía un correo electrónico de notificación al Administrador cuando un profesor reporta una incidencia o avería.
+     *
+     * @param correoDestinatario Dirección de correo electrónico del Administrador.
+     * @param nombreAdmin Nombre de pila del Administrador.
+     * @param nombreProfesor Nombre completo del profesor emisor.
+     * @param vehiculoInfo Marca y modelo del vehículo afectado.
+     * @param matricula Matrícula del vehículo afectado.
+     * @param descripcionIncidencia Descripción o anomalía mecánica detallada por el profesor.
+     * @param urlIncidencias URL directa hacia el Panel de Incidencias de Flota.
+     */
+    void enviarNotificacionIncidenciaAdmin(String correoDestinatario, String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcionIncidencia, String urlIncidencias);
 }

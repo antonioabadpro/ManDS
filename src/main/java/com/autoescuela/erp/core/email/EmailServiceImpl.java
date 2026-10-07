@@ -428,4 +428,137 @@ public class EmailServiceImpl implements EmailService
 
         return contenidoHTML.formatted(nombreMostrado, carnetMostrado, importeFormateado, enlaceLogin);
     }
+
+    /**
+     * Envía un correo electrónico de notificación al Administrador cuando un profesor reporta una incidencia o avería mecánica.
+     *
+     * @param correoDestinatario Dirección de correo del Administrador.
+     * @param nombreAdmin Nombre de pila del Administrador.
+     * @param nombreProfesor Nombre completo del profesor emisor.
+     * @param vehiculoInfo Marca y modelo del vehículo afectado.
+     * @param matricula Matrícula del vehículo afectado.
+     * @param descripcionIncidencia Descripción o anomalía detallada.
+     * @param urlIncidencias Enlace directo al Panel de Incidencias de Flota.
+     */
+    @Override
+    public void enviarNotificacionIncidenciaAdmin(String correoDestinatario, String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcionIncidencia, String urlIncidencias)
+    {
+        try
+        {
+            Boolean multipart = true;
+
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - Nueva Incidencia Reportada en Vehículo " + matricula);
+
+            String enlaceDefinitivo = (urlIncidencias != null && !urlIncidencias.isBlank())
+                    ? urlIncidencias
+                    : (this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "admin/incidencias" : this.appBaseUrl + "/admin/incidencias");
+
+            String cuerpoHtml = this.construirHtmlIncidenciaAdmin(nombreAdmin, nombreProfesor, vehiculoInfo, matricula, descripcionIncidencia, enlaceDefinitivo);
+            helper.setText(cuerpoHtml, true);
+
+            this.mailSender.send(mensaje);
+            log.info("Notificación de avería mecánica enviada con éxito al Administrador {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar la notificación de avería al Administrador {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Genera la plantilla HTML responsive con branding corporativo ManDS para avisar al Administrador de una incidencia de flota.
+     */
+    private String construirHtmlIncidenciaAdmin(String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcion, String enlaceIncidencias)
+    {
+        String nombreMostrado = Objects.requireNonNullElse(nombreAdmin, "Administrador");
+        String profesorMostrado = Objects.requireNonNullElse(nombreProfesor, "Profesor");
+        String vehiculoMostrado = Objects.requireNonNullElse(vehiculoInfo, "Vehículo de la flota");
+        String matriculaMostrada = Objects.requireNonNullElse(matricula, "-");
+        String descripcionMostrada = Objects.requireNonNullElse(descripcion, "Sin descripción facilitada.");
+
+        String contenidoHTML = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Nueva Incidencia Mecánica Reportada</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+                    .contenedor { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+                    .cabecera { background: linear-gradient(135deg, #0f172a 0%%, #1e3a8a 100%%); padding: 32px 24px; text-align: center; }
+                    .logo-titulo { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+                    .subtitulo-marca { color: #93c5fd; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                    .contenido { padding: 36px 32px; }
+                    .saludo { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+                    .texto { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+                    .tarjeta-resumen { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0; }
+                    .fila-resumen { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+                    .fila-descripcion { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1; font-size: 13px; }
+                    .etiqueta { color: #64748b; font-weight: 500; }
+                    .valor { font-weight: 600; color: #1e293b; }
+                    .valor-matricula { font-family: monospace; font-weight: 700; background-color: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+                    .caja-descripcion { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-top: 8px; color: #334155; font-style: italic; }
+                    .boton-contenedor { text-align: center; margin: 32px 0 24px 0; }
+                    .boton { display: inline-block; background-color: #d97706; color: #ffffff !important; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(217,119,6,0.35); }
+                    .alerta-info { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 13px; color: #1e40af; line-height: 1.5; }
+                    .enlace-alternativo { word-break: break-all; font-size: 12px; color: #64748b; background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+                    .pie { background-color: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <div class="contenedor">
+                    <div class="cabecera">
+                        <h1 class="logo-titulo">ManDS</h1>
+                        <div class="subtitulo-marca">Manager Driving School</div>
+                    </div>
+                    <div class="contenido">
+                        <h2 class="saludo">Hola, %1$s:</h2>
+                        <p class="texto">
+                            Te informamos de que el profesor <strong>%2$s</strong> en el vehículo <strong>%3$s</strong> (matrícula <strong>%4$s</strong>), ha reportado una incidencia técnica.
+                        </p>
+                        <div class="tarjeta-resumen">
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Profesor emisor:</span>
+                                <span class="valor">%2$s</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Vehículo afectado:</span>
+                                <span class="valor">%3$s</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Matrícula:</span>
+                                <span class="valor-matricula">%4$s</span>
+                            </div>
+                            <div class="fila-descripcion">
+                                <span class="etiqueta">Descripción de la avería:</span>
+                                <div class="caja-descripcion">"%5$s"</div>
+                            </div>
+                        </div>
+                        <div class="boton-contenedor">
+                            <a href="%6$s" class="boton" target="_blank">Consultar en Panel de Incidencias</a>
+                        </div>
+                        <div class="alerta-info">
+                            Consúltala en el Panel de Incidencias de Flota iniciando sesión en ManDS. Al pulsar en el enlace superior accederás directamente tras autenticarte.
+                        </div>
+                        <div class="enlace-alternativo">
+                            Enlace directo al panel de incidencias:<br>
+                            <a href="%6$s" style="color: #2563eb;">%6$s</a>
+                        </div>
+                    </div>
+                    <div class="pie">
+                        © 2026 ManDS Autoescuela ERP. Todos los derechos reservados.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """;
+
+        return contenidoHTML.formatted(nombreMostrado, profesorMostrado, vehiculoMostrado, matriculaMostrada, descripcionMostrada, enlaceIncidencias);
+    }
 }

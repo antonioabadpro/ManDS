@@ -1,13 +1,24 @@
 package com.autoescuela.erp.usuarios.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import com.autoescuela.erp.usuarios.model.Administrador;
 import com.autoescuela.erp.usuarios.model.Persona;
 
 public interface PersonaRepository extends JpaRepository<Persona, Long>
 {
+    /**
+     * Recupera todos los administradores del sistema en estado activo.
+     * Permite notificar novedades críticas de flota y averías mecánicas.
+     *
+     * @return Lista de administradores activos.
+     */
+    @Query("SELECT a FROM Administrador a WHERE a.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO")
+    List<Administrador> findAdministradoresActivos();
     /**
      * Busca una persona por su nombre de usuario o por su correo electrónico.
      * Permite la autenticación dual requerida por la regla de negocio 7.1.

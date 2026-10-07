@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +27,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
@@ -51,6 +56,7 @@ import com.autoescuela.erp.usuarios.dto.CambiarPasswordDTO;
 import com.autoescuela.erp.usuarios.dto.ContactarAlumnoDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
+import com.autoescuela.erp.usuarios.model.Administrador;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -77,6 +83,8 @@ public class ProfesorController
     private final EmailService emailService;
     private final ProfesorMapper profesorMapper;
 
+    @Value("${app_base_url:http://localhost:8080}")
+    private String appBaseUrl;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -746,10 +754,11 @@ public class ProfesorController
 
     /**
      * Registra una nueva incidencia o avería mecánica sobre el vehículo asignado (CU-027).
+     * Soporta peticiones tradicionales y peticiones dinámicas HTMX.
      */
     @PostMapping("/vehiculo/incidencia")
     @Transactional
-    public String reportarIncidencia(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("reportarIncidenciaDTO") ReportarIncidenciaDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)
+    public String reportarIncidencia(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("reportarIncidenciaDTO") ReportarIncidenciaDTO dto, BindingResult bindingResult, HttpServletRequest request, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
         Profesor profesor = this.obtenerProfesorActual(principal);
         if (profesor == null)
@@ -757,11 +766,7 @@ public class ProfesorController
             return "redirect:/login";
         }
 
-        if (bindingResult.hasErrors())
-        {
-            redirectAttributes.addFlashAttribute("error", "La descripción de la avería debe tener entre 10 y 1000 caracteres.");
-            return "redirect:/profesor/vehiculo";
-        }
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
 
         Vehiculo vehiculo = profesor.getVehiculo();
         if (vehiculo == null && dto.vehiculoId() != null)
@@ -769,8 +774,27 @@ public class ProfesorController
             vehiculo = this.vehiculoRepository.findById(dto.vehiculoId()).orElse(null);
         }
 
+        if (bindingResult.hasErrors())
+        {
+            if (esPeticionHtmx)
+            {
+                model.addAttribute("errorReportarIncidencia", "La descripción de la avería debe tener entre 10 y 1000 caracteres.");
+                model.addAttribute("vehiculo", vehiculo);
+                model.addAttribute("abrirModalReportarIncidencia", true);
+                return "profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia";
+            }
+            redirectAttributes.addFlashAttribute("error", "La descripción de la avería debe tener entre 10 y 1000 caracteres.");
+            return "redirect:/profesor/vehiculo";
+        }
+
         if (vehiculo == null)
         {
+            if (esPeticionHtmx)
+            {
+                model.addAttribute("errorReportarIncidencia", "No tienes ningún vehículo asignado para reportar incidencias.");
+                model.addAttribute("abrirModalReportarIncidencia", true);
+                return "profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia";
+            }
             redirectAttributes.addFlashAttribute("error", "No tienes ningún vehículo asignado para reportar incidencias.");
             return "redirect:/profesor/vehiculo";
         }
@@ -784,8 +808,74 @@ public class ProfesorController
 
         this.incidenciaVehiculoRepository.save(incidencia);
 
+        // Notificación por correo al Administrador del sistema
+        try
+        {
+            List<Administrador> administradores = this.personaRepository.findAdministradoresActivos();
+            String nombreProfesor = profesor.getNombre() + " " + profesor.getApellidos();
+            String vehiculoInfo = vehiculo.getMarca() + " " + vehiculo.getModelo();
+            String urlIncidencias = (this.appBaseUrl != null && this.appBaseUrl.endsWith("/"))
+                    ? this.appBaseUrl + "admin/incidencias"
+                    : (this.appBaseUrl != null ? this.appBaseUrl + "/admin/incidencias" : "http://localhost:8080/admin/incidencias");
 
-        redirectAttributes.addFlashAttribute("mensajeExito", "Incidencia mecánica reportada correctamente. El Administrador ha sido notificado para su revisión.");
+            if (administradores != null && !administradores.isEmpty())
+            {
+                for (Administrador admin : administradores)
+                {
+                    if (admin.getCorreo() != null && !admin.getCorreo().isBlank())
+                    {
+                        this.emailService.enviarNotificacionIncidenciaAdmin(
+                                admin.getCorreo(),
+                                admin.getNombre(),
+                                nombreProfesor,
+                                vehiculoInfo,
+                                vehiculo.getMatricula(),
+                                dto.descripcion(),
+                                urlIncidencias
+                        );
+                    }
+                }
+            }
+            else
+            {
+                this.emailService.enviarNotificacionIncidenciaAdmin(
+                        "admin@autoescuela.es",
+                        "Administrador",
+                        nombreProfesor,
+                        vehiculoInfo,
+                        vehiculo.getMatricula(),
+                        dto.descripcion(),
+                        urlIncidencias
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fallback silencioso ante indisponibilidad del servidor SMTP para no romper la experiencia de usuario
+        }
+
+        String mensajeExito = "Incidencia mecánica reportada correctamente. El Administrador ha sido notificado para su revisión.";
+        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+        String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+        String destinoRedireccion = contextPath + "/profesor/vehiculo";
+
+        if (esPeticionHtmx)
+        {
+            FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+            if (flashMap != null)
+            {
+                flashMap.put("mensajeExito", mensajeExito);
+                FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                if (flashMapManager != null)
+                {
+                    flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                }
+            }
+            response.setHeader("HX-Redirect", destinoRedireccion);
+            return null;
+        }
+
         return "redirect:/profesor/vehiculo";
     }
 

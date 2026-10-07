@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -144,6 +145,38 @@ class VistaProfesorTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/profesor/vehiculo"))
                 .andExpect(flash().attributeExists("mensajeExito"));
     }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/vehiculo/incidencia con HTMX devuelve cabecera HX-Redirect a /profesor/vehiculo y flash attribute")
+    void testReportarIncidenciaHtmxExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("vehiculoId", "1")
+                .param("descripcion", "Fallo intermitente en el sensor de presión de neumáticos."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Redirect", "/profesor/vehiculo"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/vehiculo/incidencia con HTMX y error de validación devuelve fragmento modal")
+    void testReportarIncidenciaHtmxErrorValidacion() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("vehiculoId", "1")
+                .param("descripcion", "Corto"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia"))
+                .andExpect(model().attributeExists("errorReportarIncidencia"))
+                .andExpect(model().attribute("abrirModalReportarIncidencia", true));
+    }
+
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")

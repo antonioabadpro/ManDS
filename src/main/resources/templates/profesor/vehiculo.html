@@ -72,11 +72,20 @@
                         <div>
                             <div class="flex items-center space-x-2">
                                 <h2 class="text-xl font-black text-slate-900 dark:text-white" th:text="${vehiculo.marca + ' ' + vehiculo.modelo}">SEAT Ibiza 1.0 TSI</h2>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300" th:text="${vehiculo.estado.name()}">
+                                <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    DISPONIBLE
+                                </span>
+                                <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                     OCUPADO
                                 </span>
+                                <span th:if="${vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    MANTENIMIENTO
+                                </span>
+                                <span th:if="${vehiculo.estado?.name() == 'INACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                    INACTIVO
+                                </span>
                             </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${'Color: ' + vehiculo.color + ' · ' + vehiculo.tipoPermiso.getDescripcion()}">Color: Blanco Nevada · Permiso B</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${'Color: ' + vehiculo.color + ' · ' + vehiculo.tipoPermiso?.descripcion}">Color: Blanco Nevada · Permiso B</p>
                         </div>
                     </div>
 
@@ -98,23 +107,47 @@
                     </div>
                 </div>
 
-                <!-- Detalles técnicos de Odómetro y Revisiones -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Cuadrícula Técnica Exhaustiva de Atributos del Servidor -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- 1. Odómetro / Km -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Kilometraje Actual</span>
-                        <p class="text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.km + ' km'}">45.000 km</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Actualizado con cada clase</p>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.km != null ? #numbers.formatInteger(vehiculo.km, 1, 'POINT') + ' km' : '0 km'}">45.000 km</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Actualizado con cada clase práctica</p>
                     </div>
 
+                    <!-- 2. Motor y Potencia (cv y tipoCombustible) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Potencia y Carburante</span>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.cv != null and vehiculo.cv > 0 ? vehiculo.cv + ' CV' : 'Sin motor'}">95 CV</p>
+                        <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5" th:text="${vehiculo.tipoCombustible?.descripcion ?: 'Combustible no especificado'}">Gasolina</p>
+                    </div>
+
+                    <!-- 3. Transmisión y Antigüedad (cajaCambios y anio) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Caja de Cambios y Año</span>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.cajaCambios?.descripcion ?: 'Manual'}">Manual</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${'Año de matriculación: ' + vehiculo.anio}">Año de matriculación: 2021</p>
+                    </div>
+
+                    <!-- 4. Homologación DGT y Carrocería (tipoPermiso y color) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Permiso DGT y Acabado</span>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2" th:text="${vehiculo.tipoPermiso?.descripcion}">Permiso B</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${'Color de carrocería: ' + vehiculo.color}">Color: Blanco Nevada</p>
+                    </div>
+
+                    <!-- 5. Última Revisión / ITV (fechaUltimaRevision) -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Última Revisión / ITV</span>
-                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${#temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy')}">10/01/2026</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${vehiculo.fechaUltimaRevision != null ? #temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy') : 'Sin registrar'}">10/01/2026</p>
                         <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Inspección favorable</p>
                     </div>
 
+                    <!-- 6. Próxima Revisión / Taller (fechaProximaRevision) -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Próxima Revisión / Taller</span>
-                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${vehiculo.fechaProximaRevision != null ? #temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy') : 'Sin programar'}">10/01/2027</p>
                         <p class="text-[11px] text-slate-500 mt-0.5">Control de mantenimiento preventivo</p>
                     </div>
                 </div>
@@ -163,14 +196,14 @@
                                     1234-LMN
                                 </td>
                                 <td class="py-3 px-4">
-                                    <span th:if="${inc.estado.name() == 'PENDIENTE'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                        Pendiente
+                                    <span th:if="${inc.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        PENDIENTE
                                     </span>
-                                    <span th:if="${inc.estado.name() == 'EN_PROCESO'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                        En Taller
+                                    <span th:if="${inc.estado?.name() == 'EN_PROCESO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                        EN PROCESO
                                     </span>
-                                    <span th:if="${inc.estado.name() == 'RESUELTA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                        Resuelta
+                                    <span th:if="${inc.estado?.name() == 'RESUELTA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        RESUELTA
                                     </span>
                                 </td>
                             </tr>
@@ -189,49 +222,10 @@
     </div>
 
     <!-- --------------------------------------------------------------------- -->
-    <!-- MODAL ACCESIBLE: Reportar Avería Mecánica (CU-027) -->
+    <!-- CONTENEDOR DINÁMICO HTMX: Modal Reportar Avería Mecánica -->
     <!-- --------------------------------------------------------------------- -->
-    <div id="modal-reportar-incidencia" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-reportar-incidencia"></div>
-
-        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Reportar Incidencia Mecánica</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Aviso técnico directo a la administración del centro</p>
-                </div>
-                <button type="button" data-modal-close="modal-reportar-incidencia" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <form th:action="@{/profesor/vehiculo/incidencia}" method="post" class="space-y-4">
-                <input type="hidden" name="vehiculoId" th:value="${vehiculo?.id}" />
-
-                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs">
-                    <span class="text-slate-400 block text-[11px]">Vehículo Afectado:</span>
-                    <span class="font-bold text-slate-900 dark:text-white" th:text="${vehiculo != null ? vehiculo.marca + ' ' + vehiculo.modelo + ' (' + vehiculo.matricula + ')' : 'Sin vehículo'}">SEAT Ibiza</span>
-                </div>
-
-                <div>
-                    <label for="incidencia-descripcion" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Descripción de la Avería o Anomalía <span class="text-rose-500">*</span>
-                    </label>
-                    <textarea id="incidencia-descripcion" name="descripcion" rows="4" required minlength="10" maxlength="1000" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none" placeholder="Describe los síntomas observados: ruidos anómalos, fallo de testigos en salpicadero, presión de neumáticos, etc..."></textarea>
-                </div>
-
-                <div class="flex items-center justify-end space-x-3 pt-2">
-                    <button type="button" data-modal-close="modal-reportar-incidencia" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md transition">
-                        Enviar Reporte
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div id="contenedor-modal-reportar-incidencia">
+        <div th:replace="~{profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia}"></div>
     </div>
 
 </body>
