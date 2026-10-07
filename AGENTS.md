@@ -30,6 +30,7 @@
 - **Cohesión Visual:** Prohibido alterar arbitrariamente paleta de colores, radios de borde (`rounded-*`), tipografías o espaciados entre vistas.
 - **Separación Estricta de JavaScript (Unobtrusive JS):** Prohibido JS inline en plantillas Thymeleaf, sintaxis `/*[[${...}]]*/` o eventos inline (`onclick`, `onsubmit`, `onchange`). Todo JS debe residir en `src/main/resources/static/js/`, cargarse con `<script th:src="@{...}" defer></script>` y vincularse con `addEventListener` (cumplimiento CSP).
 - **Paso de Datos por HTML5 Dataset:** Transferencia de datos de Thymeleaf a JS exclusivamente mediante atributos `data-*` (`element.dataset.*`).
+- **Desacoplamiento JS y Named Event Handlers:** Prohibidos scripts monolíticos por rol (ej. JS global de Admin). Mínimo un fichero JS independiente por cada endpoint/vista. Debe implementarse bajo el patrón *Named Event Handlers* con una función punto de entrada (`inicializar...`) para registrar los eventos.
 
 ---
 
