@@ -66,15 +66,15 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Baja lógica con reasignación de alumnos libera el vehículo, cancela clases pendientes y reasigna los alumnos")
     void testBajaProfesorConReasignacionAlumnosExito()
     {
-        // Profesor 1 (Laura Sánchez, ID: 2) tiene vehículo 1 ('1234-LMN'), 6 alumnos y clases pendientes
-        Profesor profesorOriginal = this.profesorRepository.findById(2L).orElseThrow();
+        // Profesor 1 (Laura Sánchez, ID: 100) tiene vehículo 1 ('1234-LMN'), 6 alumnos y clases pendientes
+        Profesor profesorOriginal = this.profesorRepository.findById(100L).orElseThrow();
         assertEquals(EstadoUsuario.ACTIVO, profesorOriginal.getEstado());
         assertEquals(1L, profesorOriginal.getVehiculo().getId());
 
         List<Alumno> alumnosPrevios = this.alumnoRepository.findByProfesor(profesorOriginal);
         assertTrue(alumnosPrevios.size() > 0);
 
-        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "REASIGNAR", 3L);
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 101L);
         Profesor profesorBaja = this.profesorService.darBajaProfesor(dto);
 
         // Verificaciones del profesor dado de baja
@@ -87,7 +87,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         assertNull(vehiculoLiberado.getProfesor());
 
         // Verificaciones de clases pendientes canceladas
-        List<ClasePractica> clasesProfesor = this.clasePracticaRepository.findByProfesorIdOrderByFechaHoraAsc(2L);
+        List<ClasePractica> clasesProfesor = this.clasePracticaRepository.findByProfesorIdOrderByFechaHoraAsc(100L);
         for (ClasePractica clase : clasesProfesor)
         {
             if (clase.getEstadoClase() != EstadoClase.RECIBIDA)
@@ -96,8 +96,8 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
             }
         }
 
-        // Verificaciones de alumnos reasignados al nuevo docente (ID: 3)
-        Profesor profesorDestino = this.profesorRepository.findById(3L).orElseThrow();
+        // Verificaciones de alumnos reasignados al nuevo docente (ID: 101)
+        Profesor profesorDestino = this.profesorRepository.findById(101L).orElseThrow();
         for (Alumno alumno : alumnosPrevios)
         {
             Alumno alumnoActualizado = this.alumnoRepository.findById(alumno.getId()).orElseThrow();
@@ -109,10 +109,10 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Baja lógica con opción SIN_PROFESOR desvincula a los alumnos")
     void testBajaProfesorSinProfesorParaAlumnosExito()
     {
-        Profesor profesorOriginal = this.profesorRepository.findById(2L).orElseThrow();
+        Profesor profesorOriginal = this.profesorRepository.findById(100L).orElseThrow();
         List<Alumno> alumnosPrevios = this.alumnoRepository.findByProfesor(profesorOriginal);
 
-        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "SIN_PROFESOR", null);
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "SIN_PROFESOR", null);
         Profesor profesorBaja = this.profesorService.darBajaProfesor(dto);
 
         assertEquals(EstadoUsuario.INACTIVO, profesorBaja.getEstado());
@@ -129,13 +129,13 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reactivar profesor inactivo lo pasa a ACTIVO y garantiza vehiculo = null")
     void testReactivarProfesorInactivoExito()
     {
-        // Primero damos de baja al profesor 2
-        this.profesorService.darBajaProfesor(new BajaProfesorDTO(2L, "SIN_PROFESOR", null));
-        Profesor profesorInactivo = this.profesorRepository.findById(2L).orElseThrow();
+        // Primero damos de baja al profesor 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
+        Profesor profesorInactivo = this.profesorRepository.findById(100L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, profesorInactivo.getEstado());
 
         // Reactivación
-        Profesor profesorReactivado = this.profesorService.reactivarProfesor(2L);
+        Profesor profesorReactivado = this.profesorService.reactivarProfesor(100L);
         assertEquals(EstadoUsuario.ACTIVO, profesorReactivado.getEstado());
         assertNull(profesorReactivado.getVehiculo());
     }
@@ -144,14 +144,14 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Intentar editar a un profesor inactivo lanza ReglaNegocioException")
     void testEditarProfesorInactivoFalla()
     {
-        this.profesorService.darBajaProfesor(new BajaProfesorDTO(2L, "SIN_PROFESOR", null));
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
 
         // Intento de consulta para edición
-        assertThrows(ReglaNegocioException.class, () -> this.profesorService.obtenerProfesorParaEdicion(2L));
+        assertThrows(ReglaNegocioException.class, () -> this.profesorService.obtenerProfesorParaEdicion(100L));
 
         // Intento de modificación
         EditarProfesorDTO dtoMod = new EditarProfesorDTO(
-                2L, "Laura", "Sánchez Romero", "23456789B",
+                100L, "Laura", "Sánchez Romero", "23456789B",
                 "600222333", "laura.profesor@autoescuela.es",
                 java.time.LocalDate.of(1988, 9, 23), "Calle Test",
                 java.time.LocalDate.now(),
@@ -165,7 +165,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Intentar reactivar a un profesor ya activo lanza ReglaNegocioException")
     void testReactivarProfesorActivoFalla()
     {
-        assertThrows(ReglaNegocioException.class, () -> this.profesorService.reactivarProfesor(2L));
+        assertThrows(ReglaNegocioException.class, () -> this.profesorService.reactivarProfesor(100L));
     }
 
     @Test
@@ -173,7 +173,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/profesores/baja/{id} renderiza modal HTMX con datos del profesor y lista de docentes")
     void testCargarModalBajaProfesorHtmx() throws Exception
     {
-        this.mockMvc.perform(get("/admin/profesores/baja/2"))
+        this.mockMvc.perform(get("/admin/profesores/baja/100"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-baja-profesor :: modal-baja-profesor"))
                 .andExpect(model().attributeExists("profesor"))
@@ -192,7 +192,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Los profesores disponibles para reasignación en baja lógica se ordenan de menor a mayor número de alumnos")
     void testProfesoresParaBajaOrdenadosDeMenorAMayorNumeroDeAlumnos()
     {
-        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosExcluyendo(2L);
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosExcluyendo(100L);
         assertTrue(profesores.size() > 1);
 
         for (int i = 0; i < profesores.size() - 1; i++)
@@ -207,7 +207,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/profesores/reactivar/{id} renderiza modal HTMX advirtiendo alta sin vehículo")
     void testCargarModalReactivarProfesorHtmx() throws Exception
     {
-        this.mockMvc.perform(get("/admin/profesores/reactivar/2"))
+        this.mockMvc.perform(get("/admin/profesores/reactivar/100"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
                 .andExpect(model().attributeExists("profesor"))
@@ -222,9 +222,9 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/baja")
                 .with(csrf())
-                .param("profesorId", "2")
+                .param("profesorId", "100")
                 .param("opcionAlumnos", "REASIGNAR")
-                .param("nuevoProfesorId", "3"))
+                .param("nuevoProfesorId", "101"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/profesores"))
                 .andExpect(flash().attributeExists("mensajeExito"));
@@ -235,10 +235,10 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("POST /admin/profesores/reactivar/{id} con HTMX responde cabecera HX-Redirect")
     void testPostReactivarProfesorHtmx() throws Exception
     {
-        // Dejamos inactivo previamente al docente 2
-        this.profesorService.darBajaProfesor(new BajaProfesorDTO(2L, "SIN_PROFESOR", null));
+        // Dejamos inactivo previamente al docente 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
 
-        this.mockMvc.perform(post("/admin/profesores/reactivar/2")
+        this.mockMvc.perform(post("/admin/profesores/reactivar/100")
                 .with(csrf())
                 .header("HX-Request", "true"))
                 .andExpect(status().isOk())
@@ -250,8 +250,8 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/profesores/oculta botón editar y papelera en inactivos, mostrando botón de reactivar")
     void testRenderizadoCondicionalBotonesSegunEstado() throws Exception
     {
-        // Dejamos inactivo al profesor 2
-        this.profesorService.darBajaProfesor(new BajaProfesorDTO(2L, "SIN_PROFESOR", null));
+        // Dejamos inactivo al profesor 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
 
         this.mockMvc.perform(get("/admin/profesores"))
                 .andExpect(status().isOk())
@@ -264,14 +264,14 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/profesores/baja/{id} solo muestra profesores que disponen del permiso del vehículo asignado")
     void testModalBajaProfesorFiltraPorPermisoVehiculo() throws Exception
     {
-        // Asignamos al profesor 2 un vehículo de PERMISO_C (vehículo 11 en data.sql)
-        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        // Asignamos al profesor 100 un vehículo de PERMISO_C (vehículo 11 en data.sql)
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
         Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
         vehiculoC.setProfesor(profesor);
         profesor.setVehiculo(vehiculoC);
         this.profesorRepository.save(profesor);
 
-        MvcResult result = this.mockMvc.perform(get("/admin/profesores/baja/2"))
+        MvcResult result = this.mockMvc.perform(get("/admin/profesores/baja/100"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("profesoresDisponibles"))
                 .andReturn();
@@ -279,24 +279,24 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         @SuppressWarnings("unchecked")
         List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
 
-        // En data.sql, de los profesores activos excluyendo al 2 (3, 4, 5, 6), únicamente el 3 tiene PERMISO_C
+        // En data.sql, de los profesores activos excluyendo al 100 (101, 102, 103, 104), únicamente el 101 tiene PERMISO_C
         assertEquals(1, disponibles.size());
-        assertEquals(3L, disponibles.get(0).id());
+        assertEquals(101L, disponibles.get(0).id());
     }
 
     @Test
     @DisplayName("Baja lógica con reasignación a un profesor que no tiene el permiso del vehículo lanza ReglaNegocioException")
     void testBajaProfesorReasignacionSinPermisoFalla()
     {
-        // Asignamos al profesor 2 un vehículo de PERMISO_C
-        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        // Asignamos al profesor 100 un vehículo de PERMISO_C
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
         Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
         vehiculoC.setProfesor(profesor);
         profesor.setVehiculo(vehiculoC);
         this.profesorRepository.save(profesor);
 
-        // Profesor 4 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
-        BajaProfesorDTO dto = new BajaProfesorDTO(2L, "REASIGNAR", 4L);
+        // Profesor 102 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 102L);
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.profesorService.darBajaProfesor(dto));
         assertTrue(ex.getMessage().contains("no dispone del carnet"));
     }
@@ -305,9 +305,9 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Modificar profesor intentando alterar fechaContratacion lanza ReglaNegocioException")
     void testModificarProfesorAlterandoFechaContratacionFalla()
     {
-        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
         EditarProfesorDTO dtoMod = new EditarProfesorDTO(
-                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
                 profesor.getTelefono(), profesor.getCorreo(),
                 profesor.getFechaNacimiento(), profesor.getDireccion(),
                 profesor.getFechaContratacion().plusDays(5),
@@ -324,9 +324,9 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Modificar profesor con la misma fechaContratacion y vehículo actualiza con éxito los demás campos")
     void testModificarProfesorConFechaContratacionInmutableExito()
     {
-        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
         EditarProfesorDTO dtoMod = new EditarProfesorDTO(
-                2L, "Laura Modificada", profesor.getApellidos(), profesor.getDni(),
+                100L, "Laura Modificada", profesor.getApellidos(), profesor.getDni(),
                 profesor.getTelefono(), profesor.getCorreo(),
                 profesor.getFechaNacimiento(), "Calle Inmutable 42",
                 profesor.getFechaContratacion(),
@@ -345,12 +345,12 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Modificar profesor con clases pendientes intentando desvincular o cambiar vehículo lanza ReglaNegocioException")
     void testModificarProfesorConClasesPendientesCambiandoVehiculoFalla()
     {
-        Profesor profesor = this.profesorRepository.findById(2L).orElseThrow();
-        assertTrue(this.profesorService.tieneClasesPracticasPendientes(2L));
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        assertTrue(this.profesorService.tieneClasesPracticasPendientes(100L));
 
         // Intento 1: Desvincular vehículo a null teniendo clases pendientes
         EditarProfesorDTO dtoDesvincular = new EditarProfesorDTO(
-                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
                 profesor.getTelefono(), profesor.getCorreo(),
                 profesor.getFechaNacimiento(), profesor.getDireccion(),
                 profesor.getFechaContratacion(),
@@ -364,7 +364,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
 
         // Intento 2: Cambiar a otro vehículo teniendo clases pendientes
         EditarProfesorDTO dtoCambiar = new EditarProfesorDTO(
-                2L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
                 profesor.getTelefono(), profesor.getCorreo(),
                 profesor.getFechaNacimiento(), profesor.getDireccion(),
                 profesor.getFechaContratacion(),
@@ -382,7 +382,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/profesores/editar/{id} puebla tieneClasesPendientes a true y bloquea visualmente el vehículo")
     void testGetModalEditarProfesorConClasesPendientes() throws Exception
     {
-        this.mockMvc.perform(get("/admin/profesores/editar/2"))
+        this.mockMvc.perform(get("/admin/profesores/editar/100"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("tieneClasesPendientes", true))
                 .andExpect(content().string(containsString("No se puede modificar ni desvincular el vehículo porque el profesor tiene clases prácticas pendientes.")));
@@ -395,7 +395,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
-                .param("id", "2")
+                .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
                 .param("dni", "23456789B")

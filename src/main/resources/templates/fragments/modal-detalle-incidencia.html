@@ -1,0 +1,122 @@
+<div id="modal-detalle-incidencia" th:fragment="modal-detalle-incidencia" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-incidencia" th:classappend="${abrirModalDetalleIncidencia} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity cursor-pointer" data-modal-close="modal-detalle-incidencia"></div>
+
+    <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-5 my-auto animate-fade-in">
+
+        <!-- Cabecera del Modal -->
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                        <!-- Icono Ojo / Detalle de Incidencia -->
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </span>
+                    <h3 id="titulo-detalle-incidencia" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                        Detalle de Incidencia Mecánica
+                    </h3>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400" th:text="|Parte de Incidencia #${incidencia.id} · ${#temporals.format(incidencia.fechaHora, 'dd/MM/yyyy HH:mm')}|">
+                    Parte de Incidencia #1 · 20/08/2026 09:30
+                </p>
+            </div>
+            <button type="button" data-modal-close="modal-detalle-incidencia" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" aria-label="Cerrar modal">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Bloque 1: Vehículo Afectado -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                </svg>
+                <span>Vehículo Afectado</span>
+            </h4>
+
+            <dl class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Matrícula</dt>
+                    <dd class="mt-0.5 font-mono font-bold text-slate-900 dark:text-white" th:text="${incidencia.vehiculoMatricula}">
+                        1234-LMN
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">ID Vehículo</dt>
+                    <dd class="mt-0.5 font-mono font-semibold text-slate-800 dark:text-slate-200" th:text="|#${incidencia.vehiculoId}|">
+                        #1
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Marca</dt>
+                    <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${incidencia.vehiculoMarca}">
+                        SEAT
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Modelo</dt>
+                    <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${incidencia.vehiculoModelo}">
+                        Ibiza 1.0 TSI
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Bloque 2: Información de la Incidencia -->
+        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Estado y Reporte</span>
+                </h4>
+                <!-- Badge con color según estado -->
+                <span th:if="${incidencia.estado?.name() == 'PENDIENTE'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    PENDIENTE
+                </span>
+                <span th:if="${incidencia.estado?.name() == 'EN_PROCESO'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    EN PROCESO
+                </span>
+                <span th:if="${incidencia.estado?.name() == 'RESUELTA'}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    RESUELTA
+                </span>
+            </div>
+
+            <dl class="space-y-2 text-xs">
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Profesor que notificó la incidencia</dt>
+                    <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${incidencia.profesorNombreCompleto}">
+                        Laura Sánchez Romero
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Fecha y hora de registro</dt>
+                    <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(incidencia.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                        10/08/2026 16:15
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-slate-400 dark:text-slate-500 font-medium">Descripción detallada</dt>
+                    <dd class="mt-1 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line" th:text="${incidencia.descripcion}">
+                        Sustitución rutinaria de neumático delantero derecho por pinchazo en vía urbana.
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Botón de Cerrar Modal -->
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-3">
+            <button type="button" data-modal-close="modal-detalle-incidencia" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>
+

@@ -212,7 +212,7 @@ class VistaProfesorTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/profesor/examenes"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
-        Alumno alumno = this.alumnoRepository.findById(7L).orElseThrow();
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
         assertNull(alumno.getProfesor(), "El profesor debe quedar desvinculado tras aprobar el examen práctico.");
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();

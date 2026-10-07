@@ -38,6 +38,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
+import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
@@ -379,9 +380,14 @@ public class AlumnoController
             }
         }
 
+        boolean vehiculoEnMantenimiento = alumno.getProfesor() != null
+                                        && alumno.getProfesor().getVehiculo() != null
+                                        && alumno.getProfesor().getVehiculo().getEstado() == EstadoVehiculo.MANTENIMIENTO;
+
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("profesor", alumno.getProfesor());
+        model.addAttribute("vehiculoEnMantenimiento", vehiculoEnMantenimiento);
         model.addAttribute("clasesReservadas", clasesReservadas);
         model.addAttribute("capacidadReserva", capacidadReserva);
         model.addAttribute("fechaPreseleccionada", fechaPreseleccionada);
@@ -447,11 +453,24 @@ public class AlumnoController
             return "redirect:/alumno/calendario";
         }
 
-        // Validación de Profesor Tutor
+        // Validación de Profesor Asignado
         Profesor profesor = alumno.getProfesor();
         if (profesor == null)
         {
-            String error = "Aún no tienes un profesor tutor asignado por la autoescuela para reservar clases.";
+            String error = "Aún no tienes un profesor asignado por la autoescuela para reservar clases.";
+            if (hxRequest != null)
+            {
+                model.addAttribute("error", error);
+                return "alumno/fragments/alerta-feedback :: feedbackExito";
+            }
+            redirectAttributes.addFlashAttribute("error", error);
+            return "redirect:/alumno/calendario";
+        }
+
+        // Validación de Vehículo en Mantenimiento
+        if (profesor.getVehiculo() != null && profesor.getVehiculo().getEstado() == EstadoVehiculo.MANTENIMIENTO)
+        {
+            String error = "El vehículo de tu profesor se encuentra actualmente en mantenimiento técnico. No es posible reservar clases prácticas hasta que finalice su reparación.";
             if (hxRequest != null)
             {
                 model.addAttribute("error", error);

@@ -56,7 +56,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/detalle/{id} renderiza correctamente el fragmento modal con los datos del alumno")
     void testModalDetalleAlumnoRenderizado() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/detalle/7"))
+        this.mockMvc.perform(get("/admin/alumnos/detalle/200"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-detalle-alumno :: modal-detalle-alumno"));
     }
@@ -66,7 +66,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/expediente/{id} renderiza el modal de expediente con métricas, últimas clases y exámenes")
     void testModalExpedienteAlumnoRenderizadoConClasesYExamenes() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/expediente/7"))
+        this.mockMvc.perform(get("/admin/alumnos/expediente/200"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
@@ -76,7 +76,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/expediente/{id} renderiza el modal de expediente para alumno sin clases ni exámenes")
     void testModalExpedienteAlumnoSinClasesNiExamenes() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/expediente/31"))
+        this.mockMvc.perform(get("/admin/alumnos/expediente/224"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
@@ -86,7 +86,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/expediente/{id} renderiza clases prácticas recibidas y exámenes para alumno con expediente previo")
     void testModalExpedienteAlumnoConClasesPreviasYExamenesAprobados() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/expediente/27"))
+        this.mockMvc.perform(get("/admin/alumnos/expediente/220"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
@@ -242,12 +242,54 @@ class VistaAdminTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("GET /admin/incidencias renderiza correctamente la vista de bandeja de incidencias")
+    @DisplayName("GET /admin/incidencias renderiza correctamente la vista de bandeja de incidencias con métricas")
     void testIncidenciasRenderizado() throws Exception
     {
         this.mockMvc.perform(get("/admin/incidencias"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/incidencias"));
+                .andExpect(view().name("admin/incidencias"))
+                .andExpect(model().attributeExists("incidencias"))
+                .andExpect(model().attributeExists("totalPendientes"))
+                .andExpect(model().attributeExists("totalEnProceso"))
+                .andExpect(model().attributeExists("totalResueltas"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/incidencias/gestionar/{id} renderiza el modal de gestión para una incidencia pendiente")
+    void testModalGestionarIncidenciaRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/incidencias/gestionar/2"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia"))
+                .andExpect(model().attributeExists("incidencia"))
+                .andExpect(model().attribute("abrirModalGestionarIncidencia", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/incidencias/detalle/{id} renderiza el modal de detalle informativo de la incidencia")
+    void testModalDetalleIncidenciaRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/incidencias/detalle/1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-detalle-incidencia :: modal-detalle-incidencia"))
+                .andExpect(model().attributeExists("incidencia"))
+                .andExpect(model().attribute("abrirModalDetalleIncidencia", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/incidencias/gestionar actualiza el estado a EN_PROCESO y redirige a la bandeja")
+    void testGestionarIncidenciaTransicionEnProcesoExito() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/incidencias/gestionar")
+                .with(csrf())
+                .param("id", "2")
+                .param("estado", "EN_PROCESO"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/incidencias"))
+                .andExpect(flash().attributeExists("mensajeExito"));
     }
 
     @Test

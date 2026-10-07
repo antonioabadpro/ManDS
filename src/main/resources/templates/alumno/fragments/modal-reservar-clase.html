@@ -29,10 +29,10 @@
                     <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <span class="text-xs font-bold uppercase tracking-wider">Profesor Tutor no Asignado</span>
+                    <span class="text-xs font-bold uppercase tracking-wider">Profesor no Asignado</span>
                 </div>
                 <p class="text-xs leading-relaxed">
-                    Aún no tienes un profesor tutor asignado por la administración. En breve se te asignará un docente para que puedas comenzar a reservar tus clases prácticas.
+                    Aún no tienes un profesor asignado por la administración. En breve se te asignará uno para que puedas comenzar a reservar tus clases prácticas.
                 </p>
                 <div class="flex justify-end pt-2">
                     <button type="button" data-modal-close="modal-reservar-clase" class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer">
@@ -41,8 +41,27 @@
                 </div>
             </div>
 
-            <!-- Caso 2: Capacidad de Reserva Agotada (Capacidad <= 0) -->
-            <div th:if="${profesor != null and capacidadReserva != null and capacidadReserva &lt;= 0}" class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-3 text-rose-900 dark:text-rose-200">
+            <!-- Caso 2: Vehículo en Mantenimiento -->
+            <div th:if="${profesor != null and vehiculoEnMantenimiento}" class="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-3 text-amber-900 dark:text-amber-200">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span class="text-xs font-bold uppercase tracking-wider">Vehículo en Mantenimiento</span>
+                </div>
+                <p class="text-xs leading-relaxed">
+                    El vehículo asignado a las prácticas de tu profesor se encuentra actualmente en taller o mantenimiento técnico.
+                    La reserva de clases prácticas está temporalmente suspendida hasta que finalicen las labores mecánicas y sea restituido al servicio.
+                </p>
+                <div class="flex justify-end pt-2">
+                    <button type="button" data-modal-close="modal-reservar-clase" class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+
+            <!-- Caso 3: Capacidad de Reserva Agotada (Capacidad <= 0) -->
+            <div th:if="${profesor != null and !vehiculoEnMantenimiento and capacidadReserva != null and capacidadReserva &lt;= 0}" class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-3 text-rose-900 dark:text-rose-200">
                 <div class="flex items-center space-x-2">
                     <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -53,7 +72,7 @@
                     Según la regla de negocio: <em>CapacidadReserva = SaldoClases (<span th:text="${matricula?.saldoClases ?: 0}"></span>) - ClasesReservadas (<span th:text="${clasesReservadas ?: 0}"></span>) = <span th:text="${capacidadReserva}"></span></em>.
                 </p>
                 <p class="text-xs text-rose-700 dark:text-rose-300">
-                    No puedes realizar más reservas simultáneas. Adquiere más clases en la sección económica o espera a que concluyan tus clases reservadas.
+                    No puedes realizar más reservas. Compra más clases o espera a que sean impartidas tus clases reservadas.
                 </p>
                 <div class="flex items-center justify-end space-x-3 pt-2">
                     <button type="button" data-modal-close="modal-reservar-clase" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
@@ -65,13 +84,13 @@
                 </div>
             </div>
 
-            <!-- Caso 3: Formulario de Reserva Habilitado -->
-            <form th:if="${profesor != null and (capacidadReserva == null or capacidadReserva &gt; 0)}" hx-post="/alumno/clases/reservar" hx-target="#contenedor-alertas" hx-swap="innerHTML" class="space-y-4">
+            <!-- Caso 4: Formulario de Reserva Habilitado -->
+            <form th:if="${profesor != null and !vehiculoEnMantenimiento and (capacidadReserva == null or capacidadReserva &gt; 0)}" hx-post="/alumno/clases/reservar" hx-target="#contenedor-alertas" hx-swap="innerHTML" class="space-y-4">
 
-                <!-- Datos informativos del profesor y vehículo tutor -->
+                <!-- Datos informativos del profesor y vehículo asignado -->
                 <div class="p-3.5 rounded-2xl bg-indigo-50/60 dark:bg-slate-800/60 border border-indigo-100 dark:border-slate-800 text-xs space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <span class="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider text-[10px]">Profesor Tutor Asignado</span>
+                        <span class="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider text-[10px]">Profesor Asignado</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200" th:text="${profesor?.turno?.name()} ?: 'MATINAL'"></span>
                     </div>
                     <p class="font-bold text-slate-900 dark:text-white" th:text="${profesor?.nombre + ' ' + profesor?.apellidos}"></p>

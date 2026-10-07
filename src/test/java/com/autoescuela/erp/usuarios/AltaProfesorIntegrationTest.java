@@ -392,7 +392,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
-                .param("id", "2")
+                .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
                 .param("dni", "23456789B")
@@ -415,7 +415,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
-                .param("id", "2")
+                .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
                 .param("dni", "23456789B")
@@ -438,7 +438,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
-                .param("id", "2")
+                .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
                 .param("dni", "23456789B")
@@ -462,7 +462,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/profesores/editar")
                 .with(csrf())
-                .param("id", "2")
+                .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
                 .param("dni", "23456789B")

@@ -19,6 +19,7 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
+import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCambio;
@@ -31,10 +32,14 @@ import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
 import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
+import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
+import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
 import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
 import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
+import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.service.FlotaService;
+import com.autoescuela.erp.flota.service.IncidenciaVehiculoService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
@@ -67,6 +72,7 @@ public class AdministradorController
     private final FlotaService flotaService;
     private final ExamenService examenService;
     private final EstadisticaService estadisticaService;
+    private final IncidenciaVehiculoService incidenciaVehiculoService;
 
     /**
      * Proporciona el nombre corto/de pila del Administrador a todas las vistas para evitar
@@ -1049,7 +1055,8 @@ public class AdministradorController
     }
 
     /**
-     * Muestra la bandeja de incidencias y averías mecánicas reportadas.
+     * Muestra la bandeja de incidencias y averías mecánicas reportadas con datos en tiempo real
+     * y cálculo de KPIs en el servidor.
      */
     @GetMapping("/incidencias")
     public String mostrarIncidencias(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
@@ -1058,7 +1065,106 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+
+        List<IncidenciaResumenDTO> incidencias = this.incidenciaVehiculoService.obtenerTodasLasIncidencias();
+        long totalPendientes = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.PENDIENTE);
+        long totalEnProceso = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.EN_PROCESO);
+        long totalResueltas = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.RESUELTA);
+
+        model.addAttribute("incidencias", incidencias);
+        model.addAttribute("totalPendientes", totalPendientes);
+        model.addAttribute("totalEnProceso", totalEnProceso);
+        model.addAttribute("totalResueltas", totalResueltas);
+
         return "admin/incidencias";
+    }
+
+    /**
+     * Endpoint HTMX para cargar los datos de una incidencia pendiente en el modal de gestión.
+     */
+    @GetMapping("/incidencias/gestionar/{id}")
+    public String cargarModalGestionarIncidencia(@PathVariable("id") Long id, Model model)
+    {
+        IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
+        model.addAttribute("incidencia", dto);
+        model.addAttribute("abrirModalGestionarIncidencia", true);
+
+        return "fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
+    }
+
+    /**
+     * Endpoint HTMX para cargar los datos de una incidencia en el modal informativo de detalle.
+     */
+    @GetMapping("/incidencias/detalle/{id}")
+    public String cargarModalDetalleIncidencia(@PathVariable("id") Long id, Model model)
+    {
+        IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
+        model.addAttribute("incidencia", dto);
+        model.addAttribute("abrirModalDetalleIncidencia", true);
+
+        return "fragments/modal-detalle-incidencia :: modal-detalle-incidencia";
+    }
+
+    /**
+     * Procesa la actualización del estado de una incidencia mecánica pendiente (EN_PROCESO o RESUELTA).
+     * Aplica la transición a MANTENIMIENTO, cancelación de clases y avisos por correo.
+     */
+    @PostMapping("/incidencias/gestionar")
+    public String gestionarIncidencia(@RequestParam("id") Long id, @RequestParam("estado") EstadoIncidencia nuevoEstado, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        try
+        {
+            IncidenciaVehiculo incidencia = this.incidenciaVehiculoService.gestionarIncidencia(id, nuevoEstado);
+            String mensajeExito = (nuevoEstado == EstadoIncidencia.EN_PROCESO)
+                    ? "La incidencia del vehículo " + incidencia.getVehiculo().getMatricula()
+                            + " ha pasado a estado EN PROCESO. El vehículo ha entrado en MANTENIMIENTO, se han cancelado sus clases prácticas y se ha notificado por correo electrónico al profesor y a sus alumnos."
+                    : "La incidencia del vehículo " + incidencia.getVehiculo().getMatricula()
+                            + " ha sido RESUELTA. El vehículo ha recuperado su operatividad ("
+                            + incidencia.getVehiculo().getEstado() + ") y se ha notificado por correo electrónico la reapertura de reservas de clases prácticas.";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/incidencias";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/incidencias";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
+            model.addAttribute("incidencia", dto);
+            model.addAttribute("errorGestionarIncidencia", ex.getMessage());
+            model.addAttribute("abrirModalGestionarIncidencia", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
+            }
+
+            model.addAttribute("incidencias", this.incidenciaVehiculoService.obtenerTodasLasIncidencias());
+            model.addAttribute("totalPendientes", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.PENDIENTE));
+            model.addAttribute("totalEnProceso", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.EN_PROCESO));
+            model.addAttribute("totalResueltas", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.RESUELTA));
+            return "admin/incidencias";
+        }
     }
 
     /**

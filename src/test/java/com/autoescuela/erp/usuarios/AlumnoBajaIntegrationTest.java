@@ -53,7 +53,7 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Cargar modal de baja de alumno como ADMIN devuelve fragmento con datos requeridos")
     void testCargarModalBajaAlumnoComoAdminExito() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/baja/8"))
+        this.mockMvc.perform(get("/admin/alumnos/baja/201"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-baja-alumno :: modal-baja-alumno"))
                 .andExpect(model().attributeExists("alumno"))
@@ -69,18 +69,18 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Ejecutar baja lógica de alumno transiciona estado a INACTIVO, desvincula profesor y cancela clases")
     void testDarBajaAlumnoServicioExito()
     {
-        // Alumno ID 8 tiene profesor asignado y clases prácticas
-        Alumno alumno = this.alumnoRepository.findById(8L).orElseThrow();
+        // Alumno ID 201 tiene profesor asignado y clases prácticas
+        Alumno alumno = this.alumnoRepository.findById(201L).orElseThrow();
         assertEquals(EstadoUsuario.ACTIVO, alumno.getEstado());
         assertNotNull(alumno.getProfesor());
 
-        Alumno alumnoBaja = this.alumnoService.darBajaAlumno(8L);
+        Alumno alumnoBaja = this.alumnoService.darBajaAlumno(201L);
 
         assertEquals(EstadoUsuario.INACTIVO, alumnoBaja.getEstado());
         assertNull(alumnoBaja.getProfesor());
 
         // Comprobamos en BD
-        Alumno alumnoEnBD = this.alumnoRepository.findById(8L).orElseThrow();
+        Alumno alumnoEnBD = this.alumnoRepository.findById(201L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, alumnoEnBD.getEstado());
         assertNull(alumnoEnBD.getProfesor());
 
@@ -100,13 +100,13 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Endpoint POST /admin/alumnos/baja/{id} redirige y registra flash attribute")
     void testDarBajaAlumnoPostControladorExito() throws Exception
     {
-        this.mockMvc.perform(post("/admin/alumnos/baja/8")
+        this.mockMvc.perform(post("/admin/alumnos/baja/201")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/alumnos"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
-        Alumno alumnoActualizado = this.alumnoRepository.findById(8L).orElseThrow();
+        Alumno alumnoActualizado = this.alumnoRepository.findById(201L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, alumnoActualizado.getEstado());
         assertNull(alumnoActualizado.getProfesor());
     }
@@ -116,13 +116,13 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Petición HTMX POST /admin/alumnos/baja/{id} responde con cabecera HX-Redirect")
     void testDarBajaAlumnoHtmxRedireccion() throws Exception
     {
-        this.mockMvc.perform(post("/admin/alumnos/baja/9")
+        this.mockMvc.perform(post("/admin/alumnos/baja/202")
                         .header("HX-Request", "true")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Redirect", "/admin/alumnos"));
 
-        Alumno alumnoActualizado = this.alumnoRepository.findById(9L).orElseThrow();
+        Alumno alumnoActualizado = this.alumnoRepository.findById(202L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, alumnoActualizado.getEstado());
         assertNull(alumnoActualizado.getProfesor());
     }
@@ -131,11 +131,11 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Intentar dar de baja a un alumno ya INACTIVO lanza ReglaNegocioException")
     void testDarBajaAlumnoYaInactivoLanzaExcepcion()
     {
-        Alumno alumno = this.alumnoRepository.findById(8L).orElseThrow();
+        Alumno alumno = this.alumnoRepository.findById(201L).orElseThrow();
         alumno.setEstado(EstadoUsuario.INACTIVO);
         this.alumnoRepository.save(alumno);
 
-        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.darBajaAlumno(8L));
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.darBajaAlumno(201L));
     }
 
     @Test
@@ -143,10 +143,10 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Acceso no autorizado de rol no ADMIN a baja de alumno es denegado con 403")
     void testAccesoNoAutorizadoBajaAlumnoDenegado() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/baja/8"))
+        this.mockMvc.perform(get("/admin/alumnos/baja/201"))
                 .andExpect(status().isForbidden());
 
-        this.mockMvc.perform(post("/admin/alumnos/baja/8").with(csrf()))
+        this.mockMvc.perform(post("/admin/alumnos/baja/201").with(csrf()))
                 .andExpect(status().isForbidden());
     }
 }

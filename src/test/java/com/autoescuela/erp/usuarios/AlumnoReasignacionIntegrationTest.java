@@ -61,17 +61,17 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reasignar alumno a otro profesor activo actualiza el profesor y cancela clases pendientes")
     void testReasignarProfesorConNuevoProfesorExito()
     {
-        // Alumno ID 7 (Jose López) tiene asignado al profesor ID 2 (Laura Sánchez)
-        Alumno alumno = this.alumnoRepository.findById(7L).orElseThrow();
-        assertEquals(2L, alumno.getProfesor().getId());
+        // Alumno ID 200 (Jose López) tiene asignado al profesor ID 100 (Laura Sánchez)
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
+        assertEquals(100L, alumno.getProfesor().getId());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(7L, "REASIGNAR", 3L);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(200L, "REASIGNAR", 101L);
         this.alumnoService.reasignarProfesor(dto);
 
-        // Verificamos que el profesor del alumno ahora es el profesor ID 3 (Manuel Navarro)
-        Alumno alumnoActualizado = this.alumnoRepository.findById(7L).orElseThrow();
+        // Verificamos que el profesor del alumno ahora es el profesor ID 101 (Manuel Navarro)
+        Alumno alumnoActualizado = this.alumnoRepository.findById(200L).orElseThrow();
         assertNotNull(alumnoActualizado.getProfesor());
-        assertEquals(3L, alumnoActualizado.getProfesor().getId());
+        assertEquals(101L, alumnoActualizado.getProfesor().getId());
 
         // Verificamos que todas las clases del alumno pasan a CANCELADA si estaban pendientes
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumnoActualizado);
@@ -88,13 +88,13 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Dejar alumno temporalmente sin profesor desasigna el docente y cancela clases pendientes")
     void testReasignarProfesorSinProfesorExito()
     {
-        Alumno alumno = this.alumnoRepository.findById(7L).orElseThrow();
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
         assertNotNull(alumno.getProfesor());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(7L, "SIN_PROFESOR", null);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(200L, "SIN_PROFESOR", null);
         this.alumnoService.reasignarProfesor(dto);
 
-        Alumno alumnoActualizado = this.alumnoRepository.findById(7L).orElseThrow();
+        Alumno alumnoActualizado = this.alumnoRepository.findById(200L).orElseThrow();
         assertNull(alumnoActualizado.getProfesor());
 
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumnoActualizado);
@@ -111,10 +111,10 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reasignar al mismo profesor lanza ReglaNegocioException")
     void testReasignarMismoProfesorLanzaExcepcion()
     {
-        Alumno alumno = this.alumnoRepository.findById(7L).orElseThrow();
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
         Long profesorActualId = alumno.getProfesor().getId();
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(7L, "REASIGNAR", profesorActualId);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(200L, "REASIGNAR", profesorActualId);
         assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
     }
 
@@ -122,11 +122,11 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Dejar sin profesor a un alumno que ya no tiene profesor lanza ReglaNegocioException")
     void testDejarSinProfesorYaSinProfesorLanzaExcepcion()
     {
-        // Alumno ID 31 (Silvia Montesinos) ya se encuentra sin profesor asignado
-        Alumno alumno = this.alumnoRepository.findById(31L).orElseThrow();
+        // Alumno ID 224 (Silvia Montesinos) ya se encuentra sin profesor asignado
+        Alumno alumno = this.alumnoRepository.findById(224L).orElseThrow();
         assertNull(alumno.getProfesor());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(31L, "SIN_PROFESOR", null);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(224L, "SIN_PROFESOR", null);
         assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
     }
 
@@ -134,11 +134,11 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reasignar profesor a un alumno inactivo lanza ReglaNegocioException")
     void testReasignarAlumnoInactivoLanzaExcepcion()
     {
-        // Alumno ID 30 (Roberto Aguilar) está en estado INACTIVO
-        Alumno alumno = this.alumnoRepository.findById(30L).orElseThrow();
+        // Alumno ID 223 (Roberto Aguilar) está en estado INACTIVO
+        Alumno alumno = this.alumnoRepository.findById(223L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, alumno.getEstado());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(30L, "REASIGNAR", 3L);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(223L, "REASIGNAR", 101L);
         assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
     }
 
@@ -147,7 +147,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/reasignar/{id} renderiza modal HTMX con datos del alumno, permiso y aviso de clases")
     void testCargarModalReasignarAlumnoHtmx() throws Exception
     {
-        this.mockMvc.perform(get("/admin/alumnos/reasignar/7"))
+        this.mockMvc.perform(get("/admin/alumnos/reasignar/200"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attributeExists("alumno"))
@@ -164,9 +164,9 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/reasignar/{id} solo muestra profesores activos con el mismo carnet que el alumno")
     void testCargarModalReasignarAlumnoFiltraPorCarnetDelAlumno() throws Exception
     {
-        // Alumno ID 12 está matriculado en PERMISO_A2 y asignado al profesor ID 5.
-        // Entre los profesores activos solo ID 2 e ID 5 tienen PERMISO_A2, por lo que solo debe listarse la ID 2 (Laura Sánchez).
-        this.mockMvc.perform(get("/admin/alumnos/reasignar/12"))
+        // Alumno ID 205 está matriculado en PERMISO_A2 y asignado al profesor ID 103.
+        // Entre los profesores activos solo ID 100 e ID 103 tienen PERMISO_A2, por lo que solo debe listarse la ID 100 (Laura Sánchez).
+        this.mockMvc.perform(get("/admin/alumnos/reasignar/205"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attribute("profesoresDisponibles", hasSize(1)))
@@ -179,9 +179,9 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/reasignar/{id} muestra aviso si no hay otros profesores disponibles con ese carnet")
     void testCargarModalReasignarAlumnoSinProfesoresDisponiblesMuestraAvisoContextual() throws Exception
     {
-        // Alumno ID 16 está matriculado en PERMISO_C y asignado al profesor ID 3 (el único con PERMISO_C).
+        // Alumno ID 209 está matriculado en PERMISO_C y asignado al profesor ID 101 (el único con PERMISO_C).
         // Al excluir al profesor actual, la lista de disponibles debe ser vacía y mostrar el mensaje contextual.
-        this.mockMvc.perform(get("/admin/alumnos/reasignar/16"))
+        this.mockMvc.perform(get("/admin/alumnos/reasignar/209"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attribute("profesoresDisponibles", hasSize(0)))
@@ -192,8 +192,8 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reasignar alumno a profesor sin el carnet de su matrícula lanza ReglaNegocioException")
     void testReasignarProfesorSinCarnetCompatibleLanzaExcepcion()
     {
-        // Alumno ID 16 está matriculada en PERMISO_C. El profesor ID 4 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(16L, "REASIGNAR", 4L);
+        // Alumno ID 209 está matriculada en PERMISO_C. El profesor ID 102 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(209L, "REASIGNAR", 102L);
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
         assertTrue(ex.getMessage().contains("no dispone del carnet"));
     }
@@ -202,7 +202,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Los profesores disponibles para reasignación se ordenan de menor a mayor número de alumnos")
     void testProfesoresOrdenadosDeMenorAMayorNumeroDeAlumnos()
     {
-        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet.PERMISO_B, 2L);
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet.PERMISO_B, 100L);
         assertTrue(profesores.size() > 1);
 
         for (int i = 0; i < profesores.size() - 1; i++)
@@ -219,9 +219,9 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/admin/alumnos/reasignar")
                 .with(csrf())
-                .param("alumnoId", "7")
+                .param("alumnoId", "200")
                 .param("opcion", "REASIGNAR")
-                .param("nuevoProfesorId", "3"))
+                .param("nuevoProfesorId", "101"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/alumnos"))
                 .andExpect(flash().attributeExists("mensajeExito"));
@@ -235,7 +235,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/alumnos/reasignar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("alumnoId", "7")
+                .param("alumnoId", "200")
                 .param("opcion", "SIN_PROFESOR"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Redirect", "/admin/alumnos"));

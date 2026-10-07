@@ -37,7 +37,7 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
     Optional<Alumno> findByCorreo(String correo);
 
     /**
-     * Recupera todos los alumnos tutelados por un profesor determinado.
+     * Recupera todos los alumnos asignados a un profesor determinado.
      */
     List<Alumno> findByProfesor(Profesor profesor);
 
