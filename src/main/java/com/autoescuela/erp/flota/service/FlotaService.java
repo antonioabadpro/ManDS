@@ -320,4 +320,49 @@ public class FlotaService
 
         return this.vehiculoRepository.save(vehiculo);
     }
+
+    /**
+     * Tramita la baja lógica (borrado lógico) de un vehículo del parque móvil.
+     * Restricciones de dominio:
+     * 1. El vehículo debe existir.
+     * 2. No se puede dar de baja un vehículo que ya se encuentra en estado INACTIVO.
+     * 3. No se puede dar de baja un vehículo si tiene un profesor asignado. Debe desvincularse previamente desde Gestión de Profesores.
+     * 4. Solo se pueden dar de baja vehículos que se encuentren en estado DISPONIBLE.
+     *
+     * @param id Identificador único del vehículo.
+     * @return Entidad Vehiculo actualizada en estado INACTIVO.
+     * @throws RecursoNoEncontradoException Si no existe ningún vehículo con el ID especificado.
+     * @throws ReglaNegocioException Si se incumple alguna restricción de dominio.
+     */
+    @Transactional
+    public Vehiculo darBajaVehiculo(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador del vehículo no puede ser nulo.");
+        }
+
+        Vehiculo vehiculo = this.vehiculoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el vehículo con ID: " + id));
+
+        if (vehiculo.getEstado() == EstadoVehiculo.INACTIVO)
+        {
+            throw new ReglaNegocioException("El vehículo ya se encuentra en estado INACTIVO.");
+        }
+
+        if (vehiculo.getProfesor() != null)
+        {
+            String nombreProfesor = vehiculo.getProfesor().getNombre() + " " + vehiculo.getProfesor().getApellidos();
+            throw new ReglaNegocioException("No se puede dar de baja el vehículo porque tiene asignado al profesor "
+                    + nombreProfesor + ". Para poder realizar esta operación, antes debe desvincular al profesor del vehículo desde el panel de Gestión de Profesores.");
+        }
+
+        if (vehiculo.getEstado() != EstadoVehiculo.DISPONIBLE)
+        {
+            throw new ReglaNegocioException("Solo se pueden dar de baja vehículos que se encuentren en estado DISPONIBLE.");
+        }
+
+        vehiculo.setEstado(EstadoVehiculo.INACTIVO);
+        return this.vehiculoRepository.save(vehiculo);
+    }
 }

@@ -598,4 +598,89 @@ class FlotaServiceTest
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("No se puede modificar un vehículo en estado INACTIVO.");
     }
+
+    @Test
+    @DisplayName("darBajaVehiculo cambia con éxito el estado del vehículo a INACTIVO si está DISPONIBLE y sin profesor")
+    void testDarBajaVehiculoExito()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        vehiculo.setProfesor(null);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.save(vehiculo)).thenReturn(vehiculo);
+
+        Vehiculo resultado = this.flotaService.darBajaVehiculo(1L);
+
+        assertThat(resultado.getEstado()).isEqualTo(EstadoVehiculo.INACTIVO);
+        verify(this.vehiculoRepository).save(vehiculo);
+    }
+
+    @Test
+    @DisplayName("darBajaVehiculo lanza ReglaNegocioException si el ID es nulo")
+    void testDarBajaVehiculoIdNuloLanzaExcepcion()
+    {
+        assertThatThrownBy(() -> this.flotaService.darBajaVehiculo(null))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El identificador del vehículo no puede ser nulo.");
+    }
+
+    @Test
+    @DisplayName("darBajaVehiculo lanza RecursoNoEncontradoException si el vehículo no existe")
+    void testDarBajaVehiculoNoExisteLanzaExcepcion()
+    {
+        when(this.vehiculoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> this.flotaService.darBajaVehiculo(99L))
+                .isInstanceOf(RecursoNoEncontradoException.class)
+                .hasMessageContaining("No se encontró el vehículo con ID: 99");
+    }
+
+    @Test
+    @DisplayName("darBajaVehiculo lanza ReglaNegocioException si el vehículo ya está INACTIVO")
+    void testDarBajaVehiculoYaInactivoLanzaExcepcion()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.INACTIVO);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.darBajaVehiculo(1L))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("El vehículo ya se encuentra en estado INACTIVO.");
+    }
+
+    @Test
+    @DisplayName("darBajaVehiculo lanza ReglaNegocioException indicando desvincular al profesor si tiene profesor asignado")
+    void testDarBajaVehiculoConProfesorAsignadoLanzaExcepcion()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Carlos");
+        profesor.setApellidos("Martínez León");
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.OCUPADO);
+        vehiculo.setProfesor(profesor);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.darBajaVehiculo(1L))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se puede dar de baja el vehículo porque tiene asignado al profesor Carlos Martínez León. Para poder realizar esta operación, antes debe desvincular al profesor del vehículo desde el panel de Gestión de Profesores.");
+    }
+
+    @Test
+    @DisplayName("darBajaVehiculo lanza ReglaNegocioException si el vehículo no está en estado DISPONIBLE")
+    void testDarBajaVehiculoNoDisponibleLanzaExcepcion()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.MANTENIMIENTO);
+        vehiculo.setProfesor(null);
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+
+        assertThatThrownBy(() -> this.flotaService.darBajaVehiculo(1L))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Solo se pueden dar de baja vehículos que se encuentren en estado DISPONIBLE.");
+    }
 }

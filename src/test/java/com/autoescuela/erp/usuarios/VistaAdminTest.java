@@ -153,6 +153,57 @@ class VistaAdminTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/flota/baja/{id} renderiza el modal de baja con opción de tramitación para vehículo disponible")
+    void testModalBajaVehiculoDisponibleRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/flota/baja/5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(model().attributeExists("vehiculo", "abrirModalBajaVehiculo", "tieneProfesorAsignado", "puedeDarBaja"))
+                .andExpect(model().attribute("tieneProfesorAsignado", false))
+                .andExpect(model().attribute("puedeDarBaja", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/flota/baja/{id} renderiza el modal con bloqueo si el vehículo tiene profesor asignado")
+    void testModalBajaVehiculoConProfesorBloqueado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/flota/baja/1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(model().attributeExists("vehiculo", "abrirModalBajaVehiculo", "tieneProfesorAsignado", "puedeDarBaja"))
+                .andExpect(model().attribute("tieneProfesorAsignado", true))
+                .andExpect(model().attribute("puedeDarBaja", false));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/baja/{id} tramita la baja lógica de vehículo disponible y redirige con mensaje flash")
+    void testDarBajaVehiculoDisponibleExitoso() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/baja/6")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/flota"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/flota/baja/{id} rechaza la baja de un vehículo con profesor asignado y muestra error en modal")
+    void testDarBajaVehiculoConProfesorAsignadoRechazado() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/flota/baja/1")
+                        .header("HX-Request", "true")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(model().attributeExists("errorBajaVehiculo", "abrirModalBajaVehiculo"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("POST /admin/flota/validar-matricula devuelve fragmento de error cuando la matrícula ya existe en la BD")
     void testValidarMatriculaExistenteDevuelveMensajeError() throws Exception
     {

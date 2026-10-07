@@ -969,6 +969,86 @@ public class AdministradorController
     }
 
     /**
+     * Endpoint HTMX para cargar el modal de baja lógica y confirmación de un vehículo de la flota.
+     */
+    @GetMapping("/flota/baja/{id}")
+    public String cargarModalBajaVehiculo(@PathVariable("id") Long id, Model model)
+    {
+        VehiculoDetalleDTO vehiculo = this.flotaService.obtenerVehiculoParaDetalle(id);
+        boolean tieneProfesorAsignado = vehiculo.profesorId() != null;
+        boolean puedeDarBaja = !tieneProfesorAsignado && vehiculo.estado() == EstadoVehiculo.DISPONIBLE;
+
+        model.addAttribute("vehiculo", vehiculo);
+        model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
+        model.addAttribute("puedeDarBaja", puedeDarBaja);
+        model.addAttribute("abrirModalBajaVehiculo", true);
+
+        return "fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
+    }
+
+    /**
+     * Procesa la solicitud de baja lógica (borrado lógico) de un vehículo del parque móvil:
+     * - Transición de estado a INACTIVO con preservación histórica de inspecciones e incidencias.
+     * - Restricción estricta: No permite baja si tiene un profesor asignado o no está en estado DISPONIBLE.
+     * - Notificación y redirección limpia con cabecera HX-Redirect para peticiones HTMX.
+     */
+    @PostMapping("/flota/baja/{id}")
+    public String darBajaVehiculo(@PathVariable("id") Long id, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    {
+        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        try
+        {
+            Vehiculo vehiculoBaja = this.flotaService.darBajaVehiculo(id);
+            String mensajeExito = "El vehículo " + vehiculoBaja.getMarca() + " " + vehiculoBaja.getModelo()
+                    + " (" + vehiculoBaja.getMatricula() + ") ha sido dado de baja correctamente (estado INACTIVO).";
+
+            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+
+            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
+            String destinoRedireccion = contextPath + "/admin/flota";
+
+            if (esPeticionHtmx)
+            {
+                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+                if (flashMap != null)
+                {
+                    flashMap.put("mensajeExito", mensajeExito);
+                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                    if (flashMapManager != null)
+                    {
+                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                    }
+                }
+                response.setHeader("HX-Redirect", destinoRedireccion);
+                return null;
+            }
+
+            return "redirect:/admin/flota";
+        }
+        catch (ReglaNegocioException ex)
+        {
+            VehiculoDetalleDTO vehiculo = this.flotaService.obtenerVehiculoParaDetalle(id);
+            boolean tieneProfesorAsignado = vehiculo.profesorId() != null;
+            boolean puedeDarBaja = !tieneProfesorAsignado && vehiculo.estado() == EstadoVehiculo.DISPONIBLE;
+
+            model.addAttribute("vehiculo", vehiculo);
+            model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
+            model.addAttribute("puedeDarBaja", puedeDarBaja);
+            model.addAttribute("errorBajaVehiculo", ex.getMessage());
+            model.addAttribute("abrirModalBajaVehiculo", true);
+
+            if (esPeticionHtmx)
+            {
+                return "fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
+            }
+            this.cargarDatosMetricasFlota(model);
+            this.cargarCatalogosAltaVehiculo(model);
+            return "admin/flota";
+        }
+    }
+
+    /**
      * Muestra la bandeja de incidencias y averías mecánicas reportadas.
      */
     @GetMapping("/incidencias")
