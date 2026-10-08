@@ -53,6 +53,7 @@ import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
+import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -78,6 +79,7 @@ public class AlumnoController
     private final PersonaRepository personaRepository;
     private final PasswordEncoder passwordEncoder;
     private final PagoStripeService pagoStripeService;
+    private final AlumnoMapper alumnoMapper;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -291,7 +293,7 @@ public class AlumnoController
             ));
         }
 
-        // 2. Horarios ocupados del profesor tutor por otros alumnos y jornadas DGT
+        // 2. Horarios ocupados del profesor por otros alumnos y jornadas DGT
         Profesor profesor = alumno.getProfesor();
         if (profesor != null)
         {
@@ -496,7 +498,7 @@ public class AlumnoController
         LocalTime hora = dto.fechaHora().toLocalTime();
         if (profesor.getTurno() == TipoTurno.MATINAL && (hora.isBefore(LocalTime.of(8, 0)) || hora.isAfter(LocalTime.of(15, 0))))
         {
-            String error = "El profesor tutor imparte turno MATINAL (08:00 a 15:00). Selecciona un tramo dentro de ese intervalo.";
+            String error = "El profesor imparte turno MATINAL (08:00 a 15:00). Selecciona un tramo dentro de ese intervalo.";
             if (hxRequest != null)
             {
                 model.addAttribute("error", error);
@@ -509,7 +511,7 @@ public class AlumnoController
         {
             if (profesor.getTurno() == TipoTurno.TARDE && (hora.isBefore(LocalTime.of(15, 0)) || hora.isAfter(LocalTime.of(22, 0))))
             {
-                String error = "El profesor tutor imparte turno de TARDE (15:00 a 22:00). Selecciona un tramo dentro de ese intervalo.";
+                String error = "El profesor imparte turno de TARDE (15:00 a 22:00). Selecciona un tramo dentro de ese intervalo.";
                 if (hxRequest != null)
                 {
                     model.addAttribute("error", error);
@@ -524,7 +526,7 @@ public class AlumnoController
         boolean tramoOcupado = this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(profesor, dto.fechaHora(), EstadoClase.CANCELADA);
         if (tramoOcupado)
         {
-            String error = "El tramo horario seleccionado ya se encuentra ocupado con tu profesor tutor. Por favor, selecciona otro horario.";
+            String error = "El tramo horario seleccionado ya se encuentra ocupado con tu profesor. Por favor, selecciona otro horario.";
             if (hxRequest != null)
             {
                 model.addAttribute("error", error);
@@ -1049,7 +1051,9 @@ public class AlumnoController
                 profesor != null ? profesor.getNombre() + " " + profesor.getApellidos() : null,
                 profesor != null ? profesor.getTelefono() : null,
                 profesor != null ? profesor.getCorreo() : null,
-                (profesor != null && profesor.getVehiculo() != null) ? profesor.getVehiculo().getMarca() + " " + profesor.getVehiculo().getModelo() : null,
+                profesor != null ? profesor.getTurno() : null,
+                (profesor != null && profesor.getVehiculo() != null) ? profesor.getVehiculo().getMarca() : null,
+                (profesor != null && profesor.getVehiculo() != null) ? profesor.getVehiculo().getModelo() : null,
                 (profesor != null && profesor.getVehiculo() != null) ? profesor.getVehiculo().getMatricula() : null,
                 matricula != null ? matricula.getPermisoCarnet() : null,
                 matricula != null ? matricula.getFechaMatriculacion() : null,
@@ -1063,7 +1067,7 @@ public class AlumnoController
 
     @PostMapping("/perfil")
     @Transactional
-    public String actualizarPerfil(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("perfilDTO") EditarPerfilAlumnoDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)
+    public String actualizarPerfil(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("perfilDTO") EditarPerfilAlumnoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -1071,34 +1075,61 @@ public class AlumnoController
             return "redirect:/login";
         }
 
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+
         if (bindingResult.hasErrors())
         {
-            redirectAttributes.addFlashAttribute("error", "Por favor, corrige los errores de validación en el formulario de perfil.");
-            return "redirect:/alumno/perfil";
+            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
+            model.addAttribute("perfilDTO", perfilRepoblado);
+            model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "perfilDTO", bindingResult);
+            return "alumno/perfil";
         }
 
-        if (this.personaRepository.existsByTelefonoAndIdNot(dto.telefono(), alumno.getId()))
+        // Comprobación de unicidad de DNI si ha variado
+        String nuevoDni = dto.dni() != null ? dto.dni().trim().toUpperCase() : null;
+        if (nuevoDni != null && !nuevoDni.isBlank() && !nuevoDni.equalsIgnoreCase(alumno.getDni()) && this.personaRepository.existsByDniAndIdNot(nuevoDni, alumno.getId()))
         {
-            redirectAttributes.addFlashAttribute("error", "El número de teléfono ya está registrado por otro usuario.");
-            return "redirect:/alumno/perfil";
+            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
+            model.addAttribute("perfilDTO", perfilRepoblado);
+            model.addAttribute("error", "El DNI / NIE introducido ya está registrado en el sistema.");
+            return "alumno/perfil";
         }
 
-        if (this.personaRepository.existsByCorreoAndIdNot(dto.correo(), alumno.getId()))
+        // Comprobación de unicidad de teléfono si ha variado
+        String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";
+        if (!nuevoTel.equals(alumno.getTelefono()) && this.personaRepository.existsByTelefonoAndIdNot(nuevoTel, alumno.getId()))
         {
-            redirectAttributes.addFlashAttribute("error", "La dirección de correo electrónico ya está registrada por otro usuario.");
-            return "redirect:/alumno/perfil";
+            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
+            model.addAttribute("perfilDTO", perfilRepoblado);
+            model.addAttribute("error", "El número de teléfono ya está registrado por otro usuario.");
+            return "alumno/perfil";
         }
 
+        if (dto.correo() != null && !dto.correo().isBlank() && !dto.correo().equalsIgnoreCase(alumno.getCorreo()) && this.personaRepository.existsByCorreoAndIdNot(dto.correo().trim(), alumno.getId()))
+        {
+            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
+            model.addAttribute("perfilDTO", perfilRepoblado);
+            model.addAttribute("error", "La dirección de correo electrónico ya está registrada por otro usuario.");
+            return "alumno/perfil";
+        }
+
+        if (nuevoDni != null && !nuevoDni.isBlank())
+        {
+            alumno.setDni(nuevoDni);
+        }
         alumno.setNombre(dto.nombre().trim());
         alumno.setApellidos(dto.apellidos().trim());
-        alumno.setTelefono(dto.telefono().trim());
+        alumno.setTelefono(nuevoTel);
         alumno.setDireccion(dto.direccion().trim());
-        alumno.setCorreo(dto.correo().trim());
+        if (dto.correo() != null && !dto.correo().isBlank())
+        {
+            alumno.setCorreo(dto.correo().trim());
+        }
         alumno.setFechaNacimiento(dto.fechaNacimiento());
 
         this.alumnoRepository.save(alumno);
 
-        redirectAttributes.addFlashAttribute("mensajeExito", "Datos de perfil actualizados correctamente.");
+        redirectAttributes.addFlashAttribute("mensajeExito", "Tus datos personales se han actualizado correctamente.");
         return "redirect:/alumno/perfil";
     }
 

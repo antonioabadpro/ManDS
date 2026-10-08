@@ -125,6 +125,13 @@ class AlumnoMapperTest
         profesor.setTelefono("622334455");
         profesor.setCorreo("elena.profesor@autoescuela.es");
 
+        profesor.setTurno(TipoTurno.MATINAL);
+        Vehiculo vehiculoProf = new Vehiculo();
+        vehiculoProf.setMarca("SEAT");
+        vehiculoProf.setModelo("Ibiza");
+        vehiculoProf.setMatricula("1234-LMN");
+        profesor.setVehiculo(vehiculoProf);
+
         Alumno alumno = new Alumno();
         ReflectionTestUtils.setField(alumno, "id", 5L);
         alumno.setDni("44556677C");
@@ -145,7 +152,7 @@ class AlumnoMapperTest
                 "Calle Nueva 12",
                 "nuevo@correo.com",
                 LocalDate.of(2000, 5, 20),
-                null, null, null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null, null, null, null
         );
 
         EditarPerfilAlumnoDTO repoblado = this.mapper.repoblarPerfilDTO(alumno, matricula, formDTO);
@@ -166,10 +173,15 @@ class AlumnoMapperTest
         assertThat(repoblado.profesorNombre()).isEqualTo("Elena Gómez Varela");
         assertThat(repoblado.profesorTelefono()).isEqualTo("622334455");
         assertThat(repoblado.profesorEmail()).isEqualTo("elena.profesor@autoescuela.es");
+        assertThat(repoblado.profesorTurno()).isEqualTo(TipoTurno.MATINAL);
+        assertThat(repoblado.vehiculoMarca()).isEqualTo("SEAT");
+        assertThat(repoblado.vehiculoModelo()).isEqualTo("Ibiza");
+        assertThat(repoblado.vehiculoMatricula()).isEqualTo("1234-LMN");
         assertThat(repoblado.permisoActual()).isEqualTo(TipoCarnet.PERMISO_B);
         assertThat(repoblado.fechaMatriculacion()).isEqualTo(LocalDate.of(2026, 1, 10));
         assertThat(repoblado.saldoClases()).isEqualTo(8);
         assertThat(repoblado.convocatoriasRestantes()).isEqualTo(2);
+        assertThat(repoblado.antiguedad()).isNotNull();
     }
 
     @Test

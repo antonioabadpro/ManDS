@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -246,7 +247,8 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/perfil"));
+                .andExpect(view().name("alumno/perfil"))
+                .andExpect(model().attributeExists("perfilDTO"));
     }
 
     @Test
@@ -265,6 +267,40 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/alumno/perfil"))
                 .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/perfil con datos inválidos permanece en la vista con errores de validación")
+    void testActualizarPerfilErrorValidacion() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/perfil")
+                .with(csrf())
+                .param("nombre", "")
+                .param("apellidos", "")
+                .param("telefono", "123")
+                .param("direccion", "")
+                .param("fechaNacimiento", "2025-01-01"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/perfil"))
+                .andExpect(model().attributeHasFieldErrors("perfilDTO", "nombre", "apellidos", "telefono", "direccion", "mayorDeEdad"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/perfil con teléfono duplicado muestra error en el modelo")
+    void testActualizarPerfilTelefonoDuplicado() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/perfil")
+                .with(csrf())
+                .param("nombre", "Jose")
+                .param("apellidos", "López Martínez")
+                .param("telefono", "600111222")
+                .param("direccion", "Calle Gran Vía 28, Madrid")
+                .param("fechaNacimiento", "2004-03-15"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/perfil"))
+                .andExpect(model().attributeExists("error"));
     }
 
     @Test
