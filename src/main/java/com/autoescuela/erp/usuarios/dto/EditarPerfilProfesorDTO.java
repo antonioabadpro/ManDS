@@ -18,7 +18,7 @@ import jakarta.validation.constraints.Size;
  * DTO para la visualización y edición del perfil del Profesor.
  */
 public record EditarPerfilProfesorDTO(
-    // Campos editables por el docente
+    // Campos editables por el profesor
     Long id,
     @NotBlank(message = "El nombre es obligatorio.")
     @Size(max = 50, message = "El nombre no puede superar los 50 caracteres.")

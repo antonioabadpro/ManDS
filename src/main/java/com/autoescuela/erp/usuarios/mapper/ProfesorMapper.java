@@ -39,7 +39,7 @@ public interface ProfesorMapper
     /**
      * Mapea los datos de una entidad Profesor a su DTO de edición y consulta de perfil.
      *
-     * @param profesor Entidad del docente autenticado.
+     * @param profesor Entidad del profesor autenticado.
      * @return DTO inmutable con los datos personales y contractuales.
      */
     @Mapping(target = "permisos", source = "listaTiposCarnet")
@@ -48,10 +48,10 @@ public interface ProfesorMapper
     EditarPerfilProfesorDTO toEditarPerfilProfesorDTO(Profesor profesor);
 
     /**
-     * Reconstruye el DTO de perfil combinando los campos modificados por el docente
+     * Reconstruye el DTO de perfil combinando los campos modificados por el profesor
      * con los campos contractuales de solo lectura procedentes de la entidad Profesor.
      *
-     * @param profesor Entidad persistente del docente con los datos contractuales.
+     * @param profesor Entidad persistente del profesor con los datos contractuales.
      * @param dto DTO recibido en la petición con los campos modificables.
      * @return Nuevo DTO inmutable con la totalidad de campos repoblados.
      */

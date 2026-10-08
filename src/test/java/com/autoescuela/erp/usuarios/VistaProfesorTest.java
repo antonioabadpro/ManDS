@@ -113,7 +113,27 @@ class VistaProfesorTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/profesor/perfil"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("profesor/perfil"));
+                .andExpect(view().name("profesor/perfil"))
+                .andExpect(model().attributeExists("perfilDTO"))
+                .andExpect(model().attributeExists("profesor"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/perfil actualiza los datos personales y redirige con mensaje flash")
+    void testActualizarPerfilExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/perfil")
+                .with(csrf())
+                .param("id", "100")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("telefono", "611223344")
+                .param("direccion", "Avenida Siempre Viva 123")
+                .param("fechaNacimiento", "1990-05-15"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/perfil"))
+                .andExpect(flash().attributeExists("mensajeExito"));
     }
 
     @Test
