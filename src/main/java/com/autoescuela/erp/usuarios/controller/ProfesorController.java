@@ -970,9 +970,7 @@ public class ProfesorController
 
         EditarPerfilProfesorDTO dto = this.profesorMapper.toEditarPerfilProfesorDTO(profesor);
 
-        model.addAttribute("profesor", profesor);
         model.addAttribute("perfilDTO", dto);
-        model.addAttribute("passwordDTO", new CambiarPasswordDTO());
 
         return "profesor/perfil";
     }

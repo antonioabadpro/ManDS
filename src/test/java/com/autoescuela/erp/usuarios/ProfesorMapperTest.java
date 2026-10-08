@@ -11,6 +11,7 @@ import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -65,6 +66,35 @@ class ProfesorMapperTest
     void testToProfesorNull()
     {
         assertThat(this.mapper.toProfesor(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("antiguedadTexto calcula correctamente la antigüedad del profesor")
+    void testAntiguedadTexto()
+    {
+        EditarPerfilProfesorDTO dtoSinFecha = new EditarPerfilProfesorDTO();
+        assertThat(dtoSinFecha.antiguedadTexto()).isNull();
+
+        EditarPerfilProfesorDTO dtoMenosDeUnAnio = new EditarPerfilProfesorDTO(
+                1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
+                "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
+                LocalDate.now().minusMonths(6), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+        );
+        assertThat(dtoMenosDeUnAnio.antiguedadTexto()).isEqualTo("menos de 1 año");
+
+        EditarPerfilProfesorDTO dtoUnAnio = new EditarPerfilProfesorDTO(
+                1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
+                "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
+                LocalDate.now().minusYears(1).minusMonths(1), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+        );
+        assertThat(dtoUnAnio.antiguedadTexto()).isEqualTo("1 año");
+
+        EditarPerfilProfesorDTO dtoVariosAnios = new EditarPerfilProfesorDTO(
+                1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
+                "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
+                LocalDate.now().minusYears(3), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+        );
+        assertThat(dtoVariosAnios.antiguedadTexto()).isEqualTo("3 años");
     }
 }
 

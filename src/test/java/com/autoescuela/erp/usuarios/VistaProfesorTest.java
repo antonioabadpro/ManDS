@@ -114,8 +114,7 @@ class VistaProfesorTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/profesor/perfil"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profesor/perfil"))
-                .andExpect(model().attributeExists("perfilDTO"))
-                .andExpect(model().attributeExists("profesor"));
+                .andExpect(model().attributeExists("perfilDTO"));
     }
 
     @Test

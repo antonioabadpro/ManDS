@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -128,7 +128,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- 1. Turno de Trabajo -->
                     <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 flex items-start space-x-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" th:classappend="${perfilDTO?.turno?.name() == 'TARDE' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'}">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -136,8 +136,7 @@
                         <div class="min-w-0 flex-1">
                             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Turno Asignado</span>
                             <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5" th:text="${perfilDTO?.turno?.name() == 'MATINAL' ? 'Matinal' : (perfilDTO?.turno?.name() == 'TARDE' ? 'Tarde' : 'Sin turno')}">Matinal</p>
-                            <p th:if="${perfilDTO?.turno?.name() == 'MATINAL' ? '08:00h - 15:00h' : ''}" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">08:00h - 15:00h</p>
-                            <p th:if="${perfilDTO?.turno?.name() == 'TARDE' ? '15:00h - 22:00h' : ''}" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">15:00h - 22:00h</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium" th:text="${perfilDTO?.turno?.name() == 'MATINAL' ? '08:00h - 15:00h' : (perfilDTO?.turno?.name() == 'TARDE' ? '15:00h - 22:00h' : '')}">08:00h - 15:00h</p>
                         </div>
                     </div>
 
@@ -151,6 +150,7 @@
                         <div class="min-w-0 flex-1">
                             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Fecha de Contratación</span>
                             <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5 font-mono" th:text="${#temporals.format(perfilDTO?.fechaContratacion, 'dd/MM/yyyy')} ?: 'No registrada'">15/01/2022</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium" th:if="${perfilDTO?.getAntiguedad() != null}" th:text="${perfilDTO.getAntiguedad()}">menos de 1 año</p>
                         </div>
                     </div>
 
@@ -173,12 +173,47 @@
                 <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">Permisos Habilitados para Enseñar:</span>
                     <div class="flex flex-wrap gap-2" th:if="${perfilDTO?.permisos != null and !perfilDTO.permisos.isEmpty()}">
-                        <span th:each="permiso : ${perfilDTO.permisos}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span th:text="${permiso.descripcion}">Permiso B</span>
-                        </span>
+                        <th:block th:each="permiso : ${perfilDTO.permisos}">
+                            <!-- Motos y ciclomotores (AM, A1, A2, A) -->
+                            <span th:if="${permiso.name() == 'PERMISO_A' or permiso.name() == 'PERMISO_A1' or permiso.name() == 'PERMISO_A2' or permiso.name() == 'PERMISO_AM'}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span th:text="${permiso.descripcion}">Permiso A2</span>
+                            </span>
+
+                            <!-- Turismos convencionales (B) -->
+                            <span th:if="${permiso.name() == 'PERMISO_B'}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span th:text="${permiso.descripcion}">Permiso B</span>
+                            </span>
+
+                            <!-- Derivados de turismo y especiales (B+E, B1, LVA) -->
+                            <span th:if="${permiso.name() == 'PERMISO_B_E' or permiso.name() == 'PERMISO_B1' or permiso.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span th:text="${permiso.descripcion}">Permiso B+E</span>
+                            </span>
+
+                            <!-- Camiones pesados (C, C+E) -->
+                            <span th:if="${permiso.name() == 'PERMISO_C' or permiso.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span th:text="${permiso.descripcion}">Permiso C</span>
+                            </span>
+
+                            <!-- Autobuses pesados (D, D+E) -->
+                            <span th:if="${permiso.name() == 'PERMISO_D' or permiso.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-sm">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span th:text="${permiso.descripcion}">Permiso D</span>
+                            </span>
+                        </th:block>
                     </div>
                     <div th:if="${perfilDTO?.permisos == null or perfilDTO.permisos.isEmpty()}" class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200">
                         No constan permisos de conducción registrados actualmente para este profesor.

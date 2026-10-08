@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.dto;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -51,5 +52,43 @@ public record EditarPerfilProfesorDTO(
     public EditarPerfilProfesorDTO()
     {
         this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    /**
+     * Calcula la antigüedad descriptiva del profesor en la autoescuela en función de su fecha de contratación.
+     *
+     * @return Cadena con la antigüedad calculada (ej. "menos de 1 año", "1 año", "X años") o null si no consta fecha.
+     */
+    public String antiguedad()
+    {
+        if (this.fechaContratacion == null)
+        {
+            return null;
+        }
+        int anios = Period.between(this.fechaContratacion, LocalDate.now()).getYears();
+        if (anios <= 0)
+        {
+            return "menos de 1 año";
+        }
+        if (anios == 1)
+        {
+            return "1 año";
+        }
+        return anios + " años";
+    }
+
+    public String getAntiguedad()
+    {
+        return this.antiguedad();
+    }
+
+    public String antiguedadTexto()
+    {
+        return this.antiguedad();
+    }
+
+    public String getAntiguedadTexto()
+    {
+        return this.antiguedad();
     }
 }
