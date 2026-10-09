@@ -141,7 +141,7 @@ public class FlotaService
 
     /**
      * Comprueba si una matrícula ya se encuentra registrada en la base de datos de la flota.
-     * Normaliza la cadena para comparar en formato canónico '0000-XXX'.
+     * Normaliza la cadena para comparar en formato canónico '0000-ZZZ'.
      *
      * @param matricula Matrícula a comprobar.
      * @return true si ya existe un vehículo con esa matrícula, false en caso contrario.
@@ -161,7 +161,7 @@ public class FlotaService
     /**
      * Comprueba si una matrícula ya se encuentra registrada en la base de datos de la flota
      * excluyendo un ID específico (utilizado para validación en la edición de vehículos).
-     * Normaliza la cadena para comparar en formato canónico '0000-XXX'.
+     * Normaliza la cadena para comparar en formato canónico '0000-ZZZ'.
      *
      * @param matricula Matrícula a comprobar.
      * @param id Identificador del vehículo a excluir de la búsqueda.

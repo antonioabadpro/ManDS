@@ -9,7 +9,7 @@
     <meta name="_csrf" th:content="${_csrf?.token}">
     <meta name="_csrf_header" th:content="${_csrf?.headerName}">
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237c3aed'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
     <script src="../../static/js/profesor.js" th:src="@{/js/profesor.js}" defer></script>
 </head>
 
-<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-emerald-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-violet-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
 
     <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
 
@@ -64,7 +64,7 @@
             <div th:if="${vehiculo != null}" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
                     <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <div class="w-12 h-12 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                             </svg>
@@ -120,7 +120,7 @@
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Potencia y Carburante</span>
                         <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.cv != null and vehiculo.cv > 0 ? vehiculo.cv + ' CV' : 'Sin motor'}">95 CV</p>
-                        <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5" th:text="${vehiculo.tipoCombustible?.descripcion ?: 'Combustible no especificado'}">Gasolina</p>
+                        <p class="text-[11px] text-violet-600 dark:text-violet-400 font-medium mt-0.5" th:text="${vehiculo.tipoCombustible?.descripcion ?: 'Combustible no especificado'}">Gasolina</p>
                     </div>
 
                     <!-- 3. Transmisión y Antigüedad (cajaCambios y anio) -->

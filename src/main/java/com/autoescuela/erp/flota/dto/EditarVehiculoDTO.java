@@ -139,7 +139,7 @@ public record EditarVehiculoDTO(
     }
 
     /**
-     * Formatea la matrícula ingresada eliminando espacios redundantes y aplicando el formato oficial '0000-XXX'.
+     * Formatea la matrícula ingresada eliminando espacios redundantes y aplicando el formato oficial '0000-ZZZ'.
      */
     public String formatearMatricula()
     {

@@ -11,7 +11,7 @@
     <meta name="_csrf_header" th:content="${_csrf?.headerName}">
 
     <!-- Favicon SVG -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%237c3aed'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/></svg>">
 
     <!-- Tipografía Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,7 @@
 </head>
 
 
-<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-emerald-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-violet-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
 
     <!-- Backdrop desenfocado para móviles -->
     <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
@@ -75,31 +75,31 @@
             </div>
 
             <!-- Bienvenida y Tarjeta Principal de Turno -->
-            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-xl shadow-emerald-500/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 text-white shadow-xl shadow-violet-500/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="space-y-2 relative z-10">
                     <div class="flex items-center space-x-2">
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white">
                             Turno <span th:text="${profesor?.turno?.name()}"></span>
                         </span>
-                        <span class="text-xs text-emerald-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                        <span class="text-xs text-violet-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
                         ¡Hola, <span th:text="${profesor?.nombre ?: 'Profesor'}"></span>!
                     </h2>
-                    <p class="text-xs sm:text-sm text-emerald-100 max-w-xl">
+                    <p class="text-xs sm:text-sm text-violet-100 max-w-xl">
                         Tienes todo preparado para tu jornada laboral. Consulta tus clases asignadas de hoy y registra los reportes técnicos tras finalizar cada clase.
                     </p>
                 </div>
 
                 <!-- Botones de Acción Rápida en Cabecera -->
                 <div class="flex flex-wrap items-center gap-3 relative z-10">
-                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-white text-emerald-700 hover:bg-emerald-50 text-xs sm:text-sm font-bold shadow-md transition transform active:scale-95">
+                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-white text-violet-700 hover:bg-violet-200 text-xs sm:text-sm font-bold shadow-md transition transform active:scale-95">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>Ver Mi Calendario</span>
                     </a>
-                    <a th:href="@{/profesor/vehiculo}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-emerald-800/60 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold border border-white/20 backdrop-blur-sm transition">
+                    <a th:href="@{/profesor/vehiculo}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold border border-white/20 backdrop-blur-sm transition">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
@@ -135,7 +135,7 @@
                 <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alumnos Asignados</span>
-                        <div class="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
@@ -151,7 +151,7 @@
                 <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehículo Asignado</span>
-                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0016.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 002 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                             </svg>
@@ -188,7 +188,7 @@
                         <h3 class="text-lg font-bold text-slate-900 dark:text-white">Calendario de Clases Prácticas</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Clases programadas para el día de hoy</p>
                     </div>
-                    <a th:href="@{/profesor/calendario}" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center space-x-1">
+                    <a th:href="@{/profesor/calendario}" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline inline-flex items-center space-x-1">
                         <span>Abrir calendario interactivo</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -233,7 +233,7 @@
                                     </span>
                                 </td>
                                 <td class="py-3 px-4 text-right">
-                                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 transition">
+                                    <a th:href="@{/profesor/calendario}" class="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-950/40 dark:text-violet-300 transition">
                                         <span>Ficha Técnica</span>
                                     </a>
                                 </td>
