@@ -78,6 +78,30 @@ class VistaProfesorTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/alumnos/detalle/{id} con HTMX devuelve el fragmento del modal de detalle de alumno")
+    void testModalDetalleAlumnoHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/alumnos/detalle/200")
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-detalle-alumno :: modal-detalle-alumno"))
+                .andExpect(model().attributeExists("alumno"))
+                .andExpect(model().attribute("abrirModalDetalleAlumno", true));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/alumnos/detalle/{id} con alumno no asignado devuelve 422 Unprocessable Content")
+    void testModalDetalleAlumnoAjenoLanzaExcepcion() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/alumnos/detalle/205")
+                .header("HX-Request", "true"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(view().name("error/error-negocio"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
     @DisplayName("GET /profesor/examenes renderiza la vista de convocatorias DGT")
     void testExamenesRenderizado() throws Exception
     {

@@ -244,30 +244,4 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('overflow-hidden');
         });
     });
-
-    // =========================================================================
-    // 6. APERTURA DINÁMICA DE MODAL CONTACTAR ALUMNO
-    // =========================================================================
-    document.querySelectorAll('[data-contactar-alumno]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const alumnoId = btn.getAttribute('data-contactar-alumno');
-            const alumnoNombre = btn.getAttribute('data-alumno-nombre');
-            const alumnoCorreo = btn.getAttribute('data-alumno-correo');
-
-            const modal = document.getElementById('modal-contactar-alumno');
-            if (!modal) return;
-
-            const inputId = document.getElementById('contactar-alumno-id');
-            const elNombre = document.getElementById('contactar-alumno-nombre');
-            const elCorreo = document.getElementById('contactar-alumno-correo');
-
-            if (inputId) inputId.value = alumnoId;
-            if (elNombre) elNombre.textContent = alumnoNombre || 'Alumno';
-            if (elCorreo) elCorreo.textContent = alumnoCorreo || '';
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('overflow-hidden');
-        });
-    });
 });

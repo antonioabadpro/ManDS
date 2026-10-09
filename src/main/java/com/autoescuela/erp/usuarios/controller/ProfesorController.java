@@ -63,6 +63,10 @@ import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.service.AlumnoService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -82,6 +86,7 @@ public class ProfesorController
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final ProfesorMapper profesorMapper;
+    private final AlumnoService alumnoService;
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
@@ -578,6 +583,10 @@ public class ProfesorController
             ficha.put("clasesRecibidas", clasesRecibidas);
             ficha.put("historialClases", clasesAlumno);
 
+            String iniciales = (alumno.getNombre() != null && !alumno.getNombre().isBlank() ? alumno.getNombre().trim().substring(0, 1).toUpperCase() : "")
+                             + (alumno.getApellidos() != null && !alumno.getApellidos().isBlank() ? alumno.getApellidos().trim().substring(0, 1).toUpperCase() : "");
+            ficha.put("iniciales", iniciales.isBlank() ? "AL" : iniciales);
+
             fichasAlumnos.add(ficha);
         }
 
@@ -586,6 +595,30 @@ public class ProfesorController
         model.addAttribute("contactarDTO", new ContactarAlumnoDTO());
 
         return "profesor/alumnos";
+    }
+
+    /**
+     * Endpoint HTMX para cargar y presentar los datos informativos del alumno en el modal de detalle para el profesor.
+     */
+    @GetMapping("/alumnos/detalle/{id}")
+    public String cargarModalDetalleAlumno(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Profesor profesor = this.obtenerProfesorActual(principal);
+        if (profesor == null)
+        {
+            return "redirect:/login";
+        }
+
+        AlumnoDetalleDTO dto = this.alumnoService.obtenerAlumnoParaDetalle(id);
+        if (dto.profesorId() == null || !dto.profesorId().equals(profesor.getId()))
+        {
+            throw new ReglaNegocioException("No tiene permisos para consultar el expediente de un alumno que no tiene asignado.");
+        }
+
+        model.addAttribute("alumno", dto);
+        model.addAttribute("abrirModalDetalleAlumno", true);
+
+        return "profesor/fragments/modal-detalle-alumno :: modal-detalle-alumno";
     }
 
     /**
