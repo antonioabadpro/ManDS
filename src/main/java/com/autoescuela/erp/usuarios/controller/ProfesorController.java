@@ -197,7 +197,6 @@ public class ProfesorController
         model.addAttribute("proximaClase", proximaClase);
         model.addAttribute("totalAlumnos", misAlumnos.size());
         model.addAttribute("vehiculo", vehiculo);
-        model.addAttribute("totalExamenes", misExamenes.size());
         model.addAttribute("pendientesCalificar", pendientesCalificar);
 
         return "profesor/dashboard";
@@ -971,6 +970,7 @@ public class ProfesorController
         EditarPerfilProfesorDTO dto = this.profesorMapper.toEditarPerfilProfesorDTO(profesor);
 
         model.addAttribute("perfilDTO", dto);
+        model.addAttribute("vehiculo", profesor.getVehiculo());
 
         return "profesor/perfil";
     }
@@ -990,7 +990,7 @@ public class ProfesorController
             EditarPerfilProfesorDTO perfilRepoblado = this.profesorMapper.repoblarPerfilDTO(profesor, dto);
             model.addAttribute("profesor", profesor);
             model.addAttribute("perfilDTO", perfilRepoblado);
-            model.addAttribute("passwordDTO", new CambiarPasswordDTO());
+            model.addAttribute("vehiculo", profesor.getVehiculo());
             return "profesor/perfil";
         }
 
@@ -1001,7 +1001,7 @@ public class ProfesorController
             EditarPerfilProfesorDTO perfilRepoblado = this.profesorMapper.repoblarPerfilDTO(profesor, dto);
             model.addAttribute("profesor", profesor);
             model.addAttribute("perfilDTO", perfilRepoblado);
-            model.addAttribute("passwordDTO", new CambiarPasswordDTO());
+            model.addAttribute("vehiculo", profesor.getVehiculo());
             model.addAttribute("error", "El número de teléfono introducido ya está registrado por otro usuario.");
             return "profesor/perfil";
         }

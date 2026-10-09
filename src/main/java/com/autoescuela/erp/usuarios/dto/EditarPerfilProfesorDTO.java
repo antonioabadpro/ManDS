@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 
@@ -46,12 +47,22 @@ public record EditarPerfilProfesorDTO(
     LocalDate fechaContratacion,
     String vehiculoMatricula,
     String vehiculoModelo,
+    EstadoVehiculo vehiculoEstado,
     List<TipoCarnet> permisos
 )
 {
     public EditarPerfilProfesorDTO()
     {
-        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    public EditarPerfilProfesorDTO(
+        Long id, String nombre, String apellidos, String telefono, String direccion, LocalDate fechaNacimiento,
+        String dni, String nombreUsuario, String correo, TipoTurno turno, LocalDate fechaContratacion,
+        String vehiculoMatricula, String vehiculoModelo, List<TipoCarnet> permisos
+    )
+    {
+        this(id, nombre, apellidos, telefono, direccion, fechaNacimiento, dni, nombreUsuario, correo, turno, fechaContratacion, vehiculoMatricula, vehiculoModelo, null, permisos);
     }
 
     /**

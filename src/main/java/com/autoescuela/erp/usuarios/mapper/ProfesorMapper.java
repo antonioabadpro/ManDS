@@ -45,6 +45,7 @@ public interface ProfesorMapper
     @Mapping(target = "permisos", source = "listaTiposCarnet")
     @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : \"Sin vehículo\")")
     @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : \"\")")
+    @Mapping(target = "vehiculoEstado", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getEstado() : null)")
     EditarPerfilProfesorDTO toEditarPerfilProfesorDTO(Profesor profesor);
 
     /**
@@ -68,6 +69,7 @@ public interface ProfesorMapper
     @Mapping(target = "fechaContratacion", source = "profesor.fechaContratacion")
     @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : \"Sin vehículo\")")
     @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : \"\")")
+    @Mapping(target = "vehiculoEstado", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getEstado() : null)")
     @Mapping(target = "permisos", source = "profesor.listaTiposCarnet")
     EditarPerfilProfesorDTO repoblarPerfilDTO(Profesor profesor, EditarPerfilProfesorDTO dto);
 

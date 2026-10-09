@@ -112,10 +112,10 @@
             </div>
 
             <!-- Rejilla de 4 Métricas Clave -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch">
 
                 <!-- 1. Próxima Clase -->
-                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Próxima Clase</span>
                         <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
@@ -126,13 +126,21 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <p class="text-lg font-extrabold text-slate-900 dark:text-white truncate" th:text="${proximaClase != null ? #temporals.format(proximaClase.fechaHora, 'HH:mm') + ' - ' + proximaClase.alumno?.nombre : 'Sin clases pendientes'}"></p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${proximaClase != null ? proximaClase.puntoRecogida : 'No hay clases próximamente'}"></p>
+                        <div th:if="${proximaClase != null}" class="space-y-0.5">
+                            <p class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" th:text="${proximaClase.alumno?.nombre + ' ' + proximaClase.alumno?.apellidos}"></p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate" th:text="${proximaClase.puntoRecogida}"></p>
+                        </div>
+                        <div th:if="${proximaClase == null}" class="space-y-0.5">
+                            <p class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate">Sin clases pendientes</p>
+                            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">No hay alumnos citados</p>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 truncate">Agenda libre para reservas</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 2. Alumnos Asignados -->
-                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alumnos Asignados</span>
                         <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
@@ -142,13 +150,13 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <p class="text-2xl font-black text-slate-900 dark:text-white" th:text="${totalAlumnos}"></p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${totalAlumnos == 1} ? 'Expediente activo' : 'Expedientes activos'"></p>
+                        <p class="text-2xl font-black text-slate-900 dark:text-white leading-tight" th:text="${totalAlumnos}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" th:text="${totalAlumnos == 1} ? 'Expediente activo' : 'Expedientes activos'"></p>
                     </div>
                 </div>
 
                 <!-- 3. Vehículo Asignado -->
-                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehículo Asignado</span>
                         <div class="w-8 h-8 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center">
@@ -157,14 +165,34 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <p class="text-lg font-bold text-slate-900 dark:text-white truncate" th:text="${vehiculo?.modelo ?: 'Sin vehículo asignado'}"></p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${vehiculo?.matricula}"></p>
+                    <div class="mt-4 flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <p class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate" th:text="${vehiculo?.marca ?: 'Sin vehículo'}"></p>
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate" th:text="${vehiculo?.modelo ?: 'No asignado'}"></p>
+                            <p class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 truncate" th:text="${vehiculo?.matricula ?: 'Sin matrícula'}"></p>
+                        </div>
+                        <div class="shrink-0 flex items-center">
+                            <span th:if="${vehiculo != null && vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                DISPONIBLE
+                            </span>
+                            <span th:if="${vehiculo != null && vehiculo.estado?.name() == 'OCUPADO'}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                OCUPADO
+                            </span>
+                            <span th:if="${vehiculo != null && vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+                                MANTENIMIENTO
+                            </span>
+                            <span th:if="${vehiculo != null && vehiculo.estado?.name() == 'INACTIVO'}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                INACTIVO
+                            </span>
+                            <span th:if="${vehiculo == null}" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
+                                SIN ASIGNAR
+                            </span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 4. Calificaciones Pendientes -->
-                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Calificaciones Pendientes</span>
                         <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -174,8 +202,8 @@
                         </div>
                     </div>
                     <div class="mt-4">
-                        <p class="text-2xl font-black text-slate-900 dark:text-white" th:text="${pendientesCalificar}"></p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${pendientesCalificar == 1} ? 'Examen pendiente de calificar' : 'Exámenes pendientes de calificar'"></p>
+                        <p class="text-2xl font-black text-slate-900 dark:text-white leading-tight" th:text="${pendientesCalificar}"></p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1" th:text="${pendientesCalificar == 1} ? 'Examen pendiente de calificar' : 'Exámenes pendientes de calificar'"></p>
                     </div>
                 </div>
 

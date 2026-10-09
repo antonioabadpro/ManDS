@@ -118,10 +118,29 @@
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Detalles de contratación, turno de impartición, vehículo asignado y habilitaciones de permisos.</p>
                     </div>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 self-start sm:self-auto">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                    Profesor Activo
-                    </span>
+                    <!-- Estado del Vehículo Asignado -->
+                    <th:block th:with="est=${perfilDTO?.vehiculoEstado ?: vehiculo?.estado}">
+                        <span th:if="${est?.name() == 'DISPONIBLE'}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 self-start sm:self-auto">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                        Vehículo Disponible
+                        </span>
+                        <span th:if="${est?.name() == 'OCUPADO'}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 self-start sm:self-auto">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span>
+                        Vehículo Ocupado
+                        </span>
+                        <span th:if="${est?.name() == 'MANTENIMIENTO'}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 self-start sm:self-auto">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>
+                        En Mantenimiento
+                        </span>
+                        <span th:if="${est?.name() == 'INACTIVO'}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5"></span>
+                        Vehículo Inactivo
+                        </span>
+                        <span th:if="${est == null}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
+                        Sin Vehículo Asignado
+                        </span>
+                    </th:block>
                 </div>
 
                 <!-- Bloques de Información Profesional -->
