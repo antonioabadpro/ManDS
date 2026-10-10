@@ -67,7 +67,7 @@
   - Reasignación en baja: selector y backend solo admiten profesores activos habilitados para el carnet del vehículo del profesor saliente (o todos si no tenía vehículo), ordenados por menor carga (`ORDER BY SIZE(p.listaAlumnos) ASC`).
   - Reasignación desde Gestión de Alumnos: selector y backend solo admiten profesores activos habilitados para el carnet de la matrícula del alumno, ordenados por menor carga (`ORDER BY SIZE(p.listaAlumnos) ASC`).
 - **Bloqueo por Examen Práctico:** Al calendarizar un examen oficial en un vehículo, se cancelan automáticamente todas las clases prácticas de ese día en dicho vehículo con correo explicativo a los alumnos.
-- **Turnos de Profesor:** Cada profesor opera bajo un `TipoTurno` fijo (`MATINAL` o `TARDE`), delimitando sus tramos hábiles para reservas en FullCalendar.
+- **Turnos de Profesor:** Cada profesor opera bajo un `TipoTurno` fijo (`MATINAL` o `TARDE`), delimitando sus tramos hábiles para reservas en la cuadrícula semanal nativa.
 - **Inmutabilidad de Vehículo con Clases Pendientes:** PROHIBIDO modificar (reasignar o desvincular) el vehículo asignado a un profesor si este cuenta con clases prácticas pendientes (`EstadoClase.PENDIENTE`). Para cambiarlo, dichas clases deben completarse (`RECIBIDA`) o cancelarse (`CANCELADA`) previamente.
 - **Borrado Lógico e Irreversibilidad de Vehículos:** Un vehículo `INACTIVO` no puede eliminarse físicamente de la BD (borrado lógico) y tiene prohibida su reactivación tras la baja (al igual que el alumno).
 - **Condición de Borrado Lógico:** Un Vehículo solo puede eliminarse si está `DISPONIBLE`.
@@ -75,13 +75,13 @@
   - *Transición a MANTENIMIENTO:* Si el Administrador pasa una incidencia a `EN_PROCESO`, el vehículo entra en `MANTENIMIENTO` automáticamente, cancela todas sus clases y notifica por email al profesor (aviso único) y a sus alumnos (suspensión hasta nuevo aviso).
   - *Bloqueo en Gestión de Flota:* El Administrador NO puede cambiar el estado de un vehículo en `MANTENIMIENTO` desde Flota; exige resolver previamente la incidencia desde el panel de Incidencias de Flota.
   - *Resolución (`RESUELTA`):* Al resolver la incidencia, el vehículo recupera automáticamente su estado previo (`DISPONIBLE` u `OCUPADO`) y notifica por email al profesor y a sus alumnos la reapertura de reservas.
-  - *Bloqueo de Reservas:* Alumno no puede reservar si su vehículo está en `MANTENIMIENTO` o no tiene profesor (aviso reactivo al pulsar en FullCalendar).
+  - *Bloqueo de Reservas:* Alumno no puede reservar si su vehículo está en `MANTENIMIENTO` o no tiene profesor (aviso reactivo al pulsar en la cuadrícula del calendario).
 
 ## 3.4. Algoritmo y Control de Reserva de Clases
 - **Fórmula de Capacidad de Reserva:**
   $$\text{CapacidadReserva} = \text{saldoClases} - \text{clasesReservadasPendientes}$$
 - **Condición de Compra:** Un alumno solo puede adquirir clases sueltas o bonos cuando su saldo restante sea cero ($\text{saldoClases} = 0$). Comprar suma clases al saldo (`saldoClases += cantidadComprada`).
-- **Condición de Reserva:** El alumno solo puede reservar si $\text{CapacidadReserva} > 0$ y su vehículo no está en `MANTENIMIENTO` y ha seleccionado una hora que corresponde con la del horario de su profesor. En caso de NO cumplir alguna de estas condiciones, FullCalendar bloquea la reserva con aviso.
+- **Condición de Reserva:** El alumno solo puede reservar si $\text{CapacidadReserva} > 0$ y su vehículo no está en `MANTENIMIENTO` y ha seleccionado una hora que corresponde con la del horario de su profesor. En caso de NO cumplir alguna de estas condiciones, la cuadrícula del calendario bloquea la reserva con aviso.
 - **Deducción Atómica de Clases:** Tras la clase, el profesor cumplimenta ficha técnica (`kmInicio`, `kmFin >= kmInicio`, observaciones pedagógicas). Al registrarla, pasa a `RECIBIDA` y atómicamente se descuenta 1 unidad de saldo (`saldoClases -= 1`) y 1 unidad de pendientes (`clasesReservadasPendientes -= 1`).
 - **Concurrencia en Reservas (First-Come, First-Served):** Restricción única en BD `UNIQUE(profesor_id, fecha_hora)` para clases activas. Ejecución bajo `@Transactional` con bloqueo pesimista o verificación atómica. En colisión, devolver HTTP 409 o feedback reactivo HTMX.
 - **Cancelación de Clases:** Al cancelar una clase `PENDIENTE` (por alumno o profesor), pasa a `CANCELADA` y se decrementa atómicamente `clasesReservadasPendientes -= 1` sin alterar `saldoClases` (restituye de inmediato capacidad de reserva).
@@ -100,11 +100,36 @@
 - **Incompatibilidad de Clases Pendientes con Examen Práctico Citado / Presentado:** Un alumno **NO puede tener clases prácticas pendientes (`EstadoClase.PENDIENTE`) si ya se ha presentado a examen práctico oficial o se encuentra citado formalmente para dicha prueba**. Toda su formación previa debe constar en estado `RECIBIDA` (o `CANCELADA`).
 - **Obligatoriedad de Clases Previas en Examen Práctico:** Un alumno **NUNCA puede ser citado, examinarse ni aprobar un examen práctico oficial DGT sin haber realizado clases prácticas previamente**. Todo examen práctico exige clases en estado `RECIBIDA` previas en fecha.
 
+## 3.6. Cuadrícula Semanal Nativa de Calendario (SSR + Thymeleaf + HTMX)
+- **Prohibición de FullCalendar y Enfoque Tecnológico:** Queda terminantemente prohibido el uso de FullCalendar v6 o cualquier otra librería externa de calendario en el cliente. Todos los calendarios (alumno y profesor) deben implementarse mediante renderizado del lado del servidor (SSR) con Thymeleaf, fragmentos HTMX para la navegación semanal asíncrona, y maquetación nativa CSS Grid/Flexbox con Tailwind CSS.
+- **Estructura Semanal Laboral:** Calendario estrictamente semanal de lunes a viernes (excluyendo sábados y domingos), comenzando obligatoriamente en lunes.
+- **Cabecera y Navegación Unificada:**
+  - Bloque superior con título principal ("Calendario de Prácticas"), subtítulo ("Pulsa sobre cualquier clase para abrir su Ficha Técnica o gestionar su estado") y leyenda de estados mediante píldoras:
+    - *Clase Pendiente:* indicador naranja/ámbar.
+    - *Clase Recibida:* indicador verde esmeralda.
+    - *Clase Cancelada:* indicador gris pizarra (`slate`).
+    - *Examen Oficial DGT:* indicador morado (`violet`/`purple`).
+  - Barra de navegación semanal con botones `<` (semana anterior), `>` (semana siguiente), `Hoy` y rango de fechas visible en el centro (ej. "5 – 9 oct 2026").
+  - Prohibido incluir controles de cambio de vista (sin botones Mes, Semana, Día, Lista), la vista es única y semanal.
+- **Franjas Horarias según Turno del Profesor (Intervalos de 45 min):** La cuadrícula limita sus franjas horarias al turno oficial asignado al profesor:
+  - `MATINAL`: intervalos de 45 minutos de 08:00 a 14:45 (08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00).
+  - `TARDE`: intervalos de 45 minutos de 15:00 a 21:45 (15:00, 15:45, 16:30, 17:15, 18:00, 18:45, 19:30, 20:15, 21:00).
+- **Bloqueo por Jornada de Examen Oficial DGT (Día Completo):** Cuando un profesor tenga asignada una convocatoria o jornada de examen oficial DGT, esta debe indicarse en morado ocupando la jornada completa. Dicho día queda terminantemente bloqueada la reserva de clases prácticas a cualquier hora para ese profesor.
+- **Responsividad y Cohesión UI/UX:** Maquetación 100% responsiva (móvil, tablet, escritorio) con soporte simultáneo de modo claro y oscuro (`dark:`), respetando la estética, tipografía y paleta corporativa de la aplicación.
+- **Celdas y Tarjetas Contenidas:** En cada franja horaria ocupada, la clase se renderiza como una tarjeta redondeada (`rounded-xl` o `rounded-lg`) contenida holgadamente dentro de los límites de la celda (con margen y padding interior, sin desbordar ni ocupar el 100% del recuadro disponible).
+- **Privacidad y Permisos de Interacción por Rol:**
+  - *Calendario del Profesor:* En cada tarjeta de clase ocupada se muestra el nombre y apellidos del alumno. Al pulsar sobre la tarjeta, se abre el modal HTMX con la ficha técnica de la clase práctica con todos sus detalles.
+  - *Calendario del Alumno:* En las tarjetas de clases ocupadas se muestra el texto literal `"Horario Ocupado"` (sin nombre ni identificador de otros alumnos).
+    - Si la clase pertenece al alumno autenticado: la tarjeta es interactiva y al hacer clic se abre el modal HTMX con la ficha técnica / detalles de su clase práctica con posibilidad de cancelar dicha clase.
+    - Si la clase pertenece a otro alumno: la tarjeta es inerte/bloqueada; el alumno NO puede hacer clic sobre ella ni acceder a su información.
+    - Si la celda está libre y el alumno cumple las condiciones de reserva (y no es día de examen DGT): al hacer clic en la celda se abre el modal HTMX para reservar clase práctica.
+
 ---
 
 # 4. Restricciones Técnicas y Anti-Patrones
 
 - **NO Single Page Applications (SPA):** Prohibido React, Angular o Vue. Dinamismo mediante Thymeleaf + HTMX + JS ES6+ nativo.
+- **NO Usar FullCalendar ni Librerías Pesadas de Calendario:** Prohibido el uso de FullCalendar v6 o componentes cliente pesados. Toda la gestión de agendas se realiza mediante cuadrícula nativa SSR con Thymeleaf, fragmentos HTMX y Tailwind CSS Grid/Flexbox, optimizando el rendimiento (Core Web Vitals) y la responsividad total en cualquier dispositivo.
 - **NO Borrado en Cascada Destructivo:** Aplicar siempre borrado lógico (*soft delete*) o transición a `INACTIVO` preservando la integridad referencial histórica.
 - **NO IDs Secuenciales en URLs Críticas:** Usar UUIDs o tokens criptográficos para pagos, activaciones e invitaciones.
 - **Transaccionalidad Estricta (@Transactional):** Obligatoria en compras, deducción de clases y reservas concurrentes.
