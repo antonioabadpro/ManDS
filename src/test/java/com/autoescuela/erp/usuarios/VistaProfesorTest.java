@@ -48,12 +48,24 @@ class VistaProfesorTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")
-    @DisplayName("GET /profesor/calendario renderiza la vista interactiva de calendario")
+    @DisplayName("GET /profesor/calendario renderiza la vista interactiva de calendario con cuadrícula semanal SSR")
     void testCalendarioRenderizado() throws Exception
     {
         this.mockMvc.perform(get("/profesor/calendario"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("profesor/calendario"));
+                .andExpect(view().name("profesor/calendario"))
+                .andExpect(model().attributeExists("calendarioSemanal"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cuadricula devuelve el fragmento HTMX de la cuadrícula semanal")
+    void testCuadriculaCalendarioHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/calendario/cuadricula"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/cuadricula-calendario :: cuadriculaSemanal"))
+                .andExpect(model().attributeExists("calendarioSemanal"));
     }
 
     @Test

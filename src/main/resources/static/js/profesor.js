@@ -100,87 +100,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 3. INTEGRACIÓN CON FULLCALENDAR v6 (AGENDA DOCENTE)
+    // 3. ACTUALIZACIÓN REACTIVA DE LA CUADRÍCULA SEMANAL (HTMX)
     // =========================================================================
-    const calendarEl = document.getElementById('calendario-profesor');
-    if (calendarEl && typeof FullCalendar !== 'undefined') {
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: window.innerWidth < 768 ? 'listDay' : 'timeGridWeek',
-            locale: 'es',
-            firstDay: 1, // Lunes
-            slotMinTime: '07:00:00',
-            slotMaxTime: '22:00:00',
-            allDaySlot: true,
-            allDayText: 'Jornada',
-            slotDuration: '00:30:00',
-            slotLabelInterval: '01:00:00',
-            slotLabelFormat: {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            },
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listDay'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                day: 'Día',
-                list: 'Lista'
-            },
-            navLinks: true,
-            nowIndicator: true,
-            editable: false,
-            events: '/profesor/calendario/eventos',
-            eventClick: function (info) {
-                info.jsEvent.preventDefault();
-                const props = info.event.extendedProps || {};
-
-                // 1. Si es un día de examen DGT bloqueado
-                if (props.tipo === 'EXAMEN_DGT') {
-                    if (window.htmx && props.examenId) {
-                        window.htmx.ajax('GET', '/profesor/examenes/' + props.examenId + '/modal', {
-                            target: '#contenedor-modal',
-                            swap: 'innerHTML'
-                        });
-                        document.body.classList.add('overflow-hidden');
-                    }
-                    return;
-                }
-
-                // 2. Si es una clase práctica: cargar fragmento Thymeleaf con HTMX
-                if (window.htmx && info.event.id) {
-                    window.htmx.ajax('GET', '/profesor/clases/' + info.event.id + '/modal', {
-                        target: '#contenedor-modal',
-                        swap: 'innerHTML'
-                    });
-                    document.body.classList.add('overflow-hidden');
-                }
-            }
-        });
-
-        calendar.render();
-
-        // Escuchar evento emitido desde el servidor por HTMX (HX-Trigger: actualizarCalendario)
-        document.body.addEventListener('actualizarCalendario', () => {
-            document.body.classList.remove('overflow-hidden');
-            if (calendar) {
-                calendar.refetchEvents();
-            }
-        });
-
-        // Reajustar vista según resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth < 768 && calendar.view.type !== 'listDay') {
-                calendar.changeView('listDay');
-            } else if (window.innerWidth >= 768 && calendar.view.type === 'listDay') {
-                calendar.changeView('timeGridWeek');
-            }
-        });
-    }
+    document.body.addEventListener('actualizarCalendario', () => {
+        document.body.classList.remove('overflow-hidden');
+        const modal = document.getElementById('contenedor-modal');
+        if (modal) {
+            modal.innerHTML = '';
+        }
+        const cuadricula = document.getElementById('contenedor-cuadricula-calendario');
+        if (cuadricula && window.htmx) {
+            window.htmx.ajax('GET', '/profesor/calendario/cuadricula', {
+                target: '#contenedor-cuadricula-calendario',
+                swap: 'outerHTML'
+            });
+        }
+    });
 
     // =========================================================================
     // 4. VALIDACIÓN DE REPORTES DOCENTES DE CLASE (kmFin >= kmInicio)

@@ -64,6 +64,8 @@ import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
+import com.autoescuela.erp.practicas.service.CalendarioService;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.service.AlumnoService;
 
@@ -87,6 +89,7 @@ public class ProfesorController
     private final EmailService emailService;
     private final ProfesorMapper profesorMapper;
     private final AlumnoService alumnoService;
+    private final CalendarioService calendarioService;
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
@@ -211,7 +214,7 @@ public class ProfesorController
     // 2. MI CALENDARIO DE PRÁCTICAS
     // =========================================================================
     @GetMapping("/calendario")
-    public String mostrarCalendario(@AuthenticationPrincipal Object principal, Model model)
+    public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
         Profesor profesor = this.obtenerProfesorActual(principal);
         if (profesor == null)
@@ -219,11 +222,62 @@ public class ProfesorController
             return "redirect:/login";
         }
 
+        LocalDate fechaRef = LocalDate.now();
+        if (fechaRefStr != null && !fechaRefStr.isBlank())
+        {
+            try
+            {
+                fechaRef = LocalDate.parse(fechaRefStr);
+            }
+            catch (Exception ignored)
+            {
+                fechaRef = LocalDate.now();
+            }
+        }
+
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
+
         model.addAttribute("profesor", profesor);
         model.addAttribute("vehiculo", profesor.getVehiculo());
         model.addAttribute("completarClaseDTO", new CompletarClaseDTO());
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
 
         return "profesor/calendario";
+    }
+
+    /**
+     * Endpoint HTMX que devuelve exclusivamente el fragmento de la cuadrícula semanal del profesor.
+     */
+    @GetMapping("/calendario/cuadricula")
+    public String obtenerCuadriculaCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Profesor profesor = this.obtenerProfesorActual(principal);
+        if (profesor == null)
+        {
+            return "redirect:/login";
+        }
+
+        LocalDate fechaRef = LocalDate.now();
+        if (fechaRefStr != null && !fechaRefStr.isBlank())
+        {
+            try
+            {
+                fechaRef = LocalDate.parse(fechaRefStr);
+            }
+            catch (Exception ignored)
+            {
+                fechaRef = LocalDate.now();
+            }
+        }
+
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
+
+        model.addAttribute("profesor", profesor);
+        model.addAttribute("vehiculo", profesor.getVehiculo());
+        model.addAttribute("completarClaseDTO", new CompletarClaseDTO());
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
+
+        return "profesor/fragments/cuadricula-calendario :: cuadriculaSemanal";
     }
 
     /**

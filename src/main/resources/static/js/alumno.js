@@ -99,88 +99,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 3. INTEGRACIÓN CON FULLCALENDAR v6 Y HTMX (AGENDA DEL ALUMNO)
+    // 3. ACTUALIZACIÓN REACTIVA DE LA CUADRÍCULA SEMANAL (HTMX)
     // =========================================================================
-    const calendarEl = document.getElementById('calendario-alumno');
-    if (calendarEl && typeof FullCalendar !== 'undefined') {
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: window.innerWidth < 768 ? 'listDay' : 'timeGridWeek',
-            locale: 'es',
-            firstDay: 1, // Lunes
-            slotMinTime: '08:00:00',
-            slotMaxTime: '22:00:00',
-            allDaySlot: false,
-            slotDuration: '00:45:00',
-            slotLabelInterval: '00:45:00',
-            slotLabelFormat: {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            },
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                day: 'Día',
-                list: 'Lista'
-            },
-            navLinks: true,
-            nowIndicator: true,
-            editable: false,
-            events: '/alumno/calendario/eventos',
-            dateClick: function (info) {
-                // Al hacer clic en un día/hora del calendario: cargar modal HTMX para reservar
-                if (window.htmx) {
-                    window.htmx.ajax('GET', '/alumno/clases/reservar-modal?fecha=' + encodeURIComponent(info.dateStr), {
-                        target: '#contenedor-modal',
-                        swap: 'innerHTML'
-                    });
-                    document.body.classList.add('overflow-hidden');
-                }
-            },
-            eventClick: function (info) {
-                info.jsEvent.preventDefault();
-                const props = info.event.extendedProps || {};
-
-                // Si es una clase del propio alumno: abrir modal de detalle / cancelación con HTMX
-                if (window.htmx && info.event.id && props.esPropia) {
-                    window.htmx.ajax('GET', '/alumno/clases/' + info.event.id + '/modal', {
-                        target: '#contenedor-modal',
-                        swap: 'innerHTML'
-                    });
-                    document.body.classList.add('overflow-hidden');
-                }
-            }
-        });
-
-        calendar.render();
-
-        // Escuchar evento emitido desde el servidor por HTMX (HX-Trigger: actualizarCalendario)
-        document.body.addEventListener('actualizarCalendario', () => {
-            document.body.classList.remove('overflow-hidden');
-            const modal = document.getElementById('contenedor-modal');
-            if (modal) {
-                modal.innerHTML = '';
-            }
-            if (calendar) {
-                calendar.refetchEvents();
-            }
-        });
-
-        // Reajustar vista según resize
-        window.addEventListener('resize', () => {
-            if (window.innerWidth < 768 && calendar.view.type !== 'listDay') {
-                calendar.changeView('listDay');
-            } else if (window.innerWidth >= 768 && calendar.view.type === 'listDay') {
-                calendar.changeView('timeGridWeek');
-            }
-        });
-    }
+    document.body.addEventListener('actualizarCalendario', () => {
+        document.body.classList.remove('overflow-hidden');
+        const modal = document.getElementById('contenedor-modal');
+        if (modal) {
+            modal.innerHTML = '';
+        }
+        const cuadricula = document.getElementById('contenedor-cuadricula-calendario');
+        if (cuadricula && window.htmx) {
+            window.htmx.ajax('GET', '/alumno/calendario/cuadricula', {
+                target: '#contenedor-cuadricula-calendario',
+                swap: 'outerHTML'
+            });
+        }
+    });
 
     // =========================================================================
     // 4. CONTROLADOR DE PRECIO DINÁMICO PARA CLASES INDIVIDUALES

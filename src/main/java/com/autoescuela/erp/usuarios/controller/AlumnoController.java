@@ -1,5 +1,6 @@
 package com.autoescuela.erp.usuarios.controller;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -48,10 +49,12 @@ import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.examenes.repository.SolicitudExamenRepository;
+import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
 import com.autoescuela.erp.practicas.dto.EventoCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.service.CalendarioService;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -63,7 +66,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Controlador principal para el Portal del Alumno (ROLE_ALUMNO).
- * Gestiona el cuadro de mando, la reserva y consulta de clases prácticas (HTMX + FullCalendar),
+ * Gestiona el cuadro de mando, la reserva y consulta de clases prácticas (HTMX + Cuadrícula SSR),
  * el expediente de convocatorias y exámenes DGT, la adquisición de saldo y el perfil.
  */
 @Controller
@@ -80,6 +83,7 @@ public class AlumnoController
     private final PasswordEncoder passwordEncoder;
     private final PagoStripeService pagoStripeService;
     private final AlumnoMapper alumnoMapper;
+    private final CalendarioService calendarioService;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -213,7 +217,7 @@ public class AlumnoController
     // 2. CALENDARIO Y RESERVAS DE PRÁCTICAS (HTMX + FullCalendar v6)
     // =========================================================================
     @GetMapping("/calendario")
-    public String mostrarCalendario(@AuthenticationPrincipal Object principal, Model model)
+    public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -221,17 +225,72 @@ public class AlumnoController
             return "redirect:/login";
         }
 
+        LocalDate fechaRef = LocalDate.now();
+        if (fechaRefStr != null && !fechaRefStr.isBlank())
+        {
+            try
+            {
+                fechaRef = LocalDate.parse(fechaRefStr);
+            }
+            catch (Exception ignored)
+            {
+                fechaRef = LocalDate.now();
+            }
+        }
+
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
         int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("profesor", alumno.getProfesor());
         model.addAttribute("clasesReservadas", clasesReservadas);
         model.addAttribute("capacidadReserva", capacidadReserva);
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
 
         return "alumno/calendario";
+    }
+
+    /**
+     * Endpoint HTMX que devuelve exclusivamente el fragmento de la cuadrícula semanal del alumno.
+     */
+    @GetMapping("/calendario/cuadricula")
+    public String obtenerCuadriculaCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return "redirect:/login";
+        }
+
+        LocalDate fechaRef = LocalDate.now();
+        if (fechaRefStr != null && !fechaRefStr.isBlank())
+        {
+            try
+            {
+                fechaRef = LocalDate.parse(fechaRefStr);
+            }
+            catch (Exception ignored)
+            {
+                fechaRef = LocalDate.now();
+            }
+        }
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
+
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("matricula", matricula);
+        model.addAttribute("profesor", alumno.getProfesor());
+        model.addAttribute("clasesReservadas", clasesReservadas);
+        model.addAttribute("capacidadReserva", capacidadReserva);
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
+
+        return "alumno/fragments/cuadricula-calendario :: cuadriculaSemanal";
     }
 
     /**
