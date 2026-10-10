@@ -40,7 +40,7 @@
 
         <!-- Indicador de Turno Oficial -->
         <div class="flex items-center space-x-2 shrink-0">
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${'Turno: ' + calendarioSemanal.turno.name()}">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wider" th:classappend="${profesor?.turno?.name() == 'TARDE'} ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800'" th:text="${profesor?.turno?.name() == 'TARDE' ? 'Turno: TARDE' : 'Turno: MATINAL'}">
                 Turno: MATINAL
             </span>
         </div>

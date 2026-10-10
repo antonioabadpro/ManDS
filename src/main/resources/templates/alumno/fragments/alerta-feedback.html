@@ -7,18 +7,18 @@
     <!-- FRAGMENTO: Feedback OOB tras acción exitosa por HTMX                      -->
     <!-- ========================================================================= -->
     <div th:fragment="feedbackExito">
-        <!-- Actualización Out-Of-Band del contenedor de alertas superior -->
-        <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200 shadow-sm animate-fade-in">
+        <!-- Actualización Out-Of-Band del contenedor de alertas superior en página principal -->
+        <div th:if="${mensajeExito}" id="contenedor-alertas" hx-swap-oob="innerHTML" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200 shadow-sm animate-fade-in">
             <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
         </div>
-        <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200 shadow-sm animate-fade-in">
-            <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div th:if="${error}" class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-2 text-rose-800 dark:text-rose-200 shadow-sm text-xs animate-fade-in">
+            <svg class="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            <div class="flex-1 font-medium" th:text="${error}"></div>
         </div>
 
         <!-- Actualización Out-Of-Band de la Capacidad de Reserva en calendario -->
