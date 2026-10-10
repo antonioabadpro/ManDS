@@ -60,100 +60,22 @@ public class CalendarioService
         TipoTurno turno = (profesor != null && profesor.getTurno() != null) ? profesor.getTurno() : TipoTurno.MATINAL;
         List<TramoHorarioDTO> tramos = this.generarTramos(turno);
 
-        // Consultar exámenes oficiales del profesor para detectar jornadas DGT completas
-        List<Examen> examenesDgt = (profesor != null)
-                ? this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor)
-                : new ArrayList<>();
+        Set<LocalDate> diasConExamenDgt = this.obtenerDiasConExamenDgt(profesor);
 
-        Set<LocalDate> diasConExamenDgt = new HashSet<>();
-        for (Examen examen : examenesDgt)
-        {
-            if (examen.getFechaHora() != null)
-            {
-                diasConExamenDgt.add(examen.getFechaHora().toLocalDate());
-            }
-        }
-
-        // Consultar clases prácticas del profesor
         List<ClasePractica> clases = (profesor != null)
                 ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
                 : new ArrayList<>();
 
-        // Construir los 5 días de lunes a viernes
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy);
 
-        // Construir las 9 filas de tramos de 45 min
         List<FilaCalendarioDTO> filas = new ArrayList<>();
         for (TramoHorarioDTO tramo : tramos)
         {
             List<CeldaCalendarioDTO> celdas = new ArrayList<>();
             for (DiaCalendarioDTO dia : dias)
             {
-                LocalDateTime fechaHora = dia.fecha().atTime(tramo.horaInicio());
                 boolean esExamenDgt = diasConExamenDgt.contains(dia.fecha());
-
-                if (esExamenDgt)
-                {
-                    celdas.add(new CeldaCalendarioDTO(
-                            dia.fecha(),
-                            tramo.horaInicio(),
-                            tramo.horaFin(),
-                            fechaHora,
-                            true,
-                            true,
-                            "EXAMEN_DGT",
-                            null,
-                            "Jornada Examen Oficial DGT",
-                            "Convocatoria Oficial DGT",
-                            false,
-                            false,
-                            null
-                    ));
-                    continue;
-                }
-
-                ClasePractica claseEnSlot = this.buscarClaseEnSlot(clases, dia.fecha(), tramo.horaInicio());
-                if (claseEnSlot != null)
-                {
-                    String nombreAlumno = (claseEnSlot.getAlumno() != null)
-                            ? claseEnSlot.getAlumno().getNombre() + " " + claseEnSlot.getAlumno().getApellidos()
-                            : "Alumno";
-                    String subtitulo = this.obtenerSubtituloEstado(claseEnSlot.getEstadoClase());
-
-                    celdas.add(new CeldaCalendarioDTO(
-                            dia.fecha(),
-                            tramo.horaInicio(),
-                            tramo.horaFin(),
-                            fechaHora,
-                            true,
-                            false,
-                            claseEnSlot.getEstadoClase().name(),
-                            claseEnSlot.getId(),
-                            nombreAlumno,
-                            subtitulo,
-                            true,
-                            true,
-                            "/profesor/clases/" + claseEnSlot.getId() + "/modal"
-                    ));
-                }
-                else
-                {
-                    celdas.add(new CeldaCalendarioDTO(
-                            dia.fecha(),
-                            tramo.horaInicio(),
-                            tramo.horaFin(),
-                            fechaHora,
-                            false,
-                            false,
-                            "LIBRE",
-                            null,
-                            "Libre",
-                            "Disponible",
-                            false,
-                            false,
-                            null
-                    ));
-                }
+                celdas.add(this.construirCeldaProfesor(dia, tramo, esExamenDgt, clases));
             }
             filas.add(new FilaCalendarioDTO(tramo, celdas));
         }
@@ -195,7 +117,7 @@ public class CalendarioService
 
         List<TramoHorarioDTO> tramos = this.generarTramos(turno);
 
-        // Control de capacidad de reserva y vehículo
+        // Control de capacidad de reserva y estado del vehículo
         Matricula matricula = (alumno != null)
                 ? this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null)
                 : null;
@@ -209,143 +131,25 @@ public class CalendarioService
         boolean vehiculoEnMantenimiento = (vehiculo != null && vehiculo.getEstado() == EstadoVehiculo.MANTENIMIENTO);
 
         boolean puedeReservar = tieneProfesorAsignado && !vehiculoEnMantenimiento && (capacidadReserva > 0);
-        String motivoBloqueoReserva = null;
-        if (!tieneProfesorAsignado)
-        {
-            motivoBloqueoReserva = "No tienes profesor asignado actualmente.";
-        }
-        else if (vehiculoEnMantenimiento)
-        {
-            motivoBloqueoReserva = "El vehículo de tu profesor está en mantenimiento.";
-        }
-        else if (capacidadReserva <= 0)
-        {
-            motivoBloqueoReserva = "No dispones de capacidad de reserva (saldo de clases agotado o reservado).";
-        }
+        String motivoBloqueoReserva = this.obtenerMotivoBloqueoReserva(tieneProfesorAsignado, vehiculoEnMantenimiento, capacidadReserva);
 
-        // Consultar exámenes DGT del profesor tutor
-        List<Examen> examenesDgt = (profesor != null)
-                ? this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor)
-                : new ArrayList<>();
+        Set<LocalDate> diasConExamenDgt = this.obtenerDiasConExamenDgt(profesor);
 
-        Set<LocalDate> diasConExamenDgt = new HashSet<>();
-        for (Examen examen : examenesDgt)
-        {
-            if (examen.getFechaHora() != null)
-            {
-                diasConExamenDgt.add(examen.getFechaHora().toLocalDate());
-            }
-        }
-
-        // Consultar clases prácticas del profesor
         List<ClasePractica> clasesProfesor = (profesor != null)
                 ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
                 : new ArrayList<>();
 
-        // Construir los 5 días de lunes a viernes
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy);
-
         LocalDateTime ahora = LocalDateTime.now();
 
-        // Construir las 9 filas
         List<FilaCalendarioDTO> filas = new ArrayList<>();
         for (TramoHorarioDTO tramo : tramos)
         {
             List<CeldaCalendarioDTO> celdas = new ArrayList<>();
             for (DiaCalendarioDTO dia : dias)
             {
-                LocalDateTime fechaHora = dia.fecha().atTime(tramo.horaInicio());
                 boolean esExamenDgt = diasConExamenDgt.contains(dia.fecha());
-
-                if (esExamenDgt)
-                {
-                    celdas.add(new CeldaCalendarioDTO(
-                            dia.fecha(),
-                            tramo.horaInicio(),
-                            tramo.horaFin(),
-                            fechaHora,
-                            true,
-                            true,
-                            "EXAMEN_DGT",
-                            null,
-                            "Jornada Examen Oficial DGT",
-                            "Convocatoria Oficial DGT (Bloqueado)",
-                            false,
-                            false,
-                            null
-                    ));
-                    continue;
-                }
-
-                ClasePractica claseEnSlot = this.buscarClaseEnSlot(clasesProfesor, dia.fecha(), tramo.horaInicio());
-                if (claseEnSlot != null)
-                {
-                    boolean esPropia = (alumno != null && claseEnSlot.getAlumno() != null
-                            && claseEnSlot.getAlumno().getId().equals(alumno.getId()));
-                    String subtitulo = this.obtenerSubtituloEstado(claseEnSlot.getEstadoClase());
-
-                    if (esPropia)
-                    {
-                        celdas.add(new CeldaCalendarioDTO(
-                                dia.fecha(),
-                                tramo.horaInicio(),
-                                tramo.horaFin(),
-                                fechaHora,
-                                true,
-                                false,
-                                claseEnSlot.getEstadoClase().name(),
-                                claseEnSlot.getId(),
-                                "Clase Práctica",
-                                subtitulo,
-                                true,
-                                true,
-                                "/alumno/clases/" + claseEnSlot.getId() + "/modal"
-                        ));
-                    }
-                    else
-                    {
-                        // Si pertenece a otro alumno: no interactivo, anonimizado
-                        celdas.add(new CeldaCalendarioDTO(
-                                dia.fecha(),
-                                tramo.horaInicio(),
-                                tramo.horaFin(),
-                                fechaHora,
-                                true,
-                                false,
-                                "OCUPADO",
-                                null,
-                                "Clase Práctica",
-                                "Horario Ocupado",
-                                false,
-                                false,
-                                null
-                        ));
-                    }
-                }
-                else
-                {
-                    boolean esFuturo = fechaHora.isAfter(ahora);
-                    boolean slotHabilitadoReserva = puedeReservar && esFuturo;
-                    String modalUrl = slotHabilitadoReserva
-                            ? "/alumno/clases/reservar-modal?fecha=" + fechaHora.toString()
-                            : null;
-
-                    celdas.add(new CeldaCalendarioDTO(
-                            dia.fecha(),
-                            tramo.horaInicio(),
-                            tramo.horaFin(),
-                            fechaHora,
-                            false,
-                            false,
-                            "LIBRE",
-                            null,
-                            slotHabilitadoReserva ? "Reservar" : "Libre",
-                            slotHabilitadoReserva ? "Disponible para reserva" : "No disponible",
-                            false,
-                            slotHabilitadoReserva,
-                            modalUrl
-                    ));
-                }
+                celdas.add(this.construirCeldaAlumno(dia, tramo, esExamenDgt, clasesProfesor, alumno, puedeReservar, ahora));
             }
             filas.add(new FilaCalendarioDTO(tramo, celdas));
         }
@@ -371,9 +175,124 @@ public class CalendarioService
     }
 
     /**
+     * Resuelve y retorna los días que contienen convocatorias oficiales DGT para el profesor.
+     */
+    private Set<LocalDate> obtenerDiasConExamenDgt(Profesor profesor)
+    {
+        if (profesor == null)
+        {
+            return new HashSet<>();
+        }
+
+        List<Examen> examenesDgt = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        Set<LocalDate> diasConExamenDgt = new HashSet<>();
+        for (Examen examen : examenesDgt)
+        {
+            if (examen.getFechaHora() != null)
+            {
+                diasConExamenDgt.add(examen.getFechaHora().toLocalDate());
+            }
+        }
+        return diasConExamenDgt;
+    }
+
+    /**
+     * Construye la celda individual para la cuadrícula del profesor.
+     */
+    private CeldaCalendarioDTO construirCeldaProfesor(DiaCalendarioDTO dia, TramoHorarioDTO tramo, boolean esExamenDgt, List<ClasePractica> clases)
+    {
+        LocalDateTime fechaHora = dia.fecha().atTime(tramo.horaInicio());
+
+        if (esExamenDgt)
+        {
+            return CeldaCalendarioDTO.deExamenDgt(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, "Convocatoria Oficial DGT");
+        }
+
+        ClasePractica claseEnSlot = this.buscarClaseEnSlot(clases, dia.fecha(), tramo.horaInicio());
+        if (claseEnSlot != null)
+        {
+            String nombreAlumno = (claseEnSlot.getAlumno() != null)
+                    ? claseEnSlot.getAlumno().getNombre() + " " + claseEnSlot.getAlumno().getApellidos()
+                    : "Alumno";
+            String subtitulo = this.obtenerSubtituloEstado(claseEnSlot.getEstadoClase());
+
+            return CeldaCalendarioDTO.deOcupadaProfesor(
+                    dia.fecha(),
+                    tramo.horaInicio(),
+                    tramo.horaFin(),
+                    fechaHora,
+                    claseEnSlot.getId(),
+                    claseEnSlot.getEstadoClase().name(),
+                    nombreAlumno,
+                    subtitulo
+            );
+        }
+
+        return CeldaCalendarioDTO.deLibreProfesor(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
+    }
+
+    /**
+     * Construye la celda individual para la cuadrícula del alumno aplicando RGPD y validación de reserva.
+     */
+    private CeldaCalendarioDTO construirCeldaAlumno(DiaCalendarioDTO dia, TramoHorarioDTO tramo, boolean esExamenDgt, List<ClasePractica> clasesProfesor, Alumno alumno, boolean puedeReservar, LocalDateTime ahora)
+    {
+        LocalDateTime fechaHora = dia.fecha().atTime(tramo.horaInicio());
+
+        if (esExamenDgt)
+        {
+            return CeldaCalendarioDTO.deExamenDgt(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, "Convocatoria Oficial DGT (Bloqueado)");
+        }
+
+        ClasePractica claseEnSlot = this.buscarClaseEnSlot(clasesProfesor, dia.fecha(), tramo.horaInicio());
+        if (claseEnSlot != null)
+        {
+            boolean esPropia = (alumno != null && claseEnSlot.getAlumno() != null
+                    && claseEnSlot.getAlumno().getId().equals(alumno.getId()));
+            String subtitulo = this.obtenerSubtituloEstado(claseEnSlot.getEstadoClase());
+
+            if (esPropia)
+            {
+                return CeldaCalendarioDTO.dePropiaAlumno(
+                        dia.fecha(),
+                        tramo.horaInicio(),
+                        tramo.horaFin(),
+                        fechaHora,
+                        claseEnSlot.getId(),
+                        claseEnSlot.getEstadoClase().name(),
+                        subtitulo
+                );
+            }
+
+            return CeldaCalendarioDTO.deOcupadaAjenaAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
+        }
+
+        return CeldaCalendarioDTO.deLibreAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, puedeReservar, ahora);
+    }
+
+    /**
+     * Determina el mensaje explicativo en caso de bloqueo para realizar reservas.
+     */
+    private String obtenerMotivoBloqueoReserva(boolean tieneProfesorAsignado, boolean vehiculoEnMantenimiento, int capacidadReserva)
+    {
+        if (!tieneProfesorAsignado)
+        {
+            return "No tienes profesor asignado actualmente.";
+        }
+        if (vehiculoEnMantenimiento)
+        {
+            return "El vehículo de tu profesor está en mantenimiento.";
+        }
+        if (capacidadReserva <= 0)
+        {
+            return "No dispones de capacidad de reserva (saldo de clases agotado o reservado).";
+        }
+        return null;
+    }
+
+    /**
      * Genera los 9 tramos fijos de 45 minutos delimitados por el turno del profesor.
      */
-    public List<TramoHorarioDTO> generarTramos(TipoTurno turno)
+    private List<TramoHorarioDTO> generarTramos(TipoTurno turno)
     {
         List<TramoHorarioDTO> tramos = new ArrayList<>();
         LocalTime horaBase = (turno == TipoTurno.TARDE) ? LocalTime.of(15, 0) : LocalTime.of(8, 0);
@@ -452,15 +371,19 @@ public class CalendarioService
         {
             return "Clase Recibida";
         }
-        else if (estado == EstadoClase.CANCELADA)
+        else
         {
-            return "Clase Cancelada";
+            if (estado == EstadoClase.CANCELADA)
+            {
+                return "Clase Cancelada";
+            }
         }
         return "Clase Pendiente";
     }
 
     /**
      * Formatea el rango visible central de la semana (ej. "5 – 9 oct 2026").
+     * Tiene en cuenta la posibilidad de que en la misma semana (lunes - viernes) incluyan fechas de meses o años distintos.
      */
     private String formatearRangoFechas(LocalDate lunes, LocalDate viernes)
     {
@@ -469,18 +392,20 @@ public class CalendarioService
         String mesLunes = lunes.format(mesFormat).replace(".", "");
         String mesViernes = viernes.format(mesFormat).replace(".", "");
 
+        // Si el lunes y viernes son del mismo año, se muestra "5 – 9 oct 2026"
         if (lunes.getYear() == viernes.getYear())
         {
+            // Si el lunes y viernes son del mismo mes, se muestra "5 – 9 oct 2026"
             if (lunes.getMonth() == viernes.getMonth())
             {
                 return lunes.getDayOfMonth() + " – " + viernes.getDayOfMonth() + " " + mesViernes + " " + lunes.getYear();
             }
-            else
+            else // Si el lunes y viernes son de meses distintos, se muestra "30 sep – 4 oct 2026"
             {
                 return lunes.getDayOfMonth() + " " + mesLunes + " – " + viernes.getDayOfMonth() + " " + mesViernes + " " + lunes.getYear();
             }
         }
-        else
+        else // Si el lunes y viernes son de años distintos, se muestra "30 dic 2026 – 4 ene 2027"
         {
             return lunes.getDayOfMonth() + " " + mesLunes + " " + lunes.getYear() + " – " + viernes.getDayOfMonth() + " " + mesViernes + " " + viernes.getYear();
         }
