@@ -292,7 +292,7 @@ public class CalendarioService
     /**
      * Genera los 9 tramos fijos de 45 minutos delimitados por el turno del profesor.
      */
-    private List<TramoHorarioDTO> generarTramos(TipoTurno turno)
+    List<TramoHorarioDTO> generarTramos(TipoTurno turno)
     {
         List<TramoHorarioDTO> tramos = new ArrayList<>();
         LocalTime horaBase = (turno == TipoTurno.TARDE) ? LocalTime.of(15, 0) : LocalTime.of(8, 0);
