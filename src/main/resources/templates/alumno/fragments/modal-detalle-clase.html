@@ -89,14 +89,14 @@
 
             <!-- Acciones y Cancelación -->
             <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button type="button" onclick="document.getElementById('contenedor-modal').innerHTML = ''; document.body.classList.remove('overflow-hidden');" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <button type="button" onclick="document.getElementById('contenedor-modal').innerHTML = ''; document.body.classList.remove('overflow-hidden');" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                     Cerrar
                 </button>
 
                 <!-- Botón Cancelar Clase (Solo si está PENDIENTE) -->
                 <form th:if="${clase.estadoClase.name() == 'PENDIENTE'}" hx-post="/alumno/clases/cancelar" hx-target="#contenedor-alertas" hx-swap="innerHTML">
                     <input type="hidden" name="claseId" th:value="${clase.id}" />
-                    <button type="submit" onclick="return confirm('¿Seguro que deseas cancelar esta reserva de clase práctica?');" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/50 transition">
+                    <button type="submit" onclick="return confirm('¿Seguro que deseas cancelar esta reserva de clase práctica?');" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 shadow-sm shadow-rose-600/20 transition cursor-pointer">
                         Cancelar Reserva
                     </button>
                 </form>
