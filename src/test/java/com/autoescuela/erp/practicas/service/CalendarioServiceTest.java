@@ -3,6 +3,7 @@ package com.autoescuela.erp.practicas.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -188,5 +189,51 @@ class CalendarioServiceTest
         assertThat(celdaAjena.esPropia()).isFalse();
         assertThat(celdaAjena.esClicable()).isFalse();
         assertThat(celdaAjena.modalUrl()).isNull();
+    }
+
+    @Test
+    @DisplayName("obtenerCalendarioAlumno omite clases CANCELADA y muestra el tramo como LIBRE y reservable")
+    void testClasesCanceladasNoBloqueanCalendarioYSeMuestranLibres()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        profesor.setVehiculo(vehiculo);
+
+        Alumno alumnoActual = new Alumno();
+        ReflectionTestUtils.setField(alumnoActual, "id", 201L);
+        alumnoActual.setNombre("Carlos");
+        alumnoActual.setProfesor(profesor);
+
+        LocalDate lunes = LocalDate.now().plusWeeks(1).with(DayOfWeek.MONDAY);
+
+        // Clase previa CANCELADA en lunes a las 08:00
+        ClasePractica claseCancelada = new ClasePractica();
+        ReflectionTestUtils.setField(claseCancelada, "id", 99L);
+        claseCancelada.setAlumno(alumnoActual);
+        claseCancelada.setProfesor(profesor);
+        claseCancelada.setFechaHora(lunes.atTime(8, 0));
+        claseCancelada.setEstadoClase(EstadoClase.CANCELADA);
+
+        Matricula matricula = new Matricula();
+        matricula.setSaldoClases(5);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumnoActual))
+                .thenReturn(Optional.of(matricula));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumnoActual, EstadoClase.PENDIENTE))
+                .thenReturn(0);
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of(claseCancelada));
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumnoActual, lunes);
+
+        // La celda (Fila 0, Día 0) no debe estar ocupada, sino libre y clicable para reservar
+        CeldaCalendarioDTO celdaLiberada = resultado.filas().get(0).celdas().get(0);
+        assertThat(celdaLiberada.ocupada()).isFalse();
+        assertThat(celdaLiberada.estado()).isEqualTo("LIBRE");
+        assertThat(celdaLiberada.esClicable()).isTrue();
     }
 }

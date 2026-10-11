@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <!-- Fragmento Cuadrícula Semanal del Alumno (SSR + HTMX) -->
-<div id="contenedor-cuadricula-calendario" th:fragment="cuadriculaSemanal" class="space-y-4">
+<div id="contenedor-cuadricula-calendario" th:fragment="cuadriculaSemanal" class="space-y-4" hx-trigger="actualizarCalendario from:body" th:attr="hx-get=@{/alumno/calendario/cuadricula(fechaRef=${calendarioSemanal.fechaInicio})}" hx-target="#contenedor-cuadricula-calendario" hx-swap="outerHTML">
 
     <!-- Alerta si no tiene profesor asignado o vehículo en mantenimiento -->
     <div th:if="${!calendarioSemanal.tieneProfesorAsignado}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 flex items-start space-x-3 text-amber-800 dark:text-amber-200 text-xs sm:text-sm">

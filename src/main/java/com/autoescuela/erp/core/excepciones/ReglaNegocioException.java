@@ -10,4 +10,9 @@ public class ReglaNegocioException extends RuntimeException
     {
         super(mensaje);
     }
+
+    public ReglaNegocioException(String mensaje, Throwable causa)
+    {
+        super(mensaje, causa);
+    }
 }

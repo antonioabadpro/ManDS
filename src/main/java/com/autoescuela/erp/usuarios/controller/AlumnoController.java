@@ -55,6 +55,7 @@ import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.practicas.service.CalendarioService;
+import com.autoescuela.erp.practicas.service.ClasePracticaService;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -84,6 +85,7 @@ public class AlumnoController
     private final PagoStripeService pagoStripeService;
     private final AlumnoMapper alumnoMapper;
     private final CalendarioService calendarioService;
+    private final ClasePracticaService clasePracticaService;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -580,38 +582,23 @@ public class AlumnoController
                 return "redirect:/alumno/calendario";
             }
         }
-
-        // Control de Colisión / Concurrencia de Horario (Regla 7.4)
-        boolean tramoOcupado = this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(profesor, dto.fechaHora(), EstadoClase.CANCELADA);
-        if (tramoOcupado)
+        // Delegación transaccional con control de concurrencia First-Come, First-Served
+        try
         {
-            String error = "El tramo horario seleccionado ya se encuentra ocupado con tu profesor. Por favor, selecciona otro horario.";
+            this.clasePracticaService.reservarClase(alumno, profesor, dto);
+        }
+        catch (ReglaNegocioException ex)
+        {
+            String error = ex.getMessage();
             if (hxRequest != null)
             {
+                response.setHeader("HX-Trigger", "actualizarCalendario");
                 model.addAttribute("error", error);
                 return "alumno/fragments/alerta-feedback :: feedbackExito";
             }
             redirectAttributes.addFlashAttribute("error", error);
             return "redirect:/alumno/calendario";
         }
-
-        // Crear la nueva Clase Práctica
-        ClasePractica nuevaClase = new ClasePractica();
-        nuevaClase.setAlumno(alumno);
-        nuevaClase.setProfesor(profesor);
-        nuevaClase.setFechaHora(dto.fechaHora());
-        nuevaClase.setDuracion(dto.duracion() != null ? dto.duracion() : 45);
-        nuevaClase.setPuntoRecogida(dto.puntoRecogida().trim());
-        nuevaClase.setObservaciones(dto.observaciones() != null ? dto.observaciones().trim() : "");
-        nuevaClase.setEstadoClase(EstadoClase.PENDIENTE);
-
-        int kmActual = (profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null)
-                ? profesor.getVehiculo().getKm().intValue()
-                : 0;
-        nuevaClase.setKmInicio(kmActual);
-        nuevaClase.setKmFin(kmActual);
-
-        this.clasePracticaRepository.save(nuevaClase);
 
         String mensajeExito = "¡Clase práctica reservada correctamente para el " +
                 dto.fechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "! Consulta tu agenda.";

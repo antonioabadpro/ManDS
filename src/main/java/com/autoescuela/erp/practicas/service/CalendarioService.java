@@ -347,7 +347,7 @@ public class CalendarioService
     {
         for (ClasePractica clase : clases)
         {
-            if (clase.getFechaHora() != null)
+            if (clase.getFechaHora() != null && clase.getEstadoClase() != EstadoClase.CANCELADA)
             {
                 LocalDate fechaClase = clase.getFechaHora().toLocalDate();
                 LocalTime horaClase = clase.getFechaHora().toLocalTime();

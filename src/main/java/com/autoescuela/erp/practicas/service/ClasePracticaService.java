@@ -1,6 +1,71 @@
 package com.autoescuela.erp.practicas.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
+import com.autoescuela.erp.practicas.model.ClasePractica;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.model.Profesor;
+
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Servicio del dominio para la gestión del ciclo de vida y reservas de clases prácticas.
+ * Aplica control de concurrencia First-Come, First-Served con doble barrera defensiva
+ * (lógica atómica en repositorio y captura de colisión en base de datos).
+ */
+@Service
+@RequiredArgsConstructor
 public class ClasePracticaService
 {
+    private final ClasePracticaRepository clasePracticaRepository;
 
+    /**
+     * Procesa la reserva transaccional de una clase práctica aplicando el algoritmo First-Come, First-Served.
+     *
+     * @param alumno   Alumno solicitante
+     * @param profesor Profesor asignado al alumno
+     * @param dto      Datos de la reserva (fecha, tramo, duración, punto de recogida, observaciones)
+     * @return ClasePractica persistida en estado PENDIENTE
+     * @throws ReglaNegocioException si la franja horaria ya está ocupada o colisiona concurrentemente
+     */
+    @Transactional
+    public ClasePractica reservarClase(Alumno alumno, Profesor profesor, ReservaClasePracticaDTO dto)
+    {
+        // Implementamos la Barrera Lógica: comprobación preventiva de solapamiento
+        boolean tramoOcupado = this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(profesor, dto.fechaHora(), EstadoClase.CANCELADA);
+        if (tramoOcupado)
+        {
+            throw new ReglaNegocioException("El tramo horario seleccionado ya se encuentra ocupado con tu profesor. Por favor, selecciona otro horario.");
+        }
+
+        // Construimos la entidad
+        ClasePractica nuevaClase = new ClasePractica();
+        nuevaClase.setAlumno(alumno);
+        nuevaClase.setProfesor(profesor);
+        nuevaClase.setFechaHora(dto.fechaHora());
+        nuevaClase.setDuracion(dto.duracion() != null ? dto.duracion() : 45);
+        nuevaClase.setPuntoRecogida(dto.puntoRecogida() != null ? dto.puntoRecogida().trim() : "");
+        nuevaClase.setObservaciones(dto.observaciones() != null ? dto.observaciones().trim() : "");
+        nuevaClase.setEstadoClase(EstadoClase.PENDIENTE);
+
+        int kmActual = (profesor != null && profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null) ? profesor.getVehiculo().getKm().intValue() : 0;
+        nuevaClase.setKmInicio(kmActual);
+        nuevaClase.setKmFin(kmActual);
+
+        // Implementamos la Barrera Física: persistencia atómica con flush forzado y captura de colisiones concurrentes
+        try
+        {
+            return this.clasePracticaRepository.saveAndFlush(nuevaClase);
+        }
+        catch (DataIntegrityViolationException ex)
+        {
+            throw new ReglaNegocioException("El tramo horario seleccionado acaba de ser reservado por otro alumno. Por favor, selecciona otro horario libre.", ex);
+        }
+    }
 }

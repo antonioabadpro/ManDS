@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <!-- Fragmento Cuadrícula Semanal del Profesor (SSR + HTMX) -->
-<div id="contenedor-cuadricula-calendario" th:fragment="cuadriculaSemanal" class="space-y-4">
+<div id="contenedor-cuadricula-calendario" th:fragment="cuadriculaSemanal" class="space-y-4" hx-trigger="actualizarCalendario from:body" th:attr="hx-get=@{/profesor/calendario/cuadricula(fechaRef=${calendarioSemanal.fechaInicio})}" hx-target="#contenedor-cuadricula-calendario" hx-swap="outerHTML">
 
     <!-- Cabecera de Navegación Semanal -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pb-2">

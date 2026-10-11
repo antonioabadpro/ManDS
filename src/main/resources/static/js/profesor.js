@@ -108,13 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) {
             modal.innerHTML = '';
         }
-        const cuadricula = document.getElementById('contenedor-cuadricula-calendario');
-        if (cuadricula && window.htmx) {
-            window.htmx.ajax('GET', '/profesor/calendario/cuadricula', {
-                target: '#contenedor-cuadricula-calendario',
-                swap: 'outerHTML'
-            });
-        }
     });
 
     // =========================================================================
