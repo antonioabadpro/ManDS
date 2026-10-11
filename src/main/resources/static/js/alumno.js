@@ -84,10 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     document.querySelectorAll('input[data-table-search]').forEach(input => {
         const tableId = input.getAttribute('data-table-search');
-        const table = document.getElementById(tableId);
-        if (!table) return;
+        if (!tableId) return;
 
         input.addEventListener('input', () => {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
             const termino = input.value.toLowerCase().trim();
             const filas = table.querySelectorAll('tbody tr');
 

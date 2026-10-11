@@ -689,7 +689,7 @@ public class AlumnoController
     // 3. HISTORIAL DE CLASES PRÁCTICAS
     // =========================================================================
     @GetMapping("/clases")
-    public String mostrarHistorialClases(@AuthenticationPrincipal Object principal, Model model)
+    public String mostrarHistorialClases(@AuthenticationPrincipal Object principal, @RequestHeader(value = "HX-Request", required = false) String hxRequest, Model model)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -700,6 +700,11 @@ public class AlumnoController
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
         model.addAttribute("clases", clases);
         model.addAttribute("totalClases", clases.size());
+
+        if (hxRequest != null)
+        {
+            return "alumno/clases :: tablaHistorialClases";
+        }
 
         return "alumno/clases";
     }

@@ -248,15 +248,15 @@
                                 <td class="py-3 px-4" th:text="${clase.duracion + ' min'}"></td>
                                 <td class="py-3 px-4">
                                     <!-- Estado de Clase: PENDIENTE -->
-                                    <span th:if="${clase.estadoClase.name() == 'PENDIENTE'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <span th:if="${clase.estadoClase.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                         PENDIENTE
                                     </span>
                                     <!-- Estado de Clase: RECIBIDA -->
-                                    <span th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <span th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                         RECIBIDA
                                     </span>
                                     <!-- Estado de Clase: CANCELADA -->
-                                    <span th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                    <span th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                                         CANCELADA
                                     </span>
                                 </td>

@@ -350,9 +350,9 @@
                                     <td class="py-3 px-3" th:text="${c.profesor?.nombre + ' ' + c.profesor?.apellidos} ?: 'No asignado'"></td>
                                     <td class="py-3 px-3 truncate max-w-[160px]" th:text="${c.puntoRecogida}"></td>
                                     <td class="py-3 px-3">
-                                        <span th:if="${c.estadoClase.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">PENDIENTE</span>
-                                        <span th:if="${c.estadoClase.name() == 'RECIBIDA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">RECIBIDA</span>
-                                        <span th:if="${c.estadoClase.name() == 'CANCELADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">CANCELADA</span>
+                                        <span th:if="${c.estadoClase.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">PENDIENTE</span>
+                                        <span th:if="${c.estadoClase.name() == 'RECIBIDA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">RECIBIDA</span>
+                                        <span th:if="${c.estadoClase.name() == 'CANCELADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">CANCELADA</span>
                                     </td>
                                     <td class="py-3 px-3 text-right">
                                         <button type="button" th:attr="hx-get=@{/alumno/clases/{id}/modal(id=${c.id})}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-semibold">Ver</button>
