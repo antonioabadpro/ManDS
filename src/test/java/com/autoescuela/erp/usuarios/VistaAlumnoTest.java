@@ -307,7 +307,32 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/estadisticas"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/estadisticas"));
+                .andExpect(view().name("alumno/estadisticas"))
+                .andExpect(model().attributeExists("estadisticas", "totalMatriculas", "totalClasesContratadas"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("GET /alumno/estadisticas para alumno con matrícula renovada computa 500 € en cuota de matrícula")
+    void testEstadisticasAlumnoMatriculaRenovadaComputa500Euros() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/estadisticas"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/estadisticas"))
+                .andExpect(model().attribute("totalMatriculas", 500.0))
+                .andExpect(model().attributeExists("estadisticas"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("GET /alumno/estadisticas con petición HTMX devuelve el fragmento contenedorEstadisticas y 500 € de matrícula")
+    void testEstadisticasFragmentoHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/estadisticas")
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/estadisticas :: contenedorEstadisticas"))
+                .andExpect(model().attribute("totalMatriculas", 500.0));
     }
 
     @Test

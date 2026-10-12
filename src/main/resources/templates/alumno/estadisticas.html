@@ -44,7 +44,7 @@
 
         <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Mis Estadísticas de Aprendizaje', subtituloSeccion='Métricas de evolución pedagógica, horas al volante y balance económico')}"></header>
 
-        <main id="contenedor-estadisticas" th:fragment="contenedorEstadisticas" hx-trigger="actualizarCalendario from:body, actualizarSaldo from:body" th:attr="hx-get=@{/alumno/estadisticas}" hx-target="#contenedor-estadisticas" hx-swap="outerHTML" class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main id="contenedor-estadisticas" th:fragment="contenedorEstadisticas" hx-trigger="actualizarCalendario from:body, actualizarSaldo from:body, actualizarMatricula from:body" th:attr="hx-get=@{/alumno/estadisticas}" hx-target="#contenedor-estadisticas" hx-swap="outerHTML" class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
             <!-- Encabezado de Sección -->
             <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -106,7 +106,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Inversión Formativa</span>
                     <div class="my-3">
                         <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400" th:text="${#numbers.formatDecimal(estadisticas?.gastoTotal ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${(totalClasesContratadas ?: 0) + ' clases contratadas + matrícula'}">Total matrícula y clases prácticas</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${(totalClasesContratadas ?: 0) + ' clases contratadas + ' + (matricula?.tipo != null && matricula.tipo.name() == 'RENOVACION' ? 'matrícula y renovación' : 'matrícula')}">Total matrícula y clases prácticas</p>
                     </div>
                     <p class="text-[11px] text-slate-400">Historial económico acumulado</p>
                 </div>
@@ -245,7 +245,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-medium">Cuota Base de Matrícula</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium" th:text="${matricula?.tipo != null && matricula.tipo.name() == 'RENOVACION' ? 'Cuota de Matrícula y Renovación' : 'Cuota Base de Matrícula'}">Cuota Base de Matrícula</span>
                         <p class="text-xl font-bold text-slate-900 dark:text-white mt-2" th:text="${#numbers.formatDecimal(totalMatriculas ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
                         <span class="text-[11px] text-slate-400 mt-1" th:text="${matricula?.tipo != null && matricula.tipo.name() == 'RENOVACION' ? 'Renovación de expediente oficial' : 'Apertura de expediente y tasas'}">Apertura de expediente y tasas</span>
                     </div>

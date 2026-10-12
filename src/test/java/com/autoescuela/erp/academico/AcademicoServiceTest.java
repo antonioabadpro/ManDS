@@ -208,4 +208,61 @@ class AcademicoServiceTest
         assertEquals(450.00f, nueva.getPrecio());
         verify(this.matriculaRepository).save(any(Matricula.class));
     }
+
+    @Test
+    @DisplayName("renovarMatriculaTrasPago acumula el importe de renovación sobre el precio previo de la matrícula y restablece 2 convocatorias")
+    void testRenovarMatriculaTrasPagoAcumulaPrecio()
+    {
+        String dni = "12345678Z";
+        Alumno alumno = new Alumno();
+        alumno.setDni(dni);
+
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        matricula.setConvocatorias(0);
+        matricula.setPrecio(250.00f);
+        matricula.setTipo(TipoMatricula.NUEVA);
+        matricula.setAlumno(alumno);
+
+        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Matricula renovada = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_renovacion_1", 250.00f);
+
+        assertNotNull(renovada);
+        assertEquals(TipoMatricula.RENOVACION, renovada.getTipo());
+        assertEquals(2, renovada.getConvocatorias());
+        assertEquals(500.00f, renovada.getPrecio(), "El precio acumulado debe sumar la matrícula inicial (250€) y la renovación (250€) = 500€");
+        verify(this.matriculaRepository).save(matricula);
+    }
+
+    @Test
+    @DisplayName("renovarMatriculaTrasPago aplica idempotencia evitando duplicar la acumulación ante sesiones idénticas")
+    void testRenovarMatriculaTrasPagoIdempotencia()
+    {
+        String dni = "12345678Z";
+        Alumno alumno = new Alumno();
+        alumno.setDni(dni);
+
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        matricula.setConvocatorias(0);
+        matricula.setPrecio(250.00f);
+        matricula.setTipo(TipoMatricula.NUEVA);
+        matricula.setAlumno(alumno);
+
+        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Matricula primera = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_idempotente_rep", 250.00f);
+        assertEquals(500.00f, primera.getPrecio());
+
+        // Segunda llamada con el mismo sessionId no debe duplicar la suma
+        Matricula segunda = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_idempotente_rep", 250.00f);
+        assertEquals(500.00f, segunda.getPrecio());
+    }
 }

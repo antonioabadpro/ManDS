@@ -42,6 +42,7 @@ import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
@@ -1170,20 +1171,31 @@ public class AlumnoController
         double tarifaClase = esVehiculoPesado ? 60.0 : 30.0;
         double tarifaMatriculaDefecto = esVehiculoPesado ? 450.0 : 250.0;
 
+        List<Matricula> historialMatriculas = this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno);
         double totalMatriculas = 0.0;
-        if (alumno.getHistorialMatriculas() != null && !alumno.getHistorialMatriculas().isEmpty())
+        if (!historialMatriculas.isEmpty())
         {
-            for (Matricula m : alumno.getHistorialMatriculas())
+            for (Matricula m : historialMatriculas)
             {
                 boolean esPesadoM = m.getPermisoCarnet() != null &&
                         (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
-                double precioM = m.getPrecio() != null ? m.getPrecio() : (esPesadoM ? 450.0 : 250.0);
+                double tarifaBaseM = esPesadoM ? 450.0 : 250.0;
+                double precioM = m.getPrecio() != null ? m.getPrecio() : tarifaBaseM;
+                if (m.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaBaseM)
+                {
+                    precioM += tarifaBaseM;
+                }
                 totalMatriculas += precioM;
             }
         }
-        else
+        else if (matricula != null)
         {
-            totalMatriculas = matricula != null && matricula.getPrecio() != null ? matricula.getPrecio() : (matricula != null ? tarifaMatriculaDefecto : 0.0);
+            double precioM = matricula.getPrecio() != null ? matricula.getPrecio() : tarifaMatriculaDefecto;
+            if (matricula.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaMatriculaDefecto)
+            {
+                precioM += tarifaMatriculaDefecto;
+            }
+            totalMatriculas = precioM;
         }
 
         int saldoClasesActual = matricula != null && matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;

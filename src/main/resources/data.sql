@@ -285,10 +285,10 @@ INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_mat
 VALUES (6, 205, 'PERMISO_A2', 'TEORICO_PRACTICA', 'NUEVA', '2026-08-10', 5, 2, 0, 250.00, TRUE);
 
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (7, 206, 'PERMISO_B', 'TEORICO_PRACTICA', 'RENOVACION', '2026-06-15', 6, 1, 3, 250.00, TRUE);
+VALUES (7, 206, 'PERMISO_B', 'TEORICO_PRACTICA', 'RENOVACION', '2026-06-15', 6, 1, 3, 500.00, TRUE);
 
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (8, 207, 'PERMISO_B', 'PRACTICA', 'RENOVACION', '2026-05-15', 0, 0, 4, 250.00, TRUE);
+VALUES (8, 207, 'PERMISO_B', 'PRACTICA', 'RENOVACION', '2026-05-15', 0, 0, 4, 500.00, TRUE);
 
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (9, 208, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-05-10', 0, 1, 1, 250.00, FALSE);
@@ -312,7 +312,7 @@ INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_mat
 VALUES (15, 214, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-08-01', 4, 2, 0, 250.00, TRUE);
 
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (16, 215, 'PERMISO_B', 'TEORICO_PRACTICA', 'RENOVACION', '2026-04-10', 0, 0, 4, 250.00, TRUE);
+VALUES (16, 215, 'PERMISO_B', 'TEORICO_PRACTICA', 'RENOVACION', '2026-04-10', 0, 0, 4, 500.00, TRUE);
 
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (17, 216, 'PERMISO_B', 'PRACTICA', 'NUEVA', '2026-08-20', 4, 2, 0, 250.00, TRUE);

@@ -203,13 +203,14 @@ public class AcademicoService
             }
         }
 
+        float precioPrevio = matricula.getPrecio() != null ? matricula.getPrecio() : 0.0f;
         matricula.setConvocatorias(2);
         matricula.setTipo(TipoMatricula.RENOVACION);
-        matricula.setPrecio(importeTotal);
+        matricula.setPrecio(precioPrevio + importeTotal);
 
         Matricula matriculaGuardada = this.matriculaRepository.save(matricula);
-        log.info("Matrícula renovada exitosamente tras pago Stripe para Alumno DNI: {}. Convocatorias disponibles: 2, Tipo: RENOVACION, Importe: {} €",
-                dniAlumno, importeTotal);
+        log.info("Matrícula renovada exitosamente tras pago Stripe para Alumno DNI: {}. Convocatorias disponibles: 2, Tipo: RENOVACION, Importe acumulado: {} € (Abono renovación: {} €)",
+                dniAlumno, matriculaGuardada.getPrecio(), importeTotal);
 
         return matriculaGuardada;
     }
