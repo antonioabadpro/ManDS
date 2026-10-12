@@ -57,6 +57,7 @@ import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.practicas.service.CalendarioService;
 import com.autoescuela.erp.practicas.service.ClasePracticaService;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -480,6 +481,27 @@ public class AlumnoController
             }
         }
 
+        boolean esNoLaborable = false;
+        String motivoNoLaborable = null;
+        String tipoNoLaborable = null;
+
+        if (!fechaPreseleccionada.isBlank())
+        {
+            try
+            {
+                LocalDate fechaParsed = LocalDate.parse(fechaPreseleccionada.substring(0, 10));
+                esNoLaborable = FestivosCalendarioUtil.esDiaNoLaborable(fechaParsed);
+                if (esNoLaborable)
+                {
+                    motivoNoLaborable = FestivosCalendarioUtil.obtenerMotivoNoLaborable(fechaParsed);
+                    tipoNoLaborable = FestivosCalendarioUtil.obtenerTipoNoLaborable(fechaParsed);
+                }
+            }
+            catch (Exception ignored)
+            {
+            }
+        }
+
         boolean vehiculoEnMantenimiento = alumno.getProfesor() != null
                                         && alumno.getProfesor().getVehiculo() != null
                                         && alumno.getProfesor().getVehiculo().getEstado() == EstadoVehiculo.MANTENIMIENTO;
@@ -491,6 +513,9 @@ public class AlumnoController
         model.addAttribute("clasesReservadas", clasesReservadas);
         model.addAttribute("capacidadReserva", capacidadReserva);
         model.addAttribute("fechaPreseleccionada", fechaPreseleccionada);
+        model.addAttribute("esNoLaborable", esNoLaborable);
+        model.addAttribute("motivoNoLaborable", motivoNoLaborable);
+        model.addAttribute("tipoNoLaborable", tipoNoLaborable);
 
         return "alumno/fragments/modal-reservar-clase :: modalReservarClase";
     }
@@ -611,6 +636,20 @@ public class AlumnoController
         if (bindingResult.hasErrors() || dto.fechaHora() == null)
         {
             String error = "Los datos de fecha, hora o punto de recogida no son válidos.";
+            if (hxRequest != null)
+            {
+                model.addAttribute("error", error);
+                return "alumno/fragments/alerta-feedback :: feedbackExito";
+            }
+            redirectAttributes.addFlashAttribute("error", error);
+            return "redirect:/alumno/calendario";
+        }
+
+        // Validación de Festivos Nacionales y Periodos Vacacionales
+        if (FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
+        {
+            String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(dto.fechaHora().toLocalDate());
+            String error = "No es posible reservar clases prácticas en días festivos nacionales o periodos vacacionales (" + motivo + ").";
             if (hxRequest != null)
             {
                 model.addAttribute("error", error);

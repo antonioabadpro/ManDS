@@ -88,6 +88,10 @@
 - **Ventana Temporal y Precedencia de Clases Prácticas:**
   - La fecha de toda clase práctica debe estar estrictamente entre `fechaMatriculacion` y la fecha del examen práctico oficial (`fechaHora`).
   - La fecha de celebración de cualquier examen práctico oficial debe ser **estrictamente posterior a la fecha de la última clase práctica recibida**.
+- **Bloqueo de Reservas en Festivos Nacionales y Periodos Vacacionales:** Prohibido reservar clases prácticas en días inhábiles para la autoescuela:
+  - *Festivos Nacionales de España:* Todos los festivos nacionales oficiales fijos (1 ene, 6 ene, 1 may, 15 ago, 12 oct, 1 nov, 6 dic, 8 dic, 25 dic), móviles de Semana Santa (Jueves y Viernes Santo por algoritmo Meeus/Butcher Computus) y traslados al lunes si el festivo fijo coincide en domingo.
+  - *Periodos Vacacionales de la Autoescuela:* Primera quincena de agosto (1 al 14 de agosto inclusive) y Vacaciones de Navidad (23 de diciembre al 7 de enero inclusive).
+  - *Doble Barrera Defensiva:* La cuadrícula SSR bloquea visualmente las celdas como no clicables con insignias informativas («Festivo Nacional» o «Vacaciones Autoescuela»), y la capa transaccional de servicio (`ClasePracticaService.reservarClase`) rechaza cualquier reserva en dichas fechas lanzando `ReglaNegocioException`.
 
 ## 3.5. Circuito y Gestión de Solicitudes de Examen (DGT)
 - **Control Centralizado por el Administrador:** Solo el Administrador puede fijar fechas, aceptar o rechazar solicitudes DGT. Los profesores solo consultan solicitudes y alumnos citados en su vehículo/turno sin poder fijar fechas ni resolver solicitudes.
@@ -104,11 +108,6 @@
 - **Prohibición de FullCalendar y Enfoque Tecnológico:** Queda terminantemente prohibido el uso de FullCalendar v6 o cualquier otra librería externa de calendario en el cliente. Todos los calendarios (alumno y profesor) deben implementarse mediante renderizado del lado del servidor (SSR) con Thymeleaf, fragmentos HTMX para la navegación semanal asíncrona, y maquetación nativa CSS Grid/Flexbox con Tailwind CSS.
 - **Estructura Semanal Laboral:** Calendario estrictamente semanal de lunes a viernes (excluyendo sábados y domingos), comenzando obligatoriamente en lunes.
 - **Cabecera y Navegación Unificada:**
-  - Bloque superior con título principal ("Calendario de Prácticas"), subtítulo ("Pulsa sobre cualquier clase para abrir su Ficha Técnica o gestionar su estado") y leyenda de estados mediante píldoras:
-    - *Clase Pendiente:* indicador naranja/ámbar.
-    - *Clase Recibida:* indicador verde esmeralda.
-    - *Clase Cancelada:* indicador gris pizarra (`slate`).
-    - *Examen Oficial DGT:* indicador morado (`violet`/`purple`).
   - Barra de navegación semanal con botones `<` (semana anterior), `>` (semana siguiente), `Hoy` y rango de fechas visible en el centro (ej. "5 – 9 oct 2026").
   - Prohibido incluir controles de cambio de vista (sin botones Mes, Semana, Día, Lista), la vista es única y semanal.
 - **Franjas Horarias según Turno del Profesor (Intervalos de 45 min):** La cuadrícula limita sus franjas horarias al turno oficial asignado al profesor:

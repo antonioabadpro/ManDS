@@ -29,6 +29,7 @@ import com.autoescuela.erp.practicas.dto.FilaCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -228,6 +229,15 @@ public class CalendarioService
             );
         }
 
+        if (dia.esNoLaborable())
+        {
+            if ("FESTIVO".equals(dia.tipoNoLaborable()))
+            {
+                return CeldaCalendarioDTO.deFestivo(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, dia.motivoNoLaborable());
+            }
+            return CeldaCalendarioDTO.deVacaciones(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, dia.motivoNoLaborable());
+        }
+
         return CeldaCalendarioDTO.deLibreProfesor(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
     }
 
@@ -264,6 +274,15 @@ public class CalendarioService
             }
 
             return CeldaCalendarioDTO.deOcupadaAjenaAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
+        }
+
+        if (dia.esNoLaborable())
+        {
+            if ("FESTIVO".equals(dia.tipoNoLaborable()))
+            {
+                return CeldaCalendarioDTO.deFestivo(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, dia.motivoNoLaborable());
+            }
+            return CeldaCalendarioDTO.deVacaciones(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, dia.motivoNoLaborable());
         }
 
         return CeldaCalendarioDTO.deLibreAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, puedeReservar, ahora);
@@ -327,6 +346,10 @@ public class CalendarioService
             boolean esExamenDgt = diasConExamenDgt.contains(fecha);
             String examenDgtTexto = esExamenDgt ? "Jornada Examen Oficial DGT" : null;
 
+            boolean esNoLaborable = FestivosCalendarioUtil.esDiaNoLaborable(fecha);
+            String motivoNoLaborable = FestivosCalendarioUtil.obtenerMotivoNoLaborable(fecha);
+            String tipoNoLaborable = FestivosCalendarioUtil.obtenerTipoNoLaborable(fecha);
+
             dias.add(new DiaCalendarioDTO(
                     fecha,
                     nombre,
@@ -334,7 +357,10 @@ public class CalendarioService
                     encabezadoCompleto,
                     esHoy,
                     esExamenDgt,
-                    examenDgtTexto
+                    examenDgtTexto,
+                    esNoLaborable,
+                    motivoNoLaborable,
+                    tipoNoLaborable
             ));
         }
         return dias;

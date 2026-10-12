@@ -61,6 +61,12 @@
                             <span th:if="${dia.esExamenDgt}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                 Examen DGT
                             </span>
+                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'FESTIVO'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
+                                Festivo Nacional
+                            </span>
+                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'VACACIONES'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
+                                Vacaciones
+                            </span>
                         </div>
                     </th>
                 </tr>
@@ -87,8 +93,26 @@
                             <span class="text-[10px] font-medium text-purple-600 dark:text-purple-400">Jornada Completa Bloqueada</span>
                         </div>
 
-                        <!-- 2. Celda Ocupada por Clase Práctica -->
-                        <div th:if="${!celda.esExamenDgt and celda.ocupada}" class="w-full h-full">
+                        <!-- 2. Celda en Festivo Nacional (Bloqueo de reservas) -->
+                        <div th:if="${!celda.esExamenDgt and celda.estado == 'FESTIVO'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-rose-500/10 dark:bg-rose-950/30 border border-rose-500/30 flex flex-col justify-between items-center text-center shadow-xs">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                <span class="text-[11px] font-bold text-rose-800 dark:text-rose-200">Festivo Nacional</span>
+                            </div>
+                            <span class="text-[10px] font-medium text-rose-600 dark:text-rose-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
+                        </div>
+
+                        <!-- 3. Celda en Periodo Vacacional de la Autoescuela -->
+                        <div th:if="${!celda.esExamenDgt and celda.estado == 'VACACIONES'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-rose-500/10 dark:bg-rose-950/30 border border-rose-500/30 flex flex-col justify-between items-center text-center shadow-xs">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                <span class="text-[11px] font-bold text-rose-800 dark:text-rose-200">Vacaciones</span>
+                            </div>
+                            <span class="text-[10px] font-medium text-rose-600 dark:text-rose-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
+                        </div>
+
+                        <!-- 4. Celda Ocupada por Clase Práctica -->
+                        <div th:if="${!celda.esExamenDgt and celda.estado != 'FESTIVO' and celda.estado != 'VACACIONES' and celda.ocupada}" class="w-full h-full">
 
                             <!-- Caso A: Clase del propio alumno (Interactiva con Ficha Técnica) -->
                             <button th:if="${celda.esPropia}" type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] text-left p-2 rounded-xl border shadow-xs transition transform hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between cursor-pointer" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 hover:border-emerald-300' : (celda.estado == 'CANCELADA' ? 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/80 text-amber-900 dark:text-amber-100 hover:border-amber-300')}">
@@ -130,8 +154,8 @@
                             </div>
                         </div>
 
-                        <!-- 3. Celda Libre -->
-                        <div th:if="${!celda.esExamenDgt and !celda.ocupada}" class="w-full h-full">
+                        <!-- 5. Celda Libre -->
+                        <div th:if="${!celda.esExamenDgt and celda.estado != 'FESTIVO' and celda.estado != 'VACACIONES' and !celda.ocupada}" class="w-full h-full">
 
                             <!-- Caso A: Celda disponible para reserva (Clicable -> Modal HTMX) -->
                             <button th:if="${celda.esClicable}" type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] p-1.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white/60 dark:bg-slate-900/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex flex-col items-center justify-center transition group cursor-pointer shadow-2xs">

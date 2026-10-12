@@ -108,6 +108,52 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("GET /alumno/clases/reservar-modal en festivo nacional carga el modelo con esNoLaborable=true")
+    void testModalReservarClaseFestivoMuestraNoLaborable() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal")
+                .param("fecha", "2026-10-12T10:00"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/modal-reservar-clase :: modalReservarClase"))
+                .andExpect(model().attribute("esNoLaborable", true))
+                .andExpect(model().attribute("tipoNoLaborable", "FESTIVO"))
+                .andExpect(model().attributeExists("motivoNoLaborable"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/clases/reservar rechaza la reserva en festivo nacional")
+    void testReservarClasePracticaFallaEnFestivoNacional() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/clases/reservar")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fechaHora", "2026-10-12T10:00")
+                .param("duracion", "45")
+                .param("puntoRecogida", "Calle Alcalá 45"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/clases/reservar rechaza la reserva durante vacaciones de agosto")
+    void testReservarClasePracticaFallaEnVacacionesAgosto() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/clases/reservar")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fechaHora", "2026-08-05T10:00")
+                .param("duracion", "45")
+                .param("puntoRecogida", "Calle Alcalá 45"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
     @WithMockUser(username = "alumno2", roles = "ALUMNO")
     @DisplayName("GET /alumno/clases/23/cancelar-modal devuelve el fragmento modal de doble confirmación")
     void testModalConfirmarCancelarClase() throws Exception

@@ -11,6 +11,7 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -39,6 +40,13 @@ public class ClasePracticaService
     @Transactional
     public ClasePractica reservarClase(Alumno alumno, Profesor profesor, ReservaClasePracticaDTO dto)
     {
+        // Barrera Preventiva de Días No Laborables (Festivos Nacionales y Periodos Vacacionales)
+        if (dto.fechaHora() != null && FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
+        {
+            String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(dto.fechaHora().toLocalDate());
+            throw new ReglaNegocioException("No se pueden reservar clases prácticas en días festivos nacionales ni durante vacaciones de la autoescuela (" + motivo + ").");
+        }
+
         // Implementamos la Barrera Lógica: comprobación preventiva de solapamiento
         boolean tramoOcupado = this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(profesor, dto.fechaHora(), EstadoClase.CANCELADA);
         if (tramoOcupado)

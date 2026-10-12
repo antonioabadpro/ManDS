@@ -29,6 +29,7 @@ import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
 import com.autoescuela.erp.practicas.dto.CeldaCalendarioDTO;
+import com.autoescuela.erp.practicas.dto.DiaCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
@@ -235,5 +236,99 @@ class CalendarioServiceTest
         assertThat(celdaLiberada.ocupada()).isFalse();
         assertThat(celdaLiberada.estado()).isEqualTo("LIBRE");
         assertThat(celdaLiberada.esClicable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("obtenerCalendarioAlumno bloquea reservas en festivos nacionales mostrando celdas como FESTIVO")
+    void testObtenerCalendarioSemanaConFestivoNacionalBloqueaReservas()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        profesor.setVehiculo(vehiculo);
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 201L);
+        alumno.setProfesor(profesor);
+
+        // Lunes 12 de octubre de 2026 (Fiesta Nacional de España)
+        LocalDate lunesFestivo = LocalDate.of(2026, 10, 12);
+
+        Matricula matricula = new Matricula();
+        matricula.setSaldoClases(10);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno))
+                .thenReturn(Optional.of(matricula));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE))
+                .thenReturn(0);
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(new ArrayList<>());
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumno, lunesFestivo);
+
+        // Día 0 (lunes 12/10) debe ser festivo nacional
+        DiaCalendarioDTO diaLunes = resultado.dias().get(0);
+        assertThat(diaLunes.esNoLaborable()).isTrue();
+        assertThat(diaLunes.tipoNoLaborable()).isEqualTo("FESTIVO");
+        assertThat(diaLunes.motivoNoLaborable()).isEqualTo("Fiesta Nacional de España");
+
+        // Todas las celdas del lunes deben estar bloqueadas
+        for (int i = 0; i < 9; i++)
+        {
+            CeldaCalendarioDTO celdaFestivo = resultado.filas().get(i).celdas().get(0);
+            assertThat(celdaFestivo.estado()).isEqualTo("FESTIVO");
+            assertThat(celdaFestivo.esClicable()).isFalse();
+            assertThat(celdaFestivo.titulo()).isEqualTo("Festivo Nacional");
+            assertThat(celdaFestivo.subtitulo()).isEqualTo("Fiesta Nacional de España");
+        }
+    }
+
+    @Test
+    @DisplayName("obtenerCalendarioAlumno bloquea reservas durante vacaciones de agosto mostrando VACACIONES")
+    void testObtenerCalendarioSemanaVacacionesAgostoBloqueaReservas()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        profesor.setVehiculo(vehiculo);
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 201L);
+        alumno.setProfesor(profesor);
+
+        // Lunes 3 de agosto de 2026 (primera quincena de agosto)
+        LocalDate lunesAgosto = LocalDate.of(2026, 8, 3);
+
+        Matricula matricula = new Matricula();
+        matricula.setSaldoClases(10);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno))
+                .thenReturn(Optional.of(matricula));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE))
+                .thenReturn(0);
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(new ArrayList<>());
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumno, lunesAgosto);
+
+        // Toda la semana del 3 al 7 de agosto es periodo vacacional
+        for (int d = 0; d < 5; d++)
+        {
+            DiaCalendarioDTO dia = resultado.dias().get(d);
+            assertThat(dia.esNoLaborable()).isTrue();
+            assertThat(dia.tipoNoLaborable()).isEqualTo("VACACIONES");
+        }
+
+        // Verificar primera celda del lunes
+        CeldaCalendarioDTO celdaVacaciones = resultado.filas().get(0).celdas().get(0);
+        assertThat(celdaVacaciones.estado()).isEqualTo("VACACIONES");
+        assertThat(celdaVacaciones.esClicable()).isFalse();
+        assertThat(celdaVacaciones.titulo()).isEqualTo("Vacaciones Autoescuela");
     }
 }

@@ -138,4 +138,38 @@ public record CeldaCalendarioDTO(
                 .modalUrl(modalUrl)
                 .build();
     }
+
+    public static CeldaCalendarioDTO deFestivo(LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, LocalDateTime fechaHora, String nombreFestivo)
+    {
+        return CeldaCalendarioDTO.builder()
+                .fecha(fecha)
+                .horaInicio(horaInicio)
+                .horaFin(horaFin)
+                .fechaHora(fechaHora)
+                .ocupada(false)
+                .esExamenDgt(false)
+                .estado("FESTIVO")
+                .titulo("Festivo Nacional")
+                .subtitulo(nombreFestivo != null ? nombreFestivo : "Festivo Nacional")
+                .esPropia(false)
+                .esClicable(false)
+                .build();
+    }
+
+    public static CeldaCalendarioDTO deVacaciones(LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, LocalDateTime fechaHora, String motivoVacaciones)
+    {
+        return CeldaCalendarioDTO.builder()
+                .fecha(fecha)
+                .horaInicio(horaInicio)
+                .horaFin(horaFin)
+                .fechaHora(fechaHora)
+                .ocupada(false)
+                .esExamenDgt(false)
+                .estado("VACACIONES")
+                .titulo("Vacaciones Autoescuela")
+                .subtitulo(motivoVacaciones != null ? motivoVacaciones : "Cerrado por Vacaciones")
+                .esPropia(false)
+                .esClicable(false)
+                .build();
+    }
 }

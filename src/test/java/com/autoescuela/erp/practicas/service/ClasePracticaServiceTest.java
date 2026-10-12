@@ -197,4 +197,61 @@ class ClasePracticaServiceTest
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("No tienes permisos para cancelar una clase práctica de otro alumno");
     }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la fecha es un festivo nacional")
+    void testReservarClaseFallaEnFestivoNacional()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+
+        // 12 de octubre (Fiesta Nacional de España)
+        LocalDateTime fechaFestivo = LocalDateTime.of(2026, 10, 12, 10, 0);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
+                fechaFestivo, 45, "Sede Central", null
+        );
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("días festivos nacionales")
+                .hasMessageContaining("Fiesta Nacional de España");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la fecha está en vacaciones de agosto (1 al 14 de agosto)")
+    void testReservarClaseFallaEnVacacionesAgosto()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+
+        // 5 de agosto (primera quincena de agosto)
+        LocalDateTime fechaAgosto = LocalDateTime.of(2026, 8, 5, 11, 0);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
+                fechaAgosto, 45, "Sede Central", null
+        );
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("vacaciones de la autoescuela")
+                .hasMessageContaining("Vacaciones de Verano");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la fecha está en vacaciones de Navidad (23 dic al 7 ene)")
+    void testReservarClaseFallaEnVacacionesNavidad()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+
+        // 28 de diciembre (periodo navideño)
+        LocalDateTime fechaNavidad = LocalDateTime.of(2026, 12, 28, 16, 0);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
+                fechaNavidad, 45, "Sede Central", null
+        );
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("vacaciones de la autoescuela")
+                .hasMessageContaining("Vacaciones de Navidad");
+    }
 }

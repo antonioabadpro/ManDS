@@ -12,7 +12,14 @@ public record DiaCalendarioDTO(
     String encabezadoCompleto,
     boolean esHoy,
     boolean esExamenDgt,
-    String examenDgtTexto
+    String examenDgtTexto,
+    boolean esNoLaborable,
+    String motivoNoLaborable,
+    String tipoNoLaborable
 )
 {
+    public DiaCalendarioDTO(LocalDate fecha, String nombreDia, String fechaFormateada, String encabezadoCompleto, boolean esHoy, boolean esExamenDgt, String examenDgtTexto)
+    {
+        this(fecha, nombreDia, fechaFormateada, encabezadoCompleto, esHoy, esExamenDgt, examenDgtTexto, false, null, null);
+    }
 }

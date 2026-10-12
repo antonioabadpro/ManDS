@@ -84,8 +84,27 @@
                 </div>
             </div>
 
-            <!-- Caso 4: Formulario de Reserva Habilitado -->
-            <form th:if="${profesor != null and !vehiculoEnMantenimiento and (capacidadReserva == null or capacidadReserva &gt; 0)}" hx-post="/alumno/clases/reservar" hx-target="#modal-reserva-alerta" hx-swap="innerHTML" class="space-y-4">
+            <!-- Caso 4: Día No Laborable (Festivo Nacional o Vacaciones) -->
+            <div th:if="${esNoLaborable}" class="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-3 text-rose-900 dark:text-rose-200">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-xs font-bold uppercase tracking-wider" th:text="${tipoNoLaborable == 'FESTIVO' ? 'Festivo Nacional' : 'Vacaciones de la Autoescuela'}">Día No Laborable</span>
+                </div>
+                <p class="text-xs leading-relaxed">
+                    La autoescuela permanece cerrada en la fecha seleccionada: <strong th:text="${motivoNoLaborable}"></strong>.
+                    No es posible realizar reservas de clases prácticas en días festivos ni durante los periodos oficiales de vacaciones.
+                </p>
+                <div class="flex justify-end pt-2">
+                    <button type="button" data-modal-close="modal-reservar-clase" class="px-4 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-sm transition cursor-pointer">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+
+            <!-- Caso 5: Formulario de Reserva Habilitado -->
+            <form th:if="${profesor != null and !vehiculoEnMantenimiento and (capacidadReserva == null or capacidadReserva &gt; 0) and !esNoLaborable}" hx-post="/alumno/clases/reservar" hx-target="#modal-reserva-alerta" hx-swap="innerHTML" class="space-y-4">
 
                 <!-- Contenedor dinámico de alertas de error en el modal -->
                 <div id="modal-reserva-alerta">
