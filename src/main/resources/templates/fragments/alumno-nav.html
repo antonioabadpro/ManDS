@@ -60,6 +60,23 @@
                     </ul>
                 </div>
 
+                <!-- GRUPO: FORMACIÓN TEÓRICA (Solo visible para alumnos con matrícula TEORICO_PRACTICA) -->
+                <div th:if="${esTeoricoPractica}">
+                    <span class="sidebar-text-element text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 block">Formación Teórica</span>
+                    <ul class="mt-2 space-y-1">
+                        <li>
+                            <a th:href="@{/alumno/tests}" th:classappend="${activeSection == 'tests'} ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/80 font-medium'" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition duration-150 group" title="Test Teóricos y Exámenes Oficiales">
+                                <div class="p-1 rounded-lg shrink-0">
+                                    <svg th:classappend="${activeSection == 'tests'} ? 'text-white' : 'text-teal-600 dark:text-teal-400 dark:group-hover:text-white'" class="w-5 h-5 transition shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <span class="sidebar-text-element truncate">Test Teóricos</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- GRUPO 2: CLASES PRÁCTICAS -->
                 <div>
                     <span class="sidebar-text-element text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3 block">Clases Prácticas</span>

@@ -40,6 +40,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
@@ -114,6 +115,19 @@ public class AlumnoController
             return alumno.getNombre() + " " + alumno.getApellidos();
         }
         return "Alumno Desconocido";
+    }
+
+    @ModelAttribute("esTeoricoPractica")
+    public boolean esTeoricoPractica(@AuthenticationPrincipal Object principal)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return false;
+        }
+        return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+                .map(m -> m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+                .orElse(false);
     }
 
     /**
@@ -213,6 +227,29 @@ public class AlumnoController
         model.addAttribute("solicitudesRecientes", solicitudesRecientes);
 
         return "alumno/dashboard";
+    }
+
+    // =========================================================================
+    // 1.1. TEST TEÓRICOS (Solo modalidad TEORICO_PRACTICA)
+    // =========================================================================
+    @GetMapping("/tests")
+    public String mostrarTestsTeoricos(@AuthenticationPrincipal Object principal, Model model)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return "redirect:/login";
+        }
+
+        Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+        if (matriculaOptional.isEmpty() || matriculaOptional.get().getModalidad() != ModalidadMatricula.TEORICO_PRACTICA)
+        {
+            return "redirect:/alumno/dashboard";
+        }
+
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("matricula", matriculaOptional.get());
+        return "alumno/tests";
     }
 
     // =========================================================================

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Teóricos - ManDS ERP</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Prevención de FOUC para Tema Oscuro -->
+    <script>
+        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/alumno.js" th:src="@{/js/alumno.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <!-- Telón de fondo móvil -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <!-- Navegación Lateral -->
+    <aside th:replace="~{fragments/alumno-nav :: sidebar(activeSection='tests')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <!-- Cabecera Superior -->
+        <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Test Teóricos', subtituloSeccion='Recursos de preparación, simuladores oficiales y plataformas de test')}"></header>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto w-full">
+
+            <!-- Banner Informativo -->
+            <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-teal-500/10 via-indigo-500/10 to-blue-500/10 dark:from-slate-900 dark:via-indigo-950/40 dark:to-slate-900 border border-teal-200/60 dark:border-indigo-900/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-2 max-w-3xl">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                            Modalidad Teórico-Práctica
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${matricula?.permisoCarnet != null ? matricula.permisoCarnet.descripcion : 'Permiso B'}">
+                            Permiso B
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            30 preguntas · Máximo 3 fallos · 30 minutos
+                        </span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        Preparación del Examen Teórico DGT
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        En esta sección puedes acceder a las plataformas oficiales concertadas con la autoescuela y a recursos públicos 100% gratuitos para practicar tests de examen actualizados a la normativa vigente.
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/80 dark:border-slate-700 shrink-0 text-center md:text-center">
+                    <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Requisito Oficial</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Aprobar Teórico</p>
+                    <p class="text-[10px] text-teal-600 dark:text-teal-400 font-semibold mt-0.5">Obligatorio antes de prácticas</p>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 1: RECURSOS Y TEST GRATUITOS (Claramente Destacados) -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                Páginas y Recursos Gratuitos
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                Plataformas de acceso libre para realizar tests sin coste adicional ni necesidad de suscripción
+                            </p>
+                        </div>
+                    </div>
+                    <span class="self-start sm:self-auto inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                    100% Gratuitas · Sin Credenciales
+                    </span>
+                </div>
+
+                <!-- Grid de Tarjetas Gratuitas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                    <!-- Tarjeta 1: Test Oficiales DGT -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-fuchsia-500 dark:hover:border-fuchsia-500 transition flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <!-- Cabecera Tarjeta -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fuchsia-600 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-fuchsia-500/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col items-center text-center gap-1 shrink-0">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-center bg-fuchsia-100 dark:bg-fuchsia-950 text-fuchsia-800 dark:text-fuchsia-300 border border-fuchsia-300 dark:border-fuchsia-700">
+                                        OFICIAL
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
+                                    DGT - Tests de Examen
+                                </h4>
+                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">sedeweb.dgt.gob.es</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                    Cuestionarios reales ofrecidos directamente por la Dirección General de Tráfico. Mismo formato, cronómetro y preguntas que encontrarás el día del examen oficial.
+                                </p>
+                            </div>
+
+                            <!-- Ventajas -->
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Preguntas idénticas al examen real</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Acceso directo sin registro ni claves</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Botón Enlace Externo -->
+                        <div class="mt-6">
+                            <a href="https://sedeweb.dgt.gob.es/WEB_AUTO-9/examen/Instrucciones.xhtml" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-bold shadow-sm shadow-fuchsia-600/30 transition transform active:scale-95 group-hover:shadow-md">
+                                <span>Abrir Tests DGT</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2: TodoTest -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-fuchsia-500 dark:hover:border-fuchsia-500 transition flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <!-- Cabecera Tarjeta -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fuchsia-600 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-fuchsia-500/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col items-center text-center gap-1 shrink-0">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-center bg-fuchsia-100 dark:bg-fuchsia-950 text-fuchsia-800 dark:text-fuchsia-300 border border-fuchsia-300 dark:border-fuchsia-700">
+                                        COMUNIDAD
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
+                                    TodoTest
+                                </h4>
+                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">todotest.com</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                    Referente en España para preparar el teórico. Incluye tests oficiales de la DGT, tests clasificados por temas específicos y test de fallos para repasar debilidades.
+                                </p>
+                            </div>
+
+                            <!-- Ventajas -->
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Tests temáticos, DGT y examen</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Válido para Permisos B, A1/A2, AM y más</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Botón Enlace Externo -->
+                        <div class="mt-6">
+                            <a href="https://www.todotest.com" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-bold shadow-sm shadow-fuchsia-600/30 transition transform active:scale-95 group-hover:shadow-md">
+                                <span>Abrir TodoTest</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 3: PracticaTest -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-fuchsia-500 dark:hover:border-fuchsia-500 transition flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <!-- Cabecera Tarjeta -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-fuchsia-600 to-fuchsia-500 flex items-center justify-center text-white shadow-md shadow-fuchsia-500/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col items-center text-center gap-1 shrink-0">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-center bg-fuchsia-100 dark:bg-fuchsia-950 text-fuchsia-800 dark:text-fuchsia-300 border border-fuchsia-300 dark:border-fuchsia-700">
+                                        SIMULADOR
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
+                                    PracticaTest
+                                </h4>
+                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">practicatest.com</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                    Simulador de examen inteligente con explicaciones razonadas para cada fallo. Ideal para consolidar conceptos de señales, prioridades y velocidades.
+                                </p>
+                            </div>
+
+                            <!-- Ventajas -->
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Explicaciones pedagógicas detalladas</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-fuchsia-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Simulador cronometrado gratuito</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Botón Enlace Externo -->
+                        <div class="mt-6">
+                            <a href="https://practicatest.com/tests" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl bg-fuchsia-600 hover:bg-fuchsia-700 text-white text-xs font-bold shadow-sm shadow-fuchsia-600/30 transition transform active:scale-95 group-hover:shadow-md">
+                                <span>Abrir PracticaTest</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: PLATAFORMAS CON LICENCIA DE AUTOESCUELA -->
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                Plataformas Oficiales de Autoescuela
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                Herramientas profesionales de formación editorial vinculadas a tu matrícula en ManDS
+                            </p>
+                        </div>
+                    </div>
+                    <span class="self-start sm:self-auto inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                        Requiere Credenciales Proporcionadas
+                    </span>
+                </div>
+
+                <!-- Grid de Tarjetas de Autoescuela -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Tarjeta Matferline -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <!-- Cabecera Tarjeta -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col items-center text-center gap-1 shrink-0">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-center bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                        EDITORIAL MATFER
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
+                                    Matferline
+                                </h4>
+                                <p class="text-xs font-mono text-blue-600 dark:text-blue-400 font-medium">matferline.com</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                    Plataforma editorial con temarios interactivos en vídeo, seguimiento pormenorizado del progreso y test tutorizados directamente por la autoescuela.
+                                </p>
+                            </div>
+
+                            <!-- Ventajas -->
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Vídeos didácticos explicativos por cada tema</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Tus estadísticas se sincronizan con secretaría</span>
+                                </li>
+                            </ul>
+
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+                                Introduce las credenciales (usuario y contraseña) asignadas al formalizar tu matrícula.
+                            </div>
+                        </div>
+
+                        <!-- Botón Enlace Externo -->
+                        <div class="mt-6">
+                            <a href="https://www.matferline.com" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm shadow-blue-600/30 transition transform active:scale-95 group-hover:shadow-md">
+                                <span>Acceder a Matferline</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta AEOL Cloud -->
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-orange-500 dark:hover:border-orange-500 transition flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <!-- Cabecera Tarjeta -->
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-col items-center text-center gap-1 shrink-0">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-center bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                        MULTIMEDIA AEOL
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div>
+                                <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
+                                    AEOL Cloud
+                                </h4>
+                                <p class="text-xs font-mono text-orange-600 dark:text-orange-400 font-medium">aeolcloud.es</p>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                                    Sistema multimedia de tests líder en el sector. Interfaz interactiva idéntica a la pantalla táctil de la Jefatura Provincial de Tráfico.
+                                </p>
+                            </div>
+
+                            <!-- Ventajas -->
+                            <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-orange-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Simulación exacta de pantallas táctiles DGT</span>
+                                </li>
+                                <li class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-orange-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span>Actualizaciones automáticas de nuevas preguntas</span>
+                                </li>
+                            </ul>
+
+                            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+                                Requiere código de autoescuela y credenciales personales activadas.
+                            </div>
+                        </div>
+
+                        <!-- Botón Enlace Externo -->
+                        <div class="mt-6">
+                            <a href="https://cloud.aeolservice.es/" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-sm shadow-orange-600/30 transition transform active:scale-95 group-hover:shadow-md">
+                                <span>Acceder a AEOL Cloud</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: CONSEJOS PEDAGÓGICOS PARA EL APTO -->
+            <div class="rounded-3xl p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-xl bg-yellow-100 dark:bg-yellow-950/60 text-yellow-600 dark:text-yellow-400 flex items-center justify-center font-bold">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                        Recomendaciones para Aprobar a la Primera
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600 dark:text-slate-300">
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition duration-200 space-y-1">
+                        <span class="font-bold text-slate-800 dark:text-white block">1. Lee despacio cada enunciado</span>
+                        <p class="leading-relaxed">Presta especial atención a palabras trampa como «siempre», «nunca», «únicamente» o «excepto».</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition duration-200 space-y-1">
+                        <span class="font-bold text-slate-800 dark:text-white block">2. Registra y comprende tus fallos</span>
+                        <p class="leading-relaxed">No memorices solo la letra correcta; entiende el motivo de la norma o señal para evitar confusiones.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition duration-200 space-y-1">
+                        <span class="font-bold text-slate-800 dark:text-white block">3. Constancia en los simulacros</span>
+                        <p class="leading-relaxed">Preséntate al examen oficial solo cuando encadenes al menos 10 tests consecutivos con 0 o 1 fallo.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

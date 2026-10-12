@@ -364,4 +364,35 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/alumno/dashboard"))
                 .andExpect(flash().attribute("error", containsString("Ya tienes una matrícula activa")));
     }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("GET /alumno/tests renderiza la sección de tests para alumno con modalidad TEORICO_PRACTICA")
+    void testSeccionTestsTeoricosParaTeoricoPractica() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/tests"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/tests"))
+                .andExpect(model().attributeExists("matricula"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno2", roles = "ALUMNO")
+    @DisplayName("GET /alumno/tests redirige a dashboard para alumno con modalidad PRACTICA")
+    void testSeccionTestsTeoricosBloqueadaParaSoloPractica() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/tests"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @DisplayName("GET /alumno/tests redirige a dashboard para alumno sin matrícula activa")
+    void testSeccionTestsTeoricosBloqueadaParaSinMatricula() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/tests"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"));
+    }
 }
