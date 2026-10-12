@@ -109,6 +109,17 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno2", roles = "ALUMNO")
+    @DisplayName("GET /alumno/clases/23/cancelar-modal devuelve el fragmento modal de doble confirmación")
+    void testModalConfirmarCancelarClase() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/clases/23/cancelar-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/modal-confirmar-cancelar-clase :: modalConfirmarCancelarClase"))
+                .andExpect(model().attributeExists("clase"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno2", roles = "ALUMNO")
     @DisplayName("POST /alumno/clases/cancelar cancela una clase en PENDIENTE con HTMX")
     void testCancelarClasePracticaHtmx() throws Exception
     {
@@ -122,12 +133,13 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("GET /alumno/clases renderiza el listado consolidado de clases prácticas")
+    @DisplayName("GET /alumno/clases renderiza el listado consolidado de clases prácticas y capacidad de reserva")
     void testClasesRenderizado() throws Exception
     {
         this.mockMvc.perform(get("/alumno/clases"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/clases"));
+                .andExpect(view().name("alumno/clases"))
+                .andExpect(model().attributeExists("clases", "matricula", "clasesReservadas", "capacidadReserva"));
     }
 
     @Test

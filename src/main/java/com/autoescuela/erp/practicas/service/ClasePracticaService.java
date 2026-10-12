@@ -1,5 +1,7 @@
 package com.autoescuela.erp.practicas.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,5 +69,42 @@ public class ClasePracticaService
         {
             throw new ReglaNegocioException("El tramo horario seleccionado acaba de ser reservado por otro alumno. Por favor, selecciona otro horario libre.", ex);
         }
+    }
+
+    /**
+     * Procesa la cancelación de una clase práctica por parte del alumno.
+     * Valida que la clase pertenezca al alumno, se encuentre en estado PENDIENTE
+     * y que no haya comenzado ya (fechaHora > now), liberando la franja horaria.
+     *
+     * @param clase Clase práctica a cancelar
+     * @param alumno Alumno que solicita la cancelación
+     * @return ClasePractica persistida en estado CANCELADA
+     * @throws ReglaNegocioException si no cumple las precondiciones de estado o límite horario
+     */
+    @Transactional
+    public ClasePractica cancelarClasePorAlumno(ClasePractica clase, Alumno alumno)
+    {
+        if (clase == null)
+        {
+            throw new ReglaNegocioException("No se ha encontrado la clase práctica solicitada.");
+        }
+
+        if (clase.getAlumno() != null && alumno != null && !clase.getAlumno().getId().equals(alumno.getId()))
+        {
+            throw new ReglaNegocioException("No tienes permisos para cancelar una clase práctica de otro alumno.");
+        }
+
+        if (clase.getEstadoClase() != EstadoClase.PENDIENTE)
+        {
+            throw new ReglaNegocioException("Solo se pueden cancelar clases que se encuentren en estado PENDIENTE.");
+        }
+
+        if (clase.getFechaHora() == null || !clase.getFechaHora().isAfter(LocalDateTime.now()))
+        {
+            throw new ReglaNegocioException("No es posible cancelar una clase práctica que ya ha comenzado o cuya hora de inicio ha transcurrido.");
+        }
+
+        clase.setEstadoClase(EstadoClase.CANCELADA);
+        return this.clasePracticaRepository.save(clase);
     }
 }

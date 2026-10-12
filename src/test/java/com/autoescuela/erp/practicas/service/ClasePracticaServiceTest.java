@@ -122,4 +122,79 @@ class ClasePracticaServiceTest
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("acaba de ser reservado por otro alumno");
     }
+
+    @Test
+    @DisplayName("cancelarClasePorAlumno cancela con éxito una clase en PENDIENTE con fecha futura")
+    void testCancelarClasePorAlumnoExito()
+    {
+        Alumno alumno = new Alumno();
+        org.springframework.test.util.ReflectionTestUtils.setField(alumno, "id", 201L);
+
+        ClasePractica clase = new ClasePractica();
+        clase.setAlumno(alumno);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+        clase.setFechaHora(LocalDateTime.now().plusDays(2));
+
+        when(this.clasePracticaRepository.save(any(ClasePractica.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ClasePractica resultado = this.clasePracticaService.cancelarClasePorAlumno(clase, alumno);
+
+        assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
+        verify(this.clasePracticaRepository).save(clase);
+    }
+
+    @Test
+    @DisplayName("cancelarClasePorAlumno lanza ReglaNegocioException si la clase ya ha comenzado o es pasada")
+    void testCancelarClasePorAlumnoFallaPorClaseYaIniciada()
+    {
+        Alumno alumno = new Alumno();
+        org.springframework.test.util.ReflectionTestUtils.setField(alumno, "id", 201L);
+
+        ClasePractica clase = new ClasePractica();
+        clase.setAlumno(alumno);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+        clase.setFechaHora(LocalDateTime.now().minusMinutes(10));
+
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("ya ha comenzado o cuya hora de inicio ha transcurrido");
+    }
+
+    @Test
+    @DisplayName("cancelarClasePorAlumno lanza ReglaNegocioException si la clase no está en estado PENDIENTE")
+    void testCancelarClasePorAlumnoFallaPorEstadoNoPendiente()
+    {
+        Alumno alumno = new Alumno();
+        org.springframework.test.util.ReflectionTestUtils.setField(alumno, "id", 201L);
+
+        ClasePractica clase = new ClasePractica();
+        clase.setAlumno(alumno);
+        clase.setEstadoClase(EstadoClase.RECIBIDA);
+        clase.setFechaHora(LocalDateTime.now().plusDays(1));
+
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Solo se pueden cancelar clases que se encuentren en estado PENDIENTE");
+    }
+
+    @Test
+    @DisplayName("cancelarClasePorAlumno lanza ReglaNegocioException si la clase pertenece a otro alumno")
+    void testCancelarClasePorAlumnoFallaPorAlumnoDiferente()
+    {
+        Alumno alumno1 = new Alumno();
+        org.springframework.test.util.ReflectionTestUtils.setField(alumno1, "id", 201L);
+
+        Alumno alumno2 = new Alumno();
+        org.springframework.test.util.ReflectionTestUtils.setField(alumno2, "id", 202L);
+
+        ClasePractica clase = new ClasePractica();
+        clase.setAlumno(alumno1);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+        clase.setFechaHora(LocalDateTime.now().plusDays(1));
+
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno2))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No tienes permisos para cancelar una clase práctica de otro alumno");
+    }
 }

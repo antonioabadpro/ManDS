@@ -487,6 +487,34 @@ public class AlumnoController
     }
 
     /**
+     * Devuelve el fragmento modal Thymeleaf con la doble confirmación para cancelar una clase práctica.
+     */
+    @GetMapping("/clases/{id}/cancelar-modal")
+    public String obtenerModalConfirmarCancelarClase(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return "redirect:/login";
+        }
+
+        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(id);
+        if (claseOptional.isEmpty())
+        {
+            return "error/404";
+        }
+
+        ClasePractica clase = claseOptional.get();
+        if (clase.getAlumno() != null && !clase.getAlumno().getId().equals(alumno.getId()))
+        {
+            return "error/403";
+        }
+
+        model.addAttribute("clase", clase);
+        return "alumno/fragments/modal-confirmar-cancelar-clase :: modalConfirmarCancelarClase";
+    }
+
+    /**
      * Procesa la reserva transaccional de una clase práctica (CU-034).
      * Aplica la fórmula CapacidadReserva = saldoClases - clasesReservadas > 0 y control de solapamiento.
      */
@@ -651,20 +679,22 @@ public class AlumnoController
             return "error/403";
         }
 
-        if (clase.getEstadoClase() != EstadoClase.PENDIENTE)
+        try
         {
-            String error = "Solo se pueden cancelar clases que se encuentren en estado PENDIENTE.";
+            this.clasePracticaService.cancelarClasePorAlumno(clase, alumno);
+        }
+        catch (ReglaNegocioException ex)
+        {
+            String error = ex.getMessage();
             if (hxRequest != null)
             {
+                response.setHeader("HX-Trigger", "actualizarCalendario");
                 model.addAttribute("error", error);
                 return "alumno/fragments/alerta-feedback :: feedbackExito";
             }
             redirectAttributes.addFlashAttribute("error", error);
             return "redirect:/alumno/calendario";
         }
-
-        clase.setEstadoClase(EstadoClase.CANCELADA);
-        this.clasePracticaRepository.save(clase);
 
         String mensajeExito = "Reserva de clase práctica cancelada con éxito. Has liberado tu capacidad de reserva.";
 
@@ -698,8 +728,15 @@ public class AlumnoController
         }
 
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
+
         model.addAttribute("clases", clases);
         model.addAttribute("totalClases", clases.size());
+        model.addAttribute("matricula", matricula);
+        model.addAttribute("clasesReservadas", clasesReservadas);
+        model.addAttribute("capacidadReserva", capacidadReserva);
 
         if (hxRequest != null)
         {
