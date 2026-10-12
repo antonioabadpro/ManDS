@@ -130,4 +130,28 @@ document.addEventListener('DOMContentLoaded', () => {
         inputCantidadIndividual.addEventListener('input', actualizarTotalIndividual);
         inputCantidadIndividual.addEventListener('change', actualizarTotalIndividual);
     }
+
+    // =========================================================================
+    // 5. DESPLAZAMIENTO SUAVE A RENOVACIÓN DE MATRÍCULA
+    // =========================================================================
+    function inicializarDesplazamientoRenovacion() {
+        const btnIrARenovacion = document.getElementById('btn-ir-a-renovacion');
+        if (!btnIrARenovacion) return;
+
+        btnIrARenovacion.addEventListener('click', (evento) => {
+            evento.preventDefault();
+            const seccionRenovacion = document.getElementById('seccion-renovacion');
+            if (seccionRenovacion) {
+                seccionRenovacion.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                if (window.history && window.history.pushState) {
+                    window.history.pushState(null, '', '#seccion-renovacion');
+                }
+            }
+        });
+    }
+
+    inicializarDesplazamientoRenovacion();
 });
