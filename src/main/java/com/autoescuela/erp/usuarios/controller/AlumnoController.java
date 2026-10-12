@@ -1055,7 +1055,7 @@ public class AlumnoController
     // 7. ESTADÍSTICAS Y PROGRESO DEL ALUMNO
     // =========================================================================
     @GetMapping("/estadisticas")
-    public String mostrarEstadisticas(@AuthenticationPrincipal Object principal, Model model)
+    public String mostrarEstadisticas(@AuthenticationPrincipal Object principal, @RequestHeader(value = "HX-Request", required = false) String hxRequest, Model model)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -1070,6 +1070,7 @@ public class AlumnoController
         long clasesCanceladas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.CANCELADA);
         long totalClases = this.clasePracticaRepository.countByAlumno(alumno);
 
+        long minutosConduccion = clasesRecibidas * 45; // Cada clase práctica tiene una duración de 45 minutos
         double horasConduccion = (clasesRecibidas * 45) / 60.0;
 
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
@@ -1088,14 +1089,38 @@ public class AlumnoController
         long aptos = this.examenRepository.countByAlumnoAndEsAptoTrue(alumno);
         long suspensos = this.examenRepository.countByAlumnoAndEsAptoFalse(alumno);
 
-        double precioMatricula = matricula != null && matricula.getPrecio() != null ? matricula.getPrecio() : 0.0;
-        double gastoTotal = precioMatricula + (clasesRecibidas * 30.0);
+        boolean esVehiculoPesado = matricula != null && matricula.getPermisoCarnet() != null &&
+                (matricula.getPermisoCarnet().name().startsWith("PERMISO_C") || matricula.getPermisoCarnet().name().startsWith("PERMISO_D"));
+        double tarifaClase = esVehiculoPesado ? 60.0 : 30.0;
+        double tarifaMatriculaDefecto = esVehiculoPesado ? 450.0 : 250.0;
+
+        double totalMatriculas = 0.0;
+        if (alumno.getHistorialMatriculas() != null && !alumno.getHistorialMatriculas().isEmpty())
+        {
+            for (Matricula m : alumno.getHistorialMatriculas())
+            {
+                boolean esPesadoM = m.getPermisoCarnet() != null &&
+                        (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
+                double precioM = m.getPrecio() != null ? m.getPrecio() : (esPesadoM ? 450.0 : 250.0);
+                totalMatriculas += precioM;
+            }
+        }
+        else
+        {
+            totalMatriculas = matricula != null && matricula.getPrecio() != null ? matricula.getPrecio() : (matricula != null ? tarifaMatriculaDefecto : 0.0);
+        }
+
+        int saldoClasesActual = matricula != null && matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;
+        long totalClasesContratadas = clasesRecibidas + saldoClasesActual;
+        double gastoClases = totalClasesContratadas * tarifaClase;
+        double gastoTotal = totalMatriculas + gastoClases;
 
         EstadisticasAlumnoDTO stats = new EstadisticasAlumnoDTO(
                 clasesRecibidas,
                 clasesPendientes,
                 clasesCanceladas,
                 totalClases,
+                minutosConduccion,
                 horasConduccion,
                 kilometrosRecorridos,
                 convocatoriasGastadas,
@@ -1105,8 +1130,20 @@ public class AlumnoController
                 gastoTotal
         );
 
+        model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("estadisticas", stats);
+        model.addAttribute("esVehiculoPesado", esVehiculoPesado);
+        model.addAttribute("tarifaClase", tarifaClase);
+        model.addAttribute("totalMatriculas", totalMatriculas);
+        model.addAttribute("saldoClasesActual", saldoClasesActual);
+        model.addAttribute("totalClasesContratadas", totalClasesContratadas);
+        model.addAttribute("gastoClases", gastoClases);
+
+        if (hxRequest != null)
+        {
+            return "alumno/estadisticas :: contenedorEstadisticas";
+        }
 
         return "alumno/estadisticas";
     }

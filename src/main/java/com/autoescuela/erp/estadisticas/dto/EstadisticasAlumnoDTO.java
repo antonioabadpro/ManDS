@@ -8,6 +8,7 @@ public record EstadisticasAlumnoDTO(
     long clasesPendientes,
     long clasesCanceladas,
     long totalClases,
+    long minutosConduccion,
     double horasConduccion,
     long kilometrosRecorridos,
     int convocatoriasGastadas,
@@ -20,6 +21,6 @@ public record EstadisticasAlumnoDTO(
 
     public EstadisticasAlumnoDTO()
     {
-        this(0, 0, 0, 0, 0.0, 0, 0, 2, 0, 0, 0.0);
+        this(0, 0, 0, 0, 0, 0.0, 0, 0, 2, 0, 0, 0.0);
     }
 }

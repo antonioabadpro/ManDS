@@ -44,31 +44,33 @@
 
         <header th:replace="~{fragments/alumno-nav :: topbar(tituloSeccion='Mis Estadísticas de Aprendizaje', subtituloSeccion='Métricas de evolución pedagógica, horas al volante y balance económico')}"></header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main id="contenedor-estadisticas" th:fragment="contenedorEstadisticas" hx-trigger="actualizarCalendario from:body, actualizarSaldo from:body" th:attr="hx-get=@{/alumno/estadisticas}" hx-target="#contenedor-estadisticas" hx-swap="outerHTML" class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
             <!-- Encabezado de Sección -->
             <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+                <div class="space-y-1">
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">Progreso y Balance de Aprendizaje</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Resumen analítico de tu formación como conductor en ManDS ERP</p>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Permiso Cursado:</span>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${matricula?.permisoCarnet}">
-                        PERMISO B
-                    </span>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center space-x-1.5" th:if="${matricula != null}">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Permiso:</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800" th:text="${matricula.permisoCarnet?.descripcion ?: 'Sin carnet'}">
+                            Permiso B
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Cuadrícula de 4 Tarjetas de Métricas -->
+            <!-- Cuadrícula de 4 Tarjetas de Métricas (KPIs) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
                 <!-- 1. Horas de Conducción Acumuladas -->
                 <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Horas al Volante</span>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tiempo al Volante</span>
                     <div class="my-3">
-                        <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(estadisticas?.horasConduccion ?: 0.0, 1, 1)} + ' h'">0.0 h</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tiempo efectivo de conducción</p>
+                        <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${estadisticas?.minutosConduccion ?: 0} + ' min'">0 min</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${#numbers.formatDecimal(estadisticas?.horasConduccion ?: 0.0, 1, 1)} + ' h'">0.0 h</p>
                     </div>
                     <p class="text-[11px] text-slate-400">Calculado a 45 min por clase recibida</p>
                 </div>
@@ -80,7 +82,7 @@
                         <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${estadisticas?.kilometrosRecorridos ?: 0} + ' km'">0 km</p>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kilómetros totales en prácticas</p>
                     </div>
-                    <p class="text-[11px] text-slate-400">Suma de fichas técnicas docentes</p>
+                    <p class="text-[11px] text-slate-400">Suma de fichas técnicas del profesor</p>
                 </div>
 
                 <!-- 3. Tasa de Aprobados -->
@@ -95,7 +97,7 @@
                         </p>
                     </div>
                     <p class="text-[11px] text-slate-400">
-                        Convocatorias restantes: <strong class="text-indigo-600 dark:text-indigo-400" th:text="${estadisticas?.convocatoriasRestantes ?: 2}">2</strong>
+                        Convocatorias restantes: <strong class="text-indigo-600 dark:text-indigo-400" th:text="${estadisticas?.convocatoriasRestantes ?: 2}">2</strong> de 2
                     </p>
                 </div>
 
@@ -103,8 +105,8 @@
                 <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Inversión Formativa</span>
                     <div class="my-3">
-                        <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono" th:text="${#numbers.formatDecimal(estadisticas?.gastoTotal ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Total matricula y saldo</p>
+                        <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400" th:text="${#numbers.formatDecimal(estadisticas?.gastoTotal ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${(totalClasesContratadas ?: 0) + ' clases contratadas + matrícula'}">Total matrícula y clases prácticas</p>
                     </div>
                     <p class="text-[11px] text-slate-400">Historial económico acumulado</p>
                 </div>
@@ -116,56 +118,150 @@
 
                 <!-- Distribución de Clases Prácticas -->
                 <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Distribución de Clases Prácticas</h3>
+                    <div class="space-y-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Distribución de Clases Prácticas</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Desglose de sesiones según su estado de tramitación en agenda</p>
+                    </div>
 
                     <div class="space-y-3 text-xs">
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800/60">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                                <span class="font-semibold text-emerald-900 dark:text-emerald-200">Clases Recibidas (Completadas):</span>
+                        <!-- Clases Recibidas -->
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    RECIBIDA
+                                </span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">Clases realizadas y completadas</span>
                             </div>
-                            <span class="font-bold text-sm text-emerald-800 dark:text-emerald-300 font-mono" th:text="${estadisticas?.clasesRecibidas ?: 0}">0</span>
+                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesRecibidas ?: 0}">0</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800/60">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                                <span class="font-semibold text-amber-900 dark:text-amber-200">Clases Reservadas (Pendientes):</span>
+                        <!-- Clases Pendientes -->
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    PENDIENTE
+                                </span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">Clases reservadas en agenda</span>
                             </div>
-                            <span class="font-bold text-sm text-amber-800 dark:text-amber-300 font-mono" th:text="${estadisticas?.clasesPendientes ?: 0}">0</span>
+                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesPendientes ?: 0}">0</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full bg-slate-400"></span>
-                                <span class="font-medium text-slate-600 dark:text-slate-400">Clases Canceladas:</span>
+                        <!-- Clases Canceladas -->
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center space-x-3">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                    CANCELADA
+                                </span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">Clases canceladas</span>
                             </div>
-                            <span class="font-bold text-sm text-slate-700 dark:text-slate-300 font-mono" th:text="${estadisticas?.clasesCanceladas ?: 0}">0</span>
+                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesCanceladas ?: 0}">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Total y Barra Visual Proporcional -->
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 dark:text-slate-400 font-medium">Total de clases computadas:</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-sm" th:text="${estadisticas?.totalClases ?: 0}">0</span>
+                        </div>
+                        <div th:if="${(estadisticas?.totalClases ?: 0) > 0}" class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden flex" title="Proporción de estados de clases">
+                            <div class="bg-emerald-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesRecibidas * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
+                            <div class="bg-amber-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesPendientes * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
+                            <div class="bg-rose-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesCanceladas * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Resumen de Expediente de Matrícula -->
                 <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Estado del Expediente</h3>
+                    <div class="space-y-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Estado del Expediente</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Detalles administrativos y vinculación pedagógica</p>
+                    </div>
 
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2.5 text-xs">
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3 text-xs">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 dark:text-slate-400">Modalidad de matrícula:</span>
-                            <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${matricula?.modalidad}">TEORICO_PRACTICA</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${matricula?.modalidad?.descripcion ?: 'Teórico-Práctica'}">Teórico-Práctica</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Tipo de matrícula:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${matricula?.tipo != null ? (matricula.tipo.name() == 'RENOVACION' ? 'Renovación' : 'Nueva Matriculación') : 'Nueva Matriculación'}">Nueva Matriculación</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 dark:text-slate-400">Fecha de matriculación:</span>
-                            <span class="font-mono text-slate-800 dark:text-slate-200" th:text="${#temporals.format(matricula?.fechaMatriculacion, 'dd/MM/yyyy')}">--</span>
+                            <span class="text-slate-800 dark:text-slate-200" th:text="${matricula?.fechaMatriculacion != null ? #temporals.format(matricula.fechaMatriculacion, 'dd/MM/yyyy') : '--'}">--</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 dark:text-slate-400">Estado del expediente:</span>
-                            <span th:if="${matricula?.estaActiva == true}" class="text-emerald-600 dark:text-emerald-400 font-bold">Activo Vigente</span>
-                            <span th:if="${matricula?.estaActiva != true}" class="text-rose-600 dark:text-rose-400 font-bold">Inactivo</span>
+                            <span th:if="${matricula != null and matricula.estaActiva == true}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                ACTIVO
+                            </span>
+                            <span th:if="${matricula == null or matricula.estaActiva != true}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                INACTIVO
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Saldo de clases contratadas:</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${(matricula?.saldoClases ?: 0) + ' clases'}">0 clases</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500 dark:text-slate-400">Convocatorias oficiales DGT:</span>
+                            <span class="font-medium text-slate-800 dark:text-slate-200">
+                                <strong class="text-indigo-600 dark:text-indigo-400" th:text="${estadisticas?.convocatoriasRestantes ?: 2}">2</strong> disponibles (<span th:text="${estadisticas?.convocatoriasGastadas ?: 0}">0</span> consumidas)
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                            <span class="text-slate-500 dark:text-slate-400">Profesor asignado:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${alumno?.profesor != null ? (alumno.profesor.nombre + ' ' + alumno.profesor.apellidos) : 'Sin profesor asignado'}">Sin profesor asignado</span>
                         </div>
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Balance Económico y Desglose de Gastos -->
+            <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Balance Económico Formativo</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Desglose en tiempo real de importes abonados en matrícula y adquisición de clases prácticas</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a th:href="@{/alumno/pagos}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 dark:text-indigo-300 transition">
+                            <span>Gestionar Pagos</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                        <a th:href="@{/alumno/clases}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition">
+                            <span>Ver Clases</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Cuota Base de Matrícula</span>
+                        <p class="text-xl font-bold text-slate-900 dark:text-white mt-2" th:text="${#numbers.formatDecimal(totalMatriculas ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
+                        <span class="text-[11px] text-slate-400 mt-1" th:text="${matricula?.tipo != null && matricula.tipo.name() == 'RENOVACION' ? 'Renovación de expediente oficial' : 'Apertura de expediente y tasas'}">Apertura de expediente y tasas</span>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Prácticas Contratadas</span>
+                        <p class="text-xl font-bold text-slate-900 dark:text-white mt-2" th:text="${#numbers.formatDecimal(gastoClases ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
+                        <span class="text-[11px] text-slate-400 mt-1" th:text="${(totalClasesContratadas ?: 0) + ' clases contratadas (' + (estadisticas?.clasesRecibidas ?: 0) + ' recibidas, ' + (saldoClasesActual ?: 0) + ' en saldo) × ' + #numbers.formatDecimal(tarifaClase ?: 30.0, 1, 2) + ' €/ud.'}">0 clases × 30,00 €/ud.</span>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 flex flex-col justify-between">
+                        <span class="text-indigo-900 dark:text-indigo-300 font-semibold">Inversión Formativa Total</span>
+                        <p class="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-2" th:text="${#numbers.formatDecimal(estadisticas?.gastoTotal ?: 0.0, 1, 2)} + ' €'">0.00 €</p>
+                        <span class="text-[11px] text-indigo-500 dark:text-indigo-400 mt-1">Cómputo global acumulado en tiempo real</span>
+                    </div>
+                </div>
             </div>
 
         </main>
