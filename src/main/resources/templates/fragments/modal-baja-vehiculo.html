@@ -41,7 +41,7 @@
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Permiso requerido:</span>
-                        <span th:text="${vehiculo.tipoDescripcion}" class="font-semibold text-blue-600 dark:text-blue-400">Permiso B</span>
+                        <span th:text="${vehiculo.tipoDescripcion}" class="font-semibold" th:classappend="${vehiculo.tipoPermiso?.name() == 'PERMISO_B'} ? 'text-blue-600 dark:text-blue-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_A' || vehiculo.tipoPermiso?.name() == 'PERMISO_A1' || vehiculo.tipoPermiso?.name() == 'PERMISO_A2' || vehiculo.tipoPermiso?.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_B_E' || vehiculo.tipoPermiso?.name() == 'PERMISO_B1' || vehiculo.tipoPermiso?.name() == 'PERMISO_LVA'} ? 'text-indigo-600 dark:text-indigo-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_C' || vehiculo.tipoPermiso?.name() == 'PERMISO_C_E'} ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')))">Permiso B</span>
                     </p>
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Profesor asignado:</span>
@@ -216,4 +216,3 @@
         </div>
     </div>
 </th:block>
-

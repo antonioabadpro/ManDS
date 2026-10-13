@@ -41,7 +41,7 @@
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Permiso matriculado:</span>
-                        <span th:if="${alumno.tipoCarnet != null}" th:text="${alumno.tipoCarnetDescripcion}" class="font-semibold text-indigo-600 dark:text-indigo-400">Permiso B - Automóviles</span>
+                        <span th:if="${alumno.tipoCarnet != null}" th:text="${alumno.tipoCarnetDescripcion}" class="font-semibold" th:classappend="${alumno.tipoCarnet.name() == 'PERMISO_B'} ? 'text-blue-600 dark:text-blue-400' : (${alumno.tipoCarnet.name() == 'PERMISO_A' || alumno.tipoCarnet.name() == 'PERMISO_A1' || alumno.tipoCarnet.name() == 'PERMISO_A2' || alumno.tipoCarnet.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${alumno.tipoCarnet.name() == 'PERMISO_B_E' || alumno.tipoCarnet.name() == 'PERMISO_B1' || alumno.tipoCarnet.name() == 'PERMISO_LVA'} ? 'text-indigo-600 dark:text-indigo-400' : (${alumno.tipoCarnet.name() == 'PERMISO_C' || alumno.tipoCarnet.name() == 'PERMISO_C_E'} ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')))">Permiso B - Automóviles</span>
                         <span th:if="${alumno.tipoCarnet == null}" class="text-amber-600 dark:text-amber-400 font-semibold">Sin matrícula activa</span>
                     </p>
                     <p>

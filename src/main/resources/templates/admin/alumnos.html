@@ -141,9 +141,11 @@
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <div th:if="${a.tieneMatriculaActiva}" class="inline-flex flex-col items-center justify-center">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${a.tipoCarnet != null ? a.tipoCarnet.descripcion : 'Sin permiso'}">
-                                            Permiso B
-                                        </span>
+                                        <span th:if="${a.tipoCarnet?.name() == 'PERMISO_A' || a.tipoCarnet?.name() == 'PERMISO_A1' || a.tipoCarnet?.name() == 'PERMISO_A2' || a.tipoCarnet?.name() == 'PERMISO_AM'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400" th:text="${a.tipoCarnet.descripcion}">Permiso A2</span>
+                                        <span th:if="${a.tipoCarnet?.name() == 'PERMISO_B'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${a.tipoCarnet.descripcion}">Permiso B</span>
+                                        <span th:if="${a.tipoCarnet?.name() == 'PERMISO_B_E' || a.tipoCarnet?.name() == 'PERMISO_B1' || a.tipoCarnet?.name() == 'PERMISO_LVA'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" th:text="${a.tipoCarnet.descripcion}">Permiso B+E</span>
+                                        <span th:if="${a.tipoCarnet?.name() == 'PERMISO_C' || a.tipoCarnet?.name() == 'PERMISO_C_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400" th:text="${a.tipoCarnet.descripcion}">Permiso C</span>
+                                        <span th:if="${a.tipoCarnet?.name() == 'PERMISO_D' || a.tipoCarnet?.name() == 'PERMISO_D_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" th:text="${a.tipoCarnet.descripcion}">Permiso D</span>
                                         <p th:if="${a.modalidadDescripcion != null}" class="text-[10px] text-slate-400 mt-0.5" th:text="${a.modalidadDescripcion}">Teórico-Práctica</p>
                                     </div>
                                     <div th:if="${!a.tieneMatriculaActiva}" class="inline-flex flex-col items-center justify-center">

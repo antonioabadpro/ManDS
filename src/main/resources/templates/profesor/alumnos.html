@@ -105,9 +105,11 @@
                                     </div>
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${f.permiso}">
-                                        Permiso B
-                                    </span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_A' || f.matricula?.permisoCarnet?.name() == 'PERMISO_A1' || f.matricula?.permisoCarnet?.name() == 'PERMISO_A2' || f.matricula?.permisoCarnet?.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${f.permiso}">Permiso A2</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_B' || f.matricula == null}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${f.permiso}">Permiso B</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || f.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || f.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${f.permiso}">Permiso B+E</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_C' || f.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${f.permiso}">Permiso C</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_D' || f.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${f.permiso}">Permiso D</span>
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border" th:classappend="${f.saldoClases > 0} ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'" th:text="${f.saldoClases + (f.saldoClases == 1 ? ' disponible' : ' disponibles')}">

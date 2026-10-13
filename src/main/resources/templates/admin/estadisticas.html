@@ -278,7 +278,7 @@
                         <div th:each="c : ${stats.carnets}" class="space-y-1.5">
                             <div class="flex justify-between items-center font-semibold text-slate-800 dark:text-slate-200">
                                 <span class="flex items-center space-x-1.5">
-                                    <span class="w-2 h-2 rounded-full" th:classappend="${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_A2'} ? 'bg-indigo-500' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500'))"></span>
+                                    <span class="w-2 h-2 rounded-full" th:classappend="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'bg-purple-600' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_B_E' || c.tipoCarnet.name() == 'PERMISO_B1' || c.tipoCarnet.name() == 'PERMISO_LVA'} ? 'bg-indigo-600' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500')))"></span>
                                 <span th:text="${c.descripcion}">Permiso B (Turismos)</span>
                                 </span>
                                 <span class="text-slate-700 dark:text-slate-300">
@@ -287,7 +287,7 @@
                                 </span>
                             </div>
                             <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500" th:classappend="${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_A2'} ? 'bg-indigo-500' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500'))" th:style="'width: ' + ${c.porcentaje} + '%'"></div>
+                                <div class="h-full rounded-full transition-all duration-500" th:classappend="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'bg-purple-600' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_B_E' || c.tipoCarnet.name() == 'PERMISO_B1' || c.tipoCarnet.name() == 'PERMISO_LVA'} ? 'bg-indigo-600' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500')))" th:style="'width: ' + ${c.porcentaje} + '%'"></div>
                             </div>
                         </div>
 

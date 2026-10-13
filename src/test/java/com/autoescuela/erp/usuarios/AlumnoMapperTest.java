@@ -248,6 +248,7 @@ class AlumnoMapperTest
         assertThat(dto.vehiculoId()).isEqualTo(50L);
         assertThat(dto.vehiculoMatricula()).isEqualTo("7890-XYZ");
         assertThat(dto.vehiculoModelo()).isEqualTo("Peugeot 208 PureTech");
+        assertThat(dto.vehiculoTipo()).isEqualTo(TipoCarnet.PERMISO_B);
         assertThat(dto.vehiculoTipoDescripcion()).isEqualTo("Permiso B");
         assertThat(dto.tipoCarnet()).isEqualTo(TipoCarnet.PERMISO_B);
         assertThat(dto.tipoCarnetDescripcion()).isEqualTo("Permiso B");
@@ -286,6 +287,7 @@ class AlumnoMapperTest
         assertThat(dto.vehiculoId()).isNull();
         assertThat(dto.vehiculoMatricula()).isNull();
         assertThat(dto.vehiculoModelo()).isNull();
+        assertThat(dto.vehiculoTipo()).isNull();
         assertThat(dto.vehiculoTipoDescripcion()).isNull();
         assertThat(dto.tipoCarnet()).isNull();
         assertThat(dto.tipoCarnetDescripcion()).isNull();

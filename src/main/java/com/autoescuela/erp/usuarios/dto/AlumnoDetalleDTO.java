@@ -35,6 +35,7 @@ public record AlumnoDetalleDTO(
     Long vehiculoId,
     String vehiculoMatricula,
     String vehiculoModelo,
+    TipoCarnet vehiculoTipo,
     String vehiculoTipoDescripcion,
     TipoCarnet tipoCarnet,
     String tipoCarnetDescripcion
