@@ -336,6 +336,17 @@ class VistaAdminTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/estadisticas/carnets-modal renderiza correctamente el fragmento modal de carnets")
+    void testModalCarnetsEstadisticasRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/estadisticas/carnets-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets"))
+                .andExpect(model().attributeExists("carnets"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("GET /admin/dashboard responde 200 OK para el administrador")
     void testTopBarComponentesRenderizados() throws Exception
     {

@@ -161,6 +161,12 @@ class EstadisticaServiceTest
         assertEquals(1, resultado.examenes().practicosTotal());
         assertEquals(0.0, resultado.examenes().porcentajePracticos());
 
+        assertNotNull(resultado.topCarnets());
+        assertEquals(4, resultado.topCarnets().size());
+        assertNotNull(resultado.todosCarnets());
+        assertEquals(12, resultado.todosCarnets().size());
+        assertEquals(resultado.topCarnets(), resultado.carnets());
+
         assertNotNull(resultado.topProfesores());
         assertEquals(1, resultado.topProfesores().size());
         assertEquals("Laura Sánchez", resultado.topProfesores().get(0).nombreCompleto());

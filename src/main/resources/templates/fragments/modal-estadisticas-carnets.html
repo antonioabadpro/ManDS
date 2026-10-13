@@ -1,0 +1,104 @@
+<div id="modal-estadisticas-carnets" th:fragment="modal-estadisticas-carnets" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-estadisticas-carnets" class="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+    <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-estadisticas-carnets"></div>
+    <div class="relative z-10 w-full max-w-4xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 lg:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
+
+        <!-- Cabecera del Modal -->
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold text-lg flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="titulo-modal-estadisticas-carnets" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
+                        Demanda Oficial por Tipo de Permiso
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Desglose exhaustivo de los 12 permisos reconocidos por la DGT y alumnos matriculados
+                    </p>
+                </div>
+            </div>
+
+            <!-- Botón de Cerrar -->
+            <button type="button" data-modal-close="modal-estadisticas-carnets" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar ventana">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Tabla con el desglose de todos los carnets -->
+        <div class="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800">
+            <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                    <tr>
+                        <th scope="col" class="py-3 px-4">#</th>
+                        <th scope="col" class="py-3 px-4">Permiso Oficial</th>
+                        <th scope="col" class="py-3 px-4 text-center">Categoría</th>
+                        <th scope="col" class="py-3 px-4 text-center">Alumnos Matriculados</th>
+                        <th scope="col" class="py-3 px-4 text-right">Cuota de Demanda</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tr th:each="c, iter : ${carnets}" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <!-- Posición -->
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0" th:text="${iter.count}">
+                                1
+                            </span>
+                        </td>
+
+                        <!-- Permiso y Color -->
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" th:classappend="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'bg-purple-600' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_B_E' || c.tipoCarnet.name() == 'PERMISO_B1' || c.tipoCarnet.name() == 'PERMISO_LVA'} ? 'bg-indigo-600' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500')))"></span>
+                                <span class="font-bold text-slate-900 dark:text-white" th:text="${c.descripcion}">Permiso B</span>
+                            </div>
+                        </td>
+
+                        <!-- Tipo de Vehículo / Categoría -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold" th:classappend="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' : (${c.tipoCarnet.name().startsWith('PERMISO_D')} ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300')))" th:text="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'Motocicletas' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'Turismos' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'Camiones / Pesados' : (${c.tipoCarnet.name().startsWith('PERMISO_D')} ? 'Autobuses' : 'Remolques / Otros')))">
+                                Turismos
+                            </span>
+                        </td>
+
+                        <!-- Alumnos Matriculados -->
+                        <td class="py-3 px-4 text-center font-semibold whitespace-nowrap" th:classappend="${c.totalAlumnos > 0} ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 font-normal'">
+                            <span th:text="${c.totalAlumnos} + ' alumno(s)'">15 alumno(s)</span>
+                        </td>
+
+                        <!-- Cuota de Demanda -->
+                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                            <div class="flex flex-col items-end">
+                                <span class="font-extrabold text-sm" th:classappend="${c.porcentaje > 0} ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'" th:text="${#numbers.formatDecimal(c.porcentaje, 1, 1)} + '%'">
+                                    60.0%
+                                </span>
+                                <div class="w-20 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mt-1">
+                                    <div class="h-full rounded-full transition-all duration-500" th:classappend="${c.tipoCarnet.name().startsWith('PERMISO_A')} ? 'bg-purple-600' : (${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_B_E' || c.tipoCarnet.name() == 'PERMISO_B1' || c.tipoCarnet.name() == 'PERMISO_LVA'} ? 'bg-indigo-600' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500')))" th:style="'width: ' + ${c.porcentaje} + '%'"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(carnets)}">
+                        <td colspan="5" class="py-6 text-center text-slate-400">
+                            No hay información disponible sobre permisos de conducir.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pie del Modal -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <span class="text-slate-400">
+                Total de permisos oficiales DGT: <strong class="text-slate-700 dark:text-slate-200" th:text="${#lists.size(carnets)}">12</strong>
+            </span>
+            <button type="button" data-modal-close="modal-estadisticas-carnets" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition cursor-pointer">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>

@@ -1229,6 +1229,17 @@ public class AdministradorController
     }
 
     /**
+     * Endpoint HTMX para cargar el modal con el desglose completo de la demanda de todos los permisos de conducir.
+     */
+    @GetMapping("/estadisticas/carnets-modal")
+    public String cargarModalEstadisticasCarnets(Model model)
+    {
+        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
+        model.addAttribute("carnets", stats.todosCarnets());
+        return "fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets";
+    }
+
+    /**
      * Muestra el formulario de Mi Perfil con los datos personales del Administrador.
      */
     @GetMapping("/perfil")

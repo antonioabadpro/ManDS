@@ -87,7 +87,9 @@ public class EstadisticaService
         long totalBolsaSaldo = this.calcularTotalBolsaSaldo(matriculasActivas);
 
         DistribucionModalidadDTO modalidadDTO = this.calcularTarjetaDistribucionModalidades(matriculasActivas);
-        List<DistribucionCarnetDTO> carnets = this.calcularTarjetaDistribucionCarnets(matriculasActivas);
+        List<DistribucionCarnetDTO> todosCarnets = this.calcularTarjetaDistribucionCarnets(matriculasActivas);
+        List<DistribucionCarnetDTO> topCarnets = new ArrayList<>(todosCarnets.subList(0, Math.min(4, todosCarnets.size()))
+        );
 
         List<Examen> todosExamenes = this.examenRepository.findAll();
         EfectividadExamenDTO efectividadExamenDTO = this.calcularTarjetaEfectividadExamenes(todosExamenes);
@@ -118,7 +120,8 @@ public class EstadisticaService
                 kpisDTO,
                 modalidadDTO,
                 efectividadExamenDTO,
-                carnets,
+                topCarnets,
+                todosCarnets,
                 topProfesores,
                 todosProfesores,
                 financieroDTO
