@@ -263,16 +263,16 @@ public class EstadisticaService
 
         long totalMatriculasActivas = matriculasActivas.size();
         double pctTeoricoPractica = totalMatriculasActivas > 0
-                ? Math.round(((double) countTeoricoPractica / totalMatriculasActivas) * 100.0)
+                ? Math.round(((double) countTeoricoPractica / totalMatriculasActivas) * 1000.0) / 10.0
                 : 0.0;
         double pctSoloPractica = totalMatriculasActivas > 0
-                ? Math.round(((double) countSoloPractica / totalMatriculasActivas) * 100.0)
+                ? Math.round(((double) countSoloPractica / totalMatriculasActivas) * 1000.0) / 10.0
                 : 0.0;
         double pctNuevas = totalMatriculasActivas > 0
-                ? Math.round(((double) countNuevas / totalMatriculasActivas) * 100.0)
+                ? Math.round(((double) countNuevas / totalMatriculasActivas) * 1000.0) / 10.0
                 : 0.0;
         double pctRenovaciones = totalMatriculasActivas > 0
-                ? Math.round(((double) countRenovaciones / totalMatriculasActivas) * 100.0)
+                ? Math.round(((double) countRenovaciones / totalMatriculasActivas) * 1000.0) / 10.0
                 : 0.0;
 
         return new DistribucionModalidadDTO(
@@ -328,11 +328,11 @@ public class EstadisticaService
 
         long teoricosTotal = teoricosAptos + teoricosNoAptos;
         double pctTeoricos = teoricosTotal > 0
-                ? Math.round(((double) teoricosAptos / teoricosTotal) * 100.0)
+                ? Math.round(((double) teoricosAptos / teoricosTotal) * 1000.0) / 10.0
                 : 0.0;
         long practicosTotal = practicosAptos + practicosNoAptos;
         double pctPracticos = practicosTotal > 0
-                ? Math.round(((double) practicosAptos / practicosTotal) * 100.0)
+                ? Math.round(((double) practicosAptos / practicosTotal) * 1000.0) / 10.0
                 : 0.0;
 
         return new EfectividadExamenDTO(
@@ -368,7 +368,7 @@ public class EstadisticaService
                 }
             }
             double pctCarnet = totalMatriculasActivas > 0
-                    ? Math.round(((double) totalCarnet / totalMatriculasActivas) * 100.0)
+                    ? Math.round(((double) totalCarnet / totalMatriculasActivas) * 1000.0) / 10.0
                     : 0.0;
             carnets.add(new DistribucionCarnetDTO(carnet, carnet.getDescripcion(), totalCarnet, pctCarnet));
         }
@@ -417,7 +417,7 @@ public class EstadisticaService
                 }
                 long evaluadosProf = aptosProf + noAptosProf;
                 double tasaAprobadosProf = evaluadosProf > 0
-                        ? Math.round(((double) aptosProf / evaluadosProf) * 100.0)
+                        ? Math.round(((double) aptosProf / evaluadosProf) * 1000.0) / 10.0
                         : 0.0;
 
                 String vehiculoStr = prof.getVehiculo() != null
@@ -640,9 +640,9 @@ public class EstadisticaService
         long clasesCanceladas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.CANCELADA);
         long totalClases = this.clasePracticaRepository.countByAlumno(alumno);
 
-        double pctRecibidas = totalClases > 0 ? (clasesRecibidas * 100.0 / totalClases) : 0.0;
-        double pctPendientes = totalClases > 0 ? (clasesPendientes * 100.0 / totalClases) : 0.0;
-        double pctCanceladas = totalClases > 0 ? (clasesCanceladas * 100.0 / totalClases) : 0.0;
+        double pctRecibidas = totalClases > 0 ? Math.round((clasesRecibidas * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
+        double pctPendientes = totalClases > 0 ? Math.round((clasesPendientes * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
+        double pctCanceladas = totalClases > 0 ? Math.round((clasesCanceladas * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
 
         return new DistribucionClasesAlumnoDTO(
                 clasesRecibidas,
@@ -847,9 +847,9 @@ public class EstadisticaService
             }
         }
 
-        double pctRecibidas = totalClases > 0 ? Math.round((clasesRecibidas * 100.0 / totalClases)) : 0.0;
-        double pctPendientes = totalClases > 0 ? Math.round((clasesPendientes * 100.0 / totalClases)) : 0.0;
-        double pctCanceladas = totalClases > 0 ? Math.round((clasesCanceladas * 100.0 / totalClases)) : 0.0;
+        double pctRecibidas = totalClases > 0 ? Math.round((clasesRecibidas * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
+        double pctPendientes = totalClases > 0 ? Math.round((clasesPendientes * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
+        double pctCanceladas = totalClases > 0 ? Math.round((clasesCanceladas * 100.0 / totalClases) * 10.0) / 10.0 : 0.0;
 
         return new DistribucionClasesProfesorDTO(
                 clasesRecibidas,

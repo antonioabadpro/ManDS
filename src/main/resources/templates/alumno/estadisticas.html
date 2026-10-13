@@ -132,7 +132,10 @@
                                 </span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">Clases realizadas y completadas</span>
                             </div>
-                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesRecibidas ?: 0}">0</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesRecibidas ?: 0}">0</span>
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${#numbers.formatDecimal(estadisticas?.porcentajeRecibidas ?: 0.0, 1, 1)} + '%'">0.0%</span>
+                            </div>
                         </div>
 
                         <!-- Clases Pendientes -->
@@ -143,7 +146,10 @@
                                 </span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">Clases reservadas en agenda</span>
                             </div>
-                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesPendientes ?: 0}">0</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesPendientes ?: 0}">0</span>
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${#numbers.formatDecimal(estadisticas?.porcentajePendientes ?: 0.0, 1, 1)} + '%'">0.0%</span>
+                            </div>
                         </div>
 
                         <!-- Clases Canceladas -->
@@ -154,7 +160,10 @@
                                 </span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">Clases canceladas</span>
                             </div>
-                            <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesCanceladas ?: 0}">0</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.clasesCanceladas ?: 0}">0</span>
+                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20" th:text="${#numbers.formatDecimal(estadisticas?.porcentajeCanceladas ?: 0.0, 1, 1)} + '%'">0.0%</span>
+                            </div>
                         </div>
                     </div>
 
@@ -165,9 +174,9 @@
                             <span class="font-bold text-slate-900 dark:text-white text-sm" th:text="${estadisticas?.totalClases ?: 0}">0</span>
                         </div>
                         <div th:if="${(estadisticas?.totalClases ?: 0) > 0}" class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden flex" title="Proporción de estados de clases">
-                            <div class="bg-emerald-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesRecibidas * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
-                            <div class="bg-amber-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesPendientes * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
-                            <div class="bg-rose-500 transition-all duration-300" th:style="'width: ' + (${estadisticas.totalClases > 0 ? (estadisticas.clasesCanceladas * 100.0 / estadisticas.totalClases) : 0}) + '%'"></div>
+                            <div class="bg-emerald-500 transition-all duration-300" th:style="'width: ' + ${estadisticas?.porcentajeRecibidas ?: 0.0} + '%'"></div>
+                            <div class="bg-amber-500 transition-all duration-300" th:style="'width: ' + ${estadisticas?.porcentajePendientes ?: 0.0} + '%'"></div>
+                            <div class="bg-rose-500 transition-all duration-300" th:style="'width: ' + ${estadisticas?.porcentajeCanceladas ?: 0.0} + '%'"></div>
                         </div>
                     </div>
                 </div>

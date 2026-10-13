@@ -84,4 +84,19 @@ public record EstadisticasAlumnoDTO(
             balance.esVehiculoPesado()
         );
     }
+
+    public double porcentajeRecibidas()
+    {
+        return this.totalClases > 0 ? Math.round((this.clasesRecibidas * 100.0 / this.totalClases) * 10.0) / 10.0 : 0.0;
+    }
+
+    public double porcentajePendientes()
+    {
+        return this.totalClases > 0 ? Math.round((this.clasesPendientes * 100.0 / this.totalClases) * 10.0) / 10.0 : 0.0;
+    }
+
+    public double porcentajeCanceladas()
+    {
+        return this.totalClases > 0 ? Math.round((this.clasesCanceladas * 100.0 / this.totalClases) * 10.0) / 10.0 : 0.0;
+    }
 }

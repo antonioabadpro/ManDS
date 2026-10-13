@@ -41,6 +41,9 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
 
 @ExtendWith(MockitoExtension.class)
 class EstadisticaServiceTest
@@ -429,6 +432,44 @@ class EstadisticaServiceTest
         assertEquals(0, stats.totalClases());
         assertEquals(0.0, stats.tasaAprobados());
         assertEquals(0L, stats.distancia());
+    }
+
+    @Test
+    @DisplayName("obtenerEstadisticasAlumno calcula la distribución de clases con 1 decimal exacto sin sumar 101%")
+    void testObtenerEstadisticasAlumno_DistribucionClasesConDecimalesExactos()
+    {
+        Alumno alumno = new Alumno();
+        alumno.setNombre("Pablo");
+        alumno.setApellidos("Ruiz");
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(List.of());
+        when(this.examenRepository.countByAlumnoAndEsAptoTrue(alumno)).thenReturn(0L);
+        when(this.examenRepository.countByAlumnoAndEsAptoFalse(alumno)).thenReturn(0L);
+        when(this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno)).thenReturn(List.of());
+
+        // 70 recibidas, 10 pendientes, 0 canceladas -> Total 80
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(70);
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE)).thenReturn(10);
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.CANCELADA)).thenReturn(0);
+        when(this.clasePracticaRepository.countByAlumno(alumno)).thenReturn(80);
+
+        EstadisticasAlumnoDTO stats = this.estadisticaService.obtenerEstadisticasAlumno(alumno);
+
+        assertNotNull(stats);
+        assertEquals(70L, stats.clasesRecibidas());
+        assertEquals(10L, stats.clasesPendientes());
+        assertEquals(0L, stats.clasesCanceladas());
+        assertEquals(80L, stats.totalClases());
+
+        // 70 / 80 = 87.5% (NO truncado a 88.0%)
+        assertEquals(87.5, stats.porcentajeRecibidas());
+
+        // 10 / 80 = 12.5% (NO truncado a 13.0%)
+        assertEquals(12.5, stats.porcentajePendientes());
+
+        // La suma debe ser exactamente 100.0% y no 101%
+        assertEquals(100.0, stats.porcentajeRecibidas() + stats.porcentajePendientes());
     }
 }
 

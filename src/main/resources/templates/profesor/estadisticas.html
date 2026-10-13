@@ -68,7 +68,7 @@
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tasa de Aprobados</span>
                     <div class="my-3">
                         <div class="flex items-baseline space-x-2">
-                            <span class="text-3xl font-black text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(estadisticas.examenes.tasaAprobados, 1, 0)} + '%'">75%</span>
+                            <span class="text-3xl font-black text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(estadisticas.examenes.tasaAprobados, 1, 1)} + '%'">75.0%</span>
                             <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold" th:text="${estadisticas.examenes.aptos} + ' aptos / ' + ${estadisticas.examenes.totalEvaluados} + ' exámenes'">3 aptos</span>
                         </div>
                         <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 mt-2 overflow-hidden">
@@ -245,7 +245,7 @@
                         <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                             <div class="flex items-center space-x-3">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                    1ª CONV.
+                                    1ª CONV
                                 </span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">Aprobados al primer intento</span>
                             </div>
@@ -259,7 +259,7 @@
                         <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                             <div class="flex items-center space-x-3">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                    2ª CONV.
+                                    2ª CONV
                                 </span>
                                 <span class="font-medium text-slate-700 dark:text-slate-300">Aprobados al segundo intento</span>
                             </div>
@@ -273,9 +273,9 @@
                         <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                             <div class="flex items-center space-x-3">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                                    +3 CONV.
+                                    +3 CONV
                                 </span>
-                                <span class="font-medium text-slate-700 dark:text-slate-300">Aprobados con renovación (+3)</span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">Aprobados con +3 intentos</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-bold text-sm text-slate-900 dark:text-white" th:text="${estadisticas?.convocatoriasAprobados?.aprobadosMasDeDosConvocatorias ?: 0}">0</span>
