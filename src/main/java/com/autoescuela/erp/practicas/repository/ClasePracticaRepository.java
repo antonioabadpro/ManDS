@@ -2,8 +2,11 @@ package com.autoescuela.erp.practicas.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -83,4 +86,32 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
      * Comprueba si el profesor ya tiene una clase programada en una fecha y hora concreta que no esté cancelada.
      */
     boolean existsByProfesorAndFechaHoraAndEstadoClaseNot(Profesor profesor, LocalDateTime fechaHora, EstadoClase estadoClase);
+
+    /**
+     * Búsqueda filtrada de clases prácticas para el panel del Administrador,
+     * optimizada con FETCH JOIN para evitar problemas de N+1 y ordenadas descendentemente por fecha/hora.
+     */
+    @Query("""
+        SELECT c FROM ClasePractica c
+        JOIN FETCH c.alumno a
+        LEFT JOIN FETCH c.profesor p
+        LEFT JOIN FETCH p.vehiculo v
+        WHERE (:profesorId IS NULL OR p.id = :profesorId)
+          AND (:estadoClase IS NULL OR c.estadoClase = :estadoClase)
+        ORDER BY c.fechaHora DESC
+    """)
+    List<ClasePractica> buscarClasesParaAdmin(@Param("profesorId") Long profesorId, @Param("estadoClase") EstadoClase estadoClase);
+
+    /**
+     * Recupera una clase práctica por su identificador único junto con sus relaciones
+     * (alumno, profesor y vehículo) precargadas para la visualización del modal informativo.
+     */
+    @Query("""
+        SELECT c FROM ClasePractica c
+        JOIN FETCH c.alumno a
+        LEFT JOIN FETCH c.profesor p
+        LEFT JOIN FETCH p.vehiculo v
+        WHERE c.id = :id
+    """)
+    Optional<ClasePractica> findByIdConDetalles(@Param("id") Long id);
 }

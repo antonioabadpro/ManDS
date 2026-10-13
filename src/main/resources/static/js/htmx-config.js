@@ -26,6 +26,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Limpieza determinista de clases htmx-request para evitar bloqueos por colisión de requestCount
+    document.body.addEventListener('htmx:afterRequest', (event) => {
+        const elt = event.detail.elt || event.target;
+        if (elt) {
+            elt.classList.remove('htmx-request');
+            if (elt['htmx-internal-data']) {
+                elt['htmx-internal-data'].requestCount = 0;
+            }
+            const indicatorSelector = elt.getAttribute('hx-indicator');
+            if (indicatorSelector) {
+                document.querySelectorAll(indicatorSelector).forEach((ind) => {
+                    ind.classList.remove('htmx-request');
+                    if (ind['htmx-internal-data']) {
+                        ind['htmx-internal-data'].requestCount = 0;
+                    }
+                });
+            }
+        }
+    });
+
     // Manejo de errores HTTP (404, 500, 403) y redirecciones enviadas por el servidor mediante HX-Redirect
     document.body.addEventListener('htmx:responseError', (event) => {
         const xhr = event.detail.xhr;

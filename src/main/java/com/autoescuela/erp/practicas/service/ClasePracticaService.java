@@ -1,6 +1,7 @@
 package com.autoescuela.erp.practicas.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
+import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
@@ -27,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class ClasePracticaService
 {
     private final ClasePracticaRepository clasePracticaRepository;
+    private final ClasePracticaMapper clasePracticaMapper;
 
     /**
      * Procesa la reserva transaccional de una clase práctica aplicando el algoritmo First-Come, First-Served.
@@ -114,5 +118,42 @@ public class ClasePracticaService
 
         clase.setEstadoClase(EstadoClase.CANCELADA);
         return this.clasePracticaRepository.save(clase);
+    }
+
+    /**
+     * Recupera y proyecta las clases prácticas filtradas por profesor y/o estado
+     * para la supervisión del panel del Administrador, ordenadas de más reciente a más antigua.
+     *
+     * @param profesorId Identificador del profesor (opcional).
+     * @param estadoClase Estado de la clase (opcional).
+     * @return Lista de DTOs inmutables representativos de las clases encontradas.
+     */
+    @Transactional(readOnly = true)
+    public List<ClasePracticaAdminDTO> obtenerClasesParaAdmin(Long profesorId, EstadoClase estadoClase)
+    {
+        List<ClasePractica> clases = this.clasePracticaRepository.buscarClasesParaAdmin(profesorId, estadoClase);
+        return this.clasePracticaMapper.toClasePracticaAdminDTOList(clases);
+    }
+
+    /**
+     * Recupera una clase práctica por su identificador único y la proyecta al DTO
+     * informativo para su visualización en el modal del Administrador.
+     *
+     * @param id Identificador de la clase práctica.
+     * @return DTO inmutable con los detalles completos de la clase.
+     * @throws ReglaNegocioException si la clase no existe en el sistema.
+     */
+    @Transactional(readOnly = true)
+    public ClasePracticaAdminDTO obtenerClaseParaDetalleAdmin(Long id)
+    {
+        if (id == null)
+        {
+            throw new ReglaNegocioException("El identificador de la clase práctica no puede ser nulo.");
+        }
+
+        ClasePractica clase = this.clasePracticaRepository.findByIdConDetalles(id)
+                .orElseThrow(() -> new ReglaNegocioException("No se ha encontrado la clase práctica solicitada."));
+
+        return this.clasePracticaMapper.toClasePracticaAdminDTO(clase);
     }
 }

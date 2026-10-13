@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO: Tabla de Listado de Clases Prácticas (Admin)                   -->
+    <!-- Fragmento reutilizable para carga inicial y actualización HTMX bajo demanda -->
+    <!-- ========================================================================= -->
+    <div th:fragment="tabla-practicas-fragment">
+        <!-- Sincronización out-of-band del contador en la cabecera superior (solo cuando se realiza la búsqueda) -->
+        <span th:if="${totalClases != null}" id="contador-clases-registradas" hx-swap-oob="true" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="|Total: ${totalClases} clase${totalClases == 1 ? '' : 's'} encontrada${totalClases == 1 ? '' : 's'}|">
+        </span>
+
+        <div class="overflow-x-auto">
+            <table id="tabla-practicas" class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+                <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4 text-center whitespace-nowrap">Fecha y Hora</th>
+                        <th class="py-3 px-4 text-center">Alumno</th>
+                        <th class="py-3 px-4 text-center">Profesor & Vehículo</th>
+                        <th class="py-3 px-4 text-center">Recogida & Duración</th>
+                        <th class="py-3 px-4 text-center whitespace-nowrap">Kilometraje</th>
+                        <th class="py-3 px-4 text-center">Estado</th>
+                        <th class="py-3 px-4 text-center whitespace-nowrap">Acción</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+
+                    <!-- Estado Inicial: Antes de realizar ninguna búsqueda -->
+                    <tr th:if="${busquedaRealizada == null || !busquedaRealizada}">
+                        <td colspan="7" class="py-12 text-center text-slate-400 text-xs">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <svg class="w-8 h-8 text-slate-300 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <p class="font-medium text-slate-600 dark:text-slate-300">Selecciona los filtros y haz clic en <span class="font-bold text-blue-600 dark:text-blue-400">"Buscar Clases"</span> para consultar la agenda.</p>
+                                <p class="text-[11px] text-slate-400">La carga bajo demanda optimiza el rendimiento del sistema ante grandes volúmenes de datos.</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Estado Vacío: Búsqueda realizada pero sin coincidencias -->
+                    <tr th:if="${busquedaRealizada != null && busquedaRealizada && #lists.isEmpty(clases)}">
+                        <td colspan="7" class="py-10 text-center text-slate-400 text-xs">
+                            <div class="flex flex-col items-center justify-center space-y-1">
+                                <p class="font-medium text-slate-500 dark:text-slate-400">No se encontraron clases prácticas con los filtros seleccionados.</p>
+                                <p class="text-[11px] text-slate-400">Prueba a seleccionar otros criterios de búsqueda o dejar los filtros vacíos.</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Iteración de Clases Prácticas Reales desde Backend -->
+                    <tr th:each="c : ${clases}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                        <!-- 1. Fecha & Hora -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <p class="font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy')}">10/09/2026</p>
+                            <p class="text-[10px] text-slate-400" th:text="${#temporals.format(c.fechaHora, 'HH:mm')} + ' h'">10:00 h</p>
+                        </td>
+
+                        <!-- 2. Alumno -->
+                        <td class="py-3 px-4 text-center">
+                            <div class="inline-flex flex-col items-center justify-center">
+                                <p class="font-medium text-slate-900 dark:text-white" th:text="${c.alumnoNombreCompleto}">Elena Martínez López</p>
+                            </div>
+                        </td>
+
+                        <!-- 3. Profesor & Vehículo -->
+                        <td class="py-3 px-4 text-center">
+                            <div th:if="${c.profesorNombreCompleto != null}" class="inline-flex flex-col items-center justify-center">
+                                <p class="font-medium text-slate-900 dark:text-white" th:text="${c.profesorNombreCompleto}">Laura Sánchez Romero</p>
+                                <p th:if="${c.vehiculoMatricula != null}" class="text-[10px] text-slate-400" th:text="|${c.vehiculoMatricula} · ${c.vehiculoModelo}|">1234-LMN · SEAT Ibiza</p>
+                                <p th:if="${c.vehiculoMatricula == null}" class="text-[10px] text-slate-400 italic">Sin vehículo</p>
+                            </div>
+                            <div th:if="${c.profesorNombreCompleto == null}" class="flex justify-center">
+                                <span class="text-[11px] text-slate-400 italic">Sin profesor asignado</span>
+                            </div>
+                        </td>
+
+                        <!-- 4. Recogida & Duración -->
+                        <td class="py-3 px-4 text-center">
+                            <div class="inline-flex flex-col items-center justify-center">
+                                <p class="text-slate-800 dark:text-slate-200" th:text="${c.puntoRecogida}">Calle Alcalá 45</p>
+                                <p class="text-[10px] text-slate-400" th:text="${c.duracion} + ' minutos'">45 minutos</p>
+                            </div>
+                        </td>
+
+                        <!-- 5. Kilometraje -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <span th:if="${c.estadoClase?.name() == 'RECIBIDA'}" class="font-medium text-slate-700 dark:text-slate-300" th:text="${c.kmFormateado}">44.955 a 45.000 km (+45 km)</span>
+                            <span th:if="${c.estadoClase?.name() == 'PENDIENTE'}" class="text-[11px] text-slate-400 italic" th:text="${c.kmInicio != null && c.kmInicio > 0 ? c.kmInicio + ' km (Inicio)' : 'Pendiente de inicio'}">45.000 km (Inicio)</span>
+                            <span th:if="${c.estadoClase?.name() == 'CANCELADA'}" class="text-xs text-slate-400">--</span>
+                        </td>
+
+                        <!-- 6. Estado con colores corporativos (emerald, amber, rose) -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <div class="flex justify-center">
+                                <span th:if="${c.estadoClase?.name() == 'RECIBIDA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    RECIBIDA
+                                </span>
+                                <span th:if="${c.estadoClase?.name() == 'PENDIENTE'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    PENDIENTE
+                                </span>
+                                <span th:if="${c.estadoClase?.name() == 'CANCELADA'}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                    CANCELADA
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- 7. Acción (Único botón con SVG ojo que abre el modal informativo) -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <div class="flex justify-center">
+                                <button type="button" th:attr="hx-get=@{/admin/practicas/detalle/{id}(id=${c.id})}" hx-target="#contenedor-modal-detalle-clase" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Ver detalles de la clase práctica">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+
+</html>

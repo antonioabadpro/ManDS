@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +22,9 @@ import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
+import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -33,12 +37,15 @@ class ClasePracticaServiceTest
     @Mock
     private ClasePracticaRepository clasePracticaRepository;
 
+    @Mock
+    private ClasePracticaMapper clasePracticaMapper;
+
     private ClasePracticaService clasePracticaService;
 
     @BeforeEach
     void setUp()
     {
-        this.clasePracticaService = new ClasePracticaService(this.clasePracticaRepository);
+        this.clasePracticaService = new ClasePracticaService(this.clasePracticaRepository, this.clasePracticaMapper);
     }
 
     @Test
@@ -253,5 +260,76 @@ class ClasePracticaServiceTest
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("vacaciones de la autoescuela")
                 .hasMessageContaining("Vacaciones de Navidad");
+    }
+
+    @Test
+    @DisplayName("obtenerClasesParaAdmin recupera las clases y delega el mapeo al ClasePracticaMapper")
+    void testObtenerClasesParaAdminExito()
+    {
+        Long profesorId = 1L;
+        EstadoClase estado = EstadoClase.RECIBIDA;
+        ClasePractica clase = new ClasePractica();
+        List<ClasePractica> listaEntidades = List.of(clase);
+
+        ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
+                10L, LocalDateTime.now(), 45, "Sede Central", 100, 150, "100 a 150 km (+50 km)",
+                EstadoClase.RECIBIDA, 2L, "Juan Perez", "juanp", 1L, "Laura Gomez", "laurag",
+                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, "Sin notas"
+        );
+        List<ClasePracticaAdminDTO> listaDTOs = List.of(dto);
+
+        when(this.clasePracticaRepository.buscarClasesParaAdmin(profesorId, estado)).thenReturn(listaEntidades);
+        when(this.clasePracticaMapper.toClasePracticaAdminDTOList(listaEntidades)).thenReturn(listaDTOs);
+
+        List<ClasePracticaAdminDTO> resultado = this.clasePracticaService.obtenerClasesParaAdmin(profesorId, estado);
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).id()).isEqualTo(10L);
+        verify(this.clasePracticaRepository).buscarClasesParaAdmin(profesorId, estado);
+        verify(this.clasePracticaMapper).toClasePracticaAdminDTOList(listaEntidades);
+    }
+
+    @Test
+    @DisplayName("obtenerClaseParaDetalleAdmin recupera la clase con relaciones y la proyecta con ClasePracticaMapper")
+    void testObtenerClaseParaDetalleAdminExito()
+    {
+        Long id = 5L;
+        ClasePractica clase = new ClasePractica();
+        ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
+                id, LocalDateTime.now(), 45, "Plaza Norte", 200, 240, "200 a 240 km (+40 km)",
+                EstadoClase.RECIBIDA, 3L, "Mario Casas", "marioc", 1L, "Laura Gomez", "laurag",
+                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, null
+        );
+
+        when(this.clasePracticaRepository.findByIdConDetalles(id)).thenReturn(Optional.of(clase));
+        when(this.clasePracticaMapper.toClasePracticaAdminDTO(clase)).thenReturn(dto);
+
+        ClasePracticaAdminDTO resultado = this.clasePracticaService.obtenerClaseParaDetalleAdmin(id);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.id()).isEqualTo(id);
+        verify(this.clasePracticaRepository).findByIdConDetalles(id);
+        verify(this.clasePracticaMapper).toClasePracticaAdminDTO(clase);
+    }
+
+    @Test
+    @DisplayName("obtenerClaseParaDetalleAdmin lanza ReglaNegocioException si el id es nulo")
+    void testObtenerClaseParaDetalleAdminIdNulo()
+    {
+        assertThatThrownBy(() -> this.clasePracticaService.obtenerClaseParaDetalleAdmin(null))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("no puede ser nulo");
+    }
+
+    @Test
+    @DisplayName("obtenerClaseParaDetalleAdmin lanza ReglaNegocioException si la clase no existe")
+    void testObtenerClaseParaDetalleAdminNoEncontrada()
+    {
+        Long id = 99L;
+        when(this.clasePracticaRepository.findByIdConDetalles(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> this.clasePracticaService.obtenerClaseParaDetalleAdmin(id))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se ha encontrado la clase práctica solicitada");
     }
 }

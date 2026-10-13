@@ -309,7 +309,35 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/practicas"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/practicas"));
+                .andExpect(view().name("admin/practicas"))
+                .andExpect(model().attributeExists("profesores"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/practicas/buscar renderiza el fragmento de tabla de clases filtradas")
+    void testBuscarPracticasHTMXRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/practicas/buscar")
+                        .param("profesorId", "100")
+                        .param("estadoClase", "PENDIENTE"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/tabla-practicas :: tabla-practicas-fragment"))
+                .andExpect(model().attributeExists("clases"))
+                .andExpect(model().attributeExists("totalClases"))
+                .andExpect(model().attributeExists("busquedaRealizada"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/practicas/detalle/{id} renderiza el modal informativo con los datos de la clase")
+    void testModalDetalleClaseAdminRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/practicas/detalle/204"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin"))
+                .andExpect(model().attributeExists("clase"))
+                .andExpect(model().attributeExists("abrirModalDetalleClase"));
     }
 
     @Test

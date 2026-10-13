@@ -19,9 +19,12 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
+import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
+import com.autoescuela.erp.practicas.service.ClasePracticaService;
 import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoCombustible;
@@ -74,6 +77,7 @@ public class AdministradorController
     private final ExamenService examenService;
     private final EstadisticaService estadisticaService;
     private final IncidenciaVehiculoService incidenciaVehiculoService;
+    private final ClasePracticaService clasePracticaService;
 
     /**
      * Proporciona el nombre corto/de pila del Administrador a todas las vistas para evitar
@@ -1191,6 +1195,7 @@ public class AdministradorController
 
     /**
      * Muestra la agenda global de prácticas de profesores y vehículos.
+     * Carga el catálogo de profesores para el filtro transversal sin consultas costosas a las clases.
      */
     @GetMapping("/practicas")
     public String mostrarPracticas(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
@@ -1199,8 +1204,36 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+        model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
         return "admin/practicas";
     }
+
+    /**
+     * Endpoint HTMX para buscar y filtrar clases prácticas por profesor y/o estado,
+     * devolviendo el fragmento de tabla ordenado descendentemente.
+     */
+    @GetMapping("/practicas/buscar")
+    public String buscarPracticas(@RequestParam(name = "profesorId", required = false) Long profesorId, @RequestParam(name = "estadoClase", required = false) EstadoClase estadoClase, Model model)
+    {
+        List<ClasePracticaAdminDTO> clases = this.clasePracticaService.obtenerClasesParaAdmin(profesorId, estadoClase);
+        model.addAttribute("clases", clases);
+        model.addAttribute("totalClases", clases.size());
+        model.addAttribute("busquedaRealizada", true);
+        return "admin/fragments/tabla-practicas :: tabla-practicas-fragment";
+    }
+
+    /**
+     * Endpoint HTMX para cargar el modal con el resumen informativo detallado de una clase práctica.
+     */
+    @GetMapping("/practicas/detalle/{id}")
+    public String cargarModalDetalleClaseAdmin(@PathVariable("id") Long id, Model model)
+    {
+        ClasePracticaAdminDTO clase = this.clasePracticaService.obtenerClaseParaDetalleAdmin(id);
+        model.addAttribute("clase", clase);
+        model.addAttribute("abrirModalDetalleClase", true);
+        return "fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin";
+    }
+
 
     /**
      * Muestra el panel de estadísticas globales y métricas de la autoescuela.
