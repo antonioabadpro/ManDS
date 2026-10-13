@@ -479,7 +479,7 @@ public class AdministradorController
      */
     private void cargarDatosDashboard(Model model)
     {
-        model.addAttribute("estadisticas", this.estadisticaService.obtenerEstadisticasDashboard());
+        model.addAttribute("estadisticas", this.estadisticaService.obtenerEstadisticasDashboardAdmin());
         model.addAttribute("vehiculos", this.flotaService.obtenerVehiculosDashboard());
         model.addAttribute("solicitudesExamen", this.examenService.obtenerSolicitudesExamenDashboard());
     }

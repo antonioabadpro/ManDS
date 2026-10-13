@@ -7,16 +7,29 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.enums.TipoMatricula;
+import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasAdminDTO;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAutoescuelaDTO;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.examenes.repository.SolicitudExamenRepository;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
@@ -24,6 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class EstadisticaServiceTest
@@ -64,7 +81,7 @@ class EstadisticaServiceTest
         when(this.vehiculoRepository.countByEstado(EstadoVehiculo.MANTENIMIENTO)).thenReturn(2L);
         when(this.solicitudExamenRepository.countByEstado(EstadoSolicitud.PENDIENTE)).thenReturn(3L);
 
-        EstadisticasAutoescuelaDTO stats = this.estadisticaService.obtenerEstadisticasDashboard();
+        EstadisticasAutoescuelaDTO stats = this.estadisticaService.obtenerEstadisticasDashboardAdmin();
 
         assertNotNull(stats);
         assertEquals(26L, stats.totalAlumnos());
@@ -88,56 +105,56 @@ class EstadisticaServiceTest
     void testObtenerEstadisticasAdmin()
     {
         // 1. Mock de matrículas
-        com.autoescuela.erp.academico.model.Matricula m1 = new com.autoescuela.erp.academico.model.Matricula();
+        Matricula m1 = new Matricula();
         m1.setEstaActiva(true);
-        m1.setPermisoCarnet(com.autoescuela.erp.core.enums.TipoCarnet.PERMISO_B);
-        m1.setModalidad(com.autoescuela.erp.core.enums.ModalidadMatricula.TEORICO_PRACTICA);
-        m1.setTipo(com.autoescuela.erp.core.enums.TipoMatricula.NUEVA);
+        m1.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        m1.setModalidad(ModalidadMatricula.TEORICO_PRACTICA);
+        m1.setTipo(TipoMatricula.NUEVA);
         m1.setPrecio(250.0f);
         m1.setSaldoClases(5);
 
-        com.autoescuela.erp.academico.model.Matricula m2 = new com.autoescuela.erp.academico.model.Matricula();
+        Matricula m2 = new Matricula();
         m2.setEstaActiva(true);
-        m2.setPermisoCarnet(com.autoescuela.erp.core.enums.TipoCarnet.PERMISO_A2);
-        m2.setModalidad(com.autoescuela.erp.core.enums.ModalidadMatricula.PRACTICA);
-        m2.setTipo(com.autoescuela.erp.core.enums.TipoMatricula.RENOVACION);
+        m2.setPermisoCarnet(TipoCarnet.PERMISO_A2);
+        m2.setModalidad(ModalidadMatricula.PRACTICA);
+        m2.setTipo(TipoMatricula.RENOVACION);
         m2.setPrecio(250.0f);
         m2.setSaldoClases(2);
 
-        when(this.matriculaRepository.findAll()).thenReturn(java.util.List.of(m1, m2));
+        when(this.matriculaRepository.findAll()).thenReturn(List.of(m1, m2));
 
         // 2. Mock de exámenes
-        com.autoescuela.erp.examenes.model.Examen ex1 = new com.autoescuela.erp.examenes.model.Examen();
-        ex1.setTipo(com.autoescuela.erp.core.enums.TipoExamen.TEORICO);
+        Examen ex1 = new Examen();
+        ex1.setTipo(TipoExamen.TEORICO);
         ex1.setEsApto(true);
 
-        com.autoescuela.erp.examenes.model.Examen ex2 = new com.autoescuela.erp.examenes.model.Examen();
-        ex2.setTipo(com.autoescuela.erp.core.enums.TipoExamen.PRACTICO);
+        Examen ex2 = new Examen();
+        ex2.setTipo(TipoExamen.PRACTICO);
         ex2.setEsApto(false);
 
-        when(this.examenRepository.findAll()).thenReturn(java.util.List.of(ex1, ex2));
+        when(this.examenRepository.findAll()).thenReturn(List.of(ex1, ex2));
 
         // 3. Mock de clases prácticas
-        com.autoescuela.erp.practicas.model.ClasePractica cp1 = new com.autoescuela.erp.practicas.model.ClasePractica();
-        cp1.setEstadoClase(com.autoescuela.erp.core.enums.EstadoClase.RECIBIDA);
+        ClasePractica cp1 = new ClasePractica();
+        cp1.setEstadoClase(EstadoClase.RECIBIDA);
         cp1.setDuracion(45);
         cp1.setKmInicio(100);
         cp1.setKmFin(130);
 
-        when(this.clasePracticaRepository.findAll()).thenReturn(java.util.List.of(cp1));
+        when(this.clasePracticaRepository.findAll()).thenReturn(List.of(cp1));
 
         // 4. Mock de profesores
-        com.autoescuela.erp.usuarios.model.Profesor p1 = new com.autoescuela.erp.usuarios.model.Profesor();
+        Profesor p1 = new Profesor();
         p1.setNombre("Laura");
         p1.setApellidos("Sánchez");
         p1.setEstado(EstadoUsuario.ACTIVO);
-        p1.setTurno(com.autoescuela.erp.core.enums.TipoTurno.MATINAL);
+        p1.setTurno(TipoTurno.MATINAL);
 
-        when(this.profesorRepository.findAll()).thenReturn(java.util.List.of(p1));
-        when(this.clasePracticaRepository.findByProfesorAndEstadoClase(p1, com.autoescuela.erp.core.enums.EstadoClase.RECIBIDA)).thenReturn(java.util.List.of(cp1));
-        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(p1)).thenReturn(java.util.List.of(ex1));
+        when(this.profesorRepository.findAll()).thenReturn(List.of(p1));
+        when(this.clasePracticaRepository.findByProfesorAndEstadoClase(p1, EstadoClase.RECIBIDA)).thenReturn(List.of(cp1));
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(p1)).thenReturn(List.of(ex1));
 
-        com.autoescuela.erp.estadisticas.dto.EstadisticasAdminDTO resultado = this.estadisticaService.obtenerEstadisticasAdmin();
+        EstadisticasAdminDTO resultado = this.estadisticaService.obtenerEstadisticasAdmin();
 
         assertNotNull(resultado);
         assertNotNull(resultado.kpis());
@@ -175,6 +192,243 @@ class EstadisticaServiceTest
         assertNotNull(resultado.financiero());
         assertEquals(250.0, resultado.financiero().ingresosTeoricoPractica());
         assertEquals(500.0, resultado.financiero().ingresosRenovaciones());
+    }
+
+    @Test
+    @DisplayName("obtenerEstadisticasProfesor calcula correctamente exámenes, clases, horas, km y permisos")
+    void testObtenerEstadisticasProfesor()
+    {
+        // 1. Profesor con permisos
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Carlos");
+        profesor.setApellidos("Gómez");
+        profesor.setListaTiposCarnet(List.of(
+                TipoCarnet.PERMISO_B,
+                TipoCarnet.PERMISO_A2
+        ));
+
+        // 2. Mock de clases prácticas
+        ClasePractica cp1 = new ClasePractica();
+        cp1.setEstadoClase(EstadoClase.RECIBIDA);
+        cp1.setDuracion(45);
+        cp1.setKmInicio(100);
+        cp1.setKmFin(140);
+
+        ClasePractica cp2 = new ClasePractica();
+        cp2.setEstadoClase(EstadoClase.RECIBIDA);
+        cp2.setDuracion(45);
+        cp2.setKmInicio(140);
+        cp2.setKmFin(170);
+
+        ClasePractica cp3 = new ClasePractica();
+        cp3.setEstadoClase(EstadoClase.PENDIENTE);
+
+        ClasePractica cp4 = new ClasePractica();
+        cp4.setEstadoClase(EstadoClase.CANCELADA);
+
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of(cp1, cp2, cp3, cp4));
+
+        // 3. Mock de exámenes (2 aptos, 1 suspenso)
+        Examen ex1 = new Examen();
+        ex1.setEsApto(true);
+
+        Examen ex2 = new Examen();
+        ex2.setEsApto(true);
+
+        Examen ex3 = new Examen();
+        ex3.setEsApto(false);
+
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(List.of(ex1, ex2, ex3));
+
+        // 4. Ejecución
+        EstadisticasProfesorDTO stats = this.estadisticaService.obtenerEstadisticasProfesor(profesor);
+
+        // 5. Verificaciones
+        assertNotNull(stats);
+
+        // Exámenes
+        assertNotNull(stats.examenes());
+        assertEquals(2, stats.examenes().aptos());
+        assertEquals(1, stats.examenes().noAptos());
+        assertEquals(3, stats.examenes().totalEvaluados());
+        assertEquals(66.7, stats.examenes().tasaAprobados());
+        assertEquals(33.3, stats.examenes().porcentajeNoAptos());
+
+        // Clases
+        assertNotNull(stats.clases());
+        assertEquals(2, stats.clases().clasesRecibidas());
+        assertEquals(1, stats.clases().clasesPendientes());
+        assertEquals(1, stats.clases().clasesCanceladas());
+        assertEquals(4, stats.clases().totalClases());
+        assertEquals(50.0, stats.clases().porcentajeRecibidas());
+        assertEquals(25.0, stats.clases().porcentajePendientes());
+        assertEquals(25.0, stats.clases().porcentajeCanceladas());
+
+        // Horas
+        assertNotNull(stats.tiempoVolante());
+        assertEquals(90, stats.tiempoVolante().minutosConduccion());
+        assertEquals(1.5, stats.tiempoVolante().horasConduccion());
+
+        // Km
+        assertNotNull(stats.distancia());
+        assertEquals(70, stats.distancia());
+
+        // Permisos
+        assertNotNull(stats.permisosHabilitados());
+        assertEquals(2, stats.permisosHabilitados().size());
+        assertEquals(TipoCarnet.PERMISO_B, stats.permisosHabilitados().get(0));
+
+        // Métodos de compatibilidad
+        assertEquals(66.7, stats.tasaAprobados());
+        assertEquals(2, stats.aptos());
+        assertEquals(1, stats.noAptos());
+        assertEquals(2, stats.clasesRecibidas());
+        assertEquals(4, stats.totalClases());
+        assertEquals(1.5, stats.horasConduccion());
+        assertEquals(70, stats.distancia());
+
+        // Convocatorias y clases previas
+        assertNotNull(stats.convocatoriasAprobados());
+        assertNotNull(stats.clasesPreviasAprobado());
+        assertEquals(2, stats.convocatoriasAprobados().totalAprobados());
+        assertEquals(2, stats.aprobadosPrimeraConvocatoria());
+        assertEquals(0, stats.aprobadosSegundaConvocatoria());
+        assertEquals(0, stats.aprobadosMasDeDosConvocatorias());
+        assertEquals(0.0, stats.mediaClasesPrevias());
+        assertEquals(0, stats.minClasesPrevias());
+        assertEquals(0, stats.maxClasesPrevias());
+    }
+
+    @Test
+    @DisplayName("obtenerEstadisticasProfesor calcula con precisión convocatorias 1ª, 2ª, +3 y media, mín y máx de clases previas")
+    void testObtenerEstadisticasProfesor_ConvocatoriasYClasesPreviasDetalladas()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Marta");
+        profesor.setApellidos("Díaz");
+
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of());
+
+        // Alumno 1: Aprobado en 1ª convocatoria con 10 clases
+        Alumno a1 = new Alumno();
+        a1.setNombre("Alumno1");
+        a1.setDni("11111111A");
+        Examen exA1 = new Examen();
+        exA1.setAlumno(a1);
+        exA1.setEsApto(true);
+        exA1.setFechaHora(LocalDateTime.of(2026, 10, 1, 10, 0));
+
+        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a1))
+                .thenReturn(List.of(exA1));
+
+        ClasePractica cpA1 = new ClasePractica();
+        cpA1.setEstadoClase(EstadoClase.RECIBIDA);
+        cpA1.setFechaHora(LocalDateTime.of(2026, 9, 25, 10, 0));
+        List<ClasePractica> clasesA1 = new ArrayList<>();
+        for (int i = 0; i < 10; i++)
+        {
+            clasesA1.add(cpA1);
+        }
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a1, EstadoClase.RECIBIDA))
+                .thenReturn(clasesA1);
+
+        // Alumno 2: Suspenso previo + Aprobado en 2ª convocatoria con 20 clases
+        Alumno a2 = new Alumno();
+        a2.setNombre("Alumno2");
+        a2.setDni("22222222B");
+        Examen exA2_1 = new Examen();
+        exA2_1.setAlumno(a2);
+        exA2_1.setEsApto(false);
+        exA2_1.setFechaHora(LocalDateTime.of(2026, 9, 10, 10, 0));
+
+        Examen exA2_2 = new Examen();
+        exA2_2.setAlumno(a2);
+        exA2_2.setEsApto(true);
+        exA2_2.setFechaHora(LocalDateTime.of(2026, 10, 5, 10, 0));
+
+        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a2))
+                .thenReturn(List.of(exA2_2, exA2_1));
+
+        ClasePractica cpA2 = new ClasePractica();
+        cpA2.setEstadoClase(EstadoClase.RECIBIDA);
+        cpA2.setFechaHora(LocalDateTime.of(2026, 9, 20, 10, 0));
+        List<ClasePractica> clasesA2 = new ArrayList<>();
+        for (int i = 0; i < 20; i++)
+        {
+            clasesA2.add(cpA2);
+        }
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a2, EstadoClase.RECIBIDA))
+                .thenReturn(clasesA2);
+
+        // Alumno 3: 2 Suspensos previos + Aprobado en 3ª convocatoria con 30 clases
+        Alumno a3 = new Alumno();
+        a3.setNombre("Alumno3");
+        a3.setDni("33333333C");
+        Examen exA3_1 = new Examen();
+        exA3_1.setAlumno(a3);
+        exA3_1.setEsApto(false);
+        exA3_1.setFechaHora(LocalDateTime.of(2026, 8, 1, 10, 0));
+
+        Examen exA3_2 = new Examen();
+        exA3_2.setAlumno(a3);
+        exA3_2.setEsApto(false);
+        exA3_2.setFechaHora(LocalDateTime.of(2026, 9, 1, 10, 0));
+
+        Examen exA3_3 = new Examen();
+        exA3_3.setAlumno(a3);
+        exA3_3.setEsApto(true);
+        exA3_3.setFechaHora(LocalDateTime.of(2026, 10, 8, 10, 0));
+
+        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a3))
+                .thenReturn(List.of(exA3_3, exA3_2, exA3_1));
+
+        ClasePractica cpA3 = new ClasePractica();
+        cpA3.setEstadoClase(EstadoClase.RECIBIDA);
+        cpA3.setFechaHora(LocalDateTime.of(2026, 9, 30, 10, 0));
+        List<ClasePractica> clasesA3 = new ArrayList<>();
+        for (int i = 0; i < 30; i++)
+        {
+            clasesA3.add(cpA3);
+        }
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a3, EstadoClase.RECIBIDA))
+                .thenReturn(clasesA3);
+
+        // Mock de exámenes de los alumnos del profesor
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(List.of(exA1, exA2_2, exA3_3));
+
+        EstadisticasProfesorDTO stats = this.estadisticaService.obtenerEstadisticasProfesor(profesor);
+
+        assertNotNull(stats);
+        // Convocatorias
+        assertEquals(3, stats.convocatoriasAprobados().totalAprobados());
+        assertEquals(1, stats.convocatoriasAprobados().aprobadosPrimeraConvocatoria());
+        assertEquals(1, stats.convocatoriasAprobados().aprobadosSegundaConvocatoria());
+        assertEquals(1, stats.convocatoriasAprobados().aprobadosMasDeDosConvocatorias());
+        assertEquals(33.3, stats.convocatoriasAprobados().porcentajePrimeraConvocatoria());
+        assertEquals(33.3, stats.convocatoriasAprobados().porcentajeSegundaConvocatoria());
+        assertEquals(33.3, stats.convocatoriasAprobados().porcentajeMasDeDosConvocatorias());
+
+        // Clases previas
+        assertEquals(3, stats.clasesPreviasAprobado().totalAlumnosAprobados());
+        assertEquals(10, stats.clasesPreviasAprobado().minClases());
+        assertEquals(30, stats.clasesPreviasAprobado().maxClases());
+        assertEquals(20.0, stats.clasesPreviasAprobado().mediaClases());
+    }
+
+    @Test
+    @DisplayName("obtenerEstadisticasProfesor con profesor null devuelve DTO con valores por defecto")
+    void testObtenerEstadisticasProfesor_ProfesorNull()
+    {
+        EstadisticasProfesorDTO stats = this.estadisticaService.obtenerEstadisticasProfesor(null);
+
+        assertNotNull(stats);
+        assertEquals(0, stats.totalClases());
+        assertEquals(0.0, stats.tasaAprobados());
+        assertEquals(0L, stats.distancia());
     }
 }
 

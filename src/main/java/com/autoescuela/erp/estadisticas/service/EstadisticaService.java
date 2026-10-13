@@ -1,7 +1,9 @@
 package com.autoescuela.erp.estadisticas.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +37,16 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.estadisticas.dto.BalanceEconomicoAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.ClasesPreviasAprobadoProfesorDTO;
+import com.autoescuela.erp.estadisticas.dto.ConvocatoriasAprobadosProfesorDTO;
 import com.autoescuela.erp.estadisticas.dto.DistribucionClasesAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.DistribucionClasesProfesorDTO;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
 import com.autoescuela.erp.estadisticas.dto.RendimientoExamenesAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.RendimientoExamenesProfesorDTO;
 import com.autoescuela.erp.estadisticas.dto.TiempoVolanteDTO;
+import com.autoescuela.erp.estadisticas.dto.TiempoVolanteProfesorDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,13 +62,17 @@ public class EstadisticaService
     private final ClasePracticaRepository clasePracticaRepository;
     private final ExamenRepository examenRepository;
 
+    /**************************************************************************************/
+    /*************************** Estadísticas del Administrador ***************************/
+    /**************************************************************************************/
+
     /**
      * Recopila y calcula las métricas globales clave de la autoescuela para el Dashboard de Administración.
      *
      * @return DTO con los totales agregados en tiempo real.
      */
     @Transactional(readOnly = true)
-    public EstadisticasAutoescuelaDTO obtenerEstadisticasDashboard()
+    public EstadisticasAutoescuelaDTO obtenerEstadisticasDashboardAdmin()
     {
         long totalAlumnos = this.alumnoRepository.countByEstado(EstadoUsuario.ACTIVO);
         long totalProfesores = this.profesorRepository.countByEstado(EstadoUsuario.ACTIVO);
@@ -515,9 +527,15 @@ public class EstadisticaService
         );
     }
 
+
+    /**************************************************************************************/
+    /********************************** Estadísticas del Alumno ***************************/
+    /**************************************************************************************/
+
+
     /**
      * Recopila y calcula las métricas y evolución pedagógica para el panel de Estadísticas del Alumno.
-     *
+     * Utilizado en las Estadísticas del Alumno
      * @param alumno Entidad del alumno autenticado.
      * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
      */
@@ -560,6 +578,7 @@ public class EstadisticaService
     /**
      * Tarjeta Bloque 1 (KPI 1): Tiempo al Volante.
      * Computa los minutos y horas acumuladas al volante a razón de 45 minutos por clase práctica completada.
+     * Utilizado en las Estadísticas del Alumno
      */
     private TiempoVolanteDTO calcularTarjetaTiempoVolante(long clasesRecibidas)
     {
@@ -570,7 +589,8 @@ public class EstadisticaService
 
     /**
      * Tarjeta Bloque 1 (KPI 2): Distancia Recorrida.
-     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.
+     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.ç
+     * Utilizado en las Estadísticas del Alumno
      */
     private long calcularTarjetaDistanciaRecorrida(List<ClasePractica> clasesRecibidas)
     {
@@ -591,6 +611,7 @@ public class EstadisticaService
     /**
      * Tarjeta Bloque 1 (KPI 3): Exámenes DGT y Convocatorias.
      * Computa el balance de exámenes oficiales aptos y suspensos, así como las convocatorias restantes y consumidas.
+     * Utilizado en las Estadísticas del Alumno
      */
     private RendimientoExamenesAlumnoDTO calcularTarjetaExamenesDgt(Alumno alumno, Matricula matricula)
     {
@@ -610,6 +631,7 @@ public class EstadisticaService
     /**
      * Tarjeta Bloque 2 (Izquierda): Distribución de Clases Prácticas.
      * Computa el desglose de sesiones prácticas según su estado en agenda (recibidas, pendientes y canceladas).
+     * Utilizado en las Estadísticas del Alumno
      */
     private DistribucionClasesAlumnoDTO calcularTarjetaDistribucionClases(Alumno alumno)
     {
@@ -637,6 +659,7 @@ public class EstadisticaService
      * Tarjeta Bloque 3: Balance Económico Formativo.
      * Computa la inversión acumulada en cuotas de matrícula (incluidas renovaciones por suspensos),
      * el gasto en clases prácticas contratadas según tarifas oficiales y el gasto global formativo.
+     * Utilizado en las Estadísticas del Alumno
      */
     private BalanceEconomicoAlumnoDTO calcularTarjetaBalanceEconomico(
             Matricula matricula,
@@ -690,5 +713,370 @@ public class EstadisticaService
                 totalClasesContratadas,
                 esVehiculoPesado
         );
+    }
+
+    /**************************************************************************************/
+    /******************************* Estadísticas del Profesor ****************************/
+    /**************************************************************************************/
+
+    /**
+     * Recopila y calcula las métricas formativas y de rendimiento para el panel de Estadísticas del Profesor.
+     * Utilizado en las Estadísticas del Profesor
+     *
+     * @param profesor Entidad del profesor autenticado.
+     * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
+     */
+    @Transactional(readOnly = true)
+    public EstadisticasProfesorDTO obtenerEstadisticasProfesor(Profesor profesor)
+    {
+        if (profesor == null)
+        {
+            return new EstadisticasProfesorDTO();
+        }
+
+        List<ClasePractica> clasesProfesor = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
+        List<ClasePractica> clasesRecibidas = new ArrayList<>();
+        if (clasesProfesor != null)
+        {
+            for (ClasePractica cp : clasesProfesor)
+            {
+                if (cp.getEstadoClase() == EstadoClase.RECIBIDA)
+                {
+                    clasesRecibidas.add(cp);
+                }
+            }
+        }
+
+        // Exámenes oficiales de los alumnos del profesor
+        List<Examen> examenesProfesor = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+
+        // Tarjeta 1 y Bloque Desglose 1: Rendimiento en Exámenes DGT
+        RendimientoExamenesProfesorDTO examenesDTO = this.calcularTarjetaExamenesProfesor(examenesProfesor);
+
+        // Tarjeta 2 y Bloque Desglose 2: Distribución de Clases Prácticas
+        DistribucionClasesProfesorDTO clasesDTO = this.calcularTarjetaDistribucionClasesProfesor(clasesProfesor);
+
+        // Tarjeta 3: Horas al Volante
+        TiempoVolanteProfesorDTO tiempoVolanteDTO = this.calcularTarjetaTiempoVolanteProfesor(clasesRecibidas);
+
+        // Tarjeta 4: Kilómetros en Prácticas
+        long distanciaRecorrida = this.calcularTarjetaDistanciaRecorridaProfesor(clasesRecibidas);
+
+        // Permisos habilitados que imparte el profesor
+        List<TipoCarnet> permisosHabilitados = this.obtenerPermisosHabilitadosProfesor(profesor);
+
+        // Tarjeta Desglose 3: Aprobados por Convocatoria DGT
+        ConvocatoriasAprobadosProfesorDTO convocatoriasDTO = this.calcularTarjetaConvocatoriasAprobadosProfesor(examenesProfesor);
+
+        // Tarjeta Desglose 4: Clases prácticas previas al aprobado
+        ClasesPreviasAprobadoProfesorDTO clasesPreviasDTO = this.calcularTarjetaClasesPreviasAprobadoProfesor(examenesProfesor);
+
+        return new EstadisticasProfesorDTO(
+                examenesDTO,
+                clasesDTO,
+                tiempoVolanteDTO,
+                distanciaRecorrida,
+                permisosHabilitados,
+                convocatoriasDTO,
+                clasesPreviasDTO
+        );
+    }
+
+    /**
+     * Tarjeta 1 y Bloque Desglose 1: Rendimiento en Exámenes DGT.
+     * Computa los aptos, no aptos y la tasa de aprobados del profesor sobre las pruebas de sus alumnos.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private RendimientoExamenesProfesorDTO calcularTarjetaExamenesProfesor(List<Examen> examenes)
+    {
+        long aptos = 0;
+        long noAptos = 0;
+        if (examenes != null)
+        {
+            for (Examen examen : examenes)
+            {
+                if (Boolean.TRUE.equals(examen.getEsApto()))
+                {
+                    aptos++;
+                }
+                else if (Boolean.FALSE.equals(examen.getEsApto()))
+                {
+                    noAptos++;
+                }
+            }
+        }
+        long totalEvaluados = aptos + noAptos;
+        double tasaAprobados = totalEvaluados > 0
+                ? Math.round(((double) aptos / totalEvaluados) * 1000.0) / 10.0
+                : 0.0;
+        double porcentajeNoAptos = totalEvaluados > 0
+                ? Math.round(((double) noAptos / totalEvaluados) * 1000.0) / 10.0
+                : 0.0;
+
+        return new RendimientoExamenesProfesorDTO(aptos, noAptos, totalEvaluados, tasaAprobados, porcentajeNoAptos);
+    }
+
+    /**
+     * Tarjeta 2 y Bloque Desglose 2: Distribución de Clases Prácticas.
+     * Computa el desglose de sesiones prácticas según su estado en agenda (recibidas, pendientes y canceladas).
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private DistribucionClasesProfesorDTO calcularTarjetaDistribucionClasesProfesor(List<ClasePractica> clasesProfesor)
+    {
+        long clasesRecibidas = 0;
+        long clasesPendientes = 0;
+        long clasesCanceladas = 0;
+        long totalClases = clasesProfesor != null ? clasesProfesor.size() : 0;
+
+        if (clasesProfesor != null)
+        {
+            for (ClasePractica c : clasesProfesor)
+            {
+                if (c.getEstadoClase() == EstadoClase.RECIBIDA)
+                {
+                    clasesRecibidas++;
+                }
+                else if (c.getEstadoClase() == EstadoClase.PENDIENTE)
+                {
+                    clasesPendientes++;
+                }
+                else if (c.getEstadoClase() == EstadoClase.CANCELADA)
+                {
+                    clasesCanceladas++;
+                }
+            }
+        }
+
+        double pctRecibidas = totalClases > 0 ? Math.round((clasesRecibidas * 100.0 / totalClases)) : 0.0;
+        double pctPendientes = totalClases > 0 ? Math.round((clasesPendientes * 100.0 / totalClases)) : 0.0;
+        double pctCanceladas = totalClases > 0 ? Math.round((clasesCanceladas * 100.0 / totalClases)) : 0.0;
+
+        return new DistribucionClasesProfesorDTO(
+                clasesRecibidas,
+                clasesPendientes,
+                clasesCanceladas,
+                totalClases,
+                pctRecibidas,
+                pctPendientes,
+                pctCanceladas
+        );
+    }
+
+    /**
+     * Tarjeta 3: Horas al Volante.
+     * Computa los minutos y horas acumuladas al volante en clases prácticas recibidas por el profesor.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private TiempoVolanteProfesorDTO calcularTarjetaTiempoVolanteProfesor(List<ClasePractica> clasesRecibidas)
+    {
+        long totalMinutos = 0;
+        if (clasesRecibidas != null)
+        {
+            for (ClasePractica c : clasesRecibidas)
+            {
+                int duracion = c.getDuracion() != null ? c.getDuracion() : 45;
+                totalMinutos += duracion;
+            }
+        }
+        double horasConduccion = Math.round((totalMinutos / 60.0) * 10.0) / 10.0;
+        return new TiempoVolanteProfesorDTO(totalMinutos, horasConduccion);
+    }
+
+    /**
+     * Tarjeta 4: Kilómetros en Prácticas.
+     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private long calcularTarjetaDistanciaRecorridaProfesor(List<ClasePractica> clasesRecibidas)
+    {
+        long kilometrosRecorridos = 0;
+        if (clasesRecibidas != null)
+        {
+            for (ClasePractica c : clasesRecibidas)
+            {
+                if (c.getKmFin() != null && c.getKmInicio() != null && c.getKmFin() >= c.getKmInicio())
+                {
+                    kilometrosRecorridos += (c.getKmFin() - c.getKmInicio());
+                }
+            }
+        }
+        return kilometrosRecorridos;
+    }
+
+    /**
+     * Permisos Habilitados.
+     * Recupera la lista inmutable de permisos de conducir que imparte el profesor.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private List<TipoCarnet> obtenerPermisosHabilitadosProfesor(Profesor profesor)
+    {
+        return profesor != null && profesor.getListaTiposCarnet() != null
+                ? new ArrayList<>(profesor.getListaTiposCarnet())
+                : List.of();
+    }
+
+    /**
+     * Tarjeta Desglose 3: Rendimiento por Convocatoria DGT.
+     * Computa cuántos alumnos han aprobado en 1ª convocatoria, 2ª convocatoria y +3 convocatorias.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private ConvocatoriasAprobadosProfesorDTO calcularTarjetaConvocatoriasAprobadosProfesor(List<Examen> examenesProfesor)
+    {
+        long primeraConvocatoria = 0;
+        long segundaConvocatoria = 0;
+        long masDeDosConvocatorias = 0;
+
+        if (examenesProfesor != null)
+        {
+            Set<Object> alumnosAprobadosProcesados = new HashSet<>();
+
+            for (Examen examen : examenesProfesor)
+            {
+                if (Boolean.TRUE.equals(examen.getEsApto()))
+                {
+                    Alumno alumno = examen.getAlumno();
+                    if (alumno == null)
+                    {
+                        primeraConvocatoria++;
+                        continue;
+                    }
+
+                    Object claveAlumno = alumno.getId() != null ? alumno.getId() : (alumno.getDni() != null ? alumno.getDni() : System.identityHashCode(alumno));
+                    if (alumnosAprobadosProcesados.contains(claveAlumno))
+                    {
+                        continue;
+                    }
+                    alumnosAprobadosProcesados.add(claveAlumno);
+
+                    List<Examen> examenesAlumno = this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+                    int convocatoriasNecesarias = 0;
+
+                    if (examenesAlumno != null && !examenesAlumno.isEmpty())
+                    {
+                        for (Examen exAl : examenesAlumno)
+                        {
+                            if (examen.getTipo() == null || exAl.getTipo() == examen.getTipo())
+                            {
+                                if (examen.getFechaHora() == null || exAl.getFechaHora() == null || !exAl.getFechaHora().isAfter(examen.getFechaHora()))
+                                {
+                                    convocatoriasNecesarias++;
+                                }
+                            }
+                        }
+                    }
+
+                    if (convocatoriasNecesarias <= 1)
+                    {
+                        primeraConvocatoria++;
+                    }
+                    else if (convocatoriasNecesarias == 2)
+                    {
+                        segundaConvocatoria++;
+                    }
+                    else
+                    {
+                        masDeDosConvocatorias++;
+                    }
+                }
+            }
+        }
+
+        long totalAprobados = primeraConvocatoria + segundaConvocatoria + masDeDosConvocatorias;
+        double pctPrimera = totalAprobados > 0
+                ? Math.round((primeraConvocatoria * 100.0 / totalAprobados) * 10.0) / 10.0
+                : 0.0;
+        double pctSegunda = totalAprobados > 0
+                ? Math.round((segundaConvocatoria * 100.0 / totalAprobados) * 10.0) / 10.0
+                : 0.0;
+        double pctMasDeDos = totalAprobados > 0
+                ? Math.round((masDeDosConvocatorias * 100.0 / totalAprobados) * 10.0) / 10.0
+                : 0.0;
+
+        return new ConvocatoriasAprobadosProfesorDTO(
+                primeraConvocatoria,
+                segundaConvocatoria,
+                masDeDosConvocatorias,
+                totalAprobados,
+                pctPrimera,
+                pctSegunda,
+                pctMasDeDos
+        );
+    }
+
+    /**
+     * Tarjeta Desglose 4: Clases prácticas previas al aprobado.
+     * Computa la media, el mínimo y el máximo de clases prácticas recibidas por los alumnos antes de aprobar.
+     * Utilizado en las Estadísticas del Profesor
+     */
+    private ClasesPreviasAprobadoProfesorDTO calcularTarjetaClasesPreviasAprobadoProfesor(List<Examen> examenesProfesor)
+    {
+        List<Integer> clasesPorAlumno = new ArrayList<>();
+
+        if (examenesProfesor != null)
+        {
+            Set<Object> alumnosAprobadosProcesados = new HashSet<>();
+
+            for (Examen examen : examenesProfesor)
+            {
+                if (Boolean.TRUE.equals(examen.getEsApto()))
+                {
+                    Alumno alumno = examen.getAlumno();
+                    if (alumno == null)
+                    {
+                        continue;
+                    }
+
+                    Object claveAlumno = alumno.getId() != null ? alumno.getId() : (alumno.getDni() != null ? alumno.getDni() : System.identityHashCode(alumno));
+                    if (alumnosAprobadosProcesados.contains(claveAlumno))
+                    {
+                        continue;
+                    }
+                    alumnosAprobadosProcesados.add(claveAlumno);
+
+                    List<ClasePractica> clasesRecibidas = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
+                    int clasesAntesDeAprobar = 0;
+
+                    if (clasesRecibidas != null)
+                    {
+                        for (ClasePractica cp : clasesRecibidas)
+                        {
+                            if (examen.getFechaHora() == null || cp.getFechaHora() == null || !cp.getFechaHora().isAfter(examen.getFechaHora()))
+                            {
+                                clasesAntesDeAprobar++;
+                            }
+                        }
+                    }
+
+                    clasesPorAlumno.add(clasesAntesDeAprobar);
+                }
+            }
+        }
+
+        if (clasesPorAlumno.isEmpty())
+        {
+            return new ClasesPreviasAprobadoProfesorDTO(0.0, 0, 0, 0);
+        }
+
+        int minClases = Integer.MAX_VALUE;
+        int maxClases = Integer.MIN_VALUE;
+        long sumaClases = 0;
+
+        for (int cantidad : clasesPorAlumno)
+        {
+            if (cantidad < minClases)
+            {
+                minClases = cantidad;
+            }
+            if (cantidad > maxClases)
+            {
+                maxClases = cantidad;
+            }
+            sumaClases += cantidad;
+        }
+
+        double mediaClases = Math.round(((double) sumaClases / clasesPorAlumno.size()) * 10.0) / 10.0;
+        long totalAlumnosAprobados = clasesPorAlumno.size();
+
+        return new ClasesPreviasAprobadoProfesorDTO(mediaClases, minClases, maxClases, totalAlumnosAprobados);
     }
 }

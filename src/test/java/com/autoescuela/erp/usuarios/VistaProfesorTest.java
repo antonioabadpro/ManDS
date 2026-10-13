@@ -139,7 +139,8 @@ class VistaProfesorTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/profesor/estadisticas"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("profesor/estadisticas"));
+                .andExpect(view().name("profesor/estadisticas"))
+                .andExpect(model().attributeExists("profesor", "estadisticas"));
     }
 
     @Test

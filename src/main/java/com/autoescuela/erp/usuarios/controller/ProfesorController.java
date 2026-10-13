@@ -64,6 +64,8 @@ import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
+import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
 import com.autoescuela.erp.practicas.service.CalendarioService;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
@@ -90,6 +92,7 @@ public class ProfesorController
     private final ProfesorMapper profesorMapper;
     private final AlumnoService alumnoService;
     private final CalendarioService calendarioService;
+    private final EstadisticaService estadisticaService;
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
@@ -977,67 +980,10 @@ public class ProfesorController
             return "redirect:/login";
         }
 
-        List<ClasePractica> clases = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
-        long totalClases = clases.size();
-        long clasesRecibidas = 0;
-        long clasesPendientes = 0;
-        long clasesCanceladas = 0;
-        int totalMinutos = 0;
-        long totalKmRecorridos = 0;
-
-        for (ClasePractica clase : clases)
-        {
-            if (clase.getEstadoClase() == EstadoClase.RECIBIDA)
-            {
-                clasesRecibidas++;
-                int duracion = clase.getDuracion() != null ? clase.getDuracion() : 45;
-                totalMinutos += duracion;
-                if (clase.getKmFin() != null && clase.getKmInicio() != null)
-                {
-                    totalKmRecorridos += Math.max(0, clase.getKmFin() - clase.getKmInicio());
-                }
-            }
-            else if (clase.getEstadoClase() == EstadoClase.PENDIENTE)
-            {
-                clasesPendientes++;
-            }
-            else if (clase.getEstadoClase() == EstadoClase.CANCELADA)
-            {
-                clasesCanceladas++;
-            }
-        }
-
-        double horasConduccion = Math.round((totalMinutos / 60.0) * 10.0) / 10.0;
-
-        // Tasa de aprobados
-        List<Examen> examenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
-        long aptos = 0;
-        long noAptos = 0;
-        for (Examen examen : examenes)
-        {
-            if (Boolean.TRUE.equals(examen.getEsApto()))
-            {
-                aptos++;
-            }
-            else if (Boolean.FALSE.equals(examen.getEsApto()))
-            {
-                noAptos++;
-            }
-        }
-        long evaluados = aptos + noAptos;
-        int tasaAprobados = evaluados > 0 ? (int) Math.round(((double) aptos / evaluados) * 100) : 0;
+        EstadisticasProfesorDTO estadisticas = this.estadisticaService.obtenerEstadisticasProfesor(profesor);
 
         model.addAttribute("profesor", profesor);
-        model.addAttribute("totalClases", totalClases);
-        model.addAttribute("clasesRecibidas", clasesRecibidas);
-        model.addAttribute("clasesPendientes", clasesPendientes);
-        model.addAttribute("clasesCanceladas", clasesCanceladas);
-        model.addAttribute("horasConduccion", horasConduccion);
-        model.addAttribute("totalKmRecorridos", totalKmRecorridos);
-        model.addAttribute("aptos", aptos);
-        model.addAttribute("noAptos", noAptos);
-        model.addAttribute("tasaAprobados", tasaAprobados);
-        model.addAttribute("permisosDocente", profesor.getListaTiposCarnet());
+        model.addAttribute("estadisticas", estadisticas);
 
         return "profesor/estadisticas";
     }
