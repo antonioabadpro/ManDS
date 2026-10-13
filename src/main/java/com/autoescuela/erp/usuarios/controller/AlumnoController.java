@@ -42,10 +42,10 @@ import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
-import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
+import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.dto.SolicitudExamenDTO;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
@@ -63,8 +63,8 @@ import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
-import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,6 +79,7 @@ import lombok.RequiredArgsConstructor;
 public class AlumnoController
 {
     private final AlumnoRepository alumnoRepository;
+    private final AlumnoMapper alumnoMapper;
     private final MatriculaRepository matriculaRepository;
     private final ClasePracticaRepository clasePracticaRepository;
     private final SolicitudExamenRepository solicitudExamenRepository;
@@ -86,9 +87,9 @@ public class AlumnoController
     private final PersonaRepository personaRepository;
     private final PasswordEncoder passwordEncoder;
     private final PagoStripeService pagoStripeService;
-    private final AlumnoMapper alumnoMapper;
     private final CalendarioService calendarioService;
     private final ClasePracticaService clasePracticaService;
+    private final EstadisticaService estadisticaService;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -1141,92 +1142,17 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-
-        long clasesRecibidas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
-        long clasesPendientes = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
-        long clasesCanceladas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.CANCELADA);
-        long totalClases = this.clasePracticaRepository.countByAlumno(alumno);
-
-        long minutosConduccion = clasesRecibidas * 45; // Cada clase práctica tiene una duración de 45 minutos
-        double horasConduccion = (clasesRecibidas * 45) / 60.0;
-
-        List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
-        long kilometrosRecorridos = 0;
-        for (ClasePractica c : clases)
-        {
-            if (c.getKmFin() != null && c.getKmInicio() != null && c.getKmFin() >= c.getKmInicio())
-            {
-                kilometrosRecorridos += (c.getKmFin() - c.getKmInicio());
-            }
-        }
-
-        int convocatoriasGastadas = matricula != null && matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
-        int convocatoriasRestantes = matricula != null && matricula.getConvocatorias() != null ? matricula.getConvocatorias() : 2;
-
-        long aptos = this.examenRepository.countByAlumnoAndEsAptoTrue(alumno);
-        long suspensos = this.examenRepository.countByAlumnoAndEsAptoFalse(alumno);
-
-        boolean esVehiculoPesado = matricula != null && matricula.getPermisoCarnet() != null &&
-                (matricula.getPermisoCarnet().name().startsWith("PERMISO_C") || matricula.getPermisoCarnet().name().startsWith("PERMISO_D"));
-        double tarifaClase = esVehiculoPesado ? 60.0 : 30.0;
-        double tarifaMatriculaDefecto = esVehiculoPesado ? 450.0 : 250.0;
-
-        List<Matricula> historialMatriculas = this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno);
-        double totalMatriculas = 0.0;
-        if (!historialMatriculas.isEmpty())
-        {
-            for (Matricula m : historialMatriculas)
-            {
-                boolean esPesadoM = m.getPermisoCarnet() != null &&
-                        (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
-                double tarifaBaseM = esPesadoM ? 450.0 : 250.0;
-                double precioM = m.getPrecio() != null ? m.getPrecio() : tarifaBaseM;
-                if (m.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaBaseM)
-                {
-                    precioM += tarifaBaseM;
-                }
-                totalMatriculas += precioM;
-            }
-        }
-        else if (matricula != null)
-        {
-            double precioM = matricula.getPrecio() != null ? matricula.getPrecio() : tarifaMatriculaDefecto;
-            if (matricula.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaMatriculaDefecto)
-            {
-                precioM += tarifaMatriculaDefecto;
-            }
-            totalMatriculas = precioM;
-        }
-
-        int saldoClasesActual = matricula != null && matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;
-        long totalClasesContratadas = clasesRecibidas + saldoClasesActual;
-        double gastoClases = totalClasesContratadas * tarifaClase;
-        double gastoTotal = totalMatriculas + gastoClases;
-
-        EstadisticasAlumnoDTO stats = new EstadisticasAlumnoDTO(
-                clasesRecibidas,
-                clasesPendientes,
-                clasesCanceladas,
-                totalClases,
-                minutosConduccion,
-                horasConduccion,
-                kilometrosRecorridos,
-                convocatoriasGastadas,
-                convocatoriasRestantes,
-                aptos,
-                suspensos,
-                gastoTotal
-        );
+        EstadisticasAlumnoDTO stats = this.estadisticaService.obtenerEstadisticasAlumno(alumno);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("estadisticas", stats);
-        model.addAttribute("esVehiculoPesado", esVehiculoPesado);
-        model.addAttribute("tarifaClase", tarifaClase);
-        model.addAttribute("totalMatriculas", totalMatriculas);
-        model.addAttribute("saldoClasesActual", saldoClasesActual);
-        model.addAttribute("totalClasesContratadas", totalClasesContratadas);
-        model.addAttribute("gastoClases", gastoClases);
+        model.addAttribute("esVehiculoPesado", stats.esVehiculoPesado());
+        model.addAttribute("tarifaClase", stats.tarifaClase());
+        model.addAttribute("totalMatriculas", stats.totalMatriculas());
+        model.addAttribute("saldoClasesActual", stats.saldoClasesActual());
+        model.addAttribute("totalClasesContratadas", stats.totalClasesContratadas());
+        model.addAttribute("gastoClases", stats.gastoClases());
 
         if (hxRequest != null)
         {

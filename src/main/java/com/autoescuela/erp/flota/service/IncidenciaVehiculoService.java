@@ -110,14 +110,22 @@ public class IncidenciaVehiculoService
 
         if (incidencia.getEstado() == EstadoIncidencia.RESUELTA)
         {
-            throw new ReglaNegocioException("No se puede gestionar una incidencia que ya ha sido resuelta.");
+            throw new ReglaNegocioException("No se puede gestionar una incidencia que ya ha sido resuelta (solo se admiten incidencias en estado PENDIENTE o EN_PROCESO).");
         }
 
         switch (nuevoEstado)
         {
             case PENDIENTE -> throw new ReglaNegocioException("Una incidencia en gestión NO puede volver a establecerse en estado PENDIENTE.");
             case EN_PROCESO -> {
+                if (incidencia.getEstado() != EstadoIncidencia.PENDIENTE)
+                {
+                    throw new ReglaNegocioException("Solo se puede pasar a estado EN_PROCESO una incidencia que se encuentre en estado PENDIENTE.");
+                }
                 Vehiculo vehiculo = incidencia.getVehiculo();
+                if (vehiculo == null)
+                {
+                    throw new ReglaNegocioException("La incidencia no tiene un vehículo asociado para gestionar.");
+                }
                 vehiculo.setEstado(EstadoVehiculo.MANTENIMIENTO);
                 this.vehiculoRepository.save(vehiculo);
 
@@ -158,6 +166,10 @@ public class IncidenciaVehiculoService
             }
             case RESUELTA -> {
                 Vehiculo vehiculo = incidencia.getVehiculo();
+                if (vehiculo == null)
+                {
+                    throw new ReglaNegocioException("La incidencia no tiene un vehículo asociado para gestionar.");
+                }
                 EstadoVehiculo estadoRestituido = (vehiculo.getProfesor() != null) ? EstadoVehiculo.OCUPADO : EstadoVehiculo.DISPONIBLE;
                 vehiculo.setEstado(estadoRestituido);
                 this.vehiculoRepository.save(vehiculo);

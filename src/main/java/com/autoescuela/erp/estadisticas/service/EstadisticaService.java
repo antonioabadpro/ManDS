@@ -30,9 +30,15 @@ import com.autoescuela.erp.examenes.repository.SolicitudExamenRepository;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
-import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.estadisticas.dto.BalanceEconomicoAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.DistribucionClasesAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.RendimientoExamenesAlumnoDTO;
+import com.autoescuela.erp.estadisticas.dto.TiempoVolanteDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -506,6 +512,183 @@ public class EstadisticaService
                 totalClasesFacturadas,
                 ingresosRenovaciones,
                 modalidades.matriculasRenovacion()
+        );
+    }
+
+    /**
+     * Recopila y calcula las métricas y evolución pedagógica para el panel de Estadísticas del Alumno.
+     *
+     * @param alumno Entidad del alumno autenticado.
+     * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
+     */
+    @Transactional(readOnly = true)
+    public EstadisticasAlumnoDTO obtenerEstadisticasAlumno(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return new EstadisticasAlumnoDTO();
+        }
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        List<ClasePractica> clasesRecibidas = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
+
+        // Tarjeta Bloque 1 (KPI 1): Tiempo al Volante
+        TiempoVolanteDTO tiempoVolanteDTO = this.calcularTarjetaTiempoVolante(clasesRecibidas.size());
+
+        // Tarjeta Bloque 1 (KPI 2): Distancia Recorrida
+        long kilometrosRecorridos = this.calcularTarjetaDistanciaRecorrida(clasesRecibidas);
+
+        // Tarjeta Bloque 1 (KPI 3): Rendimiento en Exámenes DGT y Convocatorias
+        RendimientoExamenesAlumnoDTO examenesDTO = this.calcularTarjetaExamenesDgt(alumno, matricula);
+
+        // Tarjeta Bloque 2 (Izquierda): Distribución de Clases Prácticas
+        DistribucionClasesAlumnoDTO clasesDTO = this.calcularTarjetaDistribucionClases(alumno);
+
+        // Tarjeta Bloque 3: Balance Económico Formativo e Inversión
+        List<Matricula> historialMatriculas = this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno);
+        BalanceEconomicoAlumnoDTO balanceDTO = this.calcularTarjetaBalanceEconomico(matricula, historialMatriculas, clasesDTO.clasesRecibidas());
+
+        return new EstadisticasAlumnoDTO(
+                tiempoVolanteDTO,
+                kilometrosRecorridos,
+                examenesDTO,
+                clasesDTO,
+                balanceDTO
+        );
+    }
+
+    /**
+     * Tarjeta Bloque 1 (KPI 1): Tiempo al Volante.
+     * Computa los minutos y horas acumuladas al volante a razón de 45 minutos por clase práctica completada.
+     */
+    private TiempoVolanteDTO calcularTarjetaTiempoVolante(long clasesRecibidas)
+    {
+        long minutosConduccion = clasesRecibidas * 45;
+        double horasConduccion = (clasesRecibidas * 45) / 60.0;
+        return new TiempoVolanteDTO(minutosConduccion, horasConduccion);
+    }
+
+    /**
+     * Tarjeta Bloque 1 (KPI 2): Distancia Recorrida.
+     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.
+     */
+    private long calcularTarjetaDistanciaRecorrida(List<ClasePractica> clasesRecibidas)
+    {
+        long kilometrosRecorridos = 0;
+        if (clasesRecibidas != null)
+        {
+            for (ClasePractica c : clasesRecibidas)
+            {
+                if (c.getKmFin() != null && c.getKmInicio() != null && c.getKmFin() >= c.getKmInicio())
+                {
+                    kilometrosRecorridos += (c.getKmFin() - c.getKmInicio());
+                }
+            }
+        }
+        return kilometrosRecorridos;
+    }
+
+    /**
+     * Tarjeta Bloque 1 (KPI 3): Exámenes DGT y Convocatorias.
+     * Computa el balance de exámenes oficiales aptos y suspensos, así como las convocatorias restantes y consumidas.
+     */
+    private RendimientoExamenesAlumnoDTO calcularTarjetaExamenesDgt(Alumno alumno, Matricula matricula)
+    {
+        long aptos = this.examenRepository.countByAlumnoAndEsAptoTrue(alumno);
+        long suspensos = this.examenRepository.countByAlumnoAndEsAptoFalse(alumno);
+
+        int convocatoriasGastadas = (matricula != null && matricula.getConvocatoriasGastadas() != null)
+                ? matricula.getConvocatoriasGastadas()
+                : 0;
+        int convocatoriasRestantes = (matricula != null && matricula.getConvocatorias() != null)
+                ? matricula.getConvocatorias()
+                : 2;
+
+        return new RendimientoExamenesAlumnoDTO(aptos, suspensos, convocatoriasGastadas, convocatoriasRestantes);
+    }
+
+    /**
+     * Tarjeta Bloque 2 (Izquierda): Distribución de Clases Prácticas.
+     * Computa el desglose de sesiones prácticas según su estado en agenda (recibidas, pendientes y canceladas).
+     */
+    private DistribucionClasesAlumnoDTO calcularTarjetaDistribucionClases(Alumno alumno)
+    {
+        long clasesRecibidas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
+        long clasesPendientes = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        long clasesCanceladas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.CANCELADA);
+        long totalClases = this.clasePracticaRepository.countByAlumno(alumno);
+
+        double pctRecibidas = totalClases > 0 ? (clasesRecibidas * 100.0 / totalClases) : 0.0;
+        double pctPendientes = totalClases > 0 ? (clasesPendientes * 100.0 / totalClases) : 0.0;
+        double pctCanceladas = totalClases > 0 ? (clasesCanceladas * 100.0 / totalClases) : 0.0;
+
+        return new DistribucionClasesAlumnoDTO(
+                clasesRecibidas,
+                clasesPendientes,
+                clasesCanceladas,
+                totalClases,
+                pctRecibidas,
+                pctPendientes,
+                pctCanceladas
+        );
+    }
+
+    /**
+     * Tarjeta Bloque 3: Balance Económico Formativo.
+     * Computa la inversión acumulada en cuotas de matrícula (incluidas renovaciones por suspensos),
+     * el gasto en clases prácticas contratadas según tarifas oficiales y el gasto global formativo.
+     */
+    private BalanceEconomicoAlumnoDTO calcularTarjetaBalanceEconomico(
+            Matricula matricula,
+            List<Matricula> historialMatriculas,
+            long clasesRecibidas)
+    {
+        boolean esVehiculoPesado = matricula != null && matricula.getPermisoCarnet() != null &&
+                (matricula.getPermisoCarnet().name().startsWith("PERMISO_C") || matricula.getPermisoCarnet().name().startsWith("PERMISO_D"));
+        double tarifaClase = esVehiculoPesado ? 60.0 : 30.0;
+        double tarifaMatriculaDefecto = esVehiculoPesado ? 450.0 : 250.0;
+
+        double totalMatriculas = 0.0;
+        if (historialMatriculas != null && !historialMatriculas.isEmpty())
+        {
+            for (Matricula m : historialMatriculas)
+            {
+                boolean esPesadoM = m.getPermisoCarnet() != null &&
+                        (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
+                double tarifaBaseM = esPesadoM ? 450.0 : 250.0;
+                double precioM = m.getPrecio() != null ? m.getPrecio() : tarifaBaseM;
+                if (m.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaBaseM)
+                {
+                    precioM += tarifaBaseM;
+                }
+                totalMatriculas += precioM;
+            }
+        }
+        else if (matricula != null)
+        {
+            double precioM = matricula.getPrecio() != null ? matricula.getPrecio() : tarifaMatriculaDefecto;
+            if (matricula.getTipo() == TipoMatricula.RENOVACION && precioM <= tarifaMatriculaDefecto)
+            {
+                precioM += tarifaMatriculaDefecto;
+            }
+            totalMatriculas = precioM;
+        }
+
+        int saldoClasesActual = (matricula != null && matricula.getSaldoClases() != null)
+                ? matricula.getSaldoClases()
+                : 0;
+        long totalClasesContratadas = clasesRecibidas + saldoClasesActual;
+        double gastoClases = totalClasesContratadas * tarifaClase;
+        double gastoTotal = totalMatriculas + gastoClases;
+
+        return new BalanceEconomicoAlumnoDTO(
+                totalMatriculas,
+                gastoClases,
+                gastoTotal,
+                tarifaClase,
+                saldoClasesActual,
+                totalClasesContratadas,
+                esVehiculoPesado
         );
     }
 }

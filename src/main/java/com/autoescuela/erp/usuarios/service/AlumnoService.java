@@ -2,6 +2,7 @@ package com.autoescuela.erp.usuarios.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -337,5 +338,86 @@ public class AlumnoService
         }
 
         return alumnoGuardado;
+    }
+
+    /**
+     * Busca un alumno a partir de su Documento Nacional de Identidad o NIE.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Alumno> buscarPorDni(String dni)
+    {
+        return this.alumnoRepository.findByDni(dni);
+    }
+
+    /**
+     * Busca un alumno a partir de su nombre de usuario.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Alumno> buscarPorNombreUsuario(String nombreUsuario)
+    {
+        return this.alumnoRepository.findByNombreUsuario(nombreUsuario);
+    }
+
+    /**
+     * Busca un alumno a partir de su dirección de correo electrónico.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Alumno> buscarPorCorreo(String correo)
+    {
+        return this.alumnoRepository.findByCorreo(correo);
+    }
+
+    /**
+     * Busca un alumno a partir de su identificador único.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Alumno> buscarPorId(Long id)
+    {
+        return this.alumnoRepository.findById(id);
+    }
+
+    /**
+     * Recupera todos los alumnos asignados a un profesor determinado.
+     */
+    @Transactional(readOnly = true)
+    public List<Alumno> buscarPorProfesor(Profesor profesor)
+    {
+        return this.alumnoRepository.findByProfesor(profesor);
+    }
+
+    /**
+     * Recupera todos los alumnos tutelados por el identificador del profesor.
+     */
+    @Transactional(readOnly = true)
+    public List<Alumno> buscarPorProfesorId(Long profesorId)
+    {
+        return this.alumnoRepository.findByProfesorId(profesorId);
+    }
+
+    /**
+     * Cuenta el número de alumnos en un estado determinado.
+     */
+    @Transactional(readOnly = true)
+    public long contarPorEstado(EstadoUsuario estado)
+    {
+        return this.alumnoRepository.countByEstado(estado);
+    }
+
+    /**
+     * Recupera la totalidad de los alumnos registrados en el sistema.
+     */
+    @Transactional(readOnly = true)
+    public List<Alumno> obtenerTodos()
+    {
+        return this.alumnoRepository.findAll();
+    }
+
+    /**
+     * Persiste o actualiza los datos de un alumno en la base de datos.
+     */
+    @Transactional
+    public Alumno guardar(Alumno alumno)
+    {
+        return this.alumnoRepository.save(alumno);
     }
 }
