@@ -41,25 +41,31 @@
 
     <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Estadísticas y Rendimiento Global', subtituloSeccion='Analítica de aprobados, rendimiento docente, horas prácticas y facturación')}"></header>
+        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Estadísticas y Rendimiento Global', subtituloSeccion='Analítica de aprobados, rendimiento del profesorado, horas prácticas y facturación')}"></header>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
             <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
             <div class="lg:hidden space-y-1">
                 <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Estadísticas y Rendimiento Global</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Analítica de aprobados, rendimiento docente, horas prácticas y facturación</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Analítica de aprobados, rendimiento del profesorado, horas prácticas y facturación</p>
             </div>
 
-            <!-- 1. Cuadrícula de KPIs Clave Financieros y Pedagógicos -->
+            <!-- ================================================================= -->
+            <!-- BLOQUE 1. CUADRÍCULA DE KPIS CLAVE GLOBALES -->
+            <!-- ================================================================= -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                <!-- KPI 1: Tasa de Aprobados -->
+                <!-- KPI 1: Tasa de Aprobados Global -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tasa de Aprobados</p>
-                        <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">75.0%</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Media DGT Provincial: 58%</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400" th:text="${#numbers.formatDecimal(stats.kpis.tasaAprobadosGlobal, 1, 1)} + '%'">
+                            75.0%
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${stats.kpis.totalExamenesAptos} + ' aptos de ' + ${stats.kpis.totalExamenesEvaluados} + ' exámenes'">
+                            3 aptos de 4 exámenes
+                        </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,12 +74,16 @@
                     </div>
                 </div>
 
-                <!-- KPI 2: Total Horas de Conducción -->
+                <!-- KPI 2: Total Horas de Conducción y Km -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Horas de Prácticas</p>
-                        <h3 class="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400">3.25 h</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">195 min en vehículos</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400" th:text="${#numbers.formatDecimal(stats.kpis.horasPracticas, 1, 1)} + ' h'">
+                            3.3 h
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${stats.kpis.minutosPracticas} + ' min · ' + ${stats.kpis.totalKmRecorridos} + ' km recorridos'">
+                            195 min · 120 km recorridos
+                        </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,12 +92,16 @@
                     </div>
                 </div>
 
-                <!-- KPI 3: Facturación Estimada -->
+                <!-- KPI 3: Facturación Bruta Acumulada -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Facturación Bruta</p>
-                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">1.160 €</h3>
-                        <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">3 matrículas abonadas</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(stats.kpis.facturacionBruta, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                            1.160,00 €
+                        </h3>
+                        <p class="text-[11px] text-emerald-600 font-semibold mt-0.5" th:text="${stats.kpis.totalMatriculasAbonadas} + ' matrículas emitidas'">
+                            3 matrículas emitidas
+                        </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,12 +110,16 @@
                     </div>
                 </div>
 
-                <!-- KPI 4: Alumnos en Proceso -->
+                <!-- KPI 4: Alumnos en Formación -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Alumnos Formándose</p>
-                        <h3 class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">3</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Bolsa total: 13 clases</p>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400" th:text="${stats.kpis.alumnosFormandose}">
+                            24
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="'Bolsa total: ' + ${stats.kpis.bolsaClasesPendientes} + ' clases'">
+                            Bolsa total: 58 clases
+                        </p>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,115 +130,292 @@
 
             </div>
 
-            <!-- 2. Desglose de Rendimiento por Profesor y Tipo de Examen -->
+            <!-- ================================================================= -->
+            <!-- BLOQUE 2. MODALIDAD DE MATRÍCULA Y EFECTIVIDAD POR TIPO DE EXAMEN -->
+            <!-- ================================================================= -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <!-- Rendimiento Docente -->
-                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                <!-- Columna Izquierda: Distribución por Modalidad de Matrícula -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-5">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Rendimiento por Profesor</h3>
-                        <span class="text-xs text-slate-400">Tasa de Aptos DGT</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Distribución por Modalidad de Matrícula</h3>
+                            <p class="text-xs text-slate-400">Reparto de alumnos activos según su plan formativo</p>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg" th:text="${stats.modalidades.totalMatriculasActivas} + ' activas'">
+                            25 activas
+                        </span>
                     </div>
 
                     <div class="space-y-4 text-xs">
-                        <!-- Profesor 1 -->
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
-                                <span>Laura Sánchez Romero (Turno Matinal)</span>
-                                <span class="text-emerald-600">66.7% Aptos (2 de 3)</span>
+                        <!-- Subsección: Modalidad Pedagógica -->
+                        <div class="space-y-3">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Modalidad Pedagógica</span>
+
+                            <!-- Teórico + Prácticas -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                    <span>Teórico + Prácticas</span>
+                                    <span class="text-emerald-600 dark:text-emerald-400" th:text="${stats.modalidades.teoricoPractica} + ' alumnos (' + ${#numbers.formatDecimal(stats.modalidades.porcentajeTeoricoPractica, 1, 1)} + '%)'">
+                                        18 alumnos (72.0%)
+                                    </span>
+                                </div>
+                                <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" th:style="'width: ' + ${stats.modalidades.porcentajeTeoricoPractica} + '%'"></div>
+                                </div>
                             </div>
-                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                <div class="h-full bg-emerald-500 rounded-full" style="width: 66.7%"></div>
-                            </div>
-                            <div class="flex justify-between text-[11px] text-slate-400">
-                                <span>3 clases impartidas · 2 alumnos asignados</span>
-                                <span>Vehículo: SEAT Ibiza</span>
+
+                            <!-- Sólo Prácticas -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                    <span>Sólo Prácticas</span>
+                                    <span class="text-blue-600 dark:text-blue-400" th:text="${stats.modalidades.soloPractica} + ' alumnos (' + ${#numbers.formatDecimal(stats.modalidades.porcentajeSoloPractica, 1, 1)} + '%)'">
+                                        7 alumnos (28.0%)
+                                    </span>
+                                </div>
+                                <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                    <div class="h-full bg-blue-600 rounded-full transition-all duration-500" th:style="'width: ' + ${stats.modalidades.porcentajeSoloPractica} + '%'"></div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Profesor 2 -->
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
-                                <span>Manuel Navarro Torres (Turno Tarde)</span>
-                                <span class="text-blue-600">100% Aptos (1 de 1)</span>
-                            </div>
-                            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                <div class="h-full bg-blue-600 rounded-full" style="width: 100%"></div>
-                            </div>
-                            <div class="flex justify-between text-[11px] text-slate-400">
-                                <span>1 clase impartida · 1 alumno asignado</span>
-                                <span>Vehículo: Renault Clio</span>
+                        <!-- Subsección: Estado de Convocatoria (Tipo) -->
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de Expediente</span>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                                    <div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-[11px]">Nuevas Matriculaciones</p>
+                                        <p class="text-base font-bold text-slate-900 dark:text-white mt-0.5" th:text="${stats.modalidades.matriculasNuevas}">22</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-violet-600 dark:text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full" th:text="${#numbers.formatDecimal(stats.modalidades.porcentajeNuevas, 1, 1)} + '%'">
+                                        88%
+                                    </span>
+                                </div>
+
+                                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                                    <div>
+                                        <p class="text-slate-500 dark:text-slate-400 text-[11px]">Renovaciones (2 suspensos)</p>
+                                        <p class="text-base font-bold text-slate-900 dark:text-white mt-0.5" th:text="${stats.modalidades.matriculasRenovacion}">3</p>
+                                    </div>
+                                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full" th:text="${#numbers.formatDecimal(stats.modalidades.porcentajeRenovaciones, 1, 1)} + '%'">
+                                        12%
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Comparativa Teórico vs Práctico -->
-                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                <!-- Columna Derecha: Efectividad por Tipo de Examen (DGT) -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-5">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Efectividad por Tipo de Examen</h3>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Efectividad por Tipo de Examen</h3>
+                            <p class="text-xs text-slate-400">Resultados oficiales de la Jefatura Provincial de Tráfico (DGT)</p>
+                        </div>
                         <span class="text-xs text-slate-400">DGT Oficial</span>
                     </div>
 
-                    <div class="space-y-4 text-xs">
-                        <div class="space-y-1.5">
+                    <div class="space-y-5 text-xs">
+                        <!-- Examen Teórico -->
+                        <div class="space-y-2">
                             <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
                                 <span>Exámenes Teóricos Oficiales</span>
-                                <span class="text-emerald-600">100% (1/1 Apto)</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-bold" th:text="${#numbers.formatDecimal(stats.examenes.porcentajeTeoricos, 1, 1)} + '% (' + ${stats.examenes.teoricosAptos} + '/' + ${stats.examenes.teoricosTotal} + ' Aptos)'">
+                                    100.0% (1/1 Apto)
+                                </span>
                             </div>
                             <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+                                <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" th:style="'width: ' + ${stats.examenes.porcentajeTeoricos} + '%'"></div>
                             </div>
-                            <p class="text-[11px] text-slate-400">Media de fallos por examen: 1.0 (Límite: 3)</p>
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>Aptos: <strong class="text-emerald-600 dark:text-emerald-400" th:text="${stats.examenes.teoricosAptos}">1</strong></span>
+                                <span>No Aptos: <strong class="text-rose-500" th:text="${stats.examenes.teoricosNoAptos}">0</strong></span>
+                                <span>Total Evaluados: <strong th:text="${stats.examenes.teoricosTotal}">1</strong></span>
+                            </div>
                         </div>
 
-                        <div class="space-y-1.5">
+                        <!-- Examen Práctico -->
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
                                 <span>Exámenes Prácticos en Vía Abierta</span>
-                                <span class="text-amber-600">50.0% (1/2 Apto)</span>
+                                <span class="font-bold" th:classappend="${stats.examenes.porcentajePracticos >= 70} ? 'text-emerald-600 dark:text-emerald-400' : (${stats.examenes.porcentajePracticos >= 50} ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400')" th:text="${#numbers.formatDecimal(stats.examenes.porcentajePracticos, 1, 1)} + '% (' + ${stats.examenes.practicosAptos} + '/' + ${stats.examenes.practicosTotal} + ' Aptos)'">
+                                    50.0% (1/2 Aptos)
+                                </span>
                             </div>
                             <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                                <div class="h-full bg-amber-500 rounded-full" style="width: 50%"></div>
+                                <div class="h-full rounded-full transition-all duration-500" th:classappend="${stats.examenes.porcentajePracticos >= 70} ? 'bg-emerald-500' : (${stats.examenes.porcentajePracticos >= 50} ? 'bg-blue-600' : 'bg-amber-500')" th:style="'width: ' + ${stats.examenes.porcentajePracticos} + '%'"></div>
                             </div>
-                            <p class="text-[11px] text-slate-400">Duración media de prueba práctica: 30 minutos</p>
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>Aptos: <strong class="text-emerald-600 dark:text-emerald-400" th:text="${stats.examenes.practicosAptos}">1</strong></span>
+                                <span>No Aptos: <strong class="text-rose-500" th:text="${stats.examenes.practicosNoAptos}">1</strong></span>
+                                <span>Total Evaluados: <strong th:text="${stats.examenes.practicosTotal}">2</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- 3. Resumen Financiero de Matrículas e Ingresos -->
+            <!-- ================================================================= -->
+            <!-- BLOQUE 3. CARNETS DE CONDUCIR Y TOP 5 MEJORES PROFESORES -->
+            <!-- ================================================================= -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Columna Izquierda: Carnets de Conducir (Distribución por Tipo de Permiso) -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Carnets de Conducir</h3>
+                            <p class="text-xs text-slate-400">Demanda de permisos entre los alumnos matriculados</p>
+                        </div>
+                        <span class="text-xs text-slate-400">Todos los permisos</span>
+                    </div>
+
+                    <div class="space-y-3.5 text-xs">
+                        <div th:each="c : ${stats.carnets}" class="space-y-1.5">
+                            <div class="flex justify-between items-center font-semibold text-slate-800 dark:text-slate-200">
+                                <span class="flex items-center space-x-1.5">
+                                    <span class="w-2 h-2 rounded-full" th:classappend="${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_A2'} ? 'bg-indigo-500' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500'))"></span>
+                                <span th:text="${c.descripcion}">Permiso B (Turismos)</span>
+                                </span>
+                                <span class="text-slate-700 dark:text-slate-300">
+                                    <strong th:text="${c.totalAlumnos}">15</strong> alumnos
+                                    <span class="text-slate-400 font-normal" th:text="'(' + ${#numbers.formatDecimal(c.porcentaje, 1, 1)} + '%)'">(60.0%)</span>
+                                </span>
+                            </div>
+                            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" th:classappend="${c.tipoCarnet.name() == 'PERMISO_B'} ? 'bg-blue-600' : (${c.tipoCarnet.name() == 'PERMISO_A2'} ? 'bg-indigo-500' : (${c.tipoCarnet.name().startsWith('PERMISO_C')} ? 'bg-amber-500' : 'bg-emerald-500'))" th:style="'width: ' + ${c.porcentaje} + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(stats.carnets)}" class="py-6 text-center text-slate-400 text-xs">
+                            No hay matrículas activas registradas en ningún permiso.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: TOP 5 Mejores Profesores con Botón para Modal HTMX -->
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">TOP 5 Profesores</h3>
+                            <p class="text-xs text-slate-400">Rendimiento según tasa de aptos DGT y actividad</p>
+                        </div>
+                        <!-- Botón para ver todos los profesores (Petición HTMX que abre el modal) -->
+                        <button type="button" th:attr="hx-get=@{/admin/estadisticas/profesores-modal}" hx-target="#contenedor-modal-profesores" hx-swap="innerHTML" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 transition cursor-pointer" title="Ver el desglose de rendimiento de todos los profesores">
+                            <span>Ver todos</span>
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <!-- Fila de cada profesor en el Top 5 -->
+                        <div th:each="p, iter : ${stats.topProfesores}" class="space-y-1.5">
+                            <div class="flex justify-between items-center font-semibold text-slate-800 dark:text-slate-200">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0" th:text="${iter.count}">
+                                        1
+                                    </span>
+                                    <span th:text="${p.nombreCompleto}">Laura Sánchez Romero</span>
+                                    <span class="text-[10px] text-slate-400 font-normal" th:text="'(' + (${p.turno != null && p.turno.name() == 'MATINAL' ? 'Matinal' : 'Tarde'}) + ')'">
+                                        (Matinal)
+                                    </span>
+                                </div>
+                                <span class="font-bold" th:classappend="${p.tasaAprobados >= 70} ? 'text-emerald-600 dark:text-emerald-400' : (${p.tasaAprobados >= 50} ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400')" th:text="${#numbers.formatDecimal(p.tasaAprobados, 1, 1)} + '% Aptos (' + ${p.examenesAptos} + '/' + (${p.examenesAptos} + ${p.examenesNoAptos}) + ')'">
+                                    66.7% Aptos (2/3)
+                                </span>
+                            </div>
+
+                            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" th:classappend="${p.tasaAprobados >= 70} ? 'bg-emerald-500' : (${p.tasaAprobados >= 50} ? 'bg-blue-600' : 'bg-amber-500')" th:style="'width: ' + ${p.tasaAprobados} + '%'"></div>
+                            </div>
+
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span th:text="${p.clasesImpartidas} + ' clases impartidas · ' + ${p.alumnosAsignados} + ' alumnos asignados'">
+                                    3 clases impartidas · 2 alumnos asignados
+                                </span>
+                                <span th:text="'Vehículo: ' + ${p.vehiculo}">
+                                    Vehículo: SEAT Ibiza (1234-LMN)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(stats.topProfesores)}" class="py-6 text-center text-slate-400 text-xs">
+                            No hay profesores registrados con actividad en la autoescuela.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- BLOQUE 4. DESGLOSE FINANCIERO INFERIOR -->
+            <!-- ================================================================= -->
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900 dark:text-white">Desglose de Ingresos Estimados</h3>
-                        <p class="text-xs text-slate-400">Ingresos por tipo de matrícula y venta de bonos</p>
+                        <p class="text-xs text-slate-400">Ingresos consolidados por modalidades de matrícula, renovaciones y clases prácticas</p>
                     </div>
-                    <span class="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-xl">
+                    <span class="text-xs font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl" th:text="'Total Facturado: ' + ${#numbers.formatDecimal(stats.financiero.totalFacturado, 1, 'POINT', 2, 'COMMA')} + ' €'">
                         Total Facturado: 1.160,00 €
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <!-- Tarjeta 1: Teórico + Prácticas -->
                     <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400">Teórico + Prácticas</span>
-                        <p class="text-lg font-bold text-slate-900 dark:text-white">450,00 €</p>
-                        <p class="text-[11px] text-slate-500">1 matrícula (Elena Martínez)</p>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(stats.financiero.ingresosTeoricoPractica, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                            450,00 €
+                        </p>
+                        <p class="text-[11px] text-slate-500" th:text="${stats.financiero.countTeoricoPractica} + ' matrícula(s) abonada(s)'">
+                            1 matrícula abonada
+                        </p>
                     </div>
 
+                    <!-- Tarjeta 2: Sólo Prácticas -->
                     <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
-                        <span class="text-[10px] font-bold uppercase text-slate-400">Sólo Prácticas (Renovación)</span>
-                        <p class="text-lg font-bold text-slate-900 dark:text-white">320,00 €</p>
-                        <p class="text-[11px] text-slate-500">1 matrícula (David Ruiz)</p>
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Sólo Prácticas</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(stats.financiero.ingresosSoloPractica, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                            320,00 €
+                        </p>
+                        <p class="text-[11px] text-slate-500" th:text="${stats.financiero.countSoloPractica} + ' matrícula(s) abonada(s)'">
+                            1 matrícula abonada
+                        </p>
                     </div>
 
+                    <!-- Tarjeta 3: Renovaciones tras suspensos -->
                     <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
-                        <span class="text-[10px] font-bold uppercase text-slate-400">Individual (Prácticas Sueltas)</span>
-                        <p class="text-lg font-bold text-slate-900 dark:text-white">390,00 €</p>
-                        <p class="text-[11px] text-slate-500">1 matrícula (Sofía Fernández)</p>
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Renovaciones de Matrícula</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(stats.financiero.ingresosRenovaciones, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                            500,00 €
+                        </p>
+                        <p class="text-[11px] text-slate-500" th:text="${stats.financiero.countRenovaciones} + ' renovación(es) abonada(s)'">
+                            1 renovación abonada
+                        </p>
+                    </div>
+
+                    <!-- Tarjeta 4: Clases Prácticas / Bonos -->
+                    <div class="p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400">Clases Prácticas y Bonos</span>
+                        <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#numbers.formatDecimal(stats.financiero.ingresosClases, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                            390,00 €
+                        </p>
+                        <p class="text-[11px] text-slate-500" th:text="${stats.financiero.countClases} + ' clases computadas'">
+                            13 clases computadas
+                        </p>
                     </div>
                 </div>
             </div>
+
+            <!-- Contenedor dinámico HTMX para inyectar el modal de todos los profesores -->
+            <div id="contenedor-modal-profesores"></div>
 
         </main>
     </div>

@@ -7,12 +7,12 @@ import lombok.Builder;
  */
 @Builder
 public record EstadisticasAutoescuelaDTO(
-        long totalAlumnos,
-        long totalProfesores,
-        long totalVehiculosActivos,
-        long totalVehiculosOperativos,
-        long totalVehiculosEnMantenimiento,
-        long totalSolicitudesExamenPendientes
+    long totalAlumnos,
+    long totalProfesores,
+    long totalVehiculosActivos,
+    long totalVehiculosOperativos,
+    long totalVehiculosEnMantenimiento,
+    long totalSolicitudesExamenPendientes
 )
 {
 }

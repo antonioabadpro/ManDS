@@ -319,7 +319,19 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/estadisticas"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/estadisticas"));
+                .andExpect(view().name("admin/estadisticas"))
+                .andExpect(model().attributeExists("stats"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/estadisticas/profesores-modal renderiza correctamente el fragmento modal de profesores")
+    void testModalProfesoresEstadisticasRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/estadisticas/profesores-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores"))
+                .andExpect(model().attributeExists("profesores"));
     }
 
     @Test

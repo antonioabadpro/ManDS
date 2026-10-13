@@ -1,0 +1,122 @@
+<div id="modal-estadisticas-profesores" th:fragment="modal-estadisticas-profesores" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-estadisticas-profesores" class="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+    <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-estadisticas-profesores"></div>
+    <div class="relative z-10 w-full max-w-5xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 lg:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
+
+        <!-- Cabecera del Modal -->
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-lg flex items-center justify-center shrink-0 border border-emerald-500/20">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="titulo-modal-estadisticas-profesores" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
+                        Rendimiento Global de Profesores
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Métricas de aptos DGT, clases impartidas y carga de alumnos de todo el profesorado
+                    </p>
+                </div>
+            </div>
+
+            <!-- Botón de Cerrar -->
+            <button type="button" data-modal-close="modal-estadisticas-profesores" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar ventana">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Tabla con el desglose de todos los profesores -->
+        <div class="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800">
+            <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
+                    <tr>
+                        <th scope="col" class="py-3 px-4">Profesor</th>
+                        <th scope="col" class="py-3 px-4">Vehículo</th>
+                        <th scope="col" class="py-3 px-4 text-center">Alumnos</th>
+                        <th scope="col" class="py-3 px-4 text-center">Clases Impartidas</th>
+                        <th scope="col" class="py-3 px-4 text-center">Horas Prácticas</th>
+                        <th scope="col" class="py-3 px-4 text-center">Exámenes DGT</th>
+                        <th scope="col" class="py-3 px-4 text-right">Tasa de Aprobados</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tr th:each="p, iter : ${profesores}" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <!-- Profesor y Turno -->
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0" th:text="${iter.count}">
+                                    1
+                                </span>
+                                <div>
+                                    <p class="font-bold text-slate-900 dark:text-white" th:text="${p.nombreCompleto}">Nombre Profesor</p>
+                                    <span class="inline-block text-[10px] font-semibold text-slate-400" th:text="${p.turno != null ? (p.turno.name() == 'MATINAL' ? 'Turno Matinal' : 'Turno Tarde') : '--'}">
+                                        Turno Matinal
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Vehículo -->
+                        <td class="py-3 px-4 text-slate-700 dark:text-slate-300 whitespace-nowrap" th:text="${p.vehiculo}">
+                            SEAT Ibiza (1234-LMN)
+                        </td>
+
+                        <!-- Alumnos Asignados -->
+                        <td class="py-3 px-4 text-center font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                            <span th:text="${p.alumnosAsignados}">2</span>
+                        </td>
+
+                        <!-- Clases Impartidas -->
+                        <td class="py-3 px-4 text-center font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                            <span th:text="${p.clasesImpartidas}">15</span>
+                        </td>
+
+                        <!-- Horas al Volante -->
+                        <td class="py-3 px-4 text-center text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                            <span th:text="${#numbers.formatDecimal(p.horasConduccion, 1, 1)} + ' h'">11.3 h</span>
+                        </td>
+
+                        <!-- Exámenes DGT (Aptos / No Aptos) -->
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            <span class="text-emerald-600 dark:text-emerald-400 font-semibold" th:text="${p.examenesAptos}">2</span>
+                            <span class="text-slate-400">/</span>
+                            <span class="text-rose-600 dark:text-rose-400 font-semibold" th:text="${p.examenesNoAptos}">1</span>
+                            <span class="text-[10px] text-slate-400" th:text="'(' + (${p.examenesAptos} + ${p.examenesNoAptos}) + ')'">(3)</span>
+                        </td>
+
+                        <!-- Tasa de Aprobados -->
+                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                            <div class="flex flex-col items-end">
+                                <span class="font-extrabold text-sm" th:classappend="${p.tasaAprobados >= 70} ? 'text-emerald-600 dark:text-emerald-400' : (${p.tasaAprobados >= 50} ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400')" th:text="${#numbers.formatDecimal(p.tasaAprobados, 1, 1)} + '%'">
+                                    66.7%
+                                </span>
+                                <div class="w-20 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mt-1">
+                                    <div class="h-full rounded-full" th:classappend="${p.tasaAprobados >= 70} ? 'bg-emerald-500' : (${p.tasaAprobados >= 50} ? 'bg-blue-500' : 'bg-amber-500')" th:style="'width: ' + ${p.tasaAprobados} + '%'"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(profesores)}">
+                        <td colspan="7" class="py-6 text-center text-slate-400">
+                            No hay profesores registrados o activos en la autoescuela.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pie del Modal -->
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <span class="text-slate-400">
+                Total de profesores evaluados: <strong class="text-slate-700 dark:text-slate-200" th:text="${#lists.size(profesores)}">0</strong>
+            </span>
+            <button type="button" data-modal-close="modal-estadisticas-profesores" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition cursor-pointer">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>

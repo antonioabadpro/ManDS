@@ -28,6 +28,7 @@ import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.estadisticas.dto.EstadisticasAdminDTO;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
@@ -1211,7 +1212,20 @@ public class AdministradorController
         {
             model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
         }
+        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
+        model.addAttribute("stats", stats);
         return "admin/estadisticas";
+    }
+
+    /**
+     * Endpoint HTMX para cargar el modal con el desglose completo del rendimiento de todos los profesores.
+     */
+    @GetMapping("/estadisticas/profesores-modal")
+    public String cargarModalEstadisticasProfesores(Model model)
+    {
+        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
+        model.addAttribute("profesores", stats.todosProfesores());
+        return "fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores";
     }
 
     /**
