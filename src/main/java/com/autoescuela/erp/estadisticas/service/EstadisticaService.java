@@ -75,8 +75,7 @@ public class EstadisticaService
     }
 
     /**
-     * Recopila, calcula y agrega todas las métricas operativas, pedagógicas y financieras
-     * para el panel completo de Estadísticas del Administrador.
+     * Recopila y calcula las métricas para el panel de Estadísticas del Administrador.
      *
      * @return DTO contenedor inmutable con todos los bloques de datos consolidados.
      */
@@ -84,70 +83,160 @@ public class EstadisticaService
     public EstadisticasAdminDTO obtenerEstadisticasAdmin()
     {
         List<Matricula> todasMatriculas = this.matriculaRepository.findAll();
-        List<Matricula> matriculasActivas = new ArrayList<>();
-        long countTeoricoPractica = 0;
-        long countSoloPractica = 0;
-        long countNuevas = 0;
-        long countRenovaciones = 0;
-        double ingresosTeoricoPractica = 0.0;
-        double ingresosSoloPractica = 0.0;
-        double ingresosRenovaciones = 0.0;
-        long totalBolsaSaldo = 0;
+        List<Matricula> matriculasActivas = this.filtrarMatriculasActivas(todasMatriculas);
+        long totalBolsaSaldo = this.calcularTotalBolsaSaldo(matriculasActivas);
 
-        // 1. Calculamos las estadísticas de la tarjeta de Distribución de Modalidades y Carnets, así como los ingresos por tipo de matrícula.
+        DistribucionModalidadDTO modalidadDTO = this.calcularTarjetaDistribucionModalidades(matriculasActivas);
+        List<DistribucionCarnetDTO> carnets = this.calcularTarjetaDistribucionCarnets(matriculasActivas);
+
+        List<Examen> todosExamenes = this.examenRepository.findAll();
+        EfectividadExamenDTO efectividadExamenDTO = this.calcularTarjetaEfectividadExamenes(todosExamenes);
+
+        List<ClasePractica> todasClases = this.clasePracticaRepository.findAll();
+
+        List<RendimientoProfesorResumenDTO> todosProfesores = this.calcularTarjetaRendimientoProfesores();
+        List<RendimientoProfesorResumenDTO> topProfesores = new ArrayList<>(todosProfesores.subList(0, Math.min(3, todosProfesores.size()))
+        );
+
+        DesgloseFinancieroAdminDTO financieroDTO = this.calcularTarjetaDesgloseFinanciero(
+                todasMatriculas,
+                modalidadDTO,
+                todasClases,
+                totalBolsaSaldo
+        );
+
+        KpisAdminDTO kpisDTO = this.calcularTarjetaKpisGlobales(
+                efectividadExamenDTO,
+                todasClases,
+                financieroDTO.totalFacturado(),
+                todasMatriculas.size(),
+                matriculasActivas.size(),
+                totalBolsaSaldo
+        );
+
+        return new EstadisticasAdminDTO(
+                kpisDTO,
+                modalidadDTO,
+                efectividadExamenDTO,
+                carnets,
+                topProfesores,
+                todosProfesores,
+                financieroDTO
+        );
+    }
+
+    /**
+     * Filtra la lista de matrículas para conservar únicamente aquellas en estado activo.
+     */
+    private List<Matricula> filtrarMatriculasActivas(List<Matricula> todasMatriculas)
+    {
+        List<Matricula> activas = new ArrayList<>();
         for (Matricula m : todasMatriculas)
         {
             if (Boolean.TRUE.equals(m.getEstaActiva()))
             {
-                matriculasActivas.add(m);
-                if (m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
-                {
-                    countTeoricoPractica++;
-                }
-                else if (m.getModalidad() == ModalidadMatricula.PRACTICA)
-                {
-                    countSoloPractica++;
-                }
+                activas.add(m);
+            }
+        }
+        return activas;
+    }
 
-                if (m.getTipo() == TipoMatricula.RENOVACION)
-                {
-                    countRenovaciones++;
-                }
-                else
-                {
-                    countNuevas++;
-                }
+    /**
+     * Tarjeta Bloque 1: Saldo de Clases Pendientes.
+     * Calcula la suma acumulada de saldo de clases prácticas pendientes entre los alumnos con matrícula activa.
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private long calcularTotalBolsaSaldo(List<Matricula> matriculasActivas)
+    {
+        long totalBolsa = 0;
+        for (Matricula m : matriculasActivas)
+        {
+            if (m.getSaldoClases() != null && m.getSaldoClases() > 0)
+            {
+                totalBolsa += m.getSaldoClases();
+            }
+        }
+        return totalBolsa;
+    }
 
-                if (m.getSaldoClases() != null && m.getSaldoClases() > 0)
+    /**
+     * Tarjeta Bloque 1: Cuadrícula de KPIs Clave Globales.
+     * Consolida los 4 indicadores superiores del panel (Tasa de Aprobados, Horas/Km, Facturación y Alumnos en formación).
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private KpisAdminDTO calcularTarjetaKpisGlobales(
+            EfectividadExamenDTO examenes,
+            List<ClasePractica> todasClases,
+            double facturacionBruta,
+            long totalMatriculasAbonadas,
+            long alumnosFormandose,
+            long bolsaClasesPendientes)
+    {
+        long totalExamenesAptos = examenes.teoricosAptos() + examenes.practicosAptos();
+        long totalExamenesEvaluados = examenes.teoricosTotal() + examenes.practicosTotal();
+        double tasaAprobadosGlobal = totalExamenesEvaluados > 0
+                ? Math.round(((double) totalExamenesAptos / totalExamenesEvaluados) * 1000.0) / 10.0
+                : 0.0;
+
+        long minutosPracticas = 0;
+        long kmTotales = 0;
+        for (ClasePractica cp : todasClases)
+        {
+            if (cp.getEstadoClase() == EstadoClase.RECIBIDA)
+            {
+                minutosPracticas += cp.getDuracion() != null ? cp.getDuracion() : 45;
+                if (cp.getKmFin() != null && cp.getKmInicio() != null)
                 {
-                    totalBolsaSaldo += m.getSaldoClases();
+                    kmTotales += Math.max(0, cp.getKmFin() - cp.getKmInicio());
                 }
             }
+        }
+        double horasPracticas = Math.round((minutosPracticas / 60.0) * 10.0) / 10.0;
 
-            // 2. Calculamos las estadísticas de la tarjeta financiera de todas las matrículas emitidas
-            boolean esPesado = m.getPermisoCarnet() != null &&
-                    (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
-            double tarifaBase = esPesado ? 450.0 : 250.0;
-            double precioM = m.getPrecio() != null ? m.getPrecio() : tarifaBase;
+        return new KpisAdminDTO(
+                tasaAprobadosGlobal,
+                totalExamenesAptos,
+                totalExamenesEvaluados,
+                horasPracticas,
+                minutosPracticas,
+                kmTotales,
+                facturacionBruta,
+                totalMatriculasAbonadas,
+                alumnosFormandose,
+                bolsaClasesPendientes
+        );
+    }
+
+    /**
+     * Tarjeta Bloque 2 (Izquierda): Distribución por Modalidad de Matrícula.
+     * Computa los desgloses pedagógicos (Teórico + Prácticas vs Sólo Prácticas) y de expediente (Nuevas vs Renovaciones).
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private DistribucionModalidadDTO calcularTarjetaDistribucionModalidades(List<Matricula> matriculasActivas)
+    {
+        long countTeoricoPractica = 0;
+        long countSoloPractica = 0;
+        long countNuevas = 0;
+        long countRenovaciones = 0;
+
+        for (Matricula m : matriculasActivas)
+        {
+            if (m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+            {
+                countTeoricoPractica++;
+            }
+            else if (m.getModalidad() == ModalidadMatricula.PRACTICA)
+            {
+                countSoloPractica++;
+            }
 
             if (m.getTipo() == TipoMatricula.RENOVACION)
             {
-                if (precioM <= tarifaBase)
-                {
-                    precioM += tarifaBase;
-                }
-                ingresosRenovaciones += precioM;
+                countRenovaciones++;
             }
             else
             {
-                if (m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
-                {
-                    ingresosTeoricoPractica += precioM;
-                }
-                else
-                {
-                    ingresosSoloPractica += precioM;
-                }
+                countNuevas++;
             }
         }
 
@@ -165,7 +254,7 @@ public class EstadisticaService
                 ? Math.round(((double) countRenovaciones / totalMatriculasActivas) * 100.0)
                 : 0.0;
 
-        DistribucionModalidadDTO modalidadDTO = new DistribucionModalidadDTO(
+        return new DistribucionModalidadDTO(
                 countTeoricoPractica,
                 countSoloPractica,
                 pctTeoricoPractica,
@@ -176,28 +265,15 @@ public class EstadisticaService
                 pctRenovaciones,
                 totalMatriculasActivas
         );
+    }
 
-        // 3. Calculamos las estadisticas de la tarjeta de Distribución de alumnos por carnet
-        List<DistribucionCarnetDTO> carnets = new ArrayList<>();
-        for (TipoCarnet carnet : TipoCarnet.values())
-        {
-            long totalCarnet = 0;
-            for (Matricula m : matriculasActivas)
-            {
-                if (m.getPermisoCarnet() == carnet)
-                {
-                    totalCarnet++;
-                }
-            }
-            double pctCarnet = totalMatriculasActivas > 0
-                    ? Math.round(((double) totalCarnet / totalMatriculasActivas) * 100.0)
-                    : 0.0;
-            carnets.add(new DistribucionCarnetDTO(carnet, carnet.getDescripcion(), totalCarnet, pctCarnet));
-        }
-        carnets.sort((c1, c2) -> Long.compare(c2.totalAlumnos(), c1.totalAlumnos()));
-
-        // 4. Calculamos las estadisticas de la tareta de Efectividad por Tipo de Examen
-        List<Examen> todosExamenes = this.examenRepository.findAll();
+    /**
+     * Tarjeta Bloque 2 (Derecha): Efectividad por Tipo de Examen (DGT).
+     * Computa las tasas de aptos y no aptos oficiales para pruebas teóricas y prácticas en vía abierta.
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private EfectividadExamenDTO calcularTarjetaEfectividadExamenes(List<Examen> todosExamenes)
+    {
         long teoricosAptos = 0;
         long teoricosNoAptos = 0;
         long practicosAptos = 0;
@@ -228,6 +304,7 @@ public class EstadisticaService
                 }
             }
         }
+
         long teoricosTotal = teoricosAptos + teoricosNoAptos;
         double pctTeoricos = teoricosTotal > 0
                 ? Math.round(((double) teoricosAptos / teoricosTotal) * 100.0)
@@ -237,7 +314,7 @@ public class EstadisticaService
                 ? Math.round(((double) practicosAptos / practicosTotal) * 100.0)
                 : 0.0;
 
-        EfectividadExamenDTO efectividadExamenDTO = new EfectividadExamenDTO(
+        return new EfectividadExamenDTO(
                 teoricosAptos,
                 teoricosNoAptos,
                 teoricosTotal,
@@ -247,28 +324,45 @@ public class EstadisticaService
                 practicosTotal,
                 pctPracticos
         );
+    }
 
-        // Calculamos el total de clases prácticas recibidas y el total de kilómetros recorridos por todos los alumnos, así como el total de horas prácticas impartidas.
-        List<ClasePractica> todasClases = this.clasePracticaRepository.findAll();
-        long minutosPracticas = 0;
-        long kmTotales = 0;
-        long clasesRecibidasTotal = 0;
+    /**
+     * Tarjeta Bloque 3 (Izquierda): Carnets de Conducir.
+     * Computa el desglose y porcentaje de demanda de cada permiso oficial entre los alumnos con matrícula activa.
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private List<DistribucionCarnetDTO> calcularTarjetaDistribucionCarnets(List<Matricula> matriculasActivas)
+    {
+        List<DistribucionCarnetDTO> carnets = new ArrayList<>();
+        long totalMatriculasActivas = matriculasActivas.size();
 
-        for (ClasePractica cp : todasClases)
+        for (TipoCarnet carnet : TipoCarnet.values())
         {
-            if (cp.getEstadoClase() == EstadoClase.RECIBIDA)
+            long totalCarnet = 0;
+            for (Matricula m : matriculasActivas)
             {
-                clasesRecibidasTotal++;
-                minutosPracticas += cp.getDuracion() != null ? cp.getDuracion() : 45;
-                if (cp.getKmFin() != null && cp.getKmInicio() != null)
+                if (m.getPermisoCarnet() == carnet)
                 {
-                    kmTotales += Math.max(0, cp.getKmFin() - cp.getKmInicio());
+                    totalCarnet++;
                 }
             }
+            double pctCarnet = totalMatriculasActivas > 0
+                    ? Math.round(((double) totalCarnet / totalMatriculasActivas) * 100.0)
+                    : 0.0;
+            carnets.add(new DistribucionCarnetDTO(carnet, carnet.getDescripcion(), totalCarnet, pctCarnet));
         }
-        double horasPracticas = Math.round((minutosPracticas / 60.0) * 10.0) / 10.0;
 
-        // 5. Calculamos las estadisticas de la tajeta del Rendimiento de los Profesores
+        carnets.sort((c1, c2) -> Long.compare(c2.totalAlumnos(), c1.totalAlumnos()));
+        return carnets;
+    }
+
+    /**
+     * Tarjeta Bloque 3 (Derecha): TOP 3 Profesores y Modal Completo.
+     * Evalúa el rendimiento individual de cada profesor según clases impartidas, horas de conducción y tasa de aptos DGT.
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private List<RendimientoProfesorResumenDTO> calcularTarjetaRendimientoProfesores()
+    {
         List<Profesor> listaProfesores = this.profesorRepository.findAll();
         List<RendimientoProfesorResumenDTO> todosProfesores = new ArrayList<>();
 
@@ -326,7 +420,6 @@ public class EstadisticaService
             }
         }
 
-        // Ordenamos la lista de profesores por tasa de aprobados, luego por clases impartidas y finalmente por alumnos asignados para determinar los top 5 profesores.
         todosProfesores.sort((p1, p2) -> {
             int cmpTasa = Double.compare(p2.tasaAprobados(), p1.tasaAprobados());
             if (cmpTasa != 0)
@@ -341,55 +434,75 @@ public class EstadisticaService
             return Long.compare(p2.alumnosAsignados(), p1.alumnosAsignados());
         });
 
-        List<RendimientoProfesorResumenDTO> topProfesores = new ArrayList<>(
-                todosProfesores.subList(0, Math.min(5, todosProfesores.size()))
-        );
+        return todosProfesores;
+    }
 
-        // 6. Calculamos las estadisticas de la tarjeta inferior de Facturación y finanzas
+    /**
+     * Tarjeta Bloque 4: Desglose de Ingresos Estimados.
+     * Computa los ingresos brutos consolidados por modalidades de matrícula, renovaciones de expediente y clases prácticas.
+     * Utilizado en las Estadísticas del Administrador
+     */
+    private DesgloseFinancieroAdminDTO calcularTarjetaDesgloseFinanciero(
+            List<Matricula> todasMatriculas,
+            DistribucionModalidadDTO modalidades,
+            List<ClasePractica> todasClases,
+            long totalBolsaSaldo)
+    {
+        double ingresosTeoricoPractica = 0.0;
+        double ingresosSoloPractica = 0.0;
+        double ingresosRenovaciones = 0.0;
+
+        for (Matricula m : todasMatriculas)
+        {
+            boolean esPesado = m.getPermisoCarnet() != null &&
+                    (m.getPermisoCarnet().name().startsWith("PERMISO_C") || m.getPermisoCarnet().name().startsWith("PERMISO_D"));
+            double tarifaBase = esPesado ? 450.0 : 250.0;
+            double precioM = m.getPrecio() != null ? m.getPrecio() : tarifaBase;
+
+            if (m.getTipo() == TipoMatricula.RENOVACION)
+            {
+                if (precioM <= tarifaBase)
+                {
+                    precioM += tarifaBase;
+                }
+                ingresosRenovaciones += precioM;
+            }
+            else
+            {
+                if (m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+                {
+                    ingresosTeoricoPractica += precioM;
+                }
+                else
+                {
+                    ingresosSoloPractica += precioM;
+                }
+            }
+        }
+
+        long clasesRecibidasTotal = 0;
+        for (ClasePractica cp : todasClases)
+        {
+            if (cp.getEstadoClase() == EstadoClase.RECIBIDA)
+            {
+                clasesRecibidasTotal++;
+            }
+        }
+
         long totalClasesFacturadas = clasesRecibidasTotal + totalBolsaSaldo;
         double ingresosClases = totalClasesFacturadas * 30.0;
         double totalFacturado = ingresosTeoricoPractica + ingresosSoloPractica + ingresosRenovaciones + ingresosClases;
 
-        DesgloseFinancieroAdminDTO financieroDTO = new DesgloseFinancieroAdminDTO(
+        return new DesgloseFinancieroAdminDTO(
                 totalFacturado,
                 ingresosTeoricoPractica,
-                countTeoricoPractica,
+                modalidades.teoricoPractica(),
                 ingresosSoloPractica,
-                countSoloPractica,
+                modalidades.soloPractica(),
                 ingresosClases,
                 totalClasesFacturadas,
                 ingresosRenovaciones,
-                countRenovaciones
-        );
-
-        // 7. Calculamos las estadisticas de los KPIs principales
-        long totalExamenesAptos = teoricosAptos + practicosAptos;
-        long totalExamenesEvaluados = teoricosTotal + practicosTotal;
-        double tasaAprobadosGlobal = totalExamenesEvaluados > 0
-                ? Math.round(((double) totalExamenesAptos / totalExamenesEvaluados) * 1000.0) / 10.0
-                : 0.0;
-
-        KpisAdminDTO kpisDTO = new KpisAdminDTO(
-                tasaAprobadosGlobal,
-                totalExamenesAptos,
-                totalExamenesEvaluados,
-                horasPracticas,
-                minutosPracticas,
-                kmTotales,
-                totalFacturado,
-                todasMatriculas.size(),
-                totalMatriculasActivas,
-                totalBolsaSaldo
-        );
-
-        return new EstadisticasAdminDTO(
-                kpisDTO,
-                modalidadDTO,
-                efectividadExamenDTO,
-                carnets,
-                topProfesores,
-                todosProfesores,
-                financieroDTO
+                modalidades.matriculasRenovacion()
         );
     }
 }
