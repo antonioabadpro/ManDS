@@ -55,7 +55,7 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/baja/201"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-baja-alumno :: modal-baja-alumno"))
+                .andExpect(view().name("admin/fragments/modal-baja-alumno :: modal-baja-alumno"))
                 .andExpect(model().attributeExists("alumno"))
                 .andExpect(model().attributeExists("clasesPendientes"))
                 .andExpect(model().attribute("abrirModalBajaAlumno", true))

@@ -58,7 +58,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/detalle/200"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-detalle-alumno :: modal-detalle-alumno"));
+                .andExpect(view().name("admin/fragments/modal-detalle-alumno :: modal-detalle-alumno"));
     }
 
     @Test
@@ -68,7 +68,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/expediente/200"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
+                .andExpect(view().name("admin/fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
 
     @Test
@@ -78,7 +78,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/expediente/224"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
+                .andExpect(view().name("admin/fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
 
     @Test
@@ -88,7 +88,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/expediente/220"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-expediente-alumno :: modal-expediente-alumno"));
+                .andExpect(view().name("admin/fragments/modal-expediente-alumno :: modal-expediente-alumno"));
     }
 
     @Test
@@ -147,7 +147,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/flota/detalle/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo"))
+                .andExpect(view().name("admin/fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo"))
                 .andExpect(model().attributeExists("vehiculo", "abrirModalDetalleVehiculo"));
     }
 
@@ -158,7 +158,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/flota/baja/6"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(view().name("admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
                 .andExpect(model().attributeExists("vehiculo", "abrirModalBajaVehiculo", "tieneProfesorAsignado", "puedeDarBaja"))
                 .andExpect(model().attribute("tieneProfesorAsignado", false))
                 .andExpect(model().attribute("puedeDarBaja", true));
@@ -171,7 +171,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/flota/baja/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(view().name("admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
                 .andExpect(model().attributeExists("vehiculo", "abrirModalBajaVehiculo", "tieneProfesorAsignado", "puedeDarBaja"))
                 .andExpect(model().attribute("tieneProfesorAsignado", true))
                 .andExpect(model().attribute("puedeDarBaja", false));
@@ -198,7 +198,7 @@ class VistaAdminTest extends BaseIntegrationTest
                         .header("HX-Request", "true")
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
+                .andExpect(view().name("admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo"))
                 .andExpect(model().attributeExists("errorBajaVehiculo", "abrirModalBajaVehiculo"));
     }
 
@@ -261,7 +261,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/incidencias/gestionar/2"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia"))
+                .andExpect(view().name("admin/fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia"))
                 .andExpect(model().attributeExists("incidencia"))
                 .andExpect(model().attribute("abrirModalGestionarIncidencia", true));
     }
@@ -273,7 +273,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/incidencias/detalle/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-detalle-incidencia :: modal-detalle-incidencia"))
+                .andExpect(view().name("admin/fragments/modal-detalle-incidencia :: modal-detalle-incidencia"))
                 .andExpect(model().attributeExists("incidencia"))
                 .andExpect(model().attribute("abrirModalDetalleIncidencia", true));
     }
@@ -335,7 +335,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/practicas/detalle/204"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin"))
+                .andExpect(view().name("admin/fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin"))
                 .andExpect(model().attributeExists("clase"))
                 .andExpect(model().attributeExists("abrirModalDetalleClase"));
     }
@@ -358,7 +358,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/estadisticas/profesores-modal"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores"))
+                .andExpect(view().name("admin/fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores"))
                 .andExpect(model().attributeExists("profesores"));
     }
 
@@ -369,7 +369,7 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/estadisticas/carnets-modal"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets"))
+                .andExpect(view().name("admin/fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets"))
                 .andExpect(model().attributeExists("carnets"));
     }
 

@@ -31,6 +31,7 @@
 - **Separación Estricta de JavaScript (Unobtrusive JS):** Prohibido JS inline en plantillas Thymeleaf, sintaxis `/*[[${...}]]*/` o eventos inline (`onclick`, `onsubmit`, `onchange`). Todo JS debe residir en `src/main/resources/static/js/`, cargarse con `<script th:src="@{...}" defer></script>` y vincularse con `addEventListener` (cumplimiento CSP).
 - **Paso de Datos por HTML5 Dataset:** Transferencia de datos de Thymeleaf a JS exclusivamente mediante atributos `data-*` (`element.dataset.*`).
 - **Desacoplamiento JS y Named Event Handlers:** Prohibidos scripts monolíticos por rol (ej. JS global de Admin). Mínimo un fichero JS independiente por cada endpoint/vista. Debe implementarse bajo el patrón *Named Event Handlers* con una función punto de entrada (`inicializar...`) para registrar los eventos.
+- **Colocación y Modularización de Fragments por Rol:** Todo fragment específico de un rol debe residir obligatoriamente en `templates/{admin|alumno|profesor}/fragments/`. La carpeta raíz `templates/fragments/` se reserva en exclusiva para componentes compartidos por varios roles.
 
 ---
 

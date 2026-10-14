@@ -175,7 +175,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/profesores/baja/100"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-baja-profesor :: modal-baja-profesor"))
+                .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
                 .andExpect(model().attributeExists("profesor"))
                 .andExpect(model().attributeExists("profesoresDisponibles"))
                 .andExpect(content().string(containsString("Baja Lógica del Profesor")))
@@ -209,7 +209,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/profesores/reactivar/100"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
+                .andExpect(view().name("admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
                 .andExpect(model().attributeExists("profesor"))
                 .andExpect(content().string(containsString("Reactivar Profesor")))
                 .andExpect(content().string(containsString("sin ningún vehículo asignado")));

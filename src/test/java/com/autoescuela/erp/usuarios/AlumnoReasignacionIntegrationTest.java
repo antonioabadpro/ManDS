@@ -149,7 +149,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/alumnos/reasignar/200"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
+                .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attributeExists("alumno"))
                 .andExpect(model().attributeExists("clasesPendientes"))
                 .andExpect(model().attributeExists("profesoresDisponibles"))
@@ -168,7 +168,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
         // Entre los profesores activos solo ID 100 e ID 103 tienen PERMISO_A2, por lo que solo debe listarse la ID 100 (Laura Sánchez).
         this.mockMvc.perform(get("/admin/alumnos/reasignar/205"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
+                .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attribute("profesoresDisponibles", hasSize(1)))
                 .andExpect(content().string(containsString("Laura Sánchez")))
                 .andExpect(content().string(containsString("Permiso A2")));
@@ -183,7 +183,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
         // Al excluir al profesor actual, la lista de disponibles debe ser vacía y mostrar el mensaje contextual.
         this.mockMvc.perform(get("/admin/alumnos/reasignar/209"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
+                .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attribute("profesoresDisponibles", hasSize(0)))
                 .andExpect(content().string(containsString("No hay otros profesores activos habilitados para Permiso C")));
     }

@@ -39,11 +39,11 @@
 
     <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
 
-    <aside th:replace="~{fragments/admin-nav :: sidebar(activeSection='flota')}"></aside>
+    <aside th:replace="~{admin/fragments/admin-nav :: sidebar(activeSection='flota')}"></aside>
 
     <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
 
-        <header th:replace="~{fragments/admin-nav :: topbar(tituloSeccion='Gestión de Flota de Vehículos', subtituloSeccion='Control del parque móvil, ITV, revisiones y kilometraje acumulado')}"></header>
+        <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Gestión de Flota de Vehículos', subtituloSeccion='Control del parque móvil, ITV, revisiones y kilometraje acumulado')}"></header>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
@@ -210,7 +210,7 @@
 
     <!-- Modal: Alta de Nuevo Vehículo (Fragmento Reutilizable) -->
     <div id="contenedor-modal-alta-vehiculo">
-        <div th:replace="~{fragments/modal-alta-vehiculo :: modal-alta-vehiculo}"></div>
+        <div th:replace="~{admin/fragments/modal-alta-vehiculo :: modal-alta-vehiculo}"></div>
     </div>
 
     <!-- Modal: Detalle de Vehículo -->

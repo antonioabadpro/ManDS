@@ -145,7 +145,7 @@ public class AdministradorController
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
             {
-                return "fragments/modal-alta-profesor :: #modal-alta-profesor";
+                return "admin/fragments/modal-alta-profesor :: #modal-alta-profesor";
             }
             return esDesdeProfesores ? "admin/profesores" : "admin/dashboard";
         }
@@ -192,7 +192,7 @@ public class AdministradorController
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
             {
-                return "fragments/modal-alta-profesor :: #modal-alta-profesor";
+                return "admin/fragments/modal-alta-profesor :: #modal-alta-profesor";
             }
             return esDesdeProfesores ? "admin/profesores" : "admin/dashboard";
         }
@@ -236,7 +236,7 @@ public class AdministradorController
         model.addAttribute("turnos", TipoTurno.values());
         model.addAttribute("abrirModalEditarProfesor", true);
 
-        return "fragments/modal-editar-profesor :: modal-editar-profesor";
+        return "admin/fragments/modal-editar-profesor :: modal-editar-profesor";
     }
 
     /**
@@ -249,7 +249,7 @@ public class AdministradorController
         model.addAttribute("profesor", dto);
         model.addAttribute("abrirModalDetalleProfesor", true);
 
-        return "fragments/modal-detalle-profesor :: modal-detalle-profesor";
+        return "admin/fragments/modal-detalle-profesor :: modal-detalle-profesor";
     }
 
     /**
@@ -272,7 +272,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-editar-profesor :: modal-editar-profesor";
+                return "admin/fragments/modal-editar-profesor :: modal-editar-profesor";
             }
             cargarCatalogosAltaProfesor(model);
             model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
@@ -321,7 +321,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-editar-profesor :: modal-editar-profesor";
+                return "admin/fragments/modal-editar-profesor :: modal-editar-profesor";
             }
             cargarCatalogosAltaProfesor(model);
             model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
@@ -345,7 +345,7 @@ public class AdministradorController
         model.addAttribute("bajaProfesorDTO", new BajaProfesorDTO(id, "REASIGNAR", null));
         model.addAttribute("abrirModalBajaProfesor", true);
 
-        return "fragments/modal-baja-profesor :: modal-baja-profesor";
+        return "admin/fragments/modal-baja-profesor :: modal-baja-profesor";
     }
 
     /**
@@ -404,7 +404,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-baja-profesor :: modal-baja-profesor";
+                return "admin/fragments/modal-baja-profesor :: modal-baja-profesor";
             }
             cargarCatalogosAltaProfesor(model);
             model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
@@ -422,7 +422,7 @@ public class AdministradorController
         model.addAttribute("profesor", profesor);
         model.addAttribute("abrirModalReactivarProfesor", true);
 
-        return "fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
+        return "admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
     }
 
     /**
@@ -470,7 +470,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
+                return "admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor";
             }
             cargarCatalogosAltaProfesor(model);
             model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
@@ -534,7 +534,7 @@ public class AdministradorController
         model.addAttribute("alumno", dto);
         model.addAttribute("abrirModalDetalleAlumno", true);
 
-        return "fragments/modal-detalle-alumno :: modal-detalle-alumno";
+        return "admin/fragments/modal-detalle-alumno :: modal-detalle-alumno";
     }
 
     /**
@@ -547,7 +547,7 @@ public class AdministradorController
         model.addAttribute("expediente", expediente);
         model.addAttribute("abrirModalExpedienteAlumno", true);
 
-        return "fragments/modal-expediente-alumno :: modal-expediente-alumno";
+        return "admin/fragments/modal-expediente-alumno :: modal-expediente-alumno";
     }
 
     /**
@@ -566,7 +566,7 @@ public class AdministradorController
         model.addAttribute("reasignarAlumnoDTO", new ReasignarAlumnoDTO(id, alumno.profesorId() != null ? "REASIGNAR" : "REASIGNAR", null));
         model.addAttribute("abrirModalReasignarAlumno", true);
 
-        return "fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
+        return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
     }
 
     /**
@@ -591,7 +591,7 @@ public class AdministradorController
             model.addAttribute("abrirModalReasignarAlumno", true);
             if (esPeticionHtmx)
             {
-                return "fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
+                return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
             }
             return "admin/alumnos";
         }
@@ -638,7 +638,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
+                return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
             }
             return "admin/alumnos";
         }
@@ -657,7 +657,7 @@ public class AdministradorController
         model.addAttribute("clasesPendientes", clasesPendientes);
         model.addAttribute("abrirModalBajaAlumno", true);
 
-        return "fragments/modal-baja-alumno :: modal-baja-alumno";
+        return "admin/fragments/modal-baja-alumno :: modal-baja-alumno";
     }
 
     /**
@@ -713,7 +713,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-baja-alumno :: modal-baja-alumno";
+                return "admin/fragments/modal-baja-alumno :: modal-baja-alumno";
             }
             model.addAttribute("alumnos", this.alumnoService.obtenerTodosLosAlumnos());
             return "admin/alumnos";
@@ -764,7 +764,7 @@ public class AdministradorController
             model.addAttribute("abrirModalAltaVehiculo", true);
             if (esPeticionHtmx)
             {
-                return "fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
+                return "admin/fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
             }
             return "admin/flota";
         }
@@ -807,7 +807,7 @@ public class AdministradorController
             model.addAttribute("abrirModalAltaVehiculo", true);
             if (esPeticionHtmx)
             {
-                return "fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
+                return "admin/fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
             }
             return "admin/flota";
         }
@@ -862,7 +862,7 @@ public class AdministradorController
         model.addAttribute("tiposCambio", TipoCambio.values());
         model.addAttribute("abrirModalEditarVehiculo", true);
 
-        return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+        return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
     }
 
     /**
@@ -904,7 +904,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+                return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
             }
             this.cargarDatosMetricasFlota(model);
             this.cargarCatalogosAltaVehiculo(model);
@@ -958,7 +958,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
+                return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
             }
             this.cargarDatosMetricasFlota(model);
             this.cargarCatalogosAltaVehiculo(model);
@@ -976,7 +976,7 @@ public class AdministradorController
         model.addAttribute("vehiculo", dto);
         model.addAttribute("abrirModalDetalleVehiculo", true);
 
-        return "fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo";
+        return "admin/fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo";
     }
 
     /**
@@ -994,7 +994,7 @@ public class AdministradorController
         model.addAttribute("puedeDarBaja", puedeDarBaja);
         model.addAttribute("abrirModalBajaVehiculo", true);
 
-        return "fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
+        return "admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
     }
 
     /**
@@ -1051,7 +1051,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
+                return "admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
             }
             this.cargarDatosMetricasFlota(model);
             this.cargarCatalogosAltaVehiculo(model);
@@ -1094,7 +1094,7 @@ public class AdministradorController
         model.addAttribute("incidencia", dto);
         model.addAttribute("abrirModalGestionarIncidencia", true);
 
-        return "fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
+        return "admin/fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
     }
 
     /**
@@ -1107,7 +1107,7 @@ public class AdministradorController
         model.addAttribute("incidencia", dto);
         model.addAttribute("abrirModalDetalleIncidencia", true);
 
-        return "fragments/modal-detalle-incidencia :: modal-detalle-incidencia";
+        return "admin/fragments/modal-detalle-incidencia :: modal-detalle-incidencia";
     }
 
     /**
@@ -1161,7 +1161,7 @@ public class AdministradorController
 
             if (esPeticionHtmx)
             {
-                return "fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
+                return "admin/fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
             }
 
             model.addAttribute("incidencias", this.incidenciaVehiculoService.obtenerTodasLasIncidencias());
@@ -1231,7 +1231,7 @@ public class AdministradorController
         ClasePracticaAdminDTO clase = this.clasePracticaService.obtenerClaseParaDetalleAdmin(id);
         model.addAttribute("clase", clase);
         model.addAttribute("abrirModalDetalleClase", true);
-        return "fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin";
+        return "admin/fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin";
     }
 
 
@@ -1258,7 +1258,7 @@ public class AdministradorController
     {
         EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
         model.addAttribute("profesores", stats.todosProfesores());
-        return "fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores";
+        return "admin/fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores";
     }
 
     /**
@@ -1269,7 +1269,7 @@ public class AdministradorController
     {
         EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
         model.addAttribute("carnets", stats.todosCarnets());
-        return "fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets";
+        return "admin/fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets";
     }
 
     /**
