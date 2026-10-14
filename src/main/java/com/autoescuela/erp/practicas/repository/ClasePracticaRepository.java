@@ -88,6 +88,17 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     boolean existsByProfesorAndFechaHoraAndEstadoClaseNot(Profesor profesor, LocalDateTime fechaHora, EstadoClase estadoClase);
 
     /**
+     * Comprueba si el profesor ya tiene una clase programada en una fecha y hora concreta que impida nuevas reservas, es decir, comprueba si existe una clase activa o cancelada por el profesor bloqueando la franja horaria.
+     */
+    @Query("""
+        SELECT COUNT(c) > 0 FROM ClasePractica c
+        WHERE c.profesor = :profesor
+          AND c.fechaHora = :fechaHora
+          AND (c.estadoClase != com.autoescuela.erp.core.enums.EstadoClase.CANCELADA OR c.isCanceladaPorProfesor = true)
+    """)
+    boolean existeClaseActivaOBloqueadaPorProfesor(@Param("profesor") Profesor profesor, @Param("fechaHora") LocalDateTime fechaHora);
+
+    /**
      * Búsqueda filtrada de clases prácticas para el panel del Administrador,
      * optimizada con FETCH JOIN para evitar problemas de N+1 y ordenadas descendentemente por fecha/hora.
      */

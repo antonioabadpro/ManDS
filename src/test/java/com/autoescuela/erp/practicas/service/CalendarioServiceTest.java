@@ -331,4 +331,148 @@ class CalendarioServiceTest
         assertThat(celdaVacaciones.esClicable()).isFalse();
         assertThat(celdaVacaciones.titulo()).isEqualTo("Vacaciones Autoescuela");
     }
+
+    @Test
+    @DisplayName("obtenerCalendarioProfesor muestra clase cancelada por el profesor en estado CANCELADA y clicable para modal")
+    void testObtenerCalendarioProfesorConClaseCanceladaPorProfesorSeMuestra()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+
+        Alumno alumno = new Alumno();
+        alumno.setNombre("Mario");
+        alumno.setApellidos("Casas");
+
+        LocalDate lunes = LocalDate.of(2026, 10, 5);
+        ClasePractica claseCancelada = new ClasePractica();
+        ReflectionTestUtils.setField(claseCancelada, "id", 15L);
+        claseCancelada.setAlumno(alumno);
+        claseCancelada.setProfesor(profesor);
+        claseCancelada.setFechaHora(lunes.atTime(8, 0));
+        claseCancelada.setEstadoClase(EstadoClase.CANCELADA);
+        claseCancelada.setIsCanceladaPorProfesor(true);
+
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of(claseCancelada));
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioProfesor(profesor, lunes);
+
+        CeldaCalendarioDTO celda = resultado.filas().get(0).celdas().get(0);
+        assertThat(celda.ocupada()).isTrue();
+        assertThat(celda.estado()).isEqualTo("CANCELADA");
+        assertThat(celda.titulo()).isEqualTo("Mario Casas");
+        assertThat(celda.subtitulo()).isEqualTo("Clase Cancelada");
+        assertThat(celda.esClicable()).isTrue();
+        assertThat(celda.modalUrl()).isEqualTo("/profesor/clases/15/modal");
+    }
+
+    @Test
+    @DisplayName("obtenerCalendarioProfesor muestra clase recibida con estado RECIBIDA y enlace a modal")
+    void testObtenerCalendarioProfesorConClaseRecibidaSeMuestra()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+
+        Alumno alumno = new Alumno();
+        alumno.setNombre("Laura");
+        alumno.setApellidos("Gómez");
+
+        LocalDate lunes = LocalDate.of(2026, 10, 5);
+        ClasePractica claseRecibida = new ClasePractica();
+        ReflectionTestUtils.setField(claseRecibida, "id", 20L);
+        claseRecibida.setAlumno(alumno);
+        claseRecibida.setProfesor(profesor);
+        claseRecibida.setFechaHora(lunes.atTime(8, 45));
+        claseRecibida.setEstadoClase(EstadoClase.RECIBIDA);
+
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of(claseRecibida));
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioProfesor(profesor, lunes);
+
+        CeldaCalendarioDTO celda = resultado.filas().get(1).celdas().get(0);
+        assertThat(celda.ocupada()).isTrue();
+        assertThat(celda.estado()).isEqualTo("RECIBIDA");
+        assertThat(celda.titulo()).isEqualTo("Laura Gómez");
+        assertThat(celda.subtitulo()).isEqualTo("Clase Recibida");
+        assertThat(celda.esClicable()).isTrue();
+        assertThat(celda.modalUrl()).isEqualTo("/profesor/clases/20/modal");
+    }
+
+    @Test
+    @DisplayName("obtenerCalendarioAlumno bloquea reserva ante clase cancelada por el profesor para alumno propio y ajeno")
+    void testObtenerCalendarioAlumnoConClaseCanceladaPorProfesorBloqueaReserva()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        profesor.setVehiculo(vehiculo);
+
+        Alumno alumnoActual = new Alumno();
+        ReflectionTestUtils.setField(alumnoActual, "id", 201L);
+        alumnoActual.setNombre("Carlos");
+        alumnoActual.setProfesor(profesor);
+
+        Alumno otroAlumno = new Alumno();
+        ReflectionTestUtils.setField(otroAlumno, "id", 202L);
+        otroAlumno.setNombre("Marta");
+
+        LocalDate lunes = LocalDate.of(2026, 10, 5);
+
+        // Clase propia cancelada por el profesor a las 08:00
+        ClasePractica clasePropiaCancelada = new ClasePractica();
+        ReflectionTestUtils.setField(clasePropiaCancelada, "id", 30L);
+        clasePropiaCancelada.setAlumno(alumnoActual);
+        clasePropiaCancelada.setProfesor(profesor);
+        clasePropiaCancelada.setFechaHora(lunes.atTime(8, 0));
+        clasePropiaCancelada.setEstadoClase(EstadoClase.CANCELADA);
+        clasePropiaCancelada.setIsCanceladaPorProfesor(true);
+
+        // Clase ajena cancelada por el profesor a las 08:45
+        ClasePractica claseAjenaCancelada = new ClasePractica();
+        ReflectionTestUtils.setField(claseAjenaCancelada, "id", 31L);
+        claseAjenaCancelada.setAlumno(otroAlumno);
+        claseAjenaCancelada.setProfesor(profesor);
+        claseAjenaCancelada.setFechaHora(lunes.atTime(8, 45));
+        claseAjenaCancelada.setEstadoClase(EstadoClase.CANCELADA);
+        claseAjenaCancelada.setIsCanceladaPorProfesor(true);
+
+        Matricula matricula = new Matricula();
+        matricula.setSaldoClases(5);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumnoActual))
+                .thenReturn(Optional.of(matricula));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumnoActual, EstadoClase.PENDIENTE))
+                .thenReturn(0);
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(List.of(clasePropiaCancelada, claseAjenaCancelada));
+
+        CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumnoActual, lunes);
+
+        // Celda propia cancelada por profesor (Fila 0, Día 0)
+        CeldaCalendarioDTO celdaPropia = resultado.filas().get(0).celdas().get(0);
+        assertThat(celdaPropia.ocupada()).isTrue();
+        assertThat(celdaPropia.estado()).isEqualTo("CANCELADA");
+        assertThat(celdaPropia.subtitulo()).isEqualTo("Clase Cancelada");
+        assertThat(celdaPropia.esPropia()).isTrue();
+        assertThat(celdaPropia.esClicable()).isTrue();
+        assertThat(celdaPropia.modalUrl()).isEqualTo("/alumno/clases/30/modal");
+
+        // Celda ajena cancelada por profesor (Fila 1, Día 0) -> Bloquea reserva y anonimiza como Horario Cancelado
+        CeldaCalendarioDTO celdaAjena = resultado.filas().get(1).celdas().get(0);
+        assertThat(celdaAjena.ocupada()).isTrue();
+        assertThat(celdaAjena.estado()).isEqualTo("CANCELADA");
+        assertThat(celdaAjena.titulo()).isEqualTo("Clase Práctica");
+        assertThat(celdaAjena.subtitulo()).isEqualTo("Horario Cancelado");
+        assertThat(celdaAjena.esPropia()).isFalse();
+        assertThat(celdaAjena.esClicable()).isFalse();
+        assertThat(celdaAjena.modalUrl()).isNull();
+    }
 }

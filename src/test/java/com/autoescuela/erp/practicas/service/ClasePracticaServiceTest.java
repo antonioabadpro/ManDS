@@ -67,8 +67,8 @@ class ClasePracticaServiceTest
                 fechaHora, 45, "Plaza Mayor", "Práctica de estacionamiento"
         );
 
-        when(this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(
-                profesor, fechaHora, EstadoClase.CANCELADA
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
+                profesor, fechaHora
         )).thenReturn(false);
 
         when(this.clasePracticaRepository.saveAndFlush(any(ClasePractica.class)))
@@ -98,13 +98,33 @@ class ClasePracticaServiceTest
                 fechaHora, 45, "Plaza Mayor", ""
         );
 
-        when(this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(
-                profesor, fechaHora, EstadoClase.CANCELADA
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
+                profesor, fechaHora
         )).thenReturn(true);
 
         assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
                 .isInstanceOf(ReglaNegocioException.class)
-                .hasMessageContaining("ya se encuentra ocupado con tu profesor");
+                .hasMessageContaining("ya se encuentra ocupado o cancelado con tu profesor");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la franja tiene una clase cancelada por el profesor")
+    void testReservarClaseFallaPorFranjaCanceladaPorProfesor()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
+                fechaHora, 45, "Plaza Mayor", ""
+        );
+
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
+                profesor, fechaHora
+        )).thenReturn(true);
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("ya se encuentra ocupado o cancelado con tu profesor");
     }
 
     @Test
@@ -118,8 +138,8 @@ class ClasePracticaServiceTest
                 fechaHora, 45, "Plaza Mayor", ""
         );
 
-        when(this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(
-                profesor, fechaHora, EstadoClase.CANCELADA
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
+                profesor, fechaHora
         )).thenReturn(false);
 
         when(this.clasePracticaRepository.saveAndFlush(any(ClasePractica.class)))
@@ -148,6 +168,7 @@ class ClasePracticaServiceTest
         ClasePractica resultado = this.clasePracticaService.cancelarClasePorAlumno(clase, alumno);
 
         assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
+        assertThat(resultado.getIsCanceladaPorProfesor()).isFalse();
         verify(this.clasePracticaRepository).save(clase);
     }
 

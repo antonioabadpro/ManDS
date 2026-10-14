@@ -57,6 +57,9 @@ public class ClasePractica
     @Column(nullable = false)
     private EstadoClase estadoClase = EstadoClase.PENDIENTE;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean isCanceladaPorProfesor = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "alumno_id", nullable = false)
     private Alumno alumno;

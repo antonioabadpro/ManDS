@@ -41,8 +41,8 @@
                 <div th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs">
                     Esta clase ya ha sido completada y consolidada en el expediente del alumno. Los datos son de solo lectura.
                 </div>
-                <div th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
-                    Esta clase práctica ha sido cancelada. Los datos son de solo lectura.
+                <div th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs">
+                    Esta clase práctica ha sido cancelada. El tramo horario permanece bloqueado en la agenda. Los datos son de solo lectura.
                 </div>
 
                 <!-- 1. Datos inmutables de la reserva -->
@@ -124,6 +124,13 @@
                             Cancelar Clase
                         </button>
                     </form>
+                </div>
+
+                <!-- Botón de cierre para clases en modo solo lectura (RECIBIDA o CANCELADA) -->
+                <div th:if="${clase.estadoClase.name() != 'PENDIENTE'}" class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <button type="button" data-modal-close="modal-ficha-clase" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition cursor-pointer">
+                        Cerrar
+                    </button>
                 </div>
 
             </div>

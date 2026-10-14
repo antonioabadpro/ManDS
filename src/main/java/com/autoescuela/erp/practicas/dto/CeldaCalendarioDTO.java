@@ -115,6 +115,23 @@ public record CeldaCalendarioDTO(
                 .build();
     }
 
+    public static CeldaCalendarioDTO deCanceladaAjenaAlumno(LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, LocalDateTime fechaHora)
+    {
+        return CeldaCalendarioDTO.builder()
+                .fecha(fecha)
+                .horaInicio(horaInicio)
+                .horaFin(horaFin)
+                .fechaHora(fechaHora)
+                .ocupada(true)
+                .esExamenDgt(false)
+                .estado("CANCELADA")
+                .titulo("Clase Práctica")
+                .subtitulo("Horario Cancelado")
+                .esPropia(false)
+                .esClicable(false)
+                .build();
+    }
+
     public static CeldaCalendarioDTO deLibreAlumno(LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, LocalDateTime fechaHora, boolean puedeReservar, LocalDateTime ahora)
     {
         boolean esFuturo = fechaHora.isAfter(ahora);

@@ -84,6 +84,7 @@
 - **Concurrencia Pesimista:** Restricción única en BD `UNIQUE(profesor_id, fecha_hora)` y transacción `@Transactional` con verificación atómica (HTTP 409 / feedback HTMX en colisión).
 - **Ventana Temporal y Precedencia:** Fechas de clase estrictamente entre `fechaMatriculacion` y examen práctico oficial. Todo examen práctico debe celebrarse con fecha posterior a la última clase recibida.
 - **Bloqueo en Festivos y Vacaciones:** Prohibido reservar en festivos nacionales oficiales de España (fijos y Semana Santa móvil Meeus/Butcher) y vacaciones de la autoescuela (1-14 agosto y 23 dic-7 ene). Doble barrera: celda bloqueada en SSR y `ReglaNegocioException` en backend.
+- **Cancelación Asimétrica y Bloqueo de Franja:** Cancelación por profesor (`canceladaPorProfesor = true`) bloquea ese tramo de 45 min en ambos calendarios impidiendo reservas. Cancelación por alumno libera el tramo a `LIBRE`.
 
 ## 3.5. Circuito y Gestión de Solicitudes de Examen (DGT)
 - **Control Centralizado:** Exclusivo del Administrador (fijar fechas, cupos, aceptar o rechazar solicitudes). Profesores solo consultan alumnos citados en su turno.

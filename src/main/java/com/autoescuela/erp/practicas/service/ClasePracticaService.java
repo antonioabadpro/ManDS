@@ -52,10 +52,10 @@ public class ClasePracticaService
         }
 
         // Implementamos la Barrera Lógica: comprobación preventiva de solapamiento
-        boolean tramoOcupado = this.clasePracticaRepository.existsByProfesorAndFechaHoraAndEstadoClaseNot(profesor, dto.fechaHora(), EstadoClase.CANCELADA);
+        boolean tramoOcupado = this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(profesor, dto.fechaHora());
         if (tramoOcupado)
         {
-            throw new ReglaNegocioException("El tramo horario seleccionado ya se encuentra ocupado con tu profesor. Por favor, selecciona otro horario.");
+            throw new ReglaNegocioException("El tramo horario seleccionado ya se encuentra ocupado o cancelado con tu profesor. Por favor, selecciona otro horario.");
         }
 
         // Construimos la entidad
@@ -117,6 +117,7 @@ public class ClasePracticaService
         }
 
         clase.setEstadoClase(EstadoClase.CANCELADA);
+        clase.setIsCanceladaPorProfesor(false);
         return this.clasePracticaRepository.save(clase);
     }
 

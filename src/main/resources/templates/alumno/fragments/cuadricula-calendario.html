@@ -61,10 +61,10 @@
                             <span th:if="${dia.esExamenDgt}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                 Examen DGT
                             </span>
-                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'FESTIVO'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
+                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'FESTIVO'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
                                 Festivo Nacional
                             </span>
-                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'VACACIONES'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
+                            <span th:if="${!dia.esExamenDgt and dia.esNoLaborable and dia.tipoNoLaborable == 'VACACIONES'}" class="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 truncate max-w-[9.5rem]" th:title="${dia.motivoNoLaborable}">
                                 Vacaciones
                             </span>
                         </div>
@@ -94,32 +94,32 @@
                         </div>
 
                         <!-- 2. Celda en Festivo Nacional (Bloqueo de reservas) -->
-                        <div th:if="${!celda.esExamenDgt and celda.estado == 'FESTIVO'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-rose-500/10 dark:bg-rose-950/30 border border-rose-500/30 flex flex-col justify-between items-center text-center shadow-xs">
+                        <div th:if="${!celda.esExamenDgt and celda.estado == 'FESTIVO'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-slate-500/10 dark:bg-slate-800/40 border border-slate-300 dark:border-slate-700/80 flex flex-col justify-between items-center text-center shadow-xs">
                             <div class="flex items-center space-x-1.5">
-                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                                <span class="text-[11px] font-bold text-rose-800 dark:text-rose-200">Festivo Nacional</span>
+                                <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Festivo Nacional</span>
                             </div>
-                            <span class="text-[10px] font-medium text-rose-600 dark:text-rose-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
+                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
                         </div>
 
                         <!-- 3. Celda en Periodo Vacacional de la Autoescuela -->
-                        <div th:if="${!celda.esExamenDgt and celda.estado == 'VACACIONES'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-rose-500/10 dark:bg-rose-950/30 border border-rose-500/30 flex flex-col justify-between items-center text-center shadow-xs">
+                        <div th:if="${!celda.esExamenDgt and celda.estado == 'VACACIONES'}" class="w-full h-full min-h-[4.25rem] rounded-xl p-2 bg-slate-500/10 dark:bg-slate-800/40 border border-slate-300 dark:border-slate-700/80 flex flex-col justify-between items-center text-center shadow-xs">
                             <div class="flex items-center space-x-1.5">
-                                <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                                <span class="text-[11px] font-bold text-rose-800 dark:text-rose-200">Vacaciones</span>
+                                <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                                <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300">Vacaciones</span>
                             </div>
-                            <span class="text-[10px] font-medium text-rose-600 dark:text-rose-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
+                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[9rem]" th:text="${celda.subtitulo}" th:title="${celda.subtitulo}">Cerrado</span>
                         </div>
 
                         <!-- 4. Celda Ocupada por Clase Práctica -->
                         <div th:if="${!celda.esExamenDgt and celda.estado != 'FESTIVO' and celda.estado != 'VACACIONES' and celda.ocupada}" class="w-full h-full">
 
                             <!-- Caso A: Clase del propio alumno (Interactiva con Ficha Técnica) -->
-                            <button th:if="${celda.esPropia}" type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] text-left p-2 rounded-xl border shadow-xs transition transform hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between cursor-pointer" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 hover:border-emerald-300' : (celda.estado == 'CANCELADA' ? 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/80 text-amber-900 dark:text-amber-100 hover:border-amber-300')}">
+                            <button th:if="${celda.esPropia}" type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] text-left p-2 rounded-xl border shadow-xs transition transform hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between cursor-pointer" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 hover:border-emerald-300' : (celda.estado == 'CANCELADA' ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/80 text-rose-900 dark:text-rose-100 hover:border-rose-300' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/80 text-amber-900 dark:text-amber-100 hover:border-amber-300')}">
 
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full shrink-0" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-500' : (celda.estado == 'CANCELADA' ? 'bg-slate-400' : 'bg-amber-500')}"></span>
+                                        <span class="w-2 h-2 rounded-full shrink-0" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-500' : (celda.estado == 'CANCELADA' ? 'bg-rose-500' : 'bg-amber-500')}"></span>
                                         <span class="text-[10px] font-semibold uppercase tracking-wider" th:text="${celda.subtitulo}">Tu Clase</span>
                                     </div>
                                     <span class="text-[9px] font-mono opacity-70" th:text="${fila.tramo.etiqueta}">08:00</span>
@@ -134,21 +134,21 @@
                                 </div>
                             </button>
 
-                            <!-- Caso B: Clase de otro alumno (Inerte por RGPD, no clicable) -->
-                            <div th:if="${!celda.esPropia}" class="w-full h-full min-h-[4.25rem] p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400 cursor-not-allowed select-none flex flex-col justify-between">
+                            <!-- Caso B: Clase de otro alumno o franja cancelada por el profesor (Inerte por RGPD, no clicable) -->
+                            <div th:if="${!celda.esPropia}" class="w-full h-full min-h-[4.25rem] p-2 rounded-xl border flex flex-col justify-between cursor-not-allowed select-none" th:classappend="${celda.estado == 'CANCELADA' ? 'border-rose-200/60 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400' : 'border-slate-200/80 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/40 text-slate-500 dark:text-slate-400'}">
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
-                                        <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400">Horario Ocupado</span>
+                                        <span class="w-2 h-2 rounded-full shrink-0" th:classappend="${celda.estado == 'CANCELADA' ? 'bg-rose-500' : 'bg-slate-400 dark:bg-slate-500'}"></span>
+                                        <span class="text-[10px] font-medium" th:text="${celda.subtitulo}">Horario Ocupado</span>
                                     </div>
-                                    <span class="text-[9px] font-mono text-slate-400" th:text="${fila.tramo.etiqueta}">08:00</span>
+                                    <span class="text-[9px] font-mono" th:text="${fila.tramo.etiqueta}">08:00</span>
                                 </div>
 
                                 <div class="mt-1">
-                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block">Clase Práctica</span>
+                                    <span class="text-xs font-medium block">Clase Práctica</span>
                                 </div>
 
-                                <div class="text-[9px] text-slate-400 text-right">
+                                <div class="text-[9px] text-right" th:text="${celda.estado == 'CANCELADA' ? 'Cancelado por Profesor' : 'No disponible'}">
                                     No disponible
                                 </div>
                             </div>

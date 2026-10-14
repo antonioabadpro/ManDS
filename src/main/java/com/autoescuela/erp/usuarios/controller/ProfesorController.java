@@ -545,6 +545,7 @@ public class ProfesorController
 
         ClasePractica clase = claseOptional.get();
         clase.setEstadoClase(EstadoClase.CANCELADA);
+        clase.setIsCanceladaPorProfesor(true);
         if (motivo != null && !motivo.isBlank())
         {
             String actual = clase.getObservaciones() != null ? clase.getObservaciones() + " | " : "";

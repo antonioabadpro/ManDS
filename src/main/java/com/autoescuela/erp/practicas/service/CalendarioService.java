@@ -273,6 +273,11 @@ public class CalendarioService
                 );
             }
 
+            if (claseEnSlot.getEstadoClase() == EstadoClase.CANCELADA)
+            {
+                return CeldaCalendarioDTO.deCanceladaAjenaAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
+            }
+
             return CeldaCalendarioDTO.deOcupadaAjenaAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora);
         }
 
@@ -371,9 +376,10 @@ public class CalendarioService
      */
     private ClasePractica buscarClaseEnSlot(List<ClasePractica> clases, LocalDate fecha, LocalTime horaInicio)
     {
+        ClasePractica claseCanceladaPorProfesor = null;
         for (ClasePractica clase : clases)
         {
-            if (clase.getFechaHora() != null && clase.getEstadoClase() != EstadoClase.CANCELADA)
+            if (clase.getFechaHora() != null)
             {
                 LocalDate fechaClase = clase.getFechaHora().toLocalDate();
                 LocalTime horaClase = clase.getFechaHora().toLocalTime();
@@ -381,11 +387,18 @@ public class CalendarioService
                 if (fechaClase.equals(fecha) && horaClase.getHour() == horaInicio.getHour()
                         && horaClase.getMinute() == horaInicio.getMinute())
                 {
-                    return clase;
+                    if (clase.getEstadoClase() != EstadoClase.CANCELADA)
+                    {
+                        return clase;
+                    }
+                    else if (Boolean.TRUE.equals(clase.getIsCanceladaPorProfesor()))
+                    {
+                        claseCanceladaPorProfesor = clase;
+                    }
                 }
             }
         }
-        return null;
+        return claseCanceladaPorProfesor;
     }
 
     /**
