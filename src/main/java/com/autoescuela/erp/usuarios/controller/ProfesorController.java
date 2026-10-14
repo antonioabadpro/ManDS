@@ -564,7 +564,7 @@ public class ProfesorController
                         "Estimado/a " + clase.getAlumno().getNombre() + ",\n\nTu clase práctica del "
                                 + clase.getFechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
                                 + " ha sido cancelada por el profesor. Motivo: "
-                                + (motivo != null ? motivo : "Imprevisto docente") + ".\n\nTu saldo de clases permanece intacto para que reserves una nueva fecha.");
+                                + (motivo != null && !motivo.isBlank() ? motivo.trim() : "Imprevisto del Profesor") + ".\n\nTu saldo de clases permanece intacto para que reserves una nueva fecha.");
             }
             catch (Exception ex)
             {
