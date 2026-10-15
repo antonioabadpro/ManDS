@@ -50,8 +50,8 @@ class ClasePracticaMapperTest
         clase.setFechaHora(fechaHora);
         clase.setDuracion(45);
         clase.setPuntoRecogida("Estación de Autobuses");
-        clase.setKmInicio(10000);
-        clase.setKmFin(10045);
+        clase.setKmInicio(10000L);
+        clase.setKmFin(10045L);
         clase.setEstadoClase(EstadoClase.RECIBIDA);
         clase.setObservaciones("Práctica de circulación urbana y rotondas");
         clase.setAlumno(alumno);
@@ -63,8 +63,8 @@ class ClasePracticaMapperTest
         assertThat(dto.fechaHora()).isEqualTo(fechaHora);
         assertThat(dto.duracion()).isEqualTo(45);
         assertThat(dto.puntoRecogida()).isEqualTo("Estación de Autobuses");
-        assertThat(dto.kmInicio()).isEqualTo(10000);
-        assertThat(dto.kmFin()).isEqualTo(10045);
+        assertThat(dto.kmInicio()).isEqualTo(10000L);
+        assertThat(dto.kmFin()).isEqualTo(10045L);
         assertThat(dto.kmFormateado()).isEqualTo("10.000 a 10.045 km (+45 km)");
         assertThat(dto.estadoClase()).isEqualTo(EstadoClase.RECIBIDA);
         assertThat(dto.alumnoNombreCompleto()).isEqualTo("Carlos Gómez Ruiz");
@@ -98,8 +98,8 @@ class ClasePracticaMapperTest
         clase.setFechaHora(LocalDateTime.of(2026, 10, 20, 16, 0));
         clase.setDuracion(45);
         clase.setPuntoRecogida("Sede Central");
-        clase.setKmInicio(0);
-        clase.setKmFin(0);
+        clase.setKmInicio(0L);
+        clase.setKmFin(0L);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
         clase.setAlumno(alumno);
         clase.setProfesor(profesor);

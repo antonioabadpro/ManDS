@@ -141,8 +141,8 @@ class EstadisticaServiceTest
         ClasePractica cp1 = new ClasePractica();
         cp1.setEstadoClase(EstadoClase.RECIBIDA);
         cp1.setDuracion(45);
-        cp1.setKmInicio(100);
-        cp1.setKmFin(130);
+        cp1.setKmInicio(100L);
+        cp1.setKmFin(130L);
 
         when(this.clasePracticaRepository.findAll()).thenReturn(List.of(cp1));
 
@@ -214,14 +214,14 @@ class EstadisticaServiceTest
         ClasePractica cp1 = new ClasePractica();
         cp1.setEstadoClase(EstadoClase.RECIBIDA);
         cp1.setDuracion(45);
-        cp1.setKmInicio(100);
-        cp1.setKmFin(140);
+        cp1.setKmInicio(100L);
+        cp1.setKmFin(140L);
 
         ClasePractica cp2 = new ClasePractica();
         cp2.setEstadoClase(EstadoClase.RECIBIDA);
         cp2.setDuracion(45);
-        cp2.setKmInicio(140);
-        cp2.setKmFin(170);
+        cp2.setKmInicio(140L);
+        cp2.setKmFin(170L);
 
         ClasePractica cp3 = new ClasePractica();
         cp3.setEstadoClase(EstadoClase.PENDIENTE);

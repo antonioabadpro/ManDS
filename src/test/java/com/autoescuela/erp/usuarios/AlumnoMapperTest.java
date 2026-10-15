@@ -306,8 +306,8 @@ class AlumnoMapperTest
         clase.setFechaHora(LocalDateTime.of(2026, 9, 10, 10, 0));
         clase.setDuracion(45);
         clase.setPuntoRecogida("Calle Alcalá 45");
-        clase.setKmInicio(44955);
-        clase.setKmFin(45000);
+        clase.setKmInicio(44955L);
+        clase.setKmFin(45000L);
         clase.setEstadoClase(EstadoClase.RECIBIDA);
         clase.setObservaciones("Excelente dominio del embrague");
         clase.setProfesor(profesor);
@@ -362,7 +362,7 @@ class AlumnoMapperTest
         matricula.setConvocatorias(2);
 
         ClasePracticaExpedienteDTO claseDto = new ClasePracticaExpedienteDTO(
-                1L, LocalDateTime.now(), 45, "Calle Alcalá 45", 44955, 45000,
+                1L, LocalDateTime.now(), 45, "Calle Alcalá 45", 44955L, 45000L,
                 "Km: 44.955 a 45.000", EstadoClase.RECIBIDA, "Laura Sánchez", "OK"
         );
         ExamenExpedienteDTO examenDto = new ExamenExpedienteDTO(

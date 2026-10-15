@@ -401,6 +401,10 @@ public class ProfesorController
             return "error/403";
         }
 
+        Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
+                ? clase.getProfesor().getVehiculo().getKm()
+                : (clase.getKmInicio() != null ? clase.getKmInicio() : 0L);
+        model.addAttribute("kmActualVehiculo", kmActualVehiculo);
         model.addAttribute("clase", clase);
         return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
     }
@@ -458,6 +462,10 @@ public class ProfesorController
         {
             if (hxRequest != null)
             {
+                Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
+                        ? clase.getProfesor().getVehiculo().getKm()
+                        : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
+                model.addAttribute("kmActualVehiculo", kmActualVehiculo);
                 model.addAttribute("clase", clase);
                 model.addAttribute("error", "Error en los datos de kilometraje u observaciones de la clase.");
                 return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
@@ -466,15 +474,19 @@ public class ProfesorController
             return "redirect:/profesor/calendario";
         }
 
-        if (dto.kmFin() != null && dto.kmInicio() != null && dto.kmFin() < dto.kmInicio())
+        if (dto.kmFin() != null && dto.kmInicio() != null && dto.kmFin() <= dto.kmInicio())
         {
             if (hxRequest != null)
             {
+                Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
+                        ? clase.getProfesor().getVehiculo().getKm()
+                        : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
+                model.addAttribute("kmActualVehiculo", kmActualVehiculo);
                 model.addAttribute("clase", clase);
-                model.addAttribute("error", "El kilometraje final no puede ser inferior al inicial.");
+                model.addAttribute("error", "El kilometraje final debe ser estrictamente superior al kilometraje inicial.");
                 return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
             }
-            redirectAttributes.addFlashAttribute("error", "El kilometraje final no puede ser inferior al inicial.");
+            redirectAttributes.addFlashAttribute("error", "El kilometraje final debe ser estrictamente superior al kilometraje inicial.");
             return "redirect:/profesor/calendario";
         }
 
@@ -484,15 +496,12 @@ public class ProfesorController
         clase.setEstadoClase(EstadoClase.RECIBIDA);
         this.clasePracticaRepository.save(clase);
 
-        // Actualizar odómetro del vehículo si corresponde
-        if (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null)
+        // Actualizar odómetro del vehículo automáticamente con el odómetro final de la clase práctica
+        if (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && dto.kmFin() != null)
         {
             Vehiculo vehiculo = clase.getProfesor().getVehiculo();
-            if (dto.kmFin() != null && (vehiculo.getKm() == null || dto.kmFin() > vehiculo.getKm()))
-            {
-                vehiculo.setKm(dto.kmFin().longValue());
-                this.vehiculoRepository.save(vehiculo);
-            }
+            vehiculo.setKm(dto.kmFin());
+            this.vehiculoRepository.save(vehiculo);
         }
 
         // Deducción automática de 1 unidad de saldo en la matrícula del alumno (Decisión #840)

@@ -117,9 +117,9 @@ public interface ClasePracticaMapper
         {
             return "--";
         }
-        int ini = clase.getKmInicio() != null ? clase.getKmInicio() : 0;
-        int fin = clase.getKmFin() != null ? clase.getKmFin() : 0;
-        int dif = Math.max(0, fin - ini);
+        long ini = clase.getKmInicio() != null ? clase.getKmInicio() : 0;
+        long fin = clase.getKmFin() != null ? clase.getKmFin() : 0;
+        long dif = Math.max(0, fin - ini);
         return String.format("%,d a %,d km (+%d km)", ini, fin, dif).replace(',', '.');
     }
 

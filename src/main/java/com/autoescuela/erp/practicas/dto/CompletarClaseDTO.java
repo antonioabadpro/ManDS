@@ -14,11 +14,11 @@ public record CompletarClaseDTO(
 
     @NotNull(message = "El kilometraje inicial es obligatorio.")
     @Min(value = 0, message = "El kilometraje inicial no puede ser negativo.")
-    Integer kmInicio,
+    Long kmInicio,
 
     @NotNull(message = "El kilometraje final es obligatorio.")
     @Min(value = 0, message = "El kilometraje final no puede ser negativo.")
-    Integer kmFin,
+    Long kmFin,
 
     @Size(max = 1000, message = "Las observaciones no pueden superar los 1000 caracteres.")
     String observaciones

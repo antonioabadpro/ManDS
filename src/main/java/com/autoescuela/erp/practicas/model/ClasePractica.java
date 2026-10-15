@@ -45,10 +45,10 @@ public class ClasePractica
     private String puntoRecogida;
 
     @Column(nullable = false)
-    private Integer kmInicio;
+    private Long kmInicio;
 
     @Column(nullable = false)
-    private Integer kmFin;
+    private Long kmFin;
 
     @Column(length = 1000)
     private String observaciones;
@@ -67,4 +67,23 @@ public class ClasePractica
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profesor_id")
     private Profesor profesor;
+
+    /**
+     * Obtiene el motivo de cancelación de la clase práctica sin exponer el resto de observaciones.
+     *
+     * @return Motivo descriptivo de la cancelación para Alumno y Profesor.
+     */
+    public String getMotivoCancelacion()
+    {
+        if (this.observaciones != null && this.observaciones.contains("Cancelación: "))
+        {
+            int idx = this.observaciones.lastIndexOf("Cancelación: ");
+            return this.observaciones.substring(idx + "Cancelación: ".length()).trim();
+        }
+        if (Boolean.TRUE.equals(this.isCanceladaPorProfesor))
+        {
+            return "Cancelada por el profesor debido a imprevistos en la jornada docente.";
+        }
+        return "Cancelada por el alumno para liberar la franja horaria.";
+    }
 }

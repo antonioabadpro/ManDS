@@ -111,38 +111,132 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 4. VALIDACIÓN DE REPORTES DOCENTES DE CLASE (kmFin >= kmInicio)
+    // 4. VALIDACIÓN TÉCNICA (kmFin > kmInicio) Y DOBLE CONFIRMACIÓN DE CLASE
     // =========================================================================
+    function validarFormularioKilometraje(form) {
+        const inputKmInicio = form.querySelector('#modal-clase-km-inicio');
+        const inputKmFin = form.querySelector('#modal-clase-km-fin');
+        const errorKm = form.querySelector('#error-validacion-km');
+
+        if (!inputKmInicio || !inputKmFin) return true;
+
+        const kmInicioStr = inputKmInicio.value.trim();
+        const kmFinStr = inputKmFin.value.trim();
+
+        if (kmInicioStr === '' || kmFinStr === '') {
+            if (errorKm) {
+                errorKm.textContent = 'Debes rellenar tanto el odómetro inicial como el odómetro final.';
+                errorKm.classList.remove('hidden');
+            }
+            return false;
+        }
+
+        const kmInicio = parseInt(kmInicioStr, 10);
+        const kmFin = parseInt(kmFinStr, 10);
+
+        if (isNaN(kmInicio) || isNaN(kmFin)) {
+            if (errorKm) {
+                errorKm.textContent = 'Debes introducir valores numéricos válidos de kilometraje.';
+                errorKm.classList.remove('hidden');
+            }
+            return false;
+        }
+
+        if (kmFin <= kmInicio) {
+            if (errorKm) {
+                errorKm.textContent = 'El kilometraje final (' + kmFin + ' km) debe ser estrictamente superior al inicial (' + kmInicio + ' km).';
+                errorKm.classList.remove('hidden');
+            }
+            return false;
+        }
+
+        if (errorKm) {
+            errorKm.classList.add('hidden');
+            errorKm.textContent = '';
+        }
+        return true;
+    }
+
+    // Delegación de clics para la doble verificación interactiva
+    document.addEventListener('click', (e) => {
+        // 4.1. Abrir confirmación para consolidar clase
+        const btnPreCompletar = e.target.closest('#btn-pre-completar-clase');
+        if (btnPreCompletar) {
+            const form = btnPreCompletar.closest('#form-completar-clase');
+            if (!form) return;
+
+            const esValido = validarFormularioKilometraje(form);
+            if (!esValido) return;
+
+            const contenedorPre = document.getElementById('contenedor-btn-pre-completar');
+            const panelConfirmacion = document.getElementById('panel-confirmacion-completar');
+            if (contenedorPre && panelConfirmacion) {
+                contenedorPre.classList.add('hidden');
+                panelConfirmacion.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // 4.2. Cancelar panel de confirmación de consolidación
+        const btnVolverCompletar = e.target.closest('#btn-cancelar-confirmacion-completar');
+        if (btnVolverCompletar) {
+            const contenedorPre = document.getElementById('contenedor-btn-pre-completar');
+            const panelConfirmacion = document.getElementById('panel-confirmacion-completar');
+            if (contenedorPre && panelConfirmacion) {
+                panelConfirmacion.classList.add('hidden');
+                contenedorPre.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // 4.3. Abrir confirmación para cancelar clase
+        const btnPreCancelar = e.target.closest('#btn-pre-cancelar-clase');
+        if (btnPreCancelar) {
+            const inputMotivo = document.getElementById('input-motivo-cancelacion-profesor');
+            if (inputMotivo) {
+                if (!inputMotivo.value.trim()) {
+                    inputMotivo.focus();
+                    if (inputMotivo.reportValidity) {
+                        inputMotivo.reportValidity();
+                    }
+                    return;
+                }
+            }
+            const panelCancelar = document.getElementById('panel-confirmacion-cancelar');
+            if (panelCancelar) {
+                btnPreCancelar.classList.add('hidden');
+                panelCancelar.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // 4.4. Cancelar panel de confirmación de cancelación
+        const btnVolverCancelar = e.target.closest('#btn-cancelar-confirmacion-cancelar');
+        if (btnVolverCancelar) {
+            const btnPreCancelar = document.getElementById('btn-pre-cancelar-clase');
+            const panelCancelar = document.getElementById('panel-confirmacion-cancelar');
+            if (btnPreCancelar && panelCancelar) {
+                panelCancelar.classList.add('hidden');
+                btnPreCancelar.classList.remove('hidden');
+            }
+            return;
+        }
+    });
+
+    // Validación preventiva en el evento submit de consolidar clase
     document.addEventListener('submit', (e) => {
         const formCompletarClase = e.target.closest('#form-completar-clase');
         if (!formCompletarClase) return;
 
-        const inputKmInicio = formCompletarClase.querySelector('#modal-clase-km-inicio');
-        const inputKmFin = formCompletarClase.querySelector('#modal-clase-km-fin');
-        const errorKm = formCompletarClase.querySelector('#error-validacion-km');
-
-        if (inputKmInicio && inputKmFin) {
-            const kmInicio = parseInt(inputKmInicio.value, 10);
-            const kmFin = parseInt(inputKmFin.value, 10);
-
-            if (isNaN(kmInicio) || isNaN(kmFin)) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (errorKm) {
-                    errorKm.textContent = 'Debes introducir valores numéricos válidos de kilometraje.';
-                    errorKm.classList.remove('hidden');
-                }
-                return;
-            }
-
-            if (kmFin < kmInicio) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (errorKm) {
-                    errorKm.textContent = 'El kilometraje final (' + kmFin + ' km) no puede ser menor que el inicial (' + kmInicio + ' km).';
-                    errorKm.classList.remove('hidden');
-                }
-                return;
+        const esValido = validarFormularioKilometraje(formCompletarClase);
+        if (!esValido) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const contenedorPre = document.getElementById('contenedor-btn-pre-completar');
+            const panelConfirmacion = document.getElementById('panel-confirmacion-completar');
+            if (contenedorPre && panelConfirmacion) {
+                panelConfirmacion.classList.add('hidden');
+                contenedorPre.classList.remove('hidden');
             }
         }
     });

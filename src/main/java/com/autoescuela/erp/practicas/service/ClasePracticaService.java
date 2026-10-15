@@ -68,7 +68,7 @@ public class ClasePracticaService
         nuevaClase.setObservaciones(dto.observaciones() != null ? dto.observaciones().trim() : "");
         nuevaClase.setEstadoClase(EstadoClase.PENDIENTE);
 
-        int kmActual = (profesor != null && profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null) ? profesor.getVehiculo().getKm().intValue() : 0;
+        long kmActual = (profesor != null && profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null) ? profesor.getVehiculo().getKm().longValue() : 0;
         nuevaClase.setKmInicio(kmActual);
         nuevaClase.setKmFin(kmActual);
 

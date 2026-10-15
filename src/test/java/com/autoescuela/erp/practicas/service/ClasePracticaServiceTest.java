@@ -293,7 +293,7 @@ class ClasePracticaServiceTest
         List<ClasePractica> listaEntidades = List.of(clase);
 
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
-                10L, LocalDateTime.now(), 45, "Sede Central", 100, 150, "100 a 150 km (+50 km)",
+                10L, LocalDateTime.now(), 45, "Sede Central", 100L, 150L, "100 a 150 km (+50 km)",
                 EstadoClase.RECIBIDA, 2L, "Juan Perez", "juanp", 1L, "Laura Gomez", "laurag",
                 "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, "Sin notas"
         );
@@ -317,7 +317,7 @@ class ClasePracticaServiceTest
         Long id = 5L;
         ClasePractica clase = new ClasePractica();
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
-                id, LocalDateTime.now(), 45, "Plaza Norte", 200, 240, "200 a 240 km (+40 km)",
+                id, LocalDateTime.now(), 45, "Plaza Norte", 200L, 240L, "200 a 240 km (+40 km)",
                 EstadoClase.RECIBIDA, 3L, "Mario Casas", "marioc", 1L, "Laura Gomez", "laurag",
                 "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, null
         );
