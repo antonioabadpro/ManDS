@@ -51,6 +51,28 @@ public class ClasePracticaService
             throw new ReglaNegocioException("No se pueden reservar clases prácticas en días festivos nacionales ni durante vacaciones de la autoescuela (" + motivo + ").");
         }
 
+        // Barrera Preventiva de Jornada Cancelada por el Profesor
+        if (dto.fechaHora() != null && profesor != null)
+        {
+            LocalDateTime inicioDia = dto.fechaHora().toLocalDate().atStartOfDay();
+            LocalDateTime finDia = dto.fechaHora().toLocalDate().atTime(23, 59, 59);
+            List<ClasePractica> clasesDelDia = this.clasePracticaRepository
+                    .findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioDia, finDia);
+            if (clasesDelDia != null)
+            {
+                for (ClasePractica c : clasesDelDia)
+                {
+                    if (c.getEstadoClase() == EstadoClase.CANCELADA
+                            && Boolean.TRUE.equals(c.getIsCanceladaPorProfesor())
+                            && c.getObservaciones() != null
+                            && c.getObservaciones().contains("Cancelación de jornada"))
+                    {
+                        throw new ReglaNegocioException("La jornada seleccionada ha sido cancelada por el profesor. No es posible realizar reservas para este día.");
+                    }
+                }
+            }
+        }
+
         // Implementamos la Barrera Lógica: comprobación preventiva de solapamiento
         boolean tramoOcupado = this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(profesor, dto.fechaHora());
         if (tramoOcupado)
@@ -118,6 +140,8 @@ public class ClasePracticaService
 
         clase.setEstadoClase(EstadoClase.CANCELADA);
         clase.setIsCanceladaPorProfesor(false);
+        clase.setIsCancelacionJornada(false);
+        clase.setMotivoCancelacion("Cancelada por el alumno para liberar la franja horaria.");
         return this.clasePracticaRepository.save(clase);
     }
 

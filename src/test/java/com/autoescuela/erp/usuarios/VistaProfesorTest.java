@@ -1,5 +1,8 @@
 package com.autoescuela.erp.usuarios;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,11 +11,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,6 +42,12 @@ class VistaProfesorTest extends BaseIntegrationTest
 
     @Autowired
     private MatriculaRepository matriculaRepository;
+
+    @Autowired
+    private ClasePracticaRepository clasePracticaRepository;
+
+    @Autowired
+    private ProfesorRepository profesorRepository;
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")
@@ -306,5 +319,125 @@ class VistaProfesorTest extends BaseIntegrationTest
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
         assertFalse(matricula.getEstaActiva(), "La matrícula debe finalizar (estaActiva = false) tras aprobar el práctico.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/modal devuelve el fragmento del modal de cancelación masiva")
+    void testModalCancelarDiaHtmx() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal")
+                .param("fecha", fecha.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: modalCancelarDia"))
+                .andExpect(model().attributeExists("calendarioSemanal"))
+                .andExpect(model().attributeExists("fechaSeleccionada"))
+                .andExpect(model().attributeExists("clasesPendientes"))
+                .andExpect(model().attributeExists("hoy"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases devuelve el sub-fragmento con las clases a cancelar")
+    void testCalcularClasesCancelarDiaHtmx() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
+                .param("fecha", fecha.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: vistaPreviaClases"))
+                .andExpect(model().attributeExists("fechaSeleccionada"))
+                .andExpect(model().attributeExists("clasesPendientes"))
+                .andExpect(model().attribute("noCancelable", false));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases en fin de semana marca noCancelable = true")
+    void testCalcularClasesFinDeSemanaNoCancelable() throws Exception
+    {
+        LocalDate sabado = LocalDate.now().plusWeeks(1).with(DayOfWeek.SATURDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
+                .param("fecha", sabado.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: vistaPreviaClases"))
+                .andExpect(model().attribute("noCancelable", true))
+                .andExpect(model().attributeExists("motivoNoCancelable"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia con HTMX cancela las clases de la jornada y emite HX-Trigger")
+    void testCancelarClasesDiaHtmxExito() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Avería mecánica imprevista en el vehículo de prácticas."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia en jornada sin reservas bloquea las franjas de forma preventiva")
+    void testCancelarClasesDiaSinReservasPreviasBloqueaJornada() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Cita médica programada con antelación."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("mensajeExito"));
+
+        var clases = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(
+                this.profesorRepository.findByNombreUsuario("profesor1").orElseThrow(),
+                fecha.atStartOfDay(),
+                fecha.atTime(23, 59, 59)
+        );
+
+        assertFalse(clases.isEmpty(), "Deben haberse generado franjas bloqueadas para la jornada.");
+        assertEquals(9, clases.size(), "Deben generarse exactamente las 9 franjas del turno.");
+        for (var c : clases)
+        {
+            assertTrue(c.getIsCanceladaPorProfesor(), "Cada franja debe estar cancelada por el profesor.");
+            assertNull(c.getAlumno(), "Las franjas preventivas no deben tener alumno asignado.");
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia en fecha ya cancelada devuelve error impidiendo duplicados")
+    void testCancelarClasesDiaYaCanceladaDevuelveError() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.FRIDAY);
+
+        // Primera cancelación preventiva exitosa
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Asunto personal docente programado."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"));
+
+        // Segundo intento sobre la misma jornada ya cancelada
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Intento de cancelación redundante."))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Esta jornada ya ha sido cancelada previamente por el profesor."));
     }
 }

@@ -15,11 +15,23 @@ public record DiaCalendarioDTO(
     String examenDgtTexto,
     boolean esNoLaborable,
     String motivoNoLaborable,
-    String tipoNoLaborable
+    String tipoNoLaborable,
+    int numClasesPendientes,
+    boolean esJornadaCancelada
 )
 {
     public DiaCalendarioDTO(LocalDate fecha, String nombreDia, String fechaFormateada, String encabezadoCompleto, boolean esHoy, boolean esExamenDgt, String examenDgtTexto)
     {
-        this(fecha, nombreDia, fechaFormateada, encabezadoCompleto, esHoy, esExamenDgt, examenDgtTexto, false, null, null);
+        this(fecha, nombreDia, fechaFormateada, encabezadoCompleto, esHoy, esExamenDgt, examenDgtTexto, false, null, null, 0, false);
+    }
+
+    public DiaCalendarioDTO(LocalDate fecha, String nombreDia, String fechaFormateada, String encabezadoCompleto, boolean esHoy, boolean esExamenDgt, String examenDgtTexto, boolean esNoLaborable, String motivoNoLaborable, String tipoNoLaborable)
+    {
+        this(fecha, nombreDia, fechaFormateada, encabezadoCompleto, esHoy, esExamenDgt, examenDgtTexto, esNoLaborable, motivoNoLaborable, tipoNoLaborable, 0, false);
+    }
+
+    public DiaCalendarioDTO(LocalDate fecha, String nombreDia, String fechaFormateada, String encabezadoCompleto, boolean esHoy, boolean esExamenDgt, String examenDgtTexto, boolean esNoLaborable, String motivoNoLaborable, String tipoNoLaborable, int numClasesPendientes)
+    {
+        this(fecha, nombreDia, fechaFormateada, encabezadoCompleto, esHoy, esExamenDgt, examenDgtTexto, esNoLaborable, motivoNoLaborable, tipoNoLaborable, numClasesPendientes, false);
     }
 }

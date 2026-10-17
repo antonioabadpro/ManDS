@@ -104,7 +104,7 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
      */
     @Query("""
         SELECT c FROM ClasePractica c
-        JOIN FETCH c.alumno a
+        LEFT JOIN FETCH c.alumno a
         LEFT JOIN FETCH c.profesor p
         LEFT JOIN FETCH p.vehiculo v
         WHERE (:profesorId IS NULL OR p.id = :profesorId)
@@ -119,7 +119,7 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
      */
     @Query("""
         SELECT c FROM ClasePractica c
-        JOIN FETCH c.alumno a
+        LEFT JOIN FETCH c.alumno a
         LEFT JOIN FETCH c.profesor p
         LEFT JOIN FETCH p.vehiculo v
         WHERE c.id = :id

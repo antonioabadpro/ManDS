@@ -1,15 +1,18 @@
 package com.autoescuela.erp.usuarios.controller;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,6 +53,7 @@ import com.autoescuela.erp.flota.repository.IncidenciaVehiculoRepository;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.practicas.dto.EventoCalendarioDTO;
+import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.CambiarPasswordDTO;
@@ -67,7 +71,9 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
+import com.autoescuela.erp.practicas.dto.DiaCalendarioDTO;
 import com.autoescuela.erp.practicas.service.CalendarioService;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.service.AlumnoService;
 
@@ -555,10 +561,10 @@ public class ProfesorController
         ClasePractica clase = claseOptional.get();
         clase.setEstadoClase(EstadoClase.CANCELADA);
         clase.setIsCanceladaPorProfesor(true);
+        clase.setIsCancelacionJornada(false);
         if (motivo != null && !motivo.isBlank())
         {
-            String actual = clase.getObservaciones() != null ? clase.getObservaciones() + " | " : "";
-            clase.setObservaciones(actual + "Cancelación: " + motivo.trim());
+            clase.setMotivoCancelacion(motivo.trim());
         }
         this.clasePracticaRepository.save(clase);
 
@@ -591,6 +597,341 @@ public class ProfesorController
 
         redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
         return "redirect:/profesor/calendario";
+    }
+
+    /**
+     * Devuelve el fragmento Thymeleaf del modal para la cancelación masiva de clases prácticas de una jornada.
+     */
+    @GetMapping("/calendario/cancelar-dia/modal")
+    public String obtenerModalCancelarDia(@RequestParam(value = "fecha", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Profesor profesor = this.obtenerProfesorActual(principal);
+        if (profesor == null)
+        {
+            return "redirect:/login";
+        }
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate fechaRef = hoy;
+        if (fechaRefStr != null && !fechaRefStr.isBlank())
+        {
+            try
+            {
+                fechaRef = LocalDate.parse(fechaRefStr);
+            }
+            catch (Exception ignored)
+            {
+                fechaRef = hoy;
+            }
+        }
+
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
+
+        LocalDate fechaFinal = fecha;
+        if (fechaFinal == null)
+        {
+            for (DiaCalendarioDTO dia : calendarioSemanal.dias())
+            {
+                if (!dia.fecha().isBefore(hoy) && dia.numClasesPendientes() > 0 && !dia.esNoLaborable() && !dia.esExamenDgt())
+                {
+                    fechaFinal = dia.fecha();
+                    break;
+                }
+            }
+            if (fechaFinal == null)
+            {
+                if (hoy.getDayOfWeek() == DayOfWeek.SATURDAY)
+                {
+                    fechaFinal = hoy.plusDays(2);
+                }
+                else if (hoy.getDayOfWeek() == DayOfWeek.SUNDAY)
+                {
+                    fechaFinal = hoy.plusDays(1);
+                }
+                else
+                {
+                    fechaFinal = hoy;
+                }
+            }
+        }
+
+        this.prepararModeloCancelarDia(profesor, fechaFinal, model);
+        model.addAttribute("profesor", profesor);
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
+        model.addAttribute("hoy", hoy.toString());
+
+        return "profesor/fragments/modal-cancelar-dia :: modalCancelarDia";
+    }
+
+    /**
+     * Endpoint HTMX para actualizar dinámicamente el estado y las clases pendientes al cambiar la fecha seleccionada en el modal.
+     */
+    @GetMapping("/calendario/cancelar-dia/calcular-clases")
+    public String calcularClasesCancelarDia(@RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @AuthenticationPrincipal Object principal, Model model)
+    {
+        Profesor profesor = this.obtenerProfesorActual(principal);
+        if (profesor == null)
+        {
+            return "redirect:/login";
+        }
+
+        this.prepararModeloCancelarDia(profesor, fecha, model);
+        return "profesor/fragments/modal-cancelar-dia :: vistaPreviaClases";
+    }
+
+    /**
+     * Cancela de forma atómica todas las clases prácticas en estado PENDIENTE de una fecha concreta,
+     * imposibilita reservas futuras en esa jornada y notifica por correo electrónico a todos los alumnos asignados al profesor.
+     */
+    @PostMapping("/calendario/cancelar-dia")
+    @Transactional
+    public String cancelarClasesDia(@AuthenticationPrincipal Object principal, @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @RequestParam(value = "motivo", required = false) String motivo, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
+    {
+        Profesor profesor = this.obtenerProfesorActual(principal);
+        if (profesor == null)
+        {
+            return "redirect:/login";
+        }
+
+        if (fecha == null)
+        {
+            return this.devolverErrorCancelacion("No se especificó la fecha de la jornada a cancelar.", hxRequest, model, redirectAttributes);
+        }
+
+        if (fecha.isBefore(LocalDate.now()))
+        {
+            return this.devolverErrorCancelacion("No es posible cancelar jornadas de fechas pasadas.", hxRequest, model, redirectAttributes);
+        }
+
+        if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY || fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
+        {
+            return this.devolverErrorCancelacion("No se pueden cancelar jornadas en fines de semana.", hxRequest, model, redirectAttributes);
+        }
+
+        if (FestivosCalendarioUtil.esDiaNoLaborable(fecha))
+        {
+            return this.devolverErrorCancelacion("No se puede cancelar una jornada en festivo nacional o periodo vacacional.", hxRequest, model, redirectAttributes);
+        }
+
+        List<Examen> examenesDgt = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        for (Examen examen : examenesDgt)
+        {
+            if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
+            {
+                return this.devolverErrorCancelacion("Esta fecha coincide con una convocatoria oficial de examen DGT y no admite cancelación docente.", hxRequest, model, redirectAttributes);
+            }
+        }
+
+        if (motivo == null || motivo.isBlank())
+        {
+            return this.devolverErrorCancelacion("Debes indicar obligatoriamente el motivo de la cancelación masiva.", hxRequest, model, redirectAttributes);
+        }
+
+        LocalDateTime inicioDia = fecha.atStartOfDay();
+        LocalDateTime finDia = fecha.atTime(23, 59, 59);
+
+        List<ClasePractica> clasesTodas = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioDia, finDia);
+
+        boolean yaCanceladaPreviamente = false;
+        boolean hayPendientes = false;
+        for (ClasePractica c : clasesTodas)
+        {
+            if (c.getEstadoClase() == EstadoClase.PENDIENTE)
+            {
+                hayPendientes = true;
+            }
+            else if (c.getEstadoClase() == EstadoClase.CANCELADA
+                    && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
+            {
+                yaCanceladaPreviamente = true;
+            }
+        }
+
+        if (yaCanceladaPreviamente && !hayPendientes)
+        {
+            return this.devolverErrorCancelacion("Esta jornada ya ha sido cancelada previamente por el profesor.", hxRequest, model, redirectAttributes);
+        }
+
+        int totalCanceladas = 0;
+
+        for (ClasePractica clase : clasesTodas)
+        {
+            if (clase.getEstadoClase() == EstadoClase.PENDIENTE)
+            {
+                clase.setEstadoClase(EstadoClase.CANCELADA);
+                clase.setIsCanceladaPorProfesor(true);
+                clase.setIsCancelacionJornada(true);
+                clase.setMotivoCancelacion(motivo.trim());
+                this.clasePracticaRepository.save(clase);
+                totalCanceladas++;
+            }
+        }
+
+        // Generar bloqueos en los tramos horarios restantes del turno que estuvieran libres
+        List<TramoHorarioDTO> tramos = this.calendarioService.generarTramos(profesor.getTurno());
+        Long kmActual = (profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null)
+                ? profesor.getVehiculo().getKm()
+                : 0L;
+
+        for (TramoHorarioDTO tramo : tramos)
+        {
+            LocalDateTime slotFechaHora = fecha.atTime(tramo.horaInicio());
+            boolean existeClaseEnSlot = false;
+            for (ClasePractica c : clasesTodas)
+            {
+                if (c.getFechaHora() != null && c.getFechaHora().toLocalTime().equals(tramo.horaInicio()))
+                {
+                    existeClaseEnSlot = true;
+                    break;
+                }
+            }
+
+            if (!existeClaseEnSlot)
+            {
+                ClasePractica claseCancelada = new ClasePractica();
+                claseCancelada.setProfesor(profesor);
+                claseCancelada.setAlumno(null);
+                claseCancelada.setFechaHora(slotFechaHora);
+                claseCancelada.setDuracion(45);
+                claseCancelada.setPuntoRecogida("Autoescuela");
+                claseCancelada.setKmInicio(kmActual);
+                claseCancelada.setKmFin(kmActual);
+                claseCancelada.setEstadoClase(EstadoClase.CANCELADA);
+                claseCancelada.setIsCanceladaPorProfesor(true);
+                claseCancelada.setIsCancelacionJornada(true);
+                claseCancelada.setMotivoCancelacion(motivo.trim());
+                this.clasePracticaRepository.save(claseCancelada);
+            }
+        }
+
+        // Notificación por correo a TODOS los alumnos asignados al profesor
+        List<Alumno> alumnosDelProfesor = this.alumnoRepository.findByProfesor(profesor);
+        String fechaFormatoLegible = fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        for (Alumno alumno : alumnosDelProfesor)
+        {
+            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
+            {
+                try
+                {
+                    this.emailService.enviarNotificacionAlumno(
+                            alumno.getCorreo(),
+                            "Cancelación de clases prácticas - Jornada del " + fechaFormatoLegible,
+                            "Estimado/a " + alumno.getNombre() + ",\n\nTe informamos de que todas las clases prácticas programadas con tu profesor para el día " + fechaFormatoLegible + " han sido canceladas.\n\nMotivo de la cancelación: " + motivo.trim() + ".\n\nSi disponías de una reserva para dicho día, tu saldo de clases permanece intacto para que reserves una nueva fecha.\n\nDisculpa las molestias.");
+                }
+                catch (Exception ex)
+                {
+                    // Fallback silencioso ante servidor SMTP apagado
+                }
+            }
+        }
+
+        String mensajeExito = (totalCanceladas > 0)
+                ? "Se han cancelado las " + totalCanceladas + " clases prácticas del día "
+                        + fechaFormatoLegible + " y se ha notificado por correo a todos tus alumnos asignados."
+                : "Se ha cancelado la jornada del día " + fechaFormatoLegible + " bloqueando todas las franjas e impidiendo futuras reservas. Se ha notificado por correo a todos tus alumnos asignados.";
+
+        if (hxRequest != null)
+        {
+            response.setHeader("HX-Trigger", "actualizarCalendario");
+            model.addAttribute("mensajeExito", mensajeExito);
+            return "profesor/fragments/alerta-feedback :: feedbackExito";
+        }
+
+        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+        return "redirect:/profesor/calendario";
+    }
+
+    private String devolverErrorCancelacion(String mensajeError, String hxRequest, Model model, RedirectAttributes redirectAttributes)
+    {
+        if (hxRequest != null)
+        {
+            model.addAttribute("error", mensajeError);
+            return "profesor/fragments/alerta-feedback :: feedbackExito";
+        }
+        redirectAttributes.addFlashAttribute("error", mensajeError);
+        return "redirect:/profesor/calendario";
+    }
+
+    private void prepararModeloCancelarDia(Profesor profesor, LocalDate fecha, Model model)
+    {
+        LocalDate hoy = LocalDate.now();
+        boolean noCancelable = false;
+        String motivoNoCancelable = null;
+
+        if (fecha == null)
+        {
+            noCancelable = true;
+            motivoNoCancelable = "No se ha especificado una fecha válida.";
+        }
+        else if (fecha.isBefore(hoy))
+        {
+            noCancelable = true;
+            motivoNoCancelable = "No es posible cancelar jornadas de fechas anteriores a la actual.";
+        }
+        else if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY || fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
+        {
+            noCancelable = true;
+            motivoNoCancelable = "La autoescuela no realiza clases prácticas en fines de semana (sábados y domingos).";
+        }
+        else if (FestivosCalendarioUtil.esDiaNoLaborable(fecha))
+        {
+            noCancelable = true;
+            String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(fecha);
+            motivoNoCancelable = "Esta fecha coincide con un día no laborable (" + (motivo != null ? motivo : "Festivo / Vacaciones") + ") y no admite cancelación.";
+        }
+        else
+        {
+            List<Examen> examenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+            for (Examen examen : examenes)
+            {
+                if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
+                {
+                    noCancelable = true;
+                    motivoNoCancelable = "Esta fecha coincide con una convocatoria oficial de examen DGT del profesor y no admite cancelación.";
+                    break;
+                }
+            }
+        }
+
+        List<ClasePractica> clasesPendientes = new ArrayList<>();
+        if (!noCancelable && fecha != null)
+        {
+            LocalDateTime inicioDia = fecha.atStartOfDay();
+            LocalDateTime finDia = fecha.atTime(23, 59, 59);
+            List<ClasePractica> clasesTodas = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioDia, finDia);
+            boolean tieneCancelacionJornada = false;
+            for (ClasePractica c : clasesTodas)
+            {
+                if (c.getEstadoClase() == EstadoClase.PENDIENTE)
+                {
+                    clasesPendientes.add(c);
+                }
+                else if (c.getEstadoClase() == EstadoClase.CANCELADA
+                        && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
+                {
+                    tieneCancelacionJornada = true;
+                }
+            }
+
+            if (tieneCancelacionJornada && clasesPendientes.isEmpty())
+            {
+                noCancelable = true;
+                motivoNoCancelable = "Esta jornada ya ha sido cancelada previamente por el profesor.";
+            }
+        }
+
+        String fechaFormateada = "";
+        if (fecha != null)
+        {
+            fechaFormateada = fecha.format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es-ES")));
+            fechaFormateada = fechaFormateada.substring(0, 1).toUpperCase(Locale.forLanguageTag("es-ES")) + fechaFormateada.substring(1);
+        }
+
+        model.addAttribute("fechaSeleccionada", fecha);
+        model.addAttribute("fechaFormateada", fechaFormateada);
+        model.addAttribute("noCancelable", noCancelable);
+        model.addAttribute("motivoNoCancelable", motivoNoCancelable);
+        model.addAttribute("clasesPendientes", clasesPendientes);
     }
 
     // =========================================================================

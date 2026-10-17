@@ -221,6 +221,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return;
         }
+
+        // 4.5. Abrir panel de confirmación para cancelar jornada completa
+        const btnPreCancelarDia = e.target.closest('#btn-pre-cancelar-dia');
+        if (btnPreCancelarDia) {
+            const inputMotivo = document.getElementById('motivo-cancelacion-masiva');
+            if (inputMotivo) {
+                if (!inputMotivo.value.trim()) {
+                    inputMotivo.focus();
+                    if (inputMotivo.reportValidity) {
+                        inputMotivo.reportValidity();
+                    }
+                    return;
+                }
+            }
+            const contenedorBotones = document.getElementById('contenedor-botones-cancelar-dia');
+            const panelCancelarDia = document.getElementById('panel-confirmacion-cancelar-dia');
+            if (contenedorBotones && panelCancelarDia) {
+                contenedorBotones.classList.add('hidden');
+                panelCancelarDia.classList.remove('hidden');
+            }
+            return;
+        }
+
+        // 4.6. Cancelar panel de confirmación de cancelación de jornada
+        const btnVolverCancelarDia = e.target.closest('#btn-cancelar-confirmacion-dia');
+        if (btnVolverCancelarDia) {
+            const contenedorBotones = document.getElementById('contenedor-botones-cancelar-dia');
+            const panelCancelarDia = document.getElementById('panel-confirmacion-cancelar-dia');
+            if (contenedorBotones && panelCancelarDia) {
+                panelCancelarDia.classList.add('hidden');
+                contenedorBotones.classList.remove('hidden');
+            }
+            return;
+        }
     });
 
     // Validación preventiva en el evento submit de consolidar clase

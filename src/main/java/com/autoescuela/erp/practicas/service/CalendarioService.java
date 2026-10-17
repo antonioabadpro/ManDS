@@ -67,7 +67,7 @@ public class CalendarioService
                 ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
                 : new ArrayList<>();
 
-        List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy);
+        List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clases);
 
         List<FilaCalendarioDTO> filas = new ArrayList<>();
         for (TramoHorarioDTO tramo : tramos)
@@ -140,7 +140,7 @@ public class CalendarioService
                 ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
                 : new ArrayList<>();
 
-        List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy);
+        List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clasesProfesor);
         LocalDateTime ahora = LocalDateTime.now();
 
         List<FilaCalendarioDTO> filas = new ArrayList<>();
@@ -214,7 +214,7 @@ public class CalendarioService
         {
             String nombreAlumno = (claseEnSlot.getAlumno() != null)
                     ? claseEnSlot.getAlumno().getNombre() + " " + claseEnSlot.getAlumno().getApellidos()
-                    : "Alumno";
+                    : "Jornada Cancelada";
             String subtitulo = this.obtenerSubtituloEstado(claseEnSlot.getEstadoClase());
 
             return CeldaCalendarioDTO.deOcupadaProfesor(
@@ -290,7 +290,8 @@ public class CalendarioService
             return CeldaCalendarioDTO.deVacaciones(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, dia.motivoNoLaborable());
         }
 
-        return CeldaCalendarioDTO.deLibreAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, puedeReservar, ahora);
+        boolean puedeReservarEnDia = puedeReservar && !dia.esJornadaCancelada();
+        return CeldaCalendarioDTO.deLibreAlumno(dia.fecha(), tramo.horaInicio(), tramo.horaFin(), fechaHora, puedeReservarEnDia, ahora);
     }
 
     /**
@@ -316,7 +317,7 @@ public class CalendarioService
     /**
      * Genera los 9 tramos fijos de 45 minutos delimitados por el turno del profesor.
      */
-    List<TramoHorarioDTO> generarTramos(TipoTurno turno)
+    public List<TramoHorarioDTO> generarTramos(TipoTurno turno)
     {
         List<TramoHorarioDTO> tramos = new ArrayList<>();
         LocalTime horaBase = (turno == TipoTurno.TARDE) ? LocalTime.of(15, 0) : LocalTime.of(8, 0);
@@ -334,9 +335,9 @@ public class CalendarioService
     }
 
     /**
-     * Construye la lista de los 5 días hábiles de la semana (Lunes a Viernes).
+     * Construye la lista de los 5 días hábiles de la semana calculando el número de clases pendientes por jornada.
      */
-    private List<DiaCalendarioDTO> construirDiasSemana(LocalDate lunes, Set<LocalDate> diasConExamenDgt, LocalDate hoy)
+    private List<DiaCalendarioDTO> construirDiasSemana(LocalDate lunes, Set<LocalDate> diasConExamenDgt, LocalDate hoy, List<ClasePractica> clases)
     {
         List<DiaCalendarioDTO> dias = new ArrayList<>();
         String[] nombresDias = {"lun", "mar", "mié", "jue", "vie"};
@@ -355,6 +356,30 @@ public class CalendarioService
             String motivoNoLaborable = FestivosCalendarioUtil.obtenerMotivoNoLaborable(fecha);
             String tipoNoLaborable = FestivosCalendarioUtil.obtenerTipoNoLaborable(fecha);
 
+            int numClasesPendientes = 0;
+            boolean tieneCancelacionJornada = false;
+            if (clases != null)
+            {
+                for (ClasePractica clase : clases)
+                {
+                    if (clase.getFechaHora() != null
+                            && clase.getFechaHora().toLocalDate().equals(fecha))
+                    {
+                        if (clase.getEstadoClase() == EstadoClase.PENDIENTE)
+                        {
+                            numClasesPendientes++;
+                        }
+                        else if (clase.getEstadoClase() == EstadoClase.CANCELADA
+                                && Boolean.TRUE.equals(clase.getIsCancelacionJornada()))
+                        {
+                            tieneCancelacionJornada = true;
+                        }
+                    }
+                }
+            }
+
+            boolean esJornadaCancelada = tieneCancelacionJornada && (numClasesPendientes == 0);
+
             dias.add(new DiaCalendarioDTO(
                     fecha,
                     nombre,
@@ -365,7 +390,9 @@ public class CalendarioService
                     examenDgtTexto,
                     esNoLaborable,
                     motivoNoLaborable,
-                    tipoNoLaborable
+                    tipoNoLaborable,
+                    numClasesPendientes,
+                    esJornadaCancelada
             ));
         }
         return dias;
