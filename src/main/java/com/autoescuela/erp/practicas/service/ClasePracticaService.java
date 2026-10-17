@@ -141,7 +141,7 @@ public class ClasePracticaService
         clase.setEstadoClase(EstadoClase.CANCELADA);
         clase.setIsCanceladaPorProfesor(false);
         clase.setIsCancelacionJornada(false);
-        clase.setMotivoCancelacion("Cancelada por el alumno para liberar la franja horaria.");
+        clase.setMotivoCancelacion(null);
         return this.clasePracticaRepository.save(clase);
     }
 

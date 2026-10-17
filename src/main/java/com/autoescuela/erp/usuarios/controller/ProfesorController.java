@@ -740,8 +740,7 @@ public class ProfesorController
             {
                 hayPendientes = true;
             }
-            else if (c.getEstadoClase() == EstadoClase.CANCELADA
-                    && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
+            else if (c.getEstadoClase() == EstadoClase.CANCELADA && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
             {
                 yaCanceladaPreviamente = true;
             }
@@ -906,8 +905,7 @@ public class ProfesorController
                 {
                     clasesPendientes.add(c);
                 }
-                else if (c.getEstadoClase() == EstadoClase.CANCELADA
-                        && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
+                else if (c.getEstadoClase() == EstadoClase.CANCELADA && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
                 {
                     tieneCancelacionJornada = true;
                 }

@@ -74,21 +74,4 @@ public class ClasePractica
     @JoinColumn(name = "profesor_id")
     private Profesor profesor;
 
-    /**
-     * Obtiene el motivo de cancelación de la clase práctica con fallback descriptivo.
-     *
-     * @return Motivo descriptivo de la cancelación para Alumno y Profesor.
-     */
-    public String getMotivoCancelacion()
-    {
-        if (this.motivoCancelacion != null && !this.motivoCancelacion.isBlank())
-        {
-            return this.motivoCancelacion;
-        }
-        if (Boolean.TRUE.equals(this.isCanceladaPorProfesor))
-        {
-            return "Cancelada por el profesor debido a imprevistos en la jornada docente.";
-        }
-        return "Cancelada por el alumno para liberar la franja horaria.";
-    }
 }

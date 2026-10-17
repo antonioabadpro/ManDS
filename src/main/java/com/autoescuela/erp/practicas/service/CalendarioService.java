@@ -369,8 +369,7 @@ public class CalendarioService
                         {
                             numClasesPendientes++;
                         }
-                        else if (clase.getEstadoClase() == EstadoClase.CANCELADA
-                                && Boolean.TRUE.equals(clase.getIsCancelacionJornada()))
+                        else if (clase.getEstadoClase() == EstadoClase.CANCELADA && Boolean.TRUE.equals(clase.getIsCancelacionJornada()))
                         {
                             tieneCancelacionJornada = true;
                         }

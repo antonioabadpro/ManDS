@@ -169,6 +169,8 @@ class ClasePracticaServiceTest
 
         assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
         assertThat(resultado.getIsCanceladaPorProfesor()).isFalse();
+        assertThat(resultado.getIsCancelacionJornada()).isFalse();
+        assertThat(resultado.getMotivoCancelacion()).isNull();
         verify(this.clasePracticaRepository).save(clase);
     }
 
@@ -295,7 +297,7 @@ class ClasePracticaServiceTest
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
                 10L, LocalDateTime.now(), 45, "Sede Central", 100L, 150L, "100 a 150 km (+50 km)",
                 EstadoClase.RECIBIDA, 2L, "Juan Perez", "juanp", 1L, "Laura Gomez", "laurag",
-                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, "Sin notas"
+                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, "Sin notas", null
         );
         List<ClasePracticaAdminDTO> listaDTOs = List.of(dto);
 
@@ -319,7 +321,7 @@ class ClasePracticaServiceTest
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
                 id, LocalDateTime.now(), 45, "Plaza Norte", 200L, 240L, "200 a 240 km (+40 km)",
                 EstadoClase.RECIBIDA, 3L, "Mario Casas", "marioc", 1L, "Laura Gomez", "laurag",
-                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, null
+                "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, null, null
         );
 
         when(this.clasePracticaRepository.findByIdConDetalles(id)).thenReturn(Optional.of(clase));

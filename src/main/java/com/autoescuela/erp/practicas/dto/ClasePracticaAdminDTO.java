@@ -29,7 +29,8 @@ public record ClasePracticaAdminDTO(
     String vehiculoDescripcion,
     TipoCarnet tipoPermiso,
     String tipoPermisoDescripcion,
-    String observaciones
+    String observaciones,
+    String motivoCancelacion
 )
 {
 }
