@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v14
+@startuml Diagrama_ER_v15
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -237,8 +237,10 @@ package "Autoescuela" {
     - kmInicio: Integer
     - kmFin: Integer
     - observaciones: String
+    - motivoCancelacion: String
     - estadoClase: EstadoClase
     - isCanceladaPorProfesor: Boolean
+    - isCancelacionJornada: Boolean
     - alumno: Alumno
     - profesor: Profesor
     + cambiarEstado(): Boolean
