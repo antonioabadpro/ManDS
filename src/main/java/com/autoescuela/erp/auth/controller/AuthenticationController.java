@@ -41,6 +41,16 @@ public class AuthenticationController
     private final PagoStripeService pagoStripeService;
 
     /**
+     * Redirige la URL raíz del programa y la variante con barra final (/login/)
+     * a la pantalla principal canónica de acceso (/login).
+     */
+    @GetMapping({"/", "/login/"})
+    public String redirigirALogin()
+    {
+        return "redirect:/login";
+    }
+
+    /**
      * Muestra la vista de inicio de sesión.
      * Si un usuario con una sesión activa intenta acceder a /login, se cierra su sesión
      * automáticamente y se le redirige a la vista limpia de acceso.

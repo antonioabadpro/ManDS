@@ -62,4 +62,22 @@ class VistaLoginTest extends BaseIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
     }
+
+    @Test
+    @DisplayName("GET / (URL raíz del programa) redirige automáticamente a /login")
+    void testAccesoUrlRaizRedirigeALogin() throws Exception
+    {
+        this.mockMvc.perform(get("/"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    @DisplayName("GET /login/ (con barra final) redirige automáticamente a /login")
+    void testAccesoLoginConBarraFinalRedirigeALogin() throws Exception
+    {
+        this.mockMvc.perform(get("/login/"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+    }
 }
