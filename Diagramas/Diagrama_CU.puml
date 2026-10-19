@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v8
+@startuml Diagrama_CU_v9
 left to right direction
 skinparam packageStyle rectangle
 
@@ -14,62 +14,67 @@ Persona <|-- Alum
 
 ' --- CASOS DE USO GENERALES ---
 usecase "Iniciar sesión" as iniciarSesion << CU-001 >>
+usecase "Recuperar contraseña" as recuperarPassword << CU-002 >>
+usecase "Consultar perfil" as consultarPerfil << CU-003 >>
+usecase "Modificar perfil" as modificarPerfil << CU-004 >>
 
 ' --- CASOS DE USO ADMINISTRADOR ---
+usecase "Crear profesor" as crearProfesor << CU-005 >>
+usecase "Consultar profesores" as consultarProfesores << CU-006 >>
+usecase "Modificar profesor" as modificarProfesor << CU-007 >>
+usecase "Eliminar profesor" as eliminarProfesor << CU-008 >>
 
-usecase "Crear profesor" as crearProfesor << CU-002 >>
-usecase "Modificar profesor" as modificarProfesor << CU-003 >>
-usecase "Eliminar profesor" as eliminarProfesor << CU-004 >>
-usecase "Consultar profesores" as consultarProfesores << CU-005 >>
-
-usecase "Crear alumno" as crearAlumno << CU-006 >>
-usecase "Modificar alumno" as modificarAlumno << CU-007 >>
-usecase "Eliminar alumno" as eliminarAlumno << CU-008 >>
 usecase "Consultar alumnos" as consultarAlumnos << CU-009 >>
+usecase "Modificar alumno" as modificarAlumno << CU-010 >>
+usecase "Eliminar alumno" as eliminarAlumno << CU-011 >>
 
-usecase "Insertar vehículo" as insertarVehiculo << CU-010 >>
-usecase "Modificar vehículo" as modificarVehiculo << CU-011 >>
-usecase "Eliminar vehículo" as eliminarVehiculo << CU-012 >>
-usecase "Consultar vehículos" as consultarVehiculos << CU-013 >>
+usecase "Consultar vehículos" as consultarVehiculos << CU-012 >>
+usecase "Insertar vehículo" as insertarVehiculo << CU-013 >>
+usecase "Modificar vehículo" as modificarVehiculo << CU-014 >>
+usecase "Eliminar vehículo" as eliminarVehiculo << CU-015 >>
+usecase "Gestionar incidencias de flota" as gestionarIncidencias << CU-016 >>
 
-usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-014 >>
+usecase "Fijar fechas de examen oficial" as fijarFechasExamen << CU-017 >>
+usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-018 >>
 
-usecase "Consultar solicitudes examen" as consultarSolicitudExamen << CU-015 >>
-usecase "Aceptar solicitud examen" as aceptarSolicitudExamen << CU-016 >>
-usecase "Bloquear reservas vehículo" as bloquearReservasVehiculo << CU-017 >>
-usecase "Notificar alumno por correo" as notificarAlumno << CU-018 >>
-usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-019 >>
+usecase "Consultar solicitudes examen" as consultarSolicitudExamen << CU-019 >>
+usecase "Aceptar solicitud examen" as aceptarSolicitudExamen << CU-020 >>
+usecase "Bloquear reservas vehículo" as bloquearReservasVehiculo << CU-021 >>
+usecase "Notificar alumno por correo" as notificarAlumno << CU-022 >>
+usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-023 >>
 
 ' --- CASOS DE USO PROFESOR ---
-usecase "Establecer credenciales" as establecerCredenciales << CU-020 >>
-usecase "Consultar calendario" as consultarCalendarioProf << CU-021 >>
-usecase "Modificar clase" as modificarClase << CU-022 >>
-usecase "Eliminar clase" as eliminarClase << CU-023 >>
-usecase "Rellenar detalles clase" as rellenarDetalles << CU-024 >>
-usecase "Calificar examen" as calificarExamen << CU-025 >>
-usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-026 >>
-usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-027 >>
+usecase "Establecer credenciales" as establecerCredenciales << CU-024 >>
+usecase "Consultar calendario" as consultarCalendarioProf << CU-025 >>
+usecase "Modificar clase" as modificarClase << CU-026 >>
+usecase "Cancelar clase" as cancelarClaseProf << CU-027 >>
+usecase "Rellenar ficha clase" as rellenarFichaClase << CU-028 >>
+usecase "Calificar examen" as calificarExamen << CU-029 >>
+usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-030 >>
+usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-031 >>
 
 ' --- CASOS DE USO ALUMNO ---
-usecase "Recuperar contraseña" as recuperarPassword << CU-028 >>
-usecase "Consultar datos personales" as consultarDatos << CU-029 >>
-usecase "Modificar datos personales" as modificarDatos << CU-030 >>
-usecase "Pagar matriculacion / Registrarse" as pagarMatriculacion << CU-031 >>
-note right of pagarMatriculacion : Postcondición: Registro del Alumno\nen la BD en caso de éxito
+usecase "Formalizar matrícula" as formalizarMatricula << CU-032 >>
+note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se registra el Alumnoen la BD
 
-usecase "Comprar clases" as comprarClases << CU-032 >>
-usecase "Consultar calendario" as consultarCalendarioAlum << CU-033 >>
-usecase "Reservar clase práctica" as reservarClase << CU-034 >>
-usecase "Consultar historial clases" as consultarHistorial << CU-035 >>
-usecase "Consultar notas examen" as consultarNotas << CU-036 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-037 >>
+usecase "Comprar clases prácticas" as comprarClases << CU-033 >>
+usecase "Consultar calendario" as consultarCalendarioAlum << CU-034 >>
+usecase "Reservar clase práctica" as reservarClase << CU-035 >>
+usecase "Cancelar clase práctica" as cancelarClaseAlum << CU-036 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-037 >>
 usecase "Solicitar fecha examen" as solicitarExamen << CU-038 >>
 usecase "Pagar tasas examen" as pagarTasas << CU-039 >>
+usecase "Consultar notas examen" as consultarNotas << CU-040 >>
+usecase "Renovar matrícula" as renovarMatricula << CU-041 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-042 >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
 ' Persona y base
 Persona -- iniciarSesion
+Persona -- recuperarPassword
+Persona -- consultarPerfil
+Persona -- modificarPerfil
 
 ' Administrador
 Admin -- crearProfesor
@@ -77,7 +82,6 @@ Admin -- modificarProfesor
 Admin -- eliminarProfesor
 Admin -- consultarProfesores
 
-Admin -- crearAlumno
 Admin -- modificarAlumno
 Admin -- eliminarAlumno
 Admin -- consultarAlumnos
@@ -86,8 +90,10 @@ Admin -- insertarVehiculo
 Admin -- modificarVehiculo
 Admin -- eliminarVehiculo
 Admin -- consultarVehiculos
+Admin -- gestionarIncidencias
 
 Admin -- cEstadisticasAdmin
+Admin -- fijarFechasExamen
 Admin -- consultarSolicitudExamen
 
 ' Profesor
@@ -98,16 +104,14 @@ Prof -- cEstadisticasProf
 Prof -- reportarIncidencia
 
 ' Alumno
-Alum -- recuperarPassword
 Alum -- consultarCalendarioAlum
-Alum -- consultarDatos
-Alum -- modificarDatos
-Alum -- pagarMatriculacion
+Alum -- formalizarMatricula
 Alum -- comprarClases
 Alum -- consultarHistorial
 Alum -- consultarNotas
 Alum -- cEstadisticasAlum
 Alum -- solicitarExamen
+Alum -- renovarMatricula
 
 ' --- RELACIONES EXTEND E INCLUDE ---
 
@@ -120,17 +124,19 @@ rechazarSolicitudExamen ..> notificarAlumno : <<include>>
 
 ' Extends de Profesor (Consultar Calendario)
 consultarCalendarioProf <.. modificarClase : <<extend>>
-consultarCalendarioProf <.. eliminarClase : <<extend>>
-consultarCalendarioProf <.. rellenarDetalles : <<extend>>
+consultarCalendarioProf <.. cancelarClaseProf : <<extend>>
+consultarCalendarioProf <.. rellenarFichaClase : <<extend>>
 
 ' Includes de Profesor (Automatizaciones y Obligaciones)
 modificarClase ..> notificarAlumno : <<include>>
-eliminarClase ..> notificarAlumno : <<include>>
+cancelarClaseProf ..> notificarAlumno : <<include>>
 
 ' Includes de Alumno
 solicitarExamen ..> pagarTasas : <<include>>
 
 ' Extends de Alumno
 consultarCalendarioAlum <.. reservarClase : <<extend>>
+consultarCalendarioAlum <.. cancelarClaseAlum : <<extend>>
+consultarHistorial <.. cancelarClaseAlum : <<extend>>
 
 @enduml
