@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v10
+@startuml Diagrama_CU_v11
 left to right direction
 skinparam packageStyle rectangle
 
@@ -45,7 +45,7 @@ usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-023 >>
 
 ' --- CASOS DE USO PROFESOR ---
 usecase "Establecer credenciales" as establecerCredenciales << CU-024 >>
-usecase "Consultar calendario" as consultarCalendarioProf << CU-025 >>
+usecase "Consultar calendario profesor" as consultarCalendarioProf << CU-025 >>
 usecase "Modificar clase" as modificarClase << CU-026 >>
 usecase "Cancelar clase" as cancelarClaseProf << CU-027 >>
 usecase "Rellenar ficha clase" as rellenarFichaClase << CU-028 >>
@@ -58,7 +58,7 @@ usecase "Formalizar matrícula" as formalizarMatricula << CU-032 >>
 note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se registra el Alumno en la BD
 
 usecase "Comprar clases prácticas" as comprarClases << CU-033 >>
-usecase "Consultar calendario" as consultarCalendarioAlum << CU-034 >>
+usecase "Consultar calendario alumno" as consultarCalendarioAlum << CU-034 >>
 usecase "Reservar clase práctica" as reservarClase << CU-035 >>
 usecase "Cancelar clase práctica" as cancelarClaseAlum << CU-036 >>
 usecase "Consultar historial clases" as consultarHistorial << CU-037 >>
