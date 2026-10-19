@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v9
+@startuml Diagrama_CU_v10
 left to right direction
 skinparam packageStyle rectangle
 
@@ -55,7 +55,7 @@ usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-031 >>
 
 ' --- CASOS DE USO ALUMNO ---
 usecase "Formalizar matrícula" as formalizarMatricula << CU-032 >>
-note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se registra el Alumnoen la BD
+note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se registra el Alumno en la BD
 
 usecase "Comprar clases prácticas" as comprarClases << CU-033 >>
 usecase "Consultar calendario" as consultarCalendarioAlum << CU-034 >>
@@ -67,6 +67,9 @@ usecase "Pagar tasas examen" as pagarTasas << CU-039 >>
 usecase "Consultar notas examen" as consultarNotas << CU-040 >>
 usecase "Renovar matrícula" as renovarMatricula << CU-041 >>
 usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-042 >>
+
+' --- ACTOR SECUNDARIO (SISTEMA EXTERNO) ---
+actor "Pasarela de Pago\n(Stripe)" as PasarelaPago << SistemaExterno >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
@@ -138,5 +141,11 @@ solicitarExamen ..> pagarTasas : <<include>>
 consultarCalendarioAlum <.. reservarClase : <<extend>>
 consultarCalendarioAlum <.. cancelarClaseAlum : <<extend>>
 consultarHistorial <.. cancelarClaseAlum : <<extend>>
+
+' --- RELACIONES CON ACTORES SECUNDARIOS (A LA DERECHA) ---
+formalizarMatricula -- PasarelaPago
+comprarClases -- PasarelaPago
+pagarTasas -- PasarelaPago
+renovarMatricula -- PasarelaPago
 
 @enduml
