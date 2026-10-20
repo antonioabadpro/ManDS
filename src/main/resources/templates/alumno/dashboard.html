@@ -112,8 +112,8 @@
             <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-xl shadow-indigo-500/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="space-y-2 relative z-10">
                     <div class="flex items-center space-x-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white" th:text="${matricula != null ? matricula.permisoCarnet.descripcion : 'SIN MATRÍCULA ACTIVA'}">
-                            PERMISO B
+                        <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
+                            <span>Bienvenida</span>
                         </span>
                         <span class="text-xs text-indigo-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>
@@ -224,7 +224,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
                 <!-- KPI 1: Saldo de Clases Disponibles -->
-                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Saldo de Clases</span>
                         <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
@@ -233,18 +233,18 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="my-3">
+                    <div class="mt-2 mb-3 flex-1 flex flex-col justify-start">
                         <p class="text-3xl font-black text-slate-900 dark:text-white" th:text="${matricula?.saldoClases ?: 0}">0</p>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" th:text="${matricula?.saldoClases == 1 ? 'Clase práctica disponible' : 'Clases prácticas disponibles'}"></p>
                     </div>
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span class="text-[11px] text-slate-400">Capacidad: <strong class="text-indigo-600 dark:text-indigo-400" th:text="${capacidadReserva ?: 0}">0</strong></span>
-                        <a th:href="@{/alumno/pagos}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Recargar saldo &rarr;</a>
+                    <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                        <span class="text-slate-400">Capacidad: <strong class="text-indigo-600 dark:text-indigo-400" th:text="${capacidadReserva ?: 0}">0</strong></span>
+                        <a th:href="@{/alumno/pagos}" class="font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors">Recargar saldo &rarr;</a>
                     </div>
                 </div>
 
                 <!-- KPI 2: Convocatorias Restantes DGT -->
-                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Convocatorias DGT</span>
                         <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
@@ -253,13 +253,13 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="my-3">
+                    <div class="mt-2 mb-3 flex-1 flex flex-col justify-start">
                         <p class="text-3xl font-black text-slate-900 dark:text-white">
                             <span th:text="${matricula?.convocatorias ?: 0}">2</span> <span class="text-lg font-normal text-slate-400">/ 2</span>
                         </p>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Disponibles en tu matrícula</p>
                     </div>
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                    <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                         <span class="text-slate-400">Consumidas: <strong th:text="${matricula?.convocatoriasGastadas ?: 0}">0</strong></span>
                         <span th:if="${matricula != null and matricula.convocatorias &gt; 0}" class="text-emerald-600 dark:text-emerald-400 font-bold">Expediente activo</span>
                         <span th:if="${matricula != null and matricula.convocatorias &lt;= 0}" class="text-rose-600 dark:text-rose-400 font-bold">Requiere renovación</span>
@@ -267,7 +267,7 @@
                 </div>
 
                 <!-- KPI 3: Próxima Clase Reservada -->
-                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Próxima Clase</span>
                         <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -276,9 +276,9 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="my-3">
+                    <div class="mt-2 mb-3 flex-1 flex flex-col justify-start">
                         <div th:if="${proximaClase != null}">
-                            <p class="text-lg font-bold text-slate-900 dark:text-white font-mono" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
+                            <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
                             <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${proximaClase.puntoRecogida}"></p>
                         </div>
                         <div th:if="${proximaClase == null}">
@@ -286,13 +286,15 @@
                             <p class="text-xs text-slate-400 mt-0.5">Reserva una clase en el calendario</p>
                         </div>
                     </div>
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
-                        <a th:href="@{/alumno/calendario}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Ver calendario &rarr;</a>
+                    <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                        <span class="text-slate-400" th:if="${proximaClase != null}">Confirmada</span>
+                        <span class="text-slate-400" th:if="${proximaClase == null}">Sin reserva</span>
+                        <a th:href="@{/alumno/calendario}" class="font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors">Ver calendario &rarr;</a>
                     </div>
                 </div>
 
-                <!-- KPI 4: Profesor Tutor y Vehículo -->
-                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <!-- KPI 4: Profesor y Vehículo -->
+                <div class="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col h-full">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Profesor</span>
                         <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -301,7 +303,7 @@
                             </svg>
                         </div>
                     </div>
-                    <div class="my-3">
+                    <div class="mt-2 mb-3 flex-1 flex flex-col justify-start">
                         <div th:if="${profesor != null}">
                             <p class="text-sm font-bold text-slate-900 dark:text-white truncate" th:text="${profesor.nombre + ' ' + profesor.apellidos}"></p>
                             <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:if="${profesor.vehiculo != null}" th:text="${profesor.vehiculo.marca + ' ' + profesor.vehiculo.modelo}"></p>
@@ -311,10 +313,13 @@
                             <p class="text-[11px] text-slate-400 mt-0.5">Asignación por parte de la Administración</p>
                         </div>
                     </div>
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                        <span class="text-slate-400" th:if="${profesor != null}">Turno: <strong th:text="${profesor.turno?.name()}">MATINAL</strong></span>
+                    <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                        <div class="flex items-center space-x-1.5" th:if="${profesor != null}">
+                            <span class="text-slate-400">Turno:</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider border" th:classappend="${profesor.turno?.name() == 'TARDE'} ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200 dark:border-amber-800' : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200 dark:border-blue-800'" th:text="${profesor.turno?.name() == 'TARDE' ? 'TARDE' : 'MATINAL'}">MATINAL</span>
+                        </div>
                         <span class="text-slate-400" th:if="${profesor == null}">En espera</span>
-                        <a th:href="@{/alumno/perfil}" class="font-bold text-indigo-600 dark:text-indigo-400">Detalles &rarr;</a>
+                        <a th:href="@{/alumno/perfil}" class="font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors">Detalles &rarr;</a>
                     </div>
                 </div>
 
@@ -330,7 +335,7 @@
                             <h3 class="text-base font-bold text-slate-900 dark:text-white">Últimas Clases Prácticas</h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400">Seguimiento de tus prácticas recibidas y programadas</p>
                         </div>
-                        <a th:href="@{/alumno/clases}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Ver todas &rarr;</a>
+                        <a th:href="@{/alumno/clases}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors">Ver todas &rarr;</a>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -346,7 +351,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr th:each="c : ${clasesRecientes}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                    <td class="py-3 px-3 font-mono font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
+                                    <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
                                     <td class="py-3 px-3" th:text="${c.profesor?.nombre + ' ' + c.profesor?.apellidos} ?: 'No asignado'"></td>
                                     <td class="py-3 px-3 truncate max-w-[160px]" th:text="${c.puntoRecogida}"></td>
                                     <td class="py-3 px-3">
@@ -355,7 +360,7 @@
                                         <span th:if="${c.estadoClase.name() == 'CANCELADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">CANCELADA</span>
                                     </td>
                                     <td class="py-3 px-3 text-right">
-                                        <button type="button" th:attr="hx-get=@{/alumno/clases/{id}/modal(id=${c.id})}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-semibold">Ver</button>
+                                        <button type="button" th:attr="hx-get=@{/alumno/clases/{id}/modal(id=${c.id})}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-colors cursor-pointer">Ver</button>
                                     </td>
                                 </tr>
                                 <tr th:if="${clasesRecientes == null or #lists.isEmpty(clasesRecientes)}">
@@ -370,13 +375,13 @@
                 <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 space-y-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-bold text-slate-900 dark:text-white">Solicitudes de Examen</h3>
-                        <a th:href="@{/alumno/examenes}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Gestionar &rarr;</a>
+                        <a th:href="@{/alumno/examenes}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors">Gestionar &rarr;</a>
                     </div>
 
                     <div class="space-y-3">
                         <div th:each="sol : ${solicitudesRecientes}" class="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-1.5 text-xs">
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${sol.matricula?.permisoCarnet}">PERMISO B</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${sol.matricula?.permisoCarnet?.descripcion ?: (sol.matricula?.permisoCarnet ?: '-')}">PERMISO B</span>
                                 <span th:if="${sol.estado.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">PENDIENTE</span>
                                 <span th:if="${sol.estado.name() == 'ACEPTADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">ACEPTADA</span>
                                 <span th:if="${sol.estado.name() == 'RECHAZADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">RECHAZADA</span>
