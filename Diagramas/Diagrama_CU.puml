@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v12
+@startuml Diagrama_CU_v13
 left to right direction
 skinparam packageStyle rectangle
 
@@ -22,16 +22,16 @@ usecase "Modificar perfil" as modificarPerfil << CU-004 >>
 usecase "Crear profesor" as crearProfesor << CU-005 >>
 usecase "Consultar profesores" as consultarProfesores << CU-006 >>
 usecase "Modificar profesor" as modificarProfesor << CU-007 >>
-usecase "Eliminar profesor" as eliminarProfesor << CU-008 >>
+usecase "Dar de baja a un profesor" as bajaProfesor << CU-008 >>
 
 usecase "Consultar alumnos" as consultarAlumnos << CU-009 >>
 usecase "Modificar alumno" as modificarAlumno << CU-010 >>
-usecase "Eliminar alumno" as eliminarAlumno << CU-011 >>
+usecase "Dar de baja a un alumno" as bajaAlumno << CU-011 >>
 
 usecase "Consultar vehículos" as consultarVehiculos << CU-012 >>
-usecase "Insertar vehículo" as insertarVehiculo << CU-013 >>
+usecase "Registrar vehículo" as registrarVehiculo << CU-013 >>
 usecase "Modificar vehículo" as modificarVehiculo << CU-014 >>
-usecase "Eliminar vehículo" as eliminarVehiculo << CU-015 >>
+usecase "Dar de baja un vehículo" as bajaVehiculo << CU-015 >>
 usecase "Gestionar incidencias de flota" as gestionarIncidencias << CU-016 >>
 
 usecase "Fijar fechas de examen oficial" as fijarFechasExamen << CU-017 >>
@@ -46,27 +46,30 @@ usecase "Rechazar solicitud examen" as rechazarSolicitudExamen << CU-023 >>
 ' --- CASOS DE USO PROFESOR ---
 usecase "Establecer credenciales" as establecerCredenciales << CU-024 >>
 usecase "Consultar calendario profesor" as consultarCalendarioProf << CU-025 >>
-usecase "Modificar clase" as modificarClase << CU-026 >>
-usecase "Cancelar clase" as cancelarClaseProf << CU-027 >>
-usecase "Rellenar ficha clase" as rellenarFichaClase << CU-028 >>
-usecase "Calificar examen" as calificarExamen << CU-029 >>
-usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-030 >>
-usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-031 >>
+usecase "Consultar alumnos asignados" as consultarAlumnosAsignados << CU-026 >>
+usecase "Consultar vehículo asignado" as consultarVehiculoAsignado << CU-027 >>
+usecase "Cancelar clase" as cancelarClaseProf << CU-028 >>
+usecase "Rellenar ficha clase" as rellenarFichaClase << CU-029 >>
+usecase "Consultar exámenes de alumnos" as consultarExamenesProf << CU-030 >>
+usecase "Calificar examen" as calificarExamen << CU-031 >>
+usecase "Reportar incidencia vehículo" as reportarIncidencia << CU-032 >>
+usecase "Consultar estadísticas profesor" as cEstadisticasProf << CU-033 >>
 
 ' --- CASOS DE USO ALUMNO ---
-usecase "Formalizar matrícula" as formalizarMatricula << CU-032 >>
+usecase "Formalizar matrícula" as formalizarMatricula << CU-034 >>
 note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se registra el Alumno en la BD
 
-usecase "Comprar clases prácticas" as comprarClases << CU-033 >>
-usecase "Consultar calendario alumno" as consultarCalendarioAlum << CU-034 >>
-usecase "Reservar clase práctica" as reservarClase << CU-035 >>
-usecase "Cancelar clase práctica" as cancelarClaseAlum << CU-036 >>
-usecase "Consultar historial clases" as consultarHistorial << CU-037 >>
-usecase "Solicitar fecha examen" as solicitarExamen << CU-038 >>
-usecase "Pagar tasas examen" as pagarTasas << CU-039 >>
-usecase "Consultar notas examen" as consultarNotas << CU-040 >>
-usecase "Renovar matrícula" as renovarMatricula << CU-041 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-042 >>
+usecase "Acceder a formación teórica" as accederFormacionTeorica << CU-035 >>
+usecase "Comprar clases prácticas" as comprarClases << CU-036 >>
+usecase "Consultar calendario alumno" as consultarCalendarioAlum << CU-037 >>
+usecase "Reservar clase práctica" as reservarClase << CU-038 >>
+usecase "Cancelar clase práctica" as cancelarClaseAlum << CU-039 >>
+usecase "Consultar historial clases" as consultarHistorial << CU-040 >>
+usecase "Solicitar fecha examen" as solicitarExamen << CU-041 >>
+usecase "Pagar tasas examen" as pagarTasas << CU-042 >>
+usecase "Consultar notas examen" as consultarNotas << CU-043 >>
+usecase "Renovar matrícula" as renovarMatricula << CU-044 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-045 >>
 
 ' --- ACTOR SECUNDARIO (SISTEMA EXTERNO) ---
 actor "Pasarela de Pago Stripe" as PasarelaPago << SistemaExterno >>
@@ -82,16 +85,16 @@ Persona -- modificarPerfil
 ' Administrador
 Admin -- crearProfesor
 Admin -- modificarProfesor
-Admin -- eliminarProfesor
+Admin -- bajaProfesor
 Admin -- consultarProfesores
 
 Admin -- modificarAlumno
-Admin -- eliminarAlumno
+Admin -- bajaAlumno
 Admin -- consultarAlumnos
 
-Admin -- insertarVehiculo
+Admin -- registrarVehiculo
 Admin -- modificarVehiculo
-Admin -- eliminarVehiculo
+Admin -- bajaVehiculo
 Admin -- consultarVehiculos
 Admin -- gestionarIncidencias
 
@@ -102,13 +105,16 @@ Admin -- consultarSolicitudExamen
 ' Profesor
 Prof -- establecerCredenciales
 Prof -- consultarCalendarioProf
-Prof -- calificarExamen
+Prof -- consultarAlumnosAsignados
+Prof -- consultarVehiculoAsignado
+Prof -- consultarExamenesProf
 Prof -- cEstadisticasProf
 Prof -- reportarIncidencia
 
 ' Alumno
 Alum -- consultarCalendarioAlum
 Alum -- formalizarMatricula
+Alum -- accederFormacionTeorica
 Alum -- comprarClases
 Alum -- consultarHistorial
 Alum -- consultarNotas
@@ -126,12 +132,13 @@ consultarSolicitudExamen <.. rechazarSolicitudExamen : <<extend>>
 rechazarSolicitudExamen ..> notificarAlumno : <<include>>
 
 ' Extends de Profesor (Consultar Calendario)
-consultarCalendarioProf <.. modificarClase : <<extend>>
 consultarCalendarioProf <.. cancelarClaseProf : <<extend>>
 consultarCalendarioProf <.. rellenarFichaClase : <<extend>>
 
+' Extends de Profesor (Consultar Exámenes)
+consultarExamenesProf <.. calificarExamen : <<extend>>
+
 ' Includes de Profesor (Automatizaciones y Obligaciones)
-modificarClase ..> notificarAlumno : <<include>>
 cancelarClaseProf ..> notificarAlumno : <<include>>
 
 ' Includes de Alumno
