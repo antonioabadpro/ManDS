@@ -154,4 +154,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inicializarDesplazamientoRenovacion();
+    // =========================================================================
+    // 6. TOGGLE DE LEYENDA DEL CALENDARIO (COLAPSABLE CON PERSISTENCIA)
+    // =========================================================================
+    function inicializarToggleLeyenda() {
+        const btnToggleLeyenda = document.getElementById('btn-toggle-leyenda');
+        const filaLeyenda = document.getElementById('fila-leyenda-desplegable');
+        const chevronLeyenda = document.getElementById('chevron-leyenda');
+        const CLAVE_STORAGE = 'mands_alumno_leyenda_visible';
+
+        if (!btnToggleLeyenda || !filaLeyenda || !chevronLeyenda) return;
+
+        function actualizarEstadoLeyenda(visible) {
+            if (visible) {
+                filaLeyenda.classList.remove('hidden');
+                chevronLeyenda.classList.add('rotate-180');
+                btnToggleLeyenda.setAttribute('aria-expanded', 'true');
+                btnToggleLeyenda.classList.add('bg-indigo-50', 'dark:bg-indigo-950/40', 'text-indigo-700', 'dark:text-indigo-300', 'border-indigo-200', 'dark:border-indigo-800');
+                btnToggleLeyenda.classList.remove('bg-slate-100', 'dark:bg-slate-800/80', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200/80', 'dark:border-slate-700/80');
+            } else {
+                filaLeyenda.classList.add('hidden');
+                chevronLeyenda.classList.remove('rotate-180');
+                btnToggleLeyenda.setAttribute('aria-expanded', 'false');
+                btnToggleLeyenda.classList.remove('bg-indigo-50', 'dark:bg-indigo-950/40', 'text-indigo-700', 'dark:text-indigo-300', 'border-indigo-200', 'dark:border-indigo-800');
+                btnToggleLeyenda.classList.add('bg-slate-100', 'dark:bg-slate-800/80', 'text-slate-600', 'dark:text-slate-300', 'border-slate-200/80', 'dark:border-slate-700/80');
+            }
+        }
+
+        // Estado inicial: cerrado por defecto para no ocupar espacio salvo preferencia persistida del usuario
+        try {
+            const preferencia = localStorage.getItem(CLAVE_STORAGE);
+            if (preferencia !== null) {
+                actualizarEstadoLeyenda(preferencia === 'true');
+            } else {
+                actualizarEstadoLeyenda(false);
+            }
+        } catch (e) {
+            actualizarEstadoLeyenda(false);
+        }
+
+        btnToggleLeyenda.addEventListener('click', () => {
+            const estaVisible = !filaLeyenda.classList.contains('hidden');
+            const nuevoEstado = !estaVisible;
+            actualizarEstadoLeyenda(nuevoEstado);
+            try {
+                localStorage.setItem(CLAVE_STORAGE, nuevoEstado ? 'true' : 'false');
+            } catch (e) {
+                // Fallback silencioso
+            }
+        });
+    }
+
+    inicializarToggleLeyenda();
 });
+
