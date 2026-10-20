@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v11
+@startuml Diagrama_CU_v12
 left to right direction
 skinparam packageStyle rectangle
 
@@ -69,7 +69,7 @@ usecase "Renovar matrícula" as renovarMatricula << CU-041 >>
 usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-042 >>
 
 ' --- ACTOR SECUNDARIO (SISTEMA EXTERNO) ---
-actor "Pasarela de Pago\n(Stripe)" as PasarelaPago << SistemaExterno >>
+actor "Pasarela de Pago Stripe" as PasarelaPago << SistemaExterno >>
 
 ' --- RELACIONES ACTOR -> CASO DE USO ---
 
