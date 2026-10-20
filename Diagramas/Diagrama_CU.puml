@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v14
+@startuml Diagrama_CU_v15
 left to right direction
 skinparam packageStyle rectangle
 
@@ -35,7 +35,7 @@ usecase "Dar de baja vehículo" as bajaVehiculo << CU-015 >>
 usecase "Gestionar incidencias de flota" as gestionarIncidencias << CU-016 >>
 
 usecase "Supervisar clases prácticas" as supervisarPracticas << CU-017 >>
-usecase "Fijar fechas de examen oficial" as fijarFechasExamen << CU-018 >>
+usecase "Fijar fechas y cupos de examen oficial" as fijarFechasExamen << CU-018 >>
 usecase "Consultar estadísticas globales" as cEstadisticasAdmin << CU-019 >>
 
 usecase "Consultar solicitudes de examen" as consultarSolicitudExamen << CU-020 >>
@@ -69,7 +69,7 @@ usecase "Consultar calendario alumno" as consultarCalendarioAlum << CU-038 >>
 usecase "Reservar clase práctica" as reservarClase << CU-039 >>
 usecase "Cancelar reserva de clase" as cancelarReservaAlum << CU-040 >>
 usecase "Consultar historial de clases" as consultarHistorial << CU-041 >>
-usecase "Consultar solicitudes de examen" as consultarSolicitudExamenAlum << CU-042 >>
+usecase "Consultar convocatorias y solicitudes de examen" as consultarSolicitudExamenAlum << CU-042 >>
 usecase "Solicitar fecha de examen" as solicitarFechaExamen << CU-043 >>
 usecase "Pagar tasas de examen" as pagarTasas << CU-044 >>
 usecase "Consultar notas de examen" as consultarNotas << CU-045 >>
