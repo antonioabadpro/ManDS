@@ -1101,6 +1101,12 @@ public class ProfesorController
         }
 
         Examen examen = examenOptional.get();
+        if (examen.getEsApto() != null)
+        {
+            redirectAttributes.addFlashAttribute("error", "Este examen ya ha sido calificado previamente y no puede modificarse.");
+            return "redirect:/profesor/examenes";
+        }
+
         examen.setEsApto(dto.esApto());
         this.examenRepository.save(examen);
 
@@ -1156,7 +1162,7 @@ public class ProfesorController
                         + "Si en el futuro deseas matricularte en un nuevo permiso de conducir, podrás gestionarlo directamente desde tu panel personal.\n\n"
                         + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
                         + "Un cordial saludo,\n"
-                        + "Equipo de Coordinación - ManDS Autoescuela";
+                        + "Equipo de Coordinación - ManDS";
                 this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
             }
         }

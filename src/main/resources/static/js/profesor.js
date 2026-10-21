@@ -276,31 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 5. APERTURA DINÁMICA DE MODAL CALIFICAR EXAMEN
-    // =========================================================================
-    document.querySelectorAll('[data-calificar-examen]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const examenId = btn.getAttribute('data-calificar-examen');
-            const alumnoNombre = btn.getAttribute('data-alumno-nombre');
-            const fechaHora = btn.getAttribute('data-fecha-hora');
-
-            const modal = document.getElementById('modal-calificar-examen');
-            if (!modal) return;
-
-            const inputId = document.getElementById('calificar-examen-id');
-            const elAlumno = document.getElementById('calificar-examen-alumno');
-            const elFecha = document.getElementById('calificar-examen-fecha');
-
-            if (inputId) inputId.value = examenId;
-            if (elAlumno) elAlumno.textContent = alumnoNombre || 'Alumno';
-            if (elFecha) elFecha.textContent = fechaHora || '';
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('overflow-hidden');
-        });
-    });
-    // =========================================================================
     // 6. TOGGLE DE LEYENDA DEL CALENDARIO (COLAPSABLE CON PERSISTENCIA)
     // =========================================================================
     function inicializarToggleLeyenda() {

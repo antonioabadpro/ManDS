@@ -323,6 +323,20 @@ class VistaProfesorTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar rechaza la modificación de un examen ya calificado previamente")
+    void testCalificarExamenYaCalificadoRechazaModificacion() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "1")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attribute("error", "Este examen ya ha sido calificado previamente y no puede modificarse."));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
     @DisplayName("GET /profesor/calendario/cancelar-dia/modal devuelve el fragmento del modal de cancelación masiva")
     void testModalCancelarDiaHtmx() throws Exception
     {
