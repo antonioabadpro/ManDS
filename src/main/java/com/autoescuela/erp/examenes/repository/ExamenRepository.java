@@ -2,6 +2,7 @@ package com.autoescuela.erp.examenes.repository;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -29,6 +30,11 @@ public interface ExamenRepository extends JpaRepository<Examen, Long>
      * Recupera los últimos 2 exámenes oficiales realizados por un alumno ordenados por fecha y hora descendente.
      */
     List<Examen> findTop2ByAlumnoOrderByFechaHoraDesc(Alumno alumno);
+
+    /**
+     * Determina si el alumno ha superado un examen oficial del tipo indicado (esApto = true).
+     */
+    boolean existsByAlumnoAndTipoAndEsAptoTrue(Alumno alumno, TipoExamen tipo);
 
     /**
      * Contabiliza los exámenes aprobados (esApto = true) de un alumno.

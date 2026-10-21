@@ -42,6 +42,7 @@ import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAlumnoDTO;
@@ -130,6 +131,35 @@ public class AlumnoController
         }
         return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
                 .map(m -> m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+                .orElse(false);
+    }
+
+    @ModelAttribute("convocatoriasAgotadas")
+    public boolean tieneConvocatoriasAgotadas(@AuthenticationPrincipal Object principal)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return false;
+        }
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
+
+        return convocatoriasAgotadas;
+    }
+
+    @ModelAttribute("teoricoAprobado")
+    public boolean teoricoAprobado(@AuthenticationPrincipal Object principal)
+    {
+        Alumno alumno = this.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return false;
+        }
+        return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+                .map(m -> m.getModalidad() != ModalidadMatricula.TEORICO_PRACTICA
+                        || this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
                 .orElse(false);
     }
 
@@ -236,7 +266,7 @@ public class AlumnoController
     // 1.1. TEST TEÓRICOS (Solo modalidad TEORICO_PRACTICA)
     // =========================================================================
     @GetMapping("/tests")
-    public String mostrarTestsTeoricos(@AuthenticationPrincipal Object principal, Model model)
+    public String mostrarTestsTeoricos(@AuthenticationPrincipal Object principal, Model model, RedirectAttributes redirectAttributes)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
@@ -250,8 +280,15 @@ public class AlumnoController
             return "redirect:/alumno/dashboard";
         }
 
+        Matricula matricula = matriculaOptional.get();
+        if (matricula.tieneConvocatoriasAgotadas())
+        {
+            redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación de matrícula para poder seguir accediendo al apartado de test teóricos.");
+            return "redirect:/alumno/dashboard";
+        }
+
         model.addAttribute("alumno", alumno);
-        model.addAttribute("matricula", matriculaOptional.get());
+        model.addAttribute("matricula", matricula);
         return "alumno/tests";
     }
 
@@ -259,12 +296,35 @@ public class AlumnoController
     // 2. CALENDARIO Y RESERVAS DE PRÁCTICAS (HTMX + FullCalendar v6)
     // =========================================================================
     @GetMapping("/calendario")
-    public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
+    public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model, RedirectAttributes redirectAttributes)
     {
         Alumno alumno = this.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
+        }
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        if (matricula == null)
+        {
+            redirectAttributes.addFlashAttribute("error", "Debes disponer de una matrícula activa para acceder al calendario de reservas.");
+            return "redirect:/alumno/dashboard";
+        }
+
+        if (matricula.tieneConvocatoriasAgotadas())
+        {
+            redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de examen de tu matrícula. Debes tramitar la renovación de matrícula para acceder al calendario y reservar clases prácticas.");
+            return "redirect:/alumno/dashboard";
+        }
+
+        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+        {
+            boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+            if (!teoricoAprobado)
+            {
+                redirectAttributes.addFlashAttribute("error", "No puedes acceder al panel para reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.");
+                return "redirect:/alumno/dashboard";
+            }
         }
 
         LocalDate fechaRef = LocalDate.now();
@@ -280,7 +340,6 @@ public class AlumnoController
             }
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
         int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
         CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
@@ -321,6 +380,15 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        if (matricula == null || matricula.tieneConvocatoriasAgotadas())
+        {
+            return "redirect:/alumno/dashboard";
+        }
+        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
+                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+        {
+            return "redirect:/alumno/dashboard";
+        }
         int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
         CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
@@ -460,6 +528,18 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        if (matricula == null || matricula.tieneConvocatoriasAgotadas())
+        {
+            model.addAttribute("error", "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.");
+            return "alumno/fragments/alerta-feedback :: feedbackExito";
+        }
+        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
+                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+        {
+            model.addAttribute("error", "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.");
+            return "alumno/fragments/alerta-feedback :: feedbackExito";
+        }
+
         long clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
 
@@ -593,6 +673,30 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        if (matricula == null || matricula.tieneConvocatoriasAgotadas())
+        {
+            String error = "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.";
+            if (hxRequest != null)
+            {
+                model.addAttribute("error", error);
+                return "alumno/fragments/alerta-feedback :: feedbackExito";
+            }
+            redirectAttributes.addFlashAttribute("error", error);
+            return "redirect:/alumno/calendario";
+        }
+        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
+                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+        {
+            String error = "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.";
+            if (hxRequest != null)
+            {
+                model.addAttribute("error", error);
+                return "alumno/fragments/alerta-feedback :: feedbackExito";
+            }
+            redirectAttributes.addFlashAttribute("error", error);
+            return "redirect:/alumno/calendario";
+        }
+
         int capacidad = this.calcularCapacidadReserva(alumno, matricula);
 
         // Validación de Capacidad de Reserva

@@ -18,9 +18,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
@@ -40,12 +45,33 @@ class ClasePracticaServiceTest
     @Mock
     private ClasePracticaMapper clasePracticaMapper;
 
+    @Mock
+    private MatriculaRepository matriculaRepository;
+
+    @Mock
+    private ExamenRepository examenRepository;
+
     private ClasePracticaService clasePracticaService;
 
     @BeforeEach
     void setUp()
     {
-        this.clasePracticaService = new ClasePracticaService(this.clasePracticaRepository, this.clasePracticaMapper);
+        this.clasePracticaService = new ClasePracticaService(
+                this.clasePracticaRepository,
+                this.clasePracticaMapper,
+                this.matriculaRepository,
+                this.examenRepository
+        );
+    }
+
+    private Matricula crearMatriculaValidaConvocatorias(Alumno alumno, ModalidadMatricula modalidad)
+    {
+        Matricula matricula = new Matricula();
+        matricula.setAlumno(alumno);
+        matricula.setEstaActiva(true);
+        matricula.setConvocatorias(2);
+        matricula.setModalidad(modalidad);
+        return matricula;
     }
 
     @Test
@@ -66,6 +92,9 @@ class ClasePracticaServiceTest
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", "Práctica de estacionamiento"
         );
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
 
         when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
                 profesor, fechaHora
@@ -98,6 +127,9 @@ class ClasePracticaServiceTest
                 fechaHora, 45, "Plaza Mayor", ""
         );
 
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+
         when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
                 profesor, fechaHora
         )).thenReturn(true);
@@ -117,6 +149,9 @@ class ClasePracticaServiceTest
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", ""
         );
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
 
         when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
                 profesor, fechaHora
@@ -138,6 +173,9 @@ class ClasePracticaServiceTest
                 fechaHora, 45, "Plaza Mayor", ""
         );
 
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+
         when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(
                 profesor, fechaHora
         )).thenReturn(false);
@@ -148,6 +186,66 @@ class ClasePracticaServiceTest
         assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("acaba de ser reservado por otro alumno");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si el alumno tiene las convocatorias agotadas")
+    void testReservarClaseFallaPorConvocatoriasAgotadas()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
+
+        Matricula matricula = new Matricula();
+        matricula.setAlumno(alumno);
+        matricula.setEstaActiva(true);
+        matricula.setConvocatorias(0);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Has agotado las convocatorias oficiales de tu matrícula");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si el alumno en TEORICO_PRACTICA no ha aprobado el examen teórico")
+    void testReservarClaseFallaPorTeoricoNoAprobadoEnTeoricoPractica()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.TEORICO_PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO)).thenReturn(false);
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("Es obligatorio haber aprobado el examen teórico oficial");
+    }
+
+    @Test
+    @DisplayName("reservarClase permite reservar en TEORICO_PRACTICA si el examen teórico ha sido aprobado")
+    void testReservarClaseExitoEnTeoricoPracticaConTeoricoAprobado()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.TEORICO_PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO)).thenReturn(true);
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(profesor, fechaHora)).thenReturn(false);
+        when(this.clasePracticaRepository.saveAndFlush(any(ClasePractica.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ClasePractica resultado = this.clasePracticaService.reservarClase(alumno, profesor, dto);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.PENDIENTE);
     }
 
     @Test

@@ -7,8 +7,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
@@ -31,6 +36,8 @@ public class ClasePracticaService
 {
     private final ClasePracticaRepository clasePracticaRepository;
     private final ClasePracticaMapper clasePracticaMapper;
+    private final MatriculaRepository matriculaRepository;
+    private final ExamenRepository examenRepository;
 
     /**
      * Procesa la reserva transaccional de una clase práctica aplicando el algoritmo First-Come, First-Served.
@@ -49,6 +56,28 @@ public class ClasePracticaService
         {
             String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(dto.fechaHora().toLocalDate());
             throw new ReglaNegocioException("No se pueden reservar clases prácticas en días festivos nacionales ni durante vacaciones de la autoescuela (" + motivo + ").");
+        }
+
+        // Barrera Preventiva de Convocatorias y Aprobado Teórico Oficial
+        if (alumno != null)
+        {
+            Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+            if (matricula == null)
+            {
+                throw new ReglaNegocioException("El alumno no dispone de un expediente de matrícula activo para reservar clases prácticas.");
+            }
+            if (matricula.tieneConvocatoriasAgotadas())
+            {
+                throw new ReglaNegocioException("Has agotado las convocatorias oficiales de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.");
+            }
+            if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+            {
+                boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+                if (!teoricoAprobado)
+                {
+                    throw new ReglaNegocioException("Es obligatorio haber aprobado el examen teórico oficial ante la DGT antes de reservar clases prácticas.");
+                }
+            }
         }
 
         // Barrera Preventiva de Jornada Cancelada por el Profesor

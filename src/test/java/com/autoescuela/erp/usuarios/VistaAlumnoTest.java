@@ -466,4 +466,74 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/alumno/dashboard"));
     }
+    @Test
+    @WithMockUser(username = "alumno16", roles = "ALUMNO")
+    @DisplayName("GET /alumno/tests redirige a dashboard para alumno con convocatorias agotadas")
+    void testSeccionTestsTeoricosBloqueadaPorConvocatoriasAgotadas() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/tests"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("Has agotado las convocatorias de tu matrícula")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("GET /alumno/calendario redirige a dashboard para alumno con convocatorias agotadas")
+    void testCalendarioBloqueadoPorConvocatoriasAgotadas() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/calendario"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("Has agotado las convocatorias de examen de tu matrícula")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @DisplayName("GET /alumno/calendario redirige a dashboard para alumno en TEORICO_PRACTICA sin teórico aprobado")
+    void testCalendarioBloqueadoPorTeoricoNoAprobadoEnTeoricoPractica() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/calendario"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("examen teórico oficial")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @DisplayName("GET /alumno/clases/reservar-modal rechaza apertura de modal para alumno sin teórico aprobado")
+    void testModalReservarClaseRechazadoPorTeoricoNoAprobado() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @DisplayName("POST /alumno/clases/reservar rechaza la reserva para alumno sin teórico aprobado")
+    void testReservarClaseRechazadaPorTeoricoNoAprobado() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/clases/reservar")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fechaHora", "2026-10-15T10:00")
+                .param("duracion", "45")
+                .param("puntoRecogida", "Calle Alcalá 45"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("error"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno2", roles = "ALUMNO")
+    @DisplayName("GET /alumno/calendario renderiza correctamente para alumno en modalidad sólo PRACTICA")
+    void testCalendarioHabilitadoParaModalidadSoloPractica() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/calendario"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/calendario"))
+                .andExpect(model().attributeExists("calendarioSemanal"));
+    }
 }

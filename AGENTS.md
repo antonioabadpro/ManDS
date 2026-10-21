@@ -62,8 +62,8 @@
   | Renovación de Matrícula | Tarifa de renovación estipulada tras agotar 2 convocatorias |
 - **Modalidades de Matrícula:** *Teórico + Prácticas*, *Sólo Prácticas*, *Individual* (futuro). Tipos: *Nueva Matriculación* y *Renovación de Matrícula*.
 - **Vinculación Alumno-Profesor:** Un alumno solo tiene profesor asignado si dispone de matrícula activa habilitada para dicho carnet. Sin matrícula activa, el campo `profesor` es obligatoriamente `null`.
-- **Convocatorias y Suspensos:** 2 convocatorias iniciales por matrícula. Al acumular 2 exámenes oficiales `NO APTO`, se bloquea adquisición de saldo y reservas hasta abonar la Renovación vía Stripe.
-- **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) en fecha previa para realizar clases prácticas o solicitar examen práctico oficial.
+- **Convocatorias y Suspensos:** 2 convocatorias iniciales por matrícula. Al agotar convocatorias (`convocatorias <= 0`) o acumular 2 suspensos, se bloquea la adquisición de saldo, el acceso a los Test Teóricos y el acceso al calendario de reservas hasta abonar la Renovación vía Stripe.
+- **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) en fecha previa para acceder al calendario, reservar clases prácticas o solicitar examen práctico oficial.
 - **Cierre por Examen Aprobado:** Tras calificar práctico como `APTO`, la matrícula pasa a inactiva (`estaActiva = false`), se desvincula al profesor (`alumno.setProfesor(null)`), se cancelan reservas futuras y se habilita nuevo permiso.
 - **Inmutabilidad y Doble Confirmación:** El examen calificado (`esApto != null`) es inmutable e impide re-calificaciones. La calificación del profesor exige modal en 2 pasos con consecuencias normativas irreversibles según modalidad y resultado.
 - **Notificaciones tras Calificar Examen:** Toda calificación notifica por email al alumno: felicitación en `APTO` (desbloqueo de prácticas en teórico; cierre de matrícula en práctico) o aviso de convocatoria deducida y restantes en `NO APTO` (bloqueo al 2º suspenso).
@@ -80,7 +80,7 @@
 ## 3.4. Algoritmo y Control de Reserva de Clases
 - **Capacidad de Reserva:** $\text{CapacidadReserva} = \text{saldoClases} - \text{clasesReservadasPendientes}$.
 - **Condición de Compra:** Alumno solo puede comprar clases/bonos con saldo agotado ($\text{saldoClases} = 0$). La compra incrementa `saldoClases += cantidadComprada`.
-- **Condición de Reserva:** Exige $\text{CapacidadReserva} > 0$, vehículo operativo (no en `MANTENIMIENTO`) y franja dentro del turno del profesor asignado.
+- **Condición de Reserva:** Exige $\text{CapacidadReserva} > 0$, convocatorias vigentes (`convocatorias > 0`), examen teórico aprobado (en `TEORICO_PRACTICA`), vehículo operativo (no en `MANTENIMIENTO`) y franja dentro del turno del profesor asignado.
 - **Deducción y Cancelación Atómica:** Al registrar ficha técnica pasa a `RECIBIDA` y descuenta `saldoClases -= 1` y `clasesReservadasPendientes -= 1`. Al cancelar (`PENDIENTE` a `CANCELADA`), solo decrementa `clasesReservadasPendientes -= 1`.
 - **Límite Horario de Cancelación:** El alumno no puede cancelar una clase una vez iniciada (`fechaHora <= now`), protegiendo demoras del profesor en cumplimentar la ficha.
 - **Concurrencia Pesimista:** Restricción única en BD `UNIQUE(profesor_id, fecha_hora)` y transacción `@Transactional` con verificación atómica (HTTP 409 / feedback HTMX en colisión).
