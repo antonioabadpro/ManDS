@@ -133,7 +133,21 @@ function abrirModalConfirmarApto() {
     if (elAlumno) elAlumno.textContent = estadoExamenSeleccionado.alumnoNombre;
     if (elDetalles) {
         const dniTexto = estadoExamenSeleccionado.alumnoDni ? `DNI: ${estadoExamenSeleccionado.alumnoDni} • ` : '';
-        elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora}`;
+        const tipoTexto = estadoExamenSeleccionado.tipoExamen === 'TEORICO' ? ' • Prueba Teórica' : ' • Prueba Práctica';
+        elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora}${tipoTexto}`;
+    }
+
+    const listaTeorico = document.getElementById('consecuencias-apto-teorico');
+    const listaPractico = document.getElementById('consecuencias-apto-practico');
+
+    if (listaTeorico && listaPractico) {
+        if (estadoExamenSeleccionado.tipoExamen === 'TEORICO') {
+            listaTeorico.classList.remove('hidden');
+            listaPractico.classList.add('hidden');
+        } else {
+            listaPractico.classList.remove('hidden');
+            listaTeorico.classList.add('hidden');
+        }
     }
 
     modalApto.classList.remove('hidden');
@@ -155,7 +169,21 @@ function abrirModalConfirmarNoApto() {
     if (elAlumno) elAlumno.textContent = estadoExamenSeleccionado.alumnoNombre;
     if (elDetalles) {
         const dniTexto = estadoExamenSeleccionado.alumnoDni ? `DNI: ${estadoExamenSeleccionado.alumnoDni} • ` : '';
-        elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora}`;
+        const tipoTexto = estadoExamenSeleccionado.tipoExamen === 'TEORICO' ? ' • Prueba Teórica' : ' • Prueba Práctica';
+        elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora}${tipoTexto}`;
+    }
+
+    const listaTeorico = document.getElementById('consecuencias-no-apto-teorico');
+    const listaPractico = document.getElementById('consecuencias-no-apto-practico');
+
+    if (listaTeorico && listaPractico) {
+        if (estadoExamenSeleccionado.tipoExamen === 'TEORICO') {
+            listaTeorico.classList.remove('hidden');
+            listaPractico.classList.add('hidden');
+        } else {
+            listaPractico.classList.remove('hidden');
+            listaTeorico.classList.add('hidden');
+        }
     }
 
     modalNoApto.classList.remove('hidden');

@@ -1110,16 +1110,62 @@ public class ProfesorController
         examen.setEsApto(dto.esApto());
         this.examenRepository.save(examen);
 
-        // Si suspende, computar convocatoria gastada en la matrícula
+        // Si suspende, computar convocatoria gastada en la matrícula y notificar por email
         if (Boolean.FALSE.equals(dto.esApto()) && examen.getAlumno() != null)
         {
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(examen.getAlumno());
+            Alumno alumno = examen.getAlumno();
+            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+            int gastadas = 0;
+            String nombreCarnet = "";
             if (matriculaOptional.isPresent())
             {
                 Matricula matricula = matriculaOptional.get();
-                int gastadas = matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
-                matricula.setConvocatoriasGastadas(gastadas + 1);
+                gastadas = matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
+                gastadas++;
+                matricula.setConvocatoriasGastadas(gastadas);
                 this.matriculaRepository.save(matricula);
+                if (matricula.getPermisoCarnet() != null)
+                {
+                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
+                }
+            }
+
+            int convocatoriasRestantes = Math.max(0, 2 - gastadas);
+
+            // Notificación por correo electrónico oficial de suspenso al alumno según tipo de examen
+            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
+            {
+                if (examen.getTipo() == TipoExamen.TEORICO) // Si ha suspendido el examen teórico
+                {
+                    String asunto = "Resultado oficial de tu Examen Teórico DGT - ManDS Autoescuela";
+                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                            + "Te comunicamos oficialmente que el resultado de tu examen teórico oficial de conducir"
+                            + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + " ha sido calificado como NO APTO.\n\n"
+                            + "Queremos transmitirte mucho ánimo. En esta convocatoria se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
+                            + (gastadas >= 2
+                                    ? "Has agotado las 2 convocatorias oficiales incluidas en tu matrícula. Para poder presentarte a una nueva convocatoria oficial de examen deberás abonar las tasas de Renovación de Matrícula desde tu panel de pagos.\n\n"
+                                    : "Te recomendamos continuar repasando los test y el temario teórico. Podrás solicitar una nueva fecha de examen oficial desde tu panel de alumno en cuanto te sientas preparado/a.\n\n")
+                            + "Recuerda que el acceso a clases prácticas de circulación se habilitará una vez superada la prueba teórica oficial ante la DGT.\n\n"
+                            + "¡Mucho ánimo y a seguir adelante!\n\n"
+                            + "Un cordial saludo,\n"
+                            + "Equipo de Coordinación - ManDS Autoescuela";
+                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                }
+                else // Si ha suspendido el examen práctico
+                {
+                    String asunto = "Resultado oficial de tu Examen Práctico DGT - ManDS Autoescuela";
+                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                            + "Te comunicamos oficialmente que el resultado de tu examen práctico oficial de conducir"
+                            + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + " ha sido calificado como NO APTO.\n\n"
+                            + "No te desanimes, es una etapa habitual en el aprendizaje de la conducción. En esta prueba se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
+                            + (gastadas >= 2
+                                    ? "Has acumulado 2 convocatorias agotadas. Por normativa oficial, la adquisición de saldo y la reserva de clases prácticas quedan temporalmente pausadas hasta que tramites la Renovación de Matrícula desde tu panel de pagos.\n\n"
+                                    : "Mantienes asignado a tu profesor de autoescuela. Te recomendamos reservar clases prácticas adicionales en el calendario para pulir las maniobras antes de tu siguiente examen.\n\n")
+                            + "¡Mucho ánimo, estamos a tu lado para conseguirlo!\n\n"
+                            + "Un cordial saludo,\n"
+                            + "Equipo de Coordinación - ManDS Autoescuela";
+                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                }
             }
         }
         // Si aprueba el examen práctico, finalizar el expediente del carnet y liberar cupo del profesor
@@ -1162,7 +1208,37 @@ public class ProfesorController
                         + "Si en el futuro deseas matricularte en un nuevo permiso de conducir, podrás gestionarlo directamente desde tu panel personal.\n\n"
                         + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
                         + "Un cordial saludo,\n"
-                        + "Equipo de Coordinación - ManDS";
+                        + "Equipo de Coordinación - ManDS Autoescuela";
+                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+            }
+        }
+        // Si aprueba el examen teórico, notificar por correo electrónico oficial de felicitación e inicio de prácticas
+        else if (Boolean.TRUE.equals(dto.esApto()) && examen.getAlumno() != null && examen.getTipo() == TipoExamen.TEORICO)
+        {
+            Alumno alumno = examen.getAlumno();
+            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+            String nombreCarnet = "";
+            if (matriculaOptional.isPresent())
+            {
+                Matricula matricula = matriculaOptional.get();
+                if (matricula.getPermisoCarnet() != null)
+                {
+                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
+                }
+            }
+
+            // Notificación por correo electrónico oficial de felicitación al alumno
+            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
+            {
+                String asunto = "¡Enhorabuena! Has aprobado tu examen teórico en ManDS Autoescuela";
+                String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
+                        + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen teórico oficial de conducir"
+                        + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + ".\n\n"
+                        + "Has superado con éxito la fase teórica. A partir de este momento ya puedes comenzar con tu formación práctica y reservar tus clases en el calendario desde tu panel de alumno.\n\n"
+                        + "Tu profesor asignado estará encantado de acompañarte en las prácticas de circulación.\n\n"
+                        + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
+                        + "Un cordial saludo,\n"
+                        + "Equipo de Coordinación - ManDS Autoescuela";
                 this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
             }
         }

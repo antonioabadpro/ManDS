@@ -145,7 +145,7 @@
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <th:block th:if="${ex.esApto == null}">
-                                        <button type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-alumno-dni=${ex.alumno?.dni}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}, data-tipo-examen=${ex.tipo.name()}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-950/60 dark:text-violet-300 dark:hover:bg-violet-900/60 border border-violet-200/80 dark:border-violet-800/80 shadow-sm transition duration-150 transform hover:scale-[1.02] active:scale-95 cursor-pointer">
+                                        <button type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-alumno-dni=${ex.alumno?.dni}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}, data-tipo-examen=${ex.tipo.name()}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 shadow-sm shadow-violet-600/25 hover:shadow-md hover:shadow-violet-600/35 transition-all duration-150 cursor-pointer">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -273,7 +273,9 @@
             <!-- Desglose de Consecuencias de Negocio -->
             <div class="space-y-2">
                 <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Consecuencias normativas de esta acción:</span>
-                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+
+                <!-- Consecuencias para Examen Práctico -->
+                <ul id="consecuencias-apto-practico" class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
                     <li class="flex items-start space-x-2">
                         <span class="text-emerald-500 font-bold mt-0.5">✓</span>
                         <span>La matrícula actual del alumno pasará a estado <strong>INACTIVA</strong>, concluyendo exitosamente su expediente para este permiso.</span>
@@ -288,11 +290,31 @@
                     </li>
                     <li class="flex items-start space-x-2">
                         <span class="text-emerald-500 font-bold mt-0.5">✓</span>
-                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> de felicitación al alumno.</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> de felicitación al alumno por aprobar el examen práctico.</span>
                     </li>
                     <li class="flex items-start space-x-2">
                         <span class="text-emerald-500 font-bold mt-0.5">✓</span>
                         <span>El alumno quedará habilitado para matricularse en un nuevo permiso de conducir si lo solicita.</span>
+                    </li>
+                </ul>
+
+                <!-- Consecuencias para Examen Teórico -->
+                <ul id="consecuencias-apto-teorico" class="hidden text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El resultado oficial quedará registrado como <strong>APTO</strong> en la prueba teórica oficial ante la DGT.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El alumno <strong>queda habilitado para iniciar sus clases prácticas</strong> de circulación y reservar en el calendario.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El alumno <strong>mantendrá asignado a su profesor</strong> para coordinar su formación y prácticas en vehículo.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> de felicitación al alumno por superar el examen teórico.</span>
                     </li>
                 </ul>
             </div>
@@ -355,18 +377,44 @@
             <!-- Desglose de Consecuencias de Negocio -->
             <div class="space-y-2">
                 <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Consecuencias normativas de esta acción:</span>
-                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+
+                <!-- Consecuencias para Examen Práctico -->
+                <ul id="consecuencias-no-apto-practico" class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
                     <li class="flex items-start space-x-2">
                         <span class="text-rose-500 font-bold mt-0.5">✕</span>
-                        <span>Se computará y <strong>deducirá 1 convocatoria de examen</strong> en la matrícula del alumno (sumando a convocatorias gastadas).</span>
+                        <span>Se computará y <strong>deducirá 1 convocatoria de examen</strong> en la matrícula del alumno.</span>
                     </li>
                     <li class="flex items-start space-x-2">
                         <span class="text-rose-500 font-bold mt-0.5">✕</span>
-                        <span><strong>Control de 2 convocatorias:</strong> Si el alumno acumula 2 exámenes con resultado NO APTO, el sistema bloqueará la adquisición de clases prácticas y reservas en calendario hasta abonar la Renovación de Matrícula en Stripe.</span>
+                        <span><strong>Control de 2 convocatorias:</strong> Si el alumno acumula 2 exámenes con resultado NO APTO, el sistema bloqueará la adquisición de saldo y reservas en calendario hasta abonar la Renovación de Matrícula en Stripe.</span>
                     </li>
                     <li class="flex items-start space-x-2">
                         <span class="text-rose-500 font-bold mt-0.5">✕</span>
                         <span>El alumno <strong>mantendrá asignado a su profesor</strong> para continuar con su preparación práctica y corregir faltas.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> comunicando el resultado y las convocatorias restantes.</span>
+                    </li>
+                </ul>
+
+                <!-- Consecuencias para Examen Teórico -->
+                <ul id="consecuencias-no-apto-teorico" class="hidden text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span>Se computará y <strong>deducirá 1 convocatoria de examen</strong> en la matrícula del alumno.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span><strong>Acceso a prácticas bloqueado:</strong> El alumno no podrá realizar clases prácticas de conducción hasta aprobar la prueba teórica oficial ante la DGT.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span><strong>Control de 2 convocatorias:</strong> Al acumular 2 suspensos oficiales se requerirá abonar la Renovación de Matrícula en Stripe antes de solicitar una nueva fecha.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> comunicando el resultado oficial y pautas de preparación.</span>
                     </li>
                 </ul>
             </div>

@@ -65,6 +65,8 @@
 - **Convocatorias y Suspensos:** 2 convocatorias iniciales por matrícula. Al acumular 2 exámenes oficiales `NO APTO`, se bloquea adquisición de saldo y reservas hasta abonar la Renovación vía Stripe.
 - **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) en fecha previa para realizar clases prácticas o solicitar examen práctico oficial.
 - **Cierre por Examen Aprobado:** Tras calificar práctico como `APTO`, la matrícula pasa a inactiva (`estaActiva = false`), se desvincula al profesor (`alumno.setProfesor(null)`), se cancelan reservas futuras y se habilita nuevo permiso.
+- **Inmutabilidad y Doble Confirmación:** El examen calificado (`esApto != null`) es inmutable e impide re-calificaciones. La calificación del profesor exige modal en 2 pasos con consecuencias normativas irreversibles según modalidad y resultado.
+- **Notificaciones tras Calificar Examen:** Toda calificación notifica por email al alumno: felicitación en `APTO` (desbloqueo de prácticas en teórico; cierre de matrícula en práctico) o aviso de convocatoria deducida y restantes en `NO APTO` (bloqueo al 2º suspenso).
 
 ## 3.3. Flota de Vehículos y Profesores
 - **Propiedad y Asignación:** Vehículos propiedad de la autoescuela. Asignación exclusiva 1-a-1 a profesores habilitados en su `listaTiposCarnet`.
@@ -87,7 +89,7 @@
 - **Cancelación Asimétrica y Bloqueo de Franja:** Cancelación por profesor (`canceladaPorProfesor = true`) bloquea ese tramo de 45 min en ambos calendarios impidiendo reservas. Cancelación por alumno libera el tramo a `LIBRE`.
 
 ## 3.5. Circuito y Gestión de Solicitudes de Examen (DGT)
-- **Control Centralizado:** Exclusivo del Administrador (fijar fechas, cupos, aceptar o rechazar solicitudes). Profesores solo consultan alumnos citados en su turno.
+- **Control Centralizado y Calificación:** Exclusivo del Administrador (fijar fechas, cupos, aceptar o rechazar solicitudes). Profesores consultan los exámenes de sus alumnos y califican las actas oficiales.
 - **Orden FIFO y 2 Fechas Oficiales al Mes:** Solicitudes pendientes gestionadas estrictamente por antigüedad (`ORDER BY fecha_solicitud ASC`). El Administrador fija manualmente 2 fechas oficiales por mes (1ª y 2ª quincena).
 - **Cupos y Resolución:** Rechazo exige justificación obligatoria y envío de email. Aceptación valida cupo máximo por carnet, dispara citación por email y bloquea la jornada completa del vehículo.
 - **Incompatibilidad y Clases Previas Obligatorias:** Un alumno citado o examinado no puede tener clases `PENDIENTE`. Es obligatorio haber completado clases en estado `RECIBIDA` antes de examinarse o ser citado a prueba práctica DGT.

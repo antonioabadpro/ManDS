@@ -18,6 +18,7 @@ import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -319,6 +320,68 @@ class VistaProfesorTest extends BaseIntegrationTest
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
         assertFalse(matricula.getEstaActiva(), "La matrícula debe finalizar (estaActiva = false) tras aprobar el práctico.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con APTO en examen teórico mantiene la matrícula activa y conserva al profesor")
+    void testCalificarExamenTeoricoAptoMantieneMatriculaYProfesor() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "15")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        Alumno alumno = this.alumnoRepository.findById(217L).orElseThrow();
+        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras aprobar el examen teórico.");
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElseThrow();
+        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras aprobar la fase teórica.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con NO APTO en examen teórico deduce 1 convocatoria, mantiene matrícula activa y profesor")
+    void testCalificarExamenTeoricoNoAptoDeduceConvocatoriaYEnviaEmail() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "15")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        Alumno alumno = this.alumnoRepository.findById(217L).orElseThrow();
+        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras suspender el examen teórico.");
+
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElseThrow();
+        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso.");
+        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con NO APTO en examen práctico deduce 1 convocatoria, mantiene matrícula activa y profesor")
+    void testCalificarExamenPracticoNoAptoDeduceConvocatoriaYEnviaEmail() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "3")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
+        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras suspender el examen práctico.");
+
+        Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
+        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso del práctico.");
+        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
     }
 
     @Test
