@@ -1,4 +1,4 @@
-@startuml Diagrama_CU_v15
+@startuml Diagrama_CU_v16
 left to right direction
 skinparam packageStyle rectangle
 
@@ -60,20 +60,19 @@ usecase "Formalizar matrícula" as formalizarMatricula << CU-034 >>
 note right of formalizarMatricula : Postcondición:\n Tras completar el registro y pagar la matrícula con éxito,\n se activa el Alumno en la BD
 
 usecase "Renovar matrícula" as renovarMatricula << CU-035 >>
+usecase "Comprar clases prácticas" as comprarClases << CU-036 >>
 
-usecase "Acceder a tests teóricos" as accederTests << CU-036 >>
+usecase "Acceder a tests teóricos" as accederTests << CU-037 >>
 note right of accederTests : Precondición:\n Matrícula activa en\n modalidad TEORICO_PRACTICA
 
-usecase "Comprar clases prácticas" as comprarClases << CU-037 >>
 usecase "Consultar calendario alumno" as consultarCalendarioAlum << CU-038 >>
 usecase "Reservar clase práctica" as reservarClase << CU-039 >>
 usecase "Cancelar reserva de clase" as cancelarReservaAlum << CU-040 >>
 usecase "Consultar historial de clases" as consultarHistorial << CU-041 >>
 usecase "Consultar convocatorias y solicitudes de examen" as consultarSolicitudExamenAlum << CU-042 >>
 usecase "Solicitar fecha de examen" as solicitarFechaExamen << CU-043 >>
-usecase "Pagar tasas de examen" as pagarTasas << CU-044 >>
-usecase "Consultar notas de examen" as consultarNotas << CU-045 >>
-usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-046 >>
+usecase "Consultar notas de examen" as consultarNotas << CU-044 >>
+usecase "Consultar estadísticas alumno" as cEstadisticasAlum << CU-045 >>
 
 ' --- ACTOR SECUNDARIO (SISTEMA EXTERNO) ---
 actor "Pasarela de Pago Stripe" as PasarelaPago << SistemaExterno >>
@@ -143,9 +142,6 @@ consultarVehiculoProf <.. reportarIncidencia : <<extend>>
 ' Extends de Profesor (Consultar Exámenes)
 consultarExamenesProf <.. calificarExamen : <<extend>>
 
-' Includes de Alumno
-solicitarFechaExamen ..> pagarTasas : <<include>>
-
 ' Extends de Alumno
 consultarCalendarioAlum <.. reservarClase : <<extend>>
 consultarCalendarioAlum <.. cancelarReservaAlum : <<extend>>
@@ -155,7 +151,6 @@ consultarSolicitudExamenAlum <.. solicitarFechaExamen : <<extend>>
 ' --- RELACIONES CON ACTORES SECUNDARIOS (A LA DERECHA) ---
 formalizarMatricula -- PasarelaPago
 comprarClases -- PasarelaPago
-pagarTasas -- PasarelaPago
 renovarMatricula -- PasarelaPago
 
 @enduml
