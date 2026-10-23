@@ -237,6 +237,52 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
+    @DisplayName("POST /registro con alumno menor de 18 años es rechazado por Bean Validation")
+    void testRegistroAlumnoMenorDeEdadFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/registro")
+                .with(csrf())
+                .param("nombreUsuario", "alumno_menor_edad")
+                .param("correo", "menor@autoescuela.es")
+                .param("password", "password123")
+                .param("confirmPassword", "password123")
+                .param("nombre", "Lucas")
+                .param("apellidos", "Menor")
+                .param("dni", "88223344M")
+                .param("fechaNacimiento", LocalDate.now().minusYears(17).toString())
+                .param("telefono", "633445566")
+                .param("direccion", "Calle Luna 2")
+                .param("tipoCarnet", "PERMISO_B")
+                .param("terminos", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro"))
+                .andExpect(model().attribute("error", "El alumno debe ser mayor de edad (al menos 18 años)."));
+    }
+
+    @Test
+    @DisplayName("POST /registro con fecha de nacimiento anterior a hace 100 años es rechazado por Bean Validation")
+    void testRegistroAlumnoMayorDe100AniosFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/registro")
+                .with(csrf())
+                .param("nombreUsuario", "alumno_centenario")
+                .param("correo", "centenario@autoescuela.es")
+                .param("password", "password123")
+                .param("confirmPassword", "password123")
+                .param("nombre", "Centenario")
+                .param("apellidos", "Mayor")
+                .param("dni", "88223344N")
+                .param("fechaNacimiento", "1910-01-01")
+                .param("telefono", "633445566")
+                .param("direccion", "Calle Luna 2")
+                .param("tipoCarnet", "PERMISO_B")
+                .param("terminos", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro"))
+                .andExpect(model().attribute("error", "La fecha de nacimiento no puede ser anterior a hace 100 años."));
+    }
+
+    @Test
     @DisplayName("GET /registro para un usuario ya autenticado redirige a la página principal")
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
     void testGetRegistroParaUsuarioAutenticado() throws Exception

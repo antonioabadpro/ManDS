@@ -318,6 +318,28 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con profesor menor de 18 años falla por validación de backend")
+    void testAltaProfesorMenorDeEdadFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Joven")
+                .param("apellidos", "Docente")
+                .param("dni", "98765433Z")
+                .param("fechaNacimiento", LocalDate.now().minusYears(17).toString()) // 17 años
+                .param("correo", "joven@autoescuela.es")
+                .param("telefono", "611222335")
+                .param("direccion", "Calle Joven 1")
+                .param("fechaContratacion", LocalDate.now().toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("POST /admin/profesores/alta con fecha de contratación fuera del rango +- 1 mes falla por validación de backend")
     void testAltaProfesorFechaContratacionFueraDeRango() throws Exception
     {

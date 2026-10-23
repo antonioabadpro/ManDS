@@ -117,4 +117,17 @@ public record RegistroAlumnoDTO(
         }
         return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
     }
+
+    /**
+     * Valida que la edad del alumno no exceda un límite razonable (no más de 100 años).
+     */
+    @AssertTrue(message = "La fecha de nacimiento no puede ser anterior a hace 100 años.")
+    public boolean isEdadRazonable()
+    {
+        if (this.fechaNacimiento == null)
+        {
+            return true;
+        }
+        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+    }
 }

@@ -78,6 +78,11 @@ public class ProfesorService
             throw new ReglaNegocioException("El profesor debe ser mayor de edad (al menos 18 años).");
         }
 
+        if (dto.fechaNacimiento().isBefore(LocalDate.now().minusYears(100)))
+        {
+            throw new ReglaNegocioException("La fecha de nacimiento no puede ser anterior a hace 100 años.");
+        }
+
         LocalDate haceUnMesAlta = LocalDate.now().minusMonths(1);
         LocalDate enUnMesAlta = LocalDate.now().plusMonths(1);
         if (dto.fechaContratacion() == null || dto.fechaContratacion().isBefore(haceUnMesAlta) || dto.fechaContratacion().isAfter(enUnMesAlta))

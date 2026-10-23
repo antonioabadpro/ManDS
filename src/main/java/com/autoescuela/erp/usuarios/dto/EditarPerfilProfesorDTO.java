@@ -10,6 +10,7 @@ import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -101,5 +102,31 @@ public record EditarPerfilProfesorDTO(
     public String getAntiguedadTexto()
     {
         return this.antiguedad();
+    }
+
+    /**
+     * Valida que el profesor sea mayor de edad (al menos 18 años).
+     */
+    @AssertTrue(message = "El profesor debe ser mayor de edad (al menos 18 años).")
+    public boolean isMayorDeEdad()
+    {
+        if (this.fechaNacimiento == null)
+        {
+            return true;
+        }
+        return this.fechaNacimiento.plusYears(18).isBefore(LocalDate.now());
+    }
+
+    /**
+     * Valida que la edad del profesor no exceda un límite razonable (no más de 100 años).
+     */
+    @AssertTrue(message = "La fecha de nacimiento no puede ser anterior a hace 100 años.")
+    public boolean isEdadRazonable()
+    {
+        if (this.fechaNacimiento == null)
+        {
+            return true;
+        }
+        return this.fechaNacimiento.isAfter(LocalDate.now().minusYears(100));
     }
 }
