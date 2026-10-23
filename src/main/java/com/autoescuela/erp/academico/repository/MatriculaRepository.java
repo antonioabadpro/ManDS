@@ -18,4 +18,9 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long>
      * Recupera el histórico completo de matrículas de un alumno.
      */
     List<Matricula> findByAlumnoOrderByFechaMatriculacionDesc(Alumno alumno);
+
+    /**
+     * Recupera la matrícula más reciente registrada para el alumno.
+     */
+    Optional<Matricula> findFirstByAlumnoOrderByIdDesc(Alumno alumno);
 }

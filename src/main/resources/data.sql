@@ -1136,140 +1136,140 @@ VALUES (248, '2026-10-06 09:30:00', 45, 'Calle Gran Vía 20', 15170, 15200, 'Cir
 -- ------------------------------------------------------------------------------
 -- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 45 Solicitudes
 -- ------------------------------------------------------------------------------
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (1, 'ACEPTADA', 'Solicitud teórica aceptada.', 200, 100, 1);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (1, '2026-08-10 09:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 200, NULL, 1);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (2, 'ACEPTADA', 'Citación para examen práctico de circulación.', 200, 100, 1);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (2, '2026-10-15 10:30:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico de circulación.', 200, 100, 1);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (3, 'ACEPTADA', 'Solicitud teórica aceptada.', 208, 100, 9);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (3, '2026-05-25 11:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 208, NULL, 9);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (4, 'ACEPTADA', 'Primera convocatoria práctica.', 208, 100, 9);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (4, '2026-08-15 10:00:00', 'ACEPTADA', 'PRACTICO', 'Primera convocatoria práctica.', 208, 100, 9);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (5, 'ACEPTADA', 'Segunda convocatoria práctica.', 208, 100, 9);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (5, '2026-09-01 12:00:00', 'ACEPTADA', 'PRACTICO', 'Segunda convocatoria práctica.', 208, 100, 9);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (6, 'ACEPTADA', 'Primera convocatoria práctica.', 207, 101, 8);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (6, '2026-06-20 09:00:00', 'ACEPTADA', 'PRACTICO', 'Primera convocatoria práctica.', 207, 101, 8);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (7, 'ACEPTADA', 'Segunda convocatoria práctica.', 207, 101, 8);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (7, '2026-07-15 10:00:00', 'ACEPTADA', 'PRACTICO', 'Segunda convocatoria práctica.', 207, 101, 8);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (8, 'ACEPTADA', 'Solicitud teórica aceptada.', 202, 100, 3);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (8, '2026-08-25 09:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 202, NULL, 3);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (9, 'PENDIENTE', 'Alumno con 10 prácticas completadas y destreza acreditada en vías rápidas.', 201, 100, 2);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (9, '2026-10-18 09:45:00', 'PENDIENTE', 'PRACTICO', 'Alumno con 10 prácticas completadas y destreza acreditada en vías rápidas.', 201, 100, 2);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (10, 'PENDIENTE', 'Solicitud para examen de destreza en circuito cerrado A2.', 205, 103, 6);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (10, '2026-10-19 12:00:00', 'PENDIENTE', 'PRACTICO', 'Solicitud para examen de destreza en circuito cerrado A2.', 205, 103, 6);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (11, 'PENDIENTE', 'Solicitud teórica Permiso B tras completar test de autoescuela.', 204, 100, 5);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (11, '2026-10-20 16:30:00', 'PENDIENTE', 'TEORICO', 'Solicitud teórica Permiso B tras completar test de autoescuela.', 204, NULL, 5);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (12, 'PENDIENTE', 'Alumno preparado para el examen práctico oficial de circulación.', 219, 101, 20);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (12, '2026-10-21 17:15:00', 'PENDIENTE', 'PRACTICO', 'Alumno preparado para el examen práctico oficial de circulación.', 219, 101, 20);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (13, 'RECHAZADA', 'Se aconseja realizar al menos 5 clases prácticas más de circulación en vías rápidas antes de ir a examen.', 203, 100, 4);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (13, '2026-09-15 10:00:00', 'RECHAZADA', 'PRACTICO', 'Se aconseja realizar al menos 5 clases prácticas más de circulación en vías rápidas antes de ir a examen.', 203, 100, 4);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (14, 'RECHAZADA', 'Certificado médico psicotécnico caducado; presentar renovación en secretaría.', 211, 101, 12);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (14, '2026-09-18 11:30:00', 'RECHAZADA', 'PRACTICO', 'Certificado médico psicotécnico caducado; presentar renovación en secretaría.', 211, 101, 12);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (15, 'RECHAZADA', 'Falta afianzar la maniobra de estacionamiento en pendiente antes de ir a examen.', 216, 102, 17);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (15, '2026-09-22 16:00:00', 'RECHAZADA', 'PRACTICO', 'Falta afianzar la maniobra de estacionamiento en pendiente antes de ir a examen.', 216, 102, 17);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (16, 'ACEPTADA', 'Solicitud teórica aceptada.', 214, 102, 15);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (16, '2026-08-20 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 214, NULL, 15);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (17, 'ACEPTADA', 'Citación para examen teórico oficial DGT.', 217, 103, 18);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (17, '2026-10-10 09:00:00', 'ACEPTADA', 'TEORICO', 'Citación para examen teórico oficial DGT.', 217, NULL, 18);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (18, 'ACEPTADA', 'Solicitud teórica Permiso B aceptada.', 220, 102, 27);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (18, '2026-06-10 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica Permiso B aceptada.', 220, NULL, 27);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (19, 'ACEPTADA', 'Citación para examen práctico Permiso B.', 220, 102, 27);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (19, '2026-07-10 11:00:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico Permiso B.', 220, 102, 27);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (20, 'ACEPTADA', 'Solicitud teórica A2 aceptada.', 205, 103, 6);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (20, '2026-09-01 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica A2 aceptada.', 205, NULL, 6);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (21, 'ACEPTADA', 'Solicitud teórica aceptada.', 204, 100, 5);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (21, '2026-08-01 09:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 204, NULL, 5);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (22, 'ACEPTADA', 'Solicitud teórica A2 aceptada.', 210, 103, 11);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (22, '2026-07-10 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica A2 aceptada.', 210, NULL, 11);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (23, 'ACEPTADA', 'Citación para examen práctico en circuito cerrado A2.', 210, 103, 11);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (23, '2026-10-12 11:00:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico en circuito cerrado A2.', 210, 103, 11);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (24, 'ACEPTADA', 'Solicitud teórica aceptada.', 213, 102, 14);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (24, '2026-07-15 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 213, NULL, 14);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (25, 'ACEPTADA', 'Citación para examen práctico de circulación.', 213, 102, 14);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (25, '2026-10-14 12:00:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico de circulación.', 213, 102, 14);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (26, 'ACEPTADA', 'Solicitud teórica aceptada.', 219, 101, 20);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (26, '2026-08-05 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 219, NULL, 20);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (27, 'ACEPTADA', 'Solicitud teórica aceptada.', 222, 103, 23);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (27, '2026-08-15 10:00:00', 'ACEPTADA', 'TEORICO', 'Solicitud teórica aceptada.', 222, NULL, 23);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (28, 'ACEPTADA', 'Citación para examen práctico con camión rígido Permiso C.', 209, 101, 10);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (28, '2026-10-11 10:00:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico con camión rígido Permiso C.', 209, 101, 10);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (29, 'ACEPTADA', 'Citación para examen práctico de remolque Permiso B+E.', 212, 102, 13);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (29, '2026-10-12 10:00:00', 'ACEPTADA', 'PRACTICO', 'Citación para examen práctico de remolque Permiso B+E.', 212, 102, 13);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (30, 'ACEPTADA', 'Primera convocatoria teórica.', 206, 100, 7);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (30, '2026-06-20 09:00:00', 'ACEPTADA', 'TEORICO', 'Primera convocatoria teórica.', 206, NULL, 7);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (31, 'ACEPTADA', 'Segunda convocatoria teórica.', 206, 100, 7);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (31, '2026-07-05 10:00:00', 'ACEPTADA', 'TEORICO', 'Segunda convocatoria teórica.', 206, NULL, 7);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (32, 'ACEPTADA', 'Tercera convocatoria teórica tras renovación.', 206, 100, 7);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (32, '2026-07-25 09:00:00', 'ACEPTADA', 'TEORICO', 'Tercera convocatoria teórica tras renovación.', 206, NULL, 7);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (33, 'ACEPTADA', 'Cuarta convocatoria teórica.', 206, 100, 7);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (33, '2026-08-10 10:00:00', 'ACEPTADA', 'TEORICO', 'Cuarta convocatoria teórica.', 206, NULL, 7);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (34, 'ACEPTADA', 'Tercera convocatoria práctica tras renovación.', 207, 101, 8);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (34, '2026-08-15 10:00:00', 'ACEPTADA', 'PRACTICO', 'Tercera convocatoria práctica tras renovación.', 207, 101, 8);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (35, 'ACEPTADA', 'Cuarta convocatoria práctica.', 207, 101, 8);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (35, '2026-09-15 10:00:00', 'ACEPTADA', 'PRACTICO', 'Cuarta convocatoria práctica.', 207, 101, 8);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (36, 'ACEPTADA', 'Primera convocatoria teórica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (36, '2026-04-25 09:00:00', 'ACEPTADA', 'TEORICO', 'Primera convocatoria teórica.', 215, NULL, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (37, 'ACEPTADA', 'Segunda convocatoria teórica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (37, '2026-05-12 10:00:00', 'ACEPTADA', 'TEORICO', 'Segunda convocatoria teórica.', 215, NULL, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (38, 'ACEPTADA', 'Tercera convocatoria teórica tras renovación.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (38, '2026-06-01 09:00:00', 'ACEPTADA', 'TEORICO', 'Tercera convocatoria teórica tras renovación.', 215, NULL, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (39, 'ACEPTADA', 'Cuarta convocatoria teórica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (39, '2026-06-15 10:00:00', 'ACEPTADA', 'TEORICO', 'Cuarta convocatoria teórica.', 215, NULL, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (40, 'ACEPTADA', 'Primera convocatoria práctica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (40, '2026-07-20 10:00:00', 'ACEPTADA', 'PRACTICO', 'Primera convocatoria práctica.', 215, 102, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (41, 'ACEPTADA', 'Segunda convocatoria práctica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (41, '2026-08-10 11:00:00', 'ACEPTADA', 'PRACTICO', 'Segunda convocatoria práctica.', 215, 102, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (42, 'ACEPTADA', 'Tercera convocatoria práctica tras renovación.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (42, '2026-09-01 10:00:00', 'ACEPTADA', 'PRACTICO', 'Tercera convocatoria práctica tras renovación.', 215, 102, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (43, 'ACEPTADA', 'Cuarta convocatoria práctica.', 215, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (43, '2026-09-20 11:00:00', 'ACEPTADA', 'PRACTICO', 'Cuarta convocatoria práctica.', 215, 102, 16);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (44, 'ACEPTADA', 'Primera convocatoria teórica.', 226, 105, 28);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (44, '2026-08-25 09:00:00', 'ACEPTADA', 'TEORICO', 'Primera convocatoria teórica.', 226, NULL, 28);
 
-INSERT INTO solicitud_examen (id, estado, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (45, 'ACEPTADA', 'Segunda convocatoria teórica.', 226, 105, 28);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (45, '2026-09-05 10:00:00', 'ACEPTADA', 'TEORICO', 'Segunda convocatoria teórica.', 226, NULL, 28);
 
 -- ------------------------------------------------------------------------------
 -- 8. EXÁMENES DGT (examen) - 38 Exámenes

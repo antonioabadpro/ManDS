@@ -940,8 +940,11 @@ public class AlumnoController
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-        List<SolicitudExamen> solicitudes = this.solicitudExamenRepository.findByAlumnoOrderByIdDesc(alumno);
+        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+                .orElseGet(() -> this.matriculaRepository.findFirstByAlumnoOrderByIdDesc(alumno).orElse(null));
+        List<SolicitudExamen> solicitudes = matricula != null
+                ? this.solicitudExamenRepository.findByMatriculaOrderByFechaHoraDesc(matricula)
+                : this.solicitudExamenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
@@ -963,10 +966,32 @@ public class AlumnoController
         }
 
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-        boolean teoricoAprobado = this.examenRepository.countByAlumnoAndEsAptoTrue(alumno) > 0;
+        boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+        boolean practicoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.PRACTICO);
+
+        boolean expedienteCerrado = (matricula == null || !matricula.getEstaActiva()) && practicoAprobado;
+        boolean esMatriculaActiva = matricula == null || matricula.getEstaActiva();
+        boolean convocatoriasAgotadas = matricula != null && (matricula.getConvocatorias() == null || matricula.getConvocatorias() <= 0);
+        boolean tieneSolicitudPendiente = this.solicitudExamenRepository.existsByAlumnoAndEstado(alumno, EstadoSolicitud.PENDIENTE);
+        boolean tieneSolicitudAceptada = this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, LocalDateTime.now());
+
+        boolean puedeSolicitarTeorico = matricula != null
+                && matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
+                && !teoricoAprobado;
+
+        boolean puedeSolicitarPractico = matricula != null
+                && (matricula.getModalidad() == ModalidadMatricula.PRACTICA || teoricoAprobado);
 
         model.addAttribute("matricula", matricula);
+        model.addAttribute("expedienteCerrado", expedienteCerrado);
+        model.addAttribute("sinMatriculaActiva", esMatriculaActiva);
+        model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
+        model.addAttribute("tienePendiente", tieneSolicitudPendiente);
+        model.addAttribute("tieneExamenProgramado", tieneSolicitudAceptada);
         model.addAttribute("teoricoAprobado", teoricoAprobado);
+        model.addAttribute("practicoAprobado", practicoAprobado);
+        model.addAttribute("puedeSolicitarTeorico", puedeSolicitarTeorico);
+        model.addAttribute("puedeSolicitarPractico", puedeSolicitarPractico);
 
         return "alumno/fragments/modal-solicitar-examen :: modalSolicitarExamen";
     }
@@ -984,10 +1009,25 @@ public class AlumnoController
             return "redirect:/login";
         }
 
+        if (bindingResult.hasErrors())
+        {
+            redirectAttributes.addFlashAttribute("error", "Debe seleccionar un tipo de prueba oficial válido.");
+            return "redirect:/alumno/examenes";
+        }
+
         Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
         if (matricula == null || !matricula.getEstaActiva())
         {
             redirectAttributes.addFlashAttribute("error", "Debes tener una matrícula activa para solicitar fecha de examen.");
+            return "redirect:/alumno/examenes";
+        }
+
+        boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+        boolean practicoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.PRACTICO);
+
+        if (practicoAprobado)
+        {
+            redirectAttributes.addFlashAttribute("error", "Has superado con éxito las pruebas oficiales de tu permiso. Tu expediente se encuentra cerrado.");
             return "redirect:/alumno/examenes";
         }
 
@@ -998,27 +1038,64 @@ public class AlumnoController
         }
 
         // Comprobar si ya existe una solicitud PENDIENTE
-        boolean tienePendiente = this.solicitudExamenRepository.existsByAlumnoAndEstado(alumno, EstadoSolicitud.PENDIENTE);
-        if (tienePendiente)
+        boolean tieneSolicitudPendiente = this.solicitudExamenRepository.existsByAlumnoAndEstado(alumno, EstadoSolicitud.PENDIENTE);
+        if (tieneSolicitudPendiente)
         {
             redirectAttributes.addFlashAttribute("error", "Ya tienes una solicitud de examen en trámite pendiente de resolución por la Administración.");
             return "redirect:/alumno/examenes";
         }
 
+        // Comprobar si tiene una solicitud ACEPTADA con examen futuro no celebrado
+        boolean tieneSolicitudAceptada = this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, LocalDateTime.now());
+        if (tieneSolicitudAceptada)
+        {
+            redirectAttributes.addFlashAttribute("error", "Ya dispones de una convocatoria oficial asignada y pendiente de realización. No puedes realizar otra solicitud hasta haber celebrado dicho examen.");
+            return "redirect:/alumno/examenes";
+        }
+
+        // Validaciones de tipo de examen según modalidad y aprobados previos
+        if (dto.tipoExamen() == TipoExamen.TEORICO)
+        {
+            if (matricula.getModalidad() == ModalidadMatricula.PRACTICA)
+            {
+                redirectAttributes.addFlashAttribute("error", "No puedes solicitar examen teórico con una matrícula de modalidad práctica.");
+                return "redirect:/alumno/examenes";
+            }
+            if (teoricoAprobado)
+            {
+                redirectAttributes.addFlashAttribute("error", "Ya has aprobado el examen teórico, no puedes volver a solicitarlo.");
+                return "redirect:/alumno/examenes";
+            }
+        }
+        else
+        {
+            if (dto.tipoExamen() == TipoExamen.PRACTICO)
+            {
+                if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA && !teoricoAprobado)
+                {
+                    redirectAttributes.addFlashAttribute("error", "Debes haber aprobado el examen teórico previamente para solicitar el examen práctico.");
+                    return "redirect:/alumno/examenes";
+                }
+            }
+        }
+
         SolicitudExamen solicitud = new SolicitudExamen();
         solicitud.setAlumno(alumno);
-        solicitud.setProfesor(alumno.getProfesor());
+        solicitud.setTipo(dto.tipoExamen());
+        solicitud.setProfesor(dto.tipoExamen() == TipoExamen.TEORICO ? null : alumno.getProfesor());
         solicitud.setMatricula(matricula);
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
-        solicitud.setComentarioJustificacion(dto.comentarioJustificacion() != null ? dto.comentarioJustificacion().trim() : "");
+        solicitud.setFechaHora(LocalDateTime.now());
+        solicitud.setComentarioJustificacion(null);
 
         this.solicitudExamenRepository.save(solicitud);
 
-        redirectAttributes.addFlashAttribute("mensajeExito", "Solicitud de examen registrada con éxito. Ha ingresado en la cola FIFO oficial para su asignación.");
+        redirectAttributes.addFlashAttribute("mensajeExito", "Solicitud de examen registrada con éxito. Ha ingresado en la cola oficial para su asignación.");
         return "redirect:/alumno/examenes";
     }
 
     // =========================================================================
+
     // 5. CALIFICACIONES Y NOTAS DGT
     // =========================================================================
     @GetMapping("/notas")

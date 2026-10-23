@@ -1,7 +1,10 @@
 package com.autoescuela.erp.examenes.model;
 
+import java.time.LocalDateTime;
+
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -35,9 +38,16 @@ public class SolicitudExamen
     @Setter(AccessLevel.NONE)
     private Long id;
 
+    @Column(nullable = false)
+    private LocalDateTime fechaHora = LocalDateTime.now();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoSolicitud estado = EstadoSolicitud.PENDIENTE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoExamen tipo;
 
     @Column(length = 500)
     private String comentarioJustificacion;

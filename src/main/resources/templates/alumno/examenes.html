@@ -32,6 +32,7 @@
 
     <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
     <script src="../../static/js/alumno.js" th:src="@{/js/alumno.js}" defer></script>
+    <script src="../../static/js/alumno-examenes.js" th:src="@{/js/alumno-examenes.js}" defer></script>
 </head>
 
 <body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
@@ -63,40 +64,48 @@
                 </div>
             </div>
 
-            <!-- Banner Informativo del Circuito DGT (Regla de Negocio 7.5) -->
+            <!-- Banner Informativo del Circuito DGT -->
             <div class="rounded-3xl p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-200 dark:border-indigo-900/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="space-y-1">
                     <div class="flex items-center space-x-2">
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
                             Circuito Oficial DGT
                         </span>
-                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">2 Convocatorias Mensuales</span>
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">Pruebas Oficiales</span>
                     </div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white">Procedimiento de Examen</h3>
                     <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-                        Toda solicitud formal nace en estado <strong>PENDIENTE</strong>. El Administrador asigna una de las 2 fechas oficiales fijadas mensualmente respetando la cola FIFO y el cupo reglamentario de máximo 4 alumnos por profesor para el examen práctico.
+                        Solicita tu convocatoria para la prueba oficial ante la DGT. La Administración gestionará tu solicitud y, una vez aceptada, realizarás el examen junto a tu profesor en el día y hora indicados.
                     </p>
                 </div>
 
                 <!-- Botón para presentar nueva solicitud -->
-                <button type="button" hx-get="/alumno/examenes/solicitar-modal" hx-target="#contenedor-modal" hx-swap="innerHTML" class="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition transform active:scale-95 shrink-0">
+                <button type="button" hx-get="/alumno/examenes/solicitar-modal" hx-target="#contenedor-modal" hx-swap="innerHTML" class="inline-flex items-center space-x-2 px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition transform active:scale-95 shrink-0 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span>Solicitar Examen DGT</span>
                 </button>
             </div>
 
-            <!-- Resumen de Convocatorias del Alumno -->
+            <!-- Resumen de Tarjetas del Alumno -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Tarjeta: Permiso Activo -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Permiso Activo</span>
-                        <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${matricula?.permisoCarnet}">PERMISO B</p>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Matrícula</span>
+                        <p class="text-base font-bold text-slate-900 dark:text-white" th:text="${matricula != null ? (matricula.modalidad.name() == 'TEORICO_PRACTICA' ? 'Teórico-Práctica' : 'Sólo Prácticas') : 'Sin expediente activo'}">Teórico-Práctica</p>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300" th:text="${matricula?.tipo}">NUEVA</span>
+                    <div class="shrink-0">
+                        <span th:if="${matricula?.permisoCarnet?.name() == 'PERMISO_A' || matricula?.permisoCarnet?.name() == 'PERMISO_A1' || matricula?.permisoCarnet?.name() == 'PERMISO_A2' || matricula?.permisoCarnet?.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${matricula?.permisoCarnet?.descripcion}">Permiso A2</span>
+                        <span th:if="${matricula?.permisoCarnet?.name() == 'PERMISO_B' || matricula == null}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${matricula?.permisoCarnet?.descripcion ?: 'Sin Permiso'}">Permiso B</span>
+                        <span th:if="${matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || matricula?.permisoCarnet?.name() == 'PERMISO_B1' || matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${matricula?.permisoCarnet?.descripcion}">Permiso B+E</span>
+                        <span th:if="${matricula?.permisoCarnet?.name() == 'PERMISO_C' || matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${matricula?.permisoCarnet?.descripcion}">Permiso C</span>
+                        <span th:if="${matricula?.permisoCarnet?.name() == 'PERMISO_D' || matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${matricula?.permisoCarnet?.descripcion}">Permiso D</span>
+                    </div>
                 </div>
 
+                <!-- Tarjeta: Convocatorias Disponibles -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
                         <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Convocatorias Disponibles</span>
@@ -107,14 +116,14 @@
                     <span class="text-xs text-slate-400">Gastadas: <strong th:text="${matricula?.convocatoriasGastadas ?: 0}">0</strong></span>
                 </div>
 
+                <!-- Tarjeta: Profesor Asignado -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Estado de Solicitudes</span>
-                        <p class="text-lg font-bold text-slate-900 dark:text-white">
-                            <span th:text="${#lists.size(solicitudes ?: {})}">0</span> en trámite / cerradas
-                        </p>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Profesor Asignado</span>
+                        <p class="text-base font-bold text-slate-900 dark:text-white" th:text="${alumno?.profesor != null ? (alumno.profesor.nombre + ' ' + alumno.profesor.apellidos) : 'Sin asignar'}">Laura Sánchez Romero</p>
                     </div>
-                    <a th:href="@{/alumno/notas}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Ver notas &rarr;</a>
+                    <span th:if="${alumno?.profesor != null}" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Asignado</span>
+                    <span th:unless="${alumno?.profesor != null}" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">Pendiente</span>
                 </div>
             </div>
 
@@ -128,44 +137,51 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                    <table class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
                         <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
-                            <tr>
-                                <th class="py-3 px-4">Ref. Solicitud</th>
-                                <th class="py-3 px-4">Permiso</th>
-                                <th class="py-3 px-4">Profesor Asignado</th>
-                                <th class="py-3 px-4">Estado</th>
-                                <th class="py-3 px-4">Resolución / Fecha Oficial</th>
-                                <th class="py-3 px-4">Justificación / Motivo</th>
+                            <tr class="text-center">
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Fecha de Solicitud</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Tipo de Examen</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Estado</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Fecha de Examen</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Motivo de Rechazo</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr th:each="s : ${solicitudes}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white" th:text="'SOL-' + ${s.id}">SOL-1</td>
-                                <td class="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200" th:text="${s.matricula?.permisoCarnet}">PERMISO B</td>
-                                <td class="py-3.5 px-4" th:text="${s.profesor?.nombre + ' ' + s.profesor?.apellidos} ?: 'No asignado'"></td>
-                                <td class="py-3.5 px-4">
-                                    <span th:if="${s.estado.name() == 'PENDIENTE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                <td class="py-3.5 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(s.fechaHora, 'dd/MM/yyyy HH:mm')}">15/10/2026 10:30</td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span th:if="${s.tipo?.name() == 'TEORICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                                        TEÓRICO
+                                    </span>
+                                    <span th:if="${s.tipo?.name() == 'PRACTICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                                        PRÁCTICO
+                                    </span>
+                                    <span th:if="${s.tipo == null}" class="text-slate-400">-</span>
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span th:if="${s.estado.name() == 'PENDIENTE'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                                         PENDIENTE
                                     </span>
-                                    <span th:if="${s.estado.name() == 'ACEPTADA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <span th:if="${s.estado.name() == 'ACEPTADA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                         ACEPTADA
                                     </span>
-                                    <span th:if="${s.estado.name() == 'RECHAZADA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                    <span th:if="${s.estado.name() == 'RECHAZADA'}" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                                         RECHAZADA
                                     </span>
                                 </td>
-                                <td class="py-3.5 px-4 font-mono">
-                                    <span th:if="${s.examen != null}" class="text-indigo-600 dark:text-indigo-400 font-bold" th:text="${#temporals.format(s.examen.fechaHora, 'dd/MM/yyyy HH:mm')}"></span>
+                                <td class="py-3.5 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
+                                    <span th:if="${s.examen != null}" class="text-slate-900 dark:text-white font-medium" th:text="${#temporals.format(s.examen.fechaHora, 'dd/MM/yyyy HH:mm')}"></span>
                                     <span th:if="${s.examen == null and s.estado.name() == 'PENDIENTE'}" class="text-slate-400 italic">En cola de asignación</span>
-                                    <span th:if="${s.examen == null and s.estado.name() == 'RECHAZADA'}" class="text-rose-500 font-semibold">No admitida</span>
+                                    <span th:if="${s.examen == null and s.estado.name() == 'RECHAZADA'}" class="text-slate-400">-</span>
                                 </td>
-                                <td class="py-3.5 px-4 max-w-[280px]">
-                                    <p class="truncate text-slate-600 dark:text-slate-300" th:title="${s.comentarioJustificacion}" th:text="${s.comentarioJustificacion} ?: 'Sin observaciones'"></p>
+                                <td class="py-3.5 px-4 text-center max-w-[280px]">
+                                    <p th:if="${s.estado.name() == 'RECHAZADA'}" class="truncate text-rose-600 dark:text-rose-400 font-medium" th:title="${s.comentarioJustificacion}" th:text="${s.comentarioJustificacion} ?: 'Sin motivo especificado'"></p>
+                                    <span th:unless="${s.estado.name() == 'RECHAZADA'}" class="text-slate-400">-</span>
                                 </td>
                             </tr>
                             <tr th:if="${solicitudes == null or #lists.isEmpty(solicitudes)}">
-                                <td colspan="6" class="py-12 text-center text-slate-400 italic">
+                                <td colspan="5" class="py-12 text-center text-slate-400 italic">
                                     No has registrado ninguna solicitud de examen DGT todavía.
                                 </td>
                             </tr>

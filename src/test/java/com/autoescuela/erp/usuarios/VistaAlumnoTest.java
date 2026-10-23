@@ -195,7 +195,44 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/examenes"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/examenes"));
+                .andExpect(view().name("alumno/examenes"))
+                .andExpect(model().attributeExists("solicitudes"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("GET /alumno/examenes/solicitar-modal devuelve el fragmento del modal")
+    void testModalSolicitarExamen() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/examenes/solicitar-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("alumno/fragments/modal-solicitar-examen :: modalSolicitarExamen"))
+                .andExpect(model().attributeExists("teoricoAprobado"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/examenes/solicitar con error de validación redirige con mensaje flash")
+    void testSolicitarExamenValidacionError() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/examenes/solicitar")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/examenes"))
+                .andExpect(flash().attributeExists("error"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/examenes/solicitar con examen pendiente programado redirige con error")
+    void testSolicitarExamenConExamenProgramadoRedirige() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/examenes/solicitar")
+                .with(csrf())
+                .param("tipoExamen", "PRACTICO"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/examenes"))
+                .andExpect(flash().attributeExists("error"));
     }
 
     @Test

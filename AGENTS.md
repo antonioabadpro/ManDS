@@ -90,10 +90,13 @@
 
 ## 3.5. Circuito y Gestión de Solicitudes de Examen (DGT)
 - **Control Centralizado y Calificación:** Exclusivo del Administrador (fijar fechas, cupos, aceptar o rechazar solicitudes). Profesores consultan los exámenes de sus alumnos y califican las actas oficiales.
-- **Orden FIFO y 2 Fechas Oficiales al Mes:** Solicitudes pendientes gestionadas estrictamente por antigüedad (`ORDER BY fecha_solicitud ASC`). El Administrador fija manualmente 2 fechas oficiales por mes (1ª y 2ª quincena).
+- **Orden FIFO y 2 Fechas Oficiales al Mes:** Solicitudes pendientes gestionadas estrictamente por antigüedad (`ORDER BY fecha_hora ASC`). El Administrador fija manualmente 2 fechas oficiales por mes (1ª y 2ª quincena).
 - **Cupos y Resolución:** Rechazo exige justificación obligatoria y envío de email. Aceptación valida cupo máximo por carnet, dispara citación por email y bloquea la jornada completa del vehículo.
 - **Incompatibilidad y Clases Previas Obligatorias:** Un alumno citado o examinado no puede tener clases `PENDIENTE`. Es obligatorio haber completado clases en estado `RECIBIDA` antes de examinarse o ser citado a prueba práctica DGT.
 - **Abono Obligatorio de Tasas de Examen:** Toda solicitud formal de fecha de examen oficial ante la DGT exige obligatoriamente el abono previo de la tasa de examen correspondiente mediante la pasarela de pagos.
+- **Validaciones de Solicitud de Examen:** Prohibido solicitar teórico en modalidad `PRACTICA` o si ya fue aprobado en `TEORICO_PRACTICA`. Expedientes con ambos exámenes aprobados y matrícula inactiva no admiten solicitudes.
+- **Concurrencia de Solicitudes y Examen Futuro:** Prohibido solicitar examen si existe una petición `PENDIENTE` o una `ACEPTADA` con fecha no celebrada. Solicitudes `RECHAZADAS` habilitan nueva petición inmediata.
+- **Atributos y Tipado de Solicitud:** La solicitud registra `fechaHora` (`LocalDateTime`) y `tipo` (`TipoExamen`). En solicitudes teóricas (`TEORICO`) el campo `profesor` es obligatoriamente `null` (sin profesor asignado); `comentarioJustificacion` es exclusivo de Administración para motivar rechazos.
 
 ## 3.6. Cuadrícula Semanal Nativa de Calendario (SSR + Thymeleaf + HTMX)
 - **Estructura y Turnos Oficiales:** Calendario laboral semanal (lunes a viernes). Las reservas se ciñen a los turnos oficiales y sus franjas hábiles de 45 min:

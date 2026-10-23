@@ -1,8 +1,13 @@
 package com.autoescuela.erp.examenes.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -11,7 +16,7 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen, Long>
 {
     /**
-     * Recupera las solicitudes de examen asociadas a un profesor tutor.
+     * Recupera las solicitudes de examen asociadas a un profesor.
      */
     List<SolicitudExamen> findByProfesor(Profesor profesor);
 
@@ -21,14 +26,30 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
     List<SolicitudExamen> findByProfesorAndEstado(Profesor profesor, EstadoSolicitud estado);
 
     /**
+     * Recupera las solicitudes de examen formuladas por un alumno ordenadas por fecha y hora descendente.
+     */
+    List<SolicitudExamen> findByAlumnoOrderByFechaHoraDesc(Alumno alumno);
+
+    /**
      * Recupera las solicitudes de examen formuladas por un alumno ordenadas por ID descendente.
      */
     List<SolicitudExamen> findByAlumnoOrderByIdDesc(Alumno alumno);
 
     /**
+     * Recupera las solicitudes de examen asociadas a una matrícula ordenadas por fecha y hora descendente.
+     */
+    List<SolicitudExamen> findByMatriculaOrderByFechaHoraDesc(Matricula matricula);
+
+    /**
      * Comprueba si el alumno tiene alguna solicitud de examen en un determinado estado.
      */
     boolean existsByAlumnoAndEstado(Alumno alumno, EstadoSolicitud estado);
+
+    /**
+     * Comprueba si el alumno tiene una solicitud aceptada con fecha de examen posterior a la actual.
+     */
+    @Query("SELECT COUNT(s) > 0 FROM SolicitudExamen s WHERE s.alumno = :alumno AND s.estado = :estado AND s.examen.fechaHora > :fechaActual")
+    boolean existeSolicitudAceptadaConExamenPendiente(@Param("alumno") Alumno alumno, @Param("estado") EstadoSolicitud estado, @Param("fechaActual") LocalDateTime fechaActual);
 
     /**
      * Cuenta las solicitudes de examen en un determinado estado.
