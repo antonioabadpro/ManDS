@@ -360,7 +360,7 @@
                         <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                             <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-400 uppercase font-semibold text-[10px] tracking-wider">
                                 <tr>
-                                    <th class="py-2.5 px-3 rounded-l-xl">Fecha y Hora</th>
+                                    <th class="py-2.5 px-3 rounded-l-xl whitespace-nowrap">Fecha y Hora</th>
                                     <th class="py-2.5 px-3">Profesor</th>
                                     <th class="py-2.5 px-3">Punto de Recogida</th>
                                     <th class="py-2.5 px-3">Estado</th>
@@ -369,7 +369,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr th:each="c : ${clasesRecientes}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                    <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
+                                    <td class="py-3 px-3 font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
                                     <td class="py-3 px-3" th:text="${c.profesor?.nombre + ' ' + c.profesor?.apellidos} ?: 'No asignado'"></td>
                                     <td class="py-3 px-3 truncate max-w-[160px]" th:text="${c.puntoRecogida}"></td>
                                     <td class="py-3 px-3">

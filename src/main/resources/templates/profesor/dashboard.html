@@ -229,7 +229,7 @@
                     <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                         <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                             <tr>
-                                <th class="py-3 px-4">Hora</th>
+                                <th class="py-3 px-4 whitespace-nowrap">Hora</th>
                                 <th class="py-3 px-4">Alumno</th>
                                 <th class="py-3 px-4">Recogida</th>
                                 <th class="py-3 px-4">Duración</th>
@@ -239,7 +239,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr th:each="clase : ${clasesHoy}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(clase.fechaHora, 'HH:mm')}"></td>
+                                <td class="py-3 px-4 font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'HH:mm')}"></td>
                                 <td class="py-3 px-4">
                                     <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.alumno?.nombre + ' ' + clase.alumno?.apellidos}"></span>
                                     <span class="block text-[11px] text-slate-400" th:text="${'DNI: ' + clase.alumno?.dni}"></span>

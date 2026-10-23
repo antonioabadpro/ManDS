@@ -53,7 +53,7 @@
                     <!-- Iteración de Clases Prácticas Reales desde Backend -->
                     <tr th:each="c : ${clases}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
                         <!-- 1. Fecha & Hora -->
-                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <td class="py-3 px-4 text-center whitespace-nowrap tabular-nums">
                             <p class="font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy')}">10/09/2026</p>
                             <p class="text-[10px] text-slate-400" th:text="${#temporals.format(c.fechaHora, 'HH:mm')} + ' h'">10:00 h</p>
                         </td>
@@ -86,7 +86,7 @@
                         </td>
 
                         <!-- 5. Kilometraje -->
-                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <td class="py-3 px-4 text-center whitespace-nowrap tabular-nums">
                             <span th:if="${c.estadoClase?.name() == 'RECIBIDA'}" class="font-medium text-slate-700 dark:text-slate-300" th:text="${c.kmFormateado}">44.955 a 45.000 km (+45 km)</span>
                             <span th:if="${c.estadoClase?.name() == 'PENDIENTE'}" class="text-[11px] text-slate-400 italic" th:text="${c.kmInicio != null && c.kmInicio > 0 ? c.kmInicio + ' km (Inicio)' : 'Pendiente de inicio'}">45.000 km (Inicio)</span>
                             <span th:if="${c.estadoClase?.name() == 'CANCELADA'}" class="text-xs text-slate-400">--</span>

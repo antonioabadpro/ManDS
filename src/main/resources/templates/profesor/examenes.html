@@ -112,7 +112,7 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr th:each="ex : ${examenes}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4 text-center font-medium text-slate-900 dark:text-white whitespace-nowrap" th:text="${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                                <td class="py-3 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}">
                                     25/09/2026 09:00
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
