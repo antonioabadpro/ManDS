@@ -2,6 +2,7 @@ package com.autoescuela.erp.academico.service;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -213,5 +214,65 @@ public class AcademicoService
                 dniAlumno, matriculaGuardada.getPrecio(), importeTotal);
 
         return matriculaGuardada;
+    }
+
+    /**
+     * Recupera la matrícula activa vigente de un alumno si existe.
+     *
+     * @param alumno Entidad Alumno titular.
+     * @return Optional con la matrícula activa o vacío.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Matricula> buscarMatriculaActiva(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return Optional.empty();
+        }
+        return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+    }
+
+    /**
+     * Recupera el histórico de matrículas de un alumno ordenadas descendentemente (de más reciente a más antigua).
+     *
+     * @param alumno Entidad Alumno titular.
+     * @return Lista de matrículas del alumno.
+     */
+    @Transactional(readOnly = true)
+    public List<Matricula> obtenerHistoricoMatriculas(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return List.of();
+        }
+        return this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno);
+    }
+
+    /**
+     * Recupera la matrícula más reciente del alumno (activa o inactiva).
+     *
+     * @param alumno Entidad Alumno titular.
+     * @return Optional con la última matrícula registrada.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Matricula> obtenerUltimaMatricula(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return Optional.empty();
+        }
+        return this.matriculaRepository.findFirstByAlumnoOrderByIdDesc(alumno);
+    }
+
+    /**
+     * Persiste o actualiza un expediente de matrícula en la base de datos.
+     *
+     * @param matricula Entidad Matricula a persistir.
+     * @return Matrícula persistida.
+     */
+    @Transactional
+    public Matricula guardar(Matricula matricula)
+    {
+        return this.matriculaRepository.save(matricula);
     }
 }

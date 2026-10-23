@@ -2,6 +2,7 @@ package com.autoescuela.erp.flota.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -363,6 +364,34 @@ public class FlotaService
         }
 
         vehiculo.setEstado(EstadoVehiculo.INACTIVO);
+        return this.vehiculoRepository.save(vehiculo);
+    }
+
+    /**
+     * Busca un vehículo por su identificador único.
+     *
+     * @param id Identificador único del vehículo.
+     * @return Optional con el vehículo encontrado o vacío.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Vehiculo> buscarPorId(Long id)
+    {
+        if (id == null)
+        {
+            return Optional.empty();
+        }
+        return this.vehiculoRepository.findById(id);
+    }
+
+    /**
+     * Persiste o actualiza los datos de un vehículo en la base de datos.
+     *
+     * @param vehiculo Entidad Vehiculo a persistir.
+     * @return Vehículo persistido.
+     */
+    @Transactional
+    public Vehiculo guardar(Vehiculo vehiculo)
+    {
         return this.vehiculoRepository.save(vehiculo);
     }
 }

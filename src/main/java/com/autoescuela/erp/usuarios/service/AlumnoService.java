@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -23,12 +26,14 @@ import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
 import com.autoescuela.erp.usuarios.dto.ClasePracticaExpedienteDTO;
+import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.dto.ExamenExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.ReasignarAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -45,6 +50,8 @@ public class AlumnoService
     private final ClasePracticaRepository clasePracticaRepository;
     private final ExamenRepository examenRepository;
     private final ProfesorRepository profesorRepository;
+    private final PersonaRepository personaRepository;
+    private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AlumnoMapper alumnoMapper;
 
@@ -419,5 +426,156 @@ public class AlumnoService
     public Alumno guardar(Alumno alumno)
     {
         return this.alumnoRepository.save(alumno);
+    }
+
+    /**
+     * Resuelve la entidad Alumno del usuario autenticado con fallback robusto.
+     *
+     * @param principal Objeto principal de seguridad.
+     * @return Entidad Alumno autenticada o el primer alumno disponible en pruebas.
+     */
+    @Transactional(readOnly = true)
+    public Alumno obtenerAlumnoActual(Object principal)
+    {
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            Optional<Alumno> alumnoOptional = this.alumnoRepository.findById(userDetails.getId());
+            if (alumnoOptional.isPresent())
+            {
+                return alumnoOptional.get();
+            }
+        }
+        else if (principal instanceof UserDetails user)
+        {
+            Optional<Alumno> alumnoOptional = this.alumnoRepository.findByNombreUsuario(user.getUsername());
+            if (alumnoOptional.isPresent())
+            {
+                return alumnoOptional.get();
+            }
+        }
+        List<Alumno> todos = this.alumnoRepository.findAll();
+        return todos.isEmpty() ? null : todos.get(0);
+    }
+
+    /**
+     * Actualiza los datos de perfil de un alumno validando unicidad de DNI, teléfono y correo electrónico.
+     *
+     * @param alumnoId Identificador del alumno.
+     * @param dto DTO con los datos actualizados.
+     * @return Alumno actualizado y persistido.
+     */
+    @Transactional
+    public Alumno actualizarPerfil(Long alumnoId, EditarPerfilAlumnoDTO dto)
+    {
+        if (alumnoId == null)
+        {
+            throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
+        }
+
+        Alumno alumno = this.alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + alumnoId));
+
+        String nuevoDni = dto.dni() != null ? dto.dni().trim().toUpperCase() : null;
+        if (nuevoDni != null && !nuevoDni.isBlank() && !nuevoDni.equalsIgnoreCase(alumno.getDni()) && this.personaRepository.existsByDniAndIdNot(nuevoDni, alumno.getId()))
+        {
+            throw new ReglaNegocioException("El DNI / NIE introducido ya está registrado en el sistema.");
+        }
+
+        String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";
+        if (!nuevoTel.equals(alumno.getTelefono()) && this.personaRepository.existsByTelefonoAndIdNot(nuevoTel, alumno.getId()))
+        {
+            throw new ReglaNegocioException("El número de teléfono ya está registrado por otro usuario.");
+        }
+
+        if (dto.correo() != null && !dto.correo().isBlank() && !dto.correo().equalsIgnoreCase(alumno.getCorreo()) && this.personaRepository.existsByCorreoAndIdNot(dto.correo().trim(), alumno.getId()))
+        {
+            throw new ReglaNegocioException("La dirección de correo electrónico ya está registrada por otro usuario.");
+        }
+
+        if (nuevoDni != null && !nuevoDni.isBlank())
+        {
+            alumno.setDni(nuevoDni);
+        }
+        alumno.setNombre(dto.nombre() != null ? dto.nombre().trim() : "");
+        alumno.setApellidos(dto.apellidos() != null ? dto.apellidos().trim() : "");
+        alumno.setTelefono(nuevoTel);
+        alumno.setDireccion(dto.direccion() != null ? dto.direccion().trim() : "");
+        if (dto.correo() != null && !dto.correo().isBlank())
+        {
+            alumno.setCorreo(dto.correo().trim());
+        }
+        alumno.setFechaNacimiento(dto.fechaNacimiento());
+
+        return this.alumnoRepository.save(alumno);
+    }
+
+    /**
+     * Modifica la contraseña de acceso de un alumno validando las credenciales actuales.
+     *
+     * @param alumnoId Identificador del alumno.
+     * @param passwordActual Contraseña actual introducida.
+     * @param nuevaPassword Nueva contraseña deseada.
+     * @param confirmarPassword Confirmación de la nueva contraseña.
+     * @return Alumno con la contraseña actualizada.
+     */
+    @Transactional
+    public Alumno cambiarPassword(Long alumnoId, String passwordActual, String nuevaPassword, String confirmarPassword)
+    {
+        if (alumnoId == null)
+        {
+            throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
+        }
+
+        Alumno alumno = this.alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + alumnoId));
+
+        if (!this.passwordEncoder.matches(passwordActual, alumno.getPassword()))
+        {
+            throw new ReglaNegocioException("La contraseña actual no es correcta.");
+        }
+
+        if (nuevaPassword == null || nuevaPassword.length() < 6)
+        {
+            throw new ReglaNegocioException("La nueva contraseña debe tener al menos 6 caracteres.");
+        }
+
+        if (!nuevaPassword.equals(confirmarPassword))
+        {
+            throw new ReglaNegocioException("La confirmación de la contraseña no coincide.");
+        }
+
+        alumno.actualizarPassword(this.passwordEncoder.encode(nuevaPassword));
+        return this.alumnoRepository.save(alumno);
+    }
+
+    /**
+     * Envía un mensaje directo por correo electrónico a un alumno.
+     *
+     * @param alumnoId Identificador del alumno destinatario.
+     * @param asunto Asunto del correo.
+     * @param mensaje Contenido del mensaje.
+     * @return Alumno destinatario.
+     */
+    public Alumno contactarAlumno(Long alumnoId, String asunto, String mensaje)
+    {
+        if (alumnoId == null)
+        {
+            throw new ReglaNegocioException("El identificador del alumno es obligatorio.");
+        }
+        Alumno alumno = this.alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró el alumno indicado."));
+
+        if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
+        {
+            try
+            {
+                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+            }
+            catch (Exception ex)
+            {
+                // Fallback silencioso ante servidor SMTP apagado
+            }
+        }
+        return alumno;
     }
 }

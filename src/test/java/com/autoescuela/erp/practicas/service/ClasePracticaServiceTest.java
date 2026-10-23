@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoExamen;
@@ -27,6 +28,7 @@ import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
@@ -34,6 +36,7 @@ import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Tests Unitarios de ClasePracticaService (Concurrencia FCFS)")
@@ -51,6 +54,18 @@ class ClasePracticaServiceTest
     @Mock
     private ExamenRepository examenRepository;
 
+    @Mock
+    private VehiculoRepository vehiculoRepository;
+
+    @Mock
+    private AlumnoRepository alumnoRepository;
+
+    @Mock
+    private CalendarioService calendarioService;
+
+    @Mock
+    private EmailService emailService;
+
     private ClasePracticaService clasePracticaService;
 
     @BeforeEach
@@ -60,7 +75,11 @@ class ClasePracticaServiceTest
                 this.clasePracticaRepository,
                 this.clasePracticaMapper,
                 this.matriculaRepository,
-                this.examenRepository
+                this.examenRepository,
+                this.vehiculoRepository,
+                this.alumnoRepository,
+                this.calendarioService,
+                this.emailService
         );
     }
 

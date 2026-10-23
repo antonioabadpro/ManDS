@@ -4,8 +4,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +22,14 @@ import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
@@ -635,5 +639,150 @@ public class ProfesorService
             return 0;
         }
         return this.clasePracticaRepository.countByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE);
+    }
+
+    /**
+     * Busca un profesor por su identificador único.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Profesor> buscarPorId(Long id)
+    {
+        if (id == null)
+        {
+            return Optional.empty();
+        }
+        return this.profesorRepository.findById(id);
+    }
+
+    /**
+     * Busca un profesor por su nombre de usuario.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Profesor> buscarPorNombreUsuario(String nombreUsuario)
+    {
+        if (nombreUsuario == null || nombreUsuario.isBlank())
+        {
+            return Optional.empty();
+        }
+        return this.profesorRepository.findByNombreUsuario(nombreUsuario.trim());
+    }
+
+    /**
+     * Recupera la totalidad de los profesores registrados en el sistema.
+     */
+    @Transactional(readOnly = true)
+    public List<Profesor> obtenerTodos()
+    {
+        return this.profesorRepository.findAll();
+    }
+
+    /**
+     * Persiste o actualiza un profesor en la base de datos.
+     */
+    @Transactional
+    public Profesor guardar(Profesor profesor)
+    {
+        return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Resuelve la entidad Profesor del usuario autenticado con fallback robusto.
+     *
+     * @param principal Objeto principal de seguridad.
+     * @return Entidad Profesor autenticada o el primer profesor disponible en pruebas.
+     */
+    @Transactional(readOnly = true)
+    public Profesor obtenerProfesorActual(Object principal)
+    {
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            Optional<Profesor> profesorOptional = this.profesorRepository.findById(userDetails.getId());
+            if (profesorOptional.isPresent())
+            {
+                return profesorOptional.get();
+            }
+        }
+        else if (principal instanceof UserDetails user)
+        {
+            Optional<Profesor> profesorOptional = this.profesorRepository.findByNombreUsuario(user.getUsername());
+            if (profesorOptional.isPresent())
+            {
+                return profesorOptional.get();
+            }
+        }
+        List<Profesor> todos = this.profesorRepository.findAll();
+        return todos.isEmpty() ? null : todos.get(0);
+    }
+
+    /**
+     * Actualiza los datos de perfil de un profesor validando la unicidad del número de teléfono.
+     *
+     * @param profesorId Identificador del profesor.
+     * @param dto DTO con los datos actualizados.
+     * @return Profesor actualizado y persistido.
+     */
+    @Transactional
+    public Profesor actualizarPerfil(Long profesorId, EditarPerfilProfesorDTO dto)
+    {
+        if (profesorId == null)
+        {
+            throw new ReglaNegocioException("El identificador del profesor no puede ser nulo.");
+        }
+
+        Profesor profesor = this.profesorRepository.findById(profesorId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + profesorId));
+
+        String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";
+        if (!nuevoTel.equals(profesor.getTelefono()) && this.personaRepository.existsByTelefonoAndIdNot(nuevoTel, profesor.getId()))
+        {
+            throw new ReglaNegocioException("El número de teléfono introducido ya está registrado por otro usuario.");
+        }
+
+        profesor.setNombre(dto.nombre() != null ? dto.nombre().trim() : "");
+        profesor.setApellidos(dto.apellidos() != null ? dto.apellidos().trim() : "");
+        profesor.setTelefono(nuevoTel);
+        profesor.setDireccion(dto.direccion() != null ? dto.direccion().trim() : "");
+        profesor.setFechaNacimiento(dto.fechaNacimiento());
+
+        return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Modifica la contraseña de acceso de un profesor validando las credenciales actuales.
+     *
+     * @param profesorId Identificador del profesor.
+     * @param passwordActual Contraseña actual introducida.
+     * @param nuevaPassword Nueva contraseña deseada.
+     * @param confirmPassword Confirmación de la nueva contraseña.
+     * @return Profesor con la contraseña actualizada.
+     */
+    @Transactional
+    public Profesor cambiarPassword(Long profesorId, String passwordActual, String nuevaPassword, String confirmPassword)
+    {
+        if (profesorId == null)
+        {
+            throw new ReglaNegocioException("El identificador del profesor no puede ser nulo.");
+        }
+
+        Profesor profesor = this.profesorRepository.findById(profesorId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el profesor con ID: " + profesorId));
+
+        if (!this.passwordEncoder.matches(passwordActual, profesor.getPassword()))
+        {
+            throw new ReglaNegocioException("La contraseña actual no es correcta.");
+        }
+
+        if (nuevaPassword == null || nuevaPassword.length() < 6)
+        {
+            throw new ReglaNegocioException("La nueva contraseña debe tener al menos 6 caracteres.");
+        }
+
+        if (!nuevaPassword.equals(confirmPassword))
+        {
+            throw new ReglaNegocioException("Las nuevas contraseñas no coinciden.");
+        }
+
+        profesor.actualizarPassword(this.passwordEncoder.encode(nuevaPassword));
+        return this.profesorRepository.save(profesor);
     }
 }

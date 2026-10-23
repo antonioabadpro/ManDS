@@ -12,7 +12,6 @@ import java.util.Optional;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -36,9 +35,8 @@ import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
 
 import com.autoescuela.erp.academico.model.Matricula;
-import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
-import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
@@ -50,13 +48,11 @@ import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.dto.SolicitudExamenDTO;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
-import com.autoescuela.erp.examenes.repository.ExamenRepository;
-import com.autoescuela.erp.examenes.repository.SolicitudExamenRepository;
+import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
 import com.autoescuela.erp.practicas.dto.EventoCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
-import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.practicas.service.CalendarioService;
 import com.autoescuela.erp.practicas.service.ClasePracticaService;
 import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
@@ -64,8 +60,7 @@ import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
-import com.autoescuela.erp.usuarios.repository.PersonaRepository;
-import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.service.AlumnoService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,18 +74,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AlumnoController
 {
-    private final AlumnoRepository alumnoRepository;
-    private final AlumnoMapper alumnoMapper;
-    private final MatriculaRepository matriculaRepository;
-    private final ClasePracticaRepository clasePracticaRepository;
-    private final SolicitudExamenRepository solicitudExamenRepository;
-    private final ExamenRepository examenRepository;
-    private final PersonaRepository personaRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final PagoStripeService pagoStripeService;
-    private final CalendarioService calendarioService;
+    private final AlumnoService alumnoService;
+    private final AcademicoService academicoService;
+    private final ExamenService examenService;
     private final ClasePracticaService clasePracticaService;
+    private final CalendarioService calendarioService;
     private final EstadisticaService estadisticaService;
+    private final PagoStripeService pagoStripeService;
+    private final AlumnoMapper alumnoMapper;
 
     @ModelAttribute("nomUsuario")
     public String obtenerNombreUsuario(@AuthenticationPrincipal Object principal)
@@ -113,7 +104,7 @@ public class AlumnoController
         {
             return userDetails.getNombreCompleto();
         }
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno != null)
         {
             return alumno.getNombre() + " " + alumno.getApellidos();
@@ -124,12 +115,12 @@ public class AlumnoController
     @ModelAttribute("esTeoricoPractica")
     public boolean esTeoricoPractica(@AuthenticationPrincipal Object principal)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return false;
         }
-        return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
+        return this.academicoService.buscarMatriculaActiva(alumno)
                 .map(m -> m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
                 .orElse(false);
     }
@@ -137,13 +128,13 @@ public class AlumnoController
     @ModelAttribute("convocatoriasAgotadas")
     public boolean tieneConvocatoriasAgotadas(@AuthenticationPrincipal Object principal)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return false;
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
 
         return convocatoriasAgotadas;
@@ -152,40 +143,13 @@ public class AlumnoController
     @ModelAttribute("teoricoAprobado")
     public boolean teoricoAprobado(@AuthenticationPrincipal Object principal)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return false;
         }
-        return this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
-                .map(m -> m.getModalidad() != ModalidadMatricula.TEORICO_PRACTICA
-                        || this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
-                .orElse(false);
-    }
 
-    /**
-     * Resuelve la entidad Alumno del usuario autenticado con fallback robusto.
-     */
-    private Alumno obtenerAlumnoActual(Object principal)
-    {
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            Optional<Alumno> alumnoOptional = this.alumnoRepository.findById(userDetails.getId());
-            if (alumnoOptional.isPresent())
-            {
-                return alumnoOptional.get();
-            }
-        }
-        else if (principal instanceof UserDetails user)
-        {
-            Optional<Alumno> alumnoOptional = this.alumnoRepository.findByNombreUsuario(user.getUsername());
-            if (alumnoOptional.isPresent())
-            {
-                return alumnoOptional.get();
-            }
-        }
-        List<Alumno> todos = this.alumnoRepository.findAll();
-        return todos.isEmpty() ? null : todos.get(0);
+        return this.examenService.tieneTeoricoAprobado(alumno);
     }
 
     /**
@@ -196,7 +160,7 @@ public class AlumnoController
     {
         int capacidadReserva = 0;
         int saldoClases = (matricula != null && matricula.getSaldoClases() != null) ? matricula.getSaldoClases() : 0;
-        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
         capacidadReserva = saldoClases - clasesReservadas;
         return capacidadReserva;
     }
@@ -207,20 +171,20 @@ public class AlumnoController
     @GetMapping("/dashboard")
     public String mostrarDashboard(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         Profesor profesor = alumno.getProfesor();
 
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
 
         // Próxima clase pendiente futura
         LocalDateTime ahora = LocalDateTime.now();
-        List<ClasePractica> todasClases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumno);
+        List<ClasePractica> todasClases = this.clasePracticaService.obtenerClasesPorAlumnoAsc(alumno);
         ClasePractica proximaClase = null;
         for (ClasePractica c : todasClases)
         {
@@ -232,14 +196,14 @@ public class AlumnoController
         }
 
         // Últimas clases prácticas para el resumen
-        List<ClasePractica> clasesRecientes = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+        List<ClasePractica> clasesRecientes = this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno);
         if (clasesRecientes.size() > 5)
         {
             clasesRecientes = clasesRecientes.subList(0, 5);
         }
 
         // Solicitudes de examen recientes
-        List<SolicitudExamen> solicitudesRecientes = this.solicitudExamenRepository.findByAlumnoOrderByIdDesc(alumno);
+        List<SolicitudExamen> solicitudesRecientes = this.examenService.obtenerSolicitudesRecientesPorAlumno(alumno);
         if (solicitudesRecientes.size() > 3)
         {
             solicitudesRecientes = solicitudesRecientes.subList(0, 3);
@@ -268,13 +232,13 @@ public class AlumnoController
     @GetMapping("/tests")
     public String mostrarTestsTeoricos(@AuthenticationPrincipal Object principal, Model model, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+        Optional<Matricula> matriculaOptional = this.academicoService.buscarMatriculaActiva(alumno);
         if (matriculaOptional.isEmpty() || matriculaOptional.get().getModalidad() != ModalidadMatricula.TEORICO_PRACTICA)
         {
             return "redirect:/alumno/dashboard";
@@ -298,13 +262,13 @@ public class AlumnoController
     @GetMapping("/calendario")
     public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null)
         {
             redirectAttributes.addFlashAttribute("error", "Debes disponer de una matrícula activa para acceder al calendario de reservas.");
@@ -319,7 +283,7 @@ public class AlumnoController
 
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
         {
-            boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+            boolean teoricoAprobado = this.examenService.tieneTeoricoAprobado(alumno);
             if (!teoricoAprobado)
             {
                 redirectAttributes.addFlashAttribute("error", "No puedes acceder al panel para reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.");
@@ -340,7 +304,7 @@ public class AlumnoController
             }
         }
 
-        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
         CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
 
@@ -360,7 +324,7 @@ public class AlumnoController
     @GetMapping("/calendario/cuadricula")
     public String obtenerCuadriculaCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
@@ -379,17 +343,17 @@ public class AlumnoController
             }
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null || matricula.tieneConvocatoriasAgotadas())
         {
             return "redirect:/alumno/dashboard";
         }
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
-                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+                && !this.examenService.tieneTeoricoAprobado(alumno))
         {
             return "redirect:/alumno/dashboard";
         }
-        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
         CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
 
@@ -413,7 +377,7 @@ public class AlumnoController
     @ResponseBody
     public List<EventoCalendarioDTO> obtenerEventosCalendario(@AuthenticationPrincipal Object principal)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         List<EventoCalendarioDTO> eventos = new ArrayList<>();
         if (alumno == null)
         {
@@ -423,7 +387,7 @@ public class AlumnoController
         DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         // 1. Clases propias del alumno
-        List<ClasePractica> misClases = this.clasePracticaRepository.findByAlumnoAndEstadoClaseNot(alumno, EstadoClase.CANCELADA);
+        List<ClasePractica> misClases = this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(alumno, EstadoClase.CANCELADA);
         for (ClasePractica c : misClases)
         {
             String bg = "#f59e0b"; // Ámbar por defecto (PENDIENTE)
@@ -466,7 +430,7 @@ public class AlumnoController
         Profesor profesor = alumno.getProfesor();
         if (profesor != null)
         {
-            List<ClasePractica> clasesProfesor = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
+            List<ClasePractica> clasesProfesor = this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor);
             for (ClasePractica cp : clasesProfesor)
             {
                 // Si la clase no es de este alumno y no está cancelada, se visualiza como hueco ocupado (no disponible)
@@ -491,7 +455,7 @@ public class AlumnoController
             }
 
             // Exámenes oficiales programados en el profesor
-            List<Examen> examenesDgt = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+            List<Examen> examenesDgt = this.examenService.obtenerExamenesPorProfesor(profesor);
             for (Examen ex : examenesDgt)
             {
                 Map<String, Object> props = new HashMap<>();
@@ -521,26 +485,26 @@ public class AlumnoController
     @GetMapping("/clases/reservar-modal")
     public String obtenerModalReservarClase(@RequestParam(value = "fecha", required = false) String fecha, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null || matricula.tieneConvocatoriasAgotadas())
         {
             model.addAttribute("error", "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.");
             return "alumno/fragments/alerta-feedback :: feedbackExito";
         }
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
-                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+                && !this.examenService.tieneTeoricoAprobado(alumno))
         {
             model.addAttribute("error", "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.");
             return "alumno/fragments/alerta-feedback :: feedbackExito";
         }
 
-        long clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        long clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
 
         String fechaPreseleccionada = "";
@@ -608,13 +572,13 @@ public class AlumnoController
     @GetMapping("/clases/{id}/modal")
     public String obtenerModalDetalleClase(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(id);
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
         if (claseOptional.isEmpty())
         {
             return "error/404";
@@ -636,13 +600,13 @@ public class AlumnoController
     @GetMapping("/clases/{id}/cancelar-modal")
     public String obtenerModalConfirmarCancelarClase(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(id);
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
         if (claseOptional.isEmpty())
         {
             return "error/404";
@@ -666,13 +630,13 @@ public class AlumnoController
     @Transactional
     public String reservarClasePractica(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("reservaDTO") ReservaClasePracticaDTO dto, BindingResult bindingResult, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null || matricula.tieneConvocatoriasAgotadas())
         {
             String error = "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.";
@@ -685,7 +649,7 @@ public class AlumnoController
             return "redirect:/alumno/calendario";
         }
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
-                && !this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO))
+                && !this.examenService.tieneTeoricoAprobado(alumno))
         {
             String error = "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.";
             if (hxRequest != null)
@@ -815,7 +779,7 @@ public class AlumnoController
 
         if (hxRequest != null)
         {
-            int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+            int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
             int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
             model.addAttribute("matricula", matricula);
             model.addAttribute("clasesReservadas", clasesReservadas);
@@ -836,13 +800,13 @@ public class AlumnoController
     @Transactional
     public String cancelarClasePractica(@RequestParam("claseId") Long claseId, @AuthenticationPrincipal Object principal, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(claseId);
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(claseId);
         if (claseOptional.isEmpty())
         {
             String error = "No se ha encontrado la clase práctica solicitada.";
@@ -882,8 +846,8 @@ public class AlumnoController
 
         if (hxRequest != null)
         {
-            Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-            int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+            Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+            int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
             int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
             model.addAttribute("matricula", matricula);
             model.addAttribute("clasesReservadas", clasesReservadas);
@@ -903,15 +867,15 @@ public class AlumnoController
     @GetMapping("/clases")
     public String mostrarHistorialClases(@AuthenticationPrincipal Object principal, @RequestHeader(value = "HX-Request", required = false) String hxRequest, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-        int clasesReservadas = this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+        List<ClasePractica> clases = this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
 
         model.addAttribute("clases", clases);
@@ -934,17 +898,17 @@ public class AlumnoController
     @GetMapping("/examenes")
     public String mostrarExamenes(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)
-                .orElseGet(() -> this.matriculaRepository.findFirstByAlumnoOrderByIdDesc(alumno).orElse(null));
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno)
+                .orElseGet(() -> this.academicoService.obtenerUltimaMatricula(alumno).orElse(null));
         List<SolicitudExamen> solicitudes = matricula != null
-                ? this.solicitudExamenRepository.findByMatriculaOrderByFechaHoraDesc(matricula)
-                : this.solicitudExamenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+                ? this.examenService.obtenerSolicitudesPorMatriculaDesc(matricula)
+                : this.examenService.obtenerSolicitudesPorAlumnoDesc(alumno);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
@@ -959,21 +923,21 @@ public class AlumnoController
     @GetMapping("/examenes/solicitar-modal")
     public String obtenerModalSolicitarExamen(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-        boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
-        boolean practicoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.PRACTICO);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        boolean teoricoAprobado = this.examenService.tieneTeoricoAprobado(alumno);
+        boolean practicoAprobado = this.examenService.tienePracticoAprobado(alumno);
 
         boolean expedienteCerrado = (matricula == null || !matricula.getEstaActiva()) && practicoAprobado;
         boolean esMatriculaActiva = matricula == null || matricula.getEstaActiva();
         boolean convocatoriasAgotadas = matricula != null && (matricula.getConvocatorias() == null || matricula.getConvocatorias() <= 0);
-        boolean tieneSolicitudPendiente = this.solicitudExamenRepository.existsByAlumnoAndEstado(alumno, EstadoSolicitud.PENDIENTE);
-        boolean tieneSolicitudAceptada = this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, LocalDateTime.now());
+        boolean tieneSolicitudPendiente = this.examenService.tieneSolicitudPendiente(alumno);
+        boolean tieneSolicitudAceptada = this.examenService.tieneSolicitudAceptadaConExamenPendiente(alumno);
 
         boolean puedeSolicitarTeorico = matricula != null
                 && matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
@@ -1003,7 +967,7 @@ public class AlumnoController
     @Transactional
     public String solicitarExamenDgt(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("solicitudDTO") SolicitudExamenDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
@@ -1015,15 +979,15 @@ public class AlumnoController
             return "redirect:/alumno/examenes";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null || !matricula.getEstaActiva())
         {
             redirectAttributes.addFlashAttribute("error", "Debes tener una matrícula activa para solicitar fecha de examen.");
             return "redirect:/alumno/examenes";
         }
 
-        boolean teoricoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
-        boolean practicoAprobado = this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.PRACTICO);
+        boolean teoricoAprobado = this.examenService.tieneTeoricoAprobado(alumno);
+        boolean practicoAprobado = this.examenService.tienePracticoAprobado(alumno);
 
         if (practicoAprobado)
         {
@@ -1038,7 +1002,7 @@ public class AlumnoController
         }
 
         // Comprobar si ya existe una solicitud PENDIENTE
-        boolean tieneSolicitudPendiente = this.solicitudExamenRepository.existsByAlumnoAndEstado(alumno, EstadoSolicitud.PENDIENTE);
+        boolean tieneSolicitudPendiente = this.examenService.tieneSolicitudPendiente(alumno);
         if (tieneSolicitudPendiente)
         {
             redirectAttributes.addFlashAttribute("error", "Ya tienes una solicitud de examen en trámite pendiente de resolución por la Administración.");
@@ -1046,7 +1010,7 @@ public class AlumnoController
         }
 
         // Comprobar si tiene una solicitud ACEPTADA con examen futuro no celebrado
-        boolean tieneSolicitudAceptada = this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, LocalDateTime.now());
+        boolean tieneSolicitudAceptada = this.examenService.tieneSolicitudAceptadaConExamenPendiente(alumno);
         if (tieneSolicitudAceptada)
         {
             redirectAttributes.addFlashAttribute("error", "Ya dispones de una convocatoria oficial asignada y pendiente de realización. No puedes realizar otra solicitud hasta haber celebrado dicho examen.");
@@ -1079,16 +1043,7 @@ public class AlumnoController
             }
         }
 
-        SolicitudExamen solicitud = new SolicitudExamen();
-        solicitud.setAlumno(alumno);
-        solicitud.setTipo(dto.tipoExamen());
-        solicitud.setProfesor(dto.tipoExamen() == TipoExamen.TEORICO ? null : alumno.getProfesor());
-        solicitud.setMatricula(matricula);
-        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
-        solicitud.setFechaHora(LocalDateTime.now());
-        solicitud.setComentarioJustificacion(null);
-
-        this.solicitudExamenRepository.save(solicitud);
+        this.examenService.registrarSolicitudExamen(alumno, dto.tipoExamen(), LocalDateTime.now(), matricula);
 
         redirectAttributes.addFlashAttribute("mensajeExito", "Solicitud de examen registrada con éxito. Ha ingresado en la cola oficial para su asignación.");
         return "redirect:/alumno/examenes";
@@ -1101,17 +1056,17 @@ public class AlumnoController
     @GetMapping("/notas")
     public String mostrarNotas(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
-        List<Examen> examenes = this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        List<Examen> examenes = this.examenService.obtenerExamenesPorAlumno(alumno);
 
-        long aptos = this.examenRepository.countByAlumnoAndEsAptoTrue(alumno);
-        long noAptos = this.examenRepository.countByAlumnoAndEsAptoFalse(alumno);
+        long aptos = this.examenService.contarAptosPorAlumno(alumno);
+        long noAptos = this.examenService.contarNoAptosPorAlumno(alumno);
 
         model.addAttribute("matricula", matricula);
         model.addAttribute("examenes", examenes);
@@ -1128,13 +1083,13 @@ public class AlumnoController
     @GetMapping("/pagos")
     public String mostrarPagos(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         boolean esVehiculoPesado = matricula != null && matricula.getPermisoCarnet() != null &&
                 (matricula.getPermisoCarnet().name().startsWith("PERMISO_C") || matricula.getPermisoCarnet().name().startsWith("PERMISO_D"));
         boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
@@ -1156,13 +1111,13 @@ public class AlumnoController
         int clasesCompradas = 1;
         boolean esOferta = false;
 
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null)
         {
             redirectAttributes.addFlashAttribute("error", "No se encontró un expediente de matrícula activo para recargar saldo.");
@@ -1229,13 +1184,13 @@ public class AlumnoController
     @PostMapping("/pagos/renovar-matricula")
     public String renovarMatricula(@AuthenticationPrincipal Object principal, RedirectAttributes redirectAttributes, HttpSession sesion)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null)
         {
             redirectAttributes.addFlashAttribute("error", "No se encontró un expediente de matrícula activo para tramitar la renovación.");
@@ -1272,7 +1227,7 @@ public class AlumnoController
     @PostMapping("/matricular")
     public String matricularNuevoCarnet(@RequestParam("tipoCarnet") TipoCarnet tipoCarnet, @AuthenticationPrincipal Object principal, RedirectAttributes redirectAttributes, HttpSession sesion)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
@@ -1284,7 +1239,7 @@ public class AlumnoController
             return "redirect:/alumno/dashboard";
         }
 
-        Optional<Matricula> matriculaActiva = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+        Optional<Matricula> matriculaActiva = this.academicoService.buscarMatriculaActiva(alumno);
         if (matriculaActiva.isPresent())
         {
             redirectAttributes.addFlashAttribute("error", "Ya tienes una matrícula activa para el " +
@@ -1316,13 +1271,13 @@ public class AlumnoController
     @GetMapping("/estadisticas")
     public String mostrarEstadisticas(@AuthenticationPrincipal Object principal, @RequestHeader(value = "HX-Request", required = false) String hxRequest, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         EstadisticasAlumnoDTO stats = this.estadisticaService.obtenerEstadisticasAlumno(alumno);
 
         model.addAttribute("alumno", alumno);
@@ -1349,13 +1304,13 @@ public class AlumnoController
     @GetMapping("/perfil")
     public String mostrarPerfil(@AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         Profesor profesor = alumno.getProfesor();
 
         EditarPerfilAlumnoDTO dto = new EditarPerfilAlumnoDTO(
@@ -1389,13 +1344,13 @@ public class AlumnoController
     @Transactional
     public String actualizarPerfil(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("perfilDTO") EditarPerfilAlumnoDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
 
         if (bindingResult.hasErrors())
         {
@@ -1405,86 +1360,40 @@ public class AlumnoController
             return "alumno/perfil";
         }
 
-        // Comprobación de unicidad de DNI si ha variado
-        String nuevoDni = dto.dni() != null ? dto.dni().trim().toUpperCase() : null;
-        if (nuevoDni != null && !nuevoDni.isBlank() && !nuevoDni.equalsIgnoreCase(alumno.getDni()) && this.personaRepository.existsByDniAndIdNot(nuevoDni, alumno.getId()))
+        try
+        {
+            this.alumnoService.actualizarPerfil(alumno.getId(), dto);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Tus datos personales se han actualizado correctamente.");
+            return "redirect:/alumno/perfil";
+        }
+        catch (ReglaNegocioException ex)
         {
             EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
             model.addAttribute("perfilDTO", perfilRepoblado);
-            model.addAttribute("error", "El DNI / NIE introducido ya está registrado en el sistema.");
+            model.addAttribute("error", ex.getMessage());
             return "alumno/perfil";
         }
-
-        // Comprobación de unicidad de teléfono si ha variado
-        String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";
-        if (!nuevoTel.equals(alumno.getTelefono()) && this.personaRepository.existsByTelefonoAndIdNot(nuevoTel, alumno.getId()))
-        {
-            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
-            model.addAttribute("perfilDTO", perfilRepoblado);
-            model.addAttribute("error", "El número de teléfono ya está registrado por otro usuario.");
-            return "alumno/perfil";
-        }
-
-        if (dto.correo() != null && !dto.correo().isBlank() && !dto.correo().equalsIgnoreCase(alumno.getCorreo()) && this.personaRepository.existsByCorreoAndIdNot(dto.correo().trim(), alumno.getId()))
-        {
-            EditarPerfilAlumnoDTO perfilRepoblado = this.alumnoMapper.repoblarPerfilDTO(alumno, matricula, dto);
-            model.addAttribute("perfilDTO", perfilRepoblado);
-            model.addAttribute("error", "La dirección de correo electrónico ya está registrada por otro usuario.");
-            return "alumno/perfil";
-        }
-
-        if (nuevoDni != null && !nuevoDni.isBlank())
-        {
-            alumno.setDni(nuevoDni);
-        }
-        alumno.setNombre(dto.nombre().trim());
-        alumno.setApellidos(dto.apellidos().trim());
-        alumno.setTelefono(nuevoTel);
-        alumno.setDireccion(dto.direccion().trim());
-        if (dto.correo() != null && !dto.correo().isBlank())
-        {
-            alumno.setCorreo(dto.correo().trim());
-        }
-        alumno.setFechaNacimiento(dto.fechaNacimiento());
-
-        this.alumnoRepository.save(alumno);
-
-        redirectAttributes.addFlashAttribute("mensajeExito", "Tus datos personales se han actualizado correctamente.");
-        return "redirect:/alumno/perfil";
     }
 
     @PostMapping("/perfil/cambiar-password")
     @Transactional
     public String cambiarPassword(@AuthenticationPrincipal Object principal, @RequestParam("passwordActual") String passwordActual, @RequestParam("nuevaPassword") String nuevaPassword, @RequestParam("confirmarPassword") String confirmarPassword, RedirectAttributes redirectAttributes)
     {
-        Alumno alumno = this.obtenerAlumnoActual(principal);
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
             return "redirect:/login";
         }
 
-        if (!this.passwordEncoder.matches(passwordActual, alumno.getPassword()))
+        try
         {
-            redirectAttributes.addFlashAttribute("error", "La contraseña actual no es correcta.");
-            return "redirect:/alumno/perfil";
+            this.alumnoService.cambiarPassword(alumno.getId(), passwordActual, nuevaPassword, confirmarPassword);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Contraseña actualizada satisfactoriamente.");
         }
-
-        if (nuevaPassword == null || nuevaPassword.length() < 6)
+        catch (ReglaNegocioException ex)
         {
-            redirectAttributes.addFlashAttribute("error", "La nueva contraseña debe tener al menos 6 caracteres.");
-            return "redirect:/alumno/perfil";
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-
-        if (!nuevaPassword.equals(confirmarPassword))
-        {
-            redirectAttributes.addFlashAttribute("error", "La confirmación de la contraseña no coincide.");
-            return "redirect:/alumno/perfil";
-        }
-
-        alumno.actualizarPassword(this.passwordEncoder.encode(nuevaPassword));
-        this.alumnoRepository.save(alumno);
-
-        redirectAttributes.addFlashAttribute("mensajeExito", "Contraseña actualizada satisfactoriamente.");
         return "redirect:/alumno/perfil";
     }
 }

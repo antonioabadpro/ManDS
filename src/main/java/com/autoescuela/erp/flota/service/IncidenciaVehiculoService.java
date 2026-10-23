@@ -1,5 +1,6 @@
 package com.autoescuela.erp.flota.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
 import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
+import com.autoescuela.erp.flota.dto.ReportarIncidenciaDTO;
 import com.autoescuela.erp.flota.mapper.IncidenciaVehiculoMapper;
 import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -20,9 +22,11 @@ import com.autoescuela.erp.flota.repository.IncidenciaVehiculoRepository;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.model.Administrador;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +42,7 @@ public class IncidenciaVehiculoService
     private final VehiculoRepository vehiculoRepository;
     private final ClasePracticaRepository clasePracticaRepository;
     private final AlumnoRepository alumnoRepository;
+    private final PersonaRepository personaRepository;
     private final EmailService emailService;
     private final IncidenciaVehiculoMapper incidenciaVehiculoMapper;
 
@@ -205,6 +210,120 @@ public class IncidenciaVehiculoService
         incidencia.setEstado(nuevoEstado);
 
         return this.incidenciaVehiculoRepository.save(incidencia);
+    }
+
+    /**
+     * Recupera el histórico de incidencias de un vehículo ordenadas descendentemente (de más reciente a más antigua).
+     *
+     * @param vehiculo Entidad Vehiculo.
+     * @return Lista de incidencias mecánicas del vehículo.
+     */
+    @Transactional(readOnly = true)
+    public List<IncidenciaVehiculo> obtenerIncidenciasPorVehiculoDesc(Vehiculo vehiculo)
+    {
+        if (vehiculo == null)
+        {
+            return List.of();
+        }
+        return this.incidenciaVehiculoRepository.findByVehiculoOrderByFechaHoraDesc(vehiculo);
+    }
+
+    /**
+     * Recupera el histórico de incidencias reportadas por un profesor ordenadas descendentemente (de más reciente a más antigua).
+     *
+     * @param profesor Entidad Profesor.
+     * @return Lista de incidencias mecánicas reportadas por el profesor.
+     */
+    @Transactional(readOnly = true)
+    public List<IncidenciaVehiculo> obtenerIncidenciasPorProfesorDesc(Profesor profesor)
+    {
+        if (profesor == null)
+        {
+            return List.of();
+        }
+        return this.incidenciaVehiculoRepository.findByProfesorOrderByFechaHoraDesc(profesor);
+    }
+
+    /**
+     * Registra una nueva avería o incidencia mecánica sobre el vehículo asignado (CU-027),
+     * persistiendo el registro y notificando transaccionalmente a los Administradores activos.
+     *
+     * @param profesor Profesor que reporta la incidencia.
+     * @param vehiculo Vehiculo afectado.
+     * @param dto Datos del reporte de incidencia.
+     * @param baseUrl URL base para enlaces en correos.
+     * @return IncidenciaVehiculo registrada en estado PENDIENTE.
+     */
+    @Transactional
+    public IncidenciaVehiculo reportarIncidencia(Profesor profesor, Vehiculo vehiculo, ReportarIncidenciaDTO dto, String baseUrl)
+    {
+        if (profesor == null)
+        {
+            throw new ReglaNegocioException("El profesor es obligatorio para reportar una incidencia.");
+        }
+        if (vehiculo == null)
+        {
+            throw new ReglaNegocioException("No tienes ningún vehículo asignado para reportar incidencias.");
+        }
+        if (dto == null || dto.descripcion() == null || dto.descripcion().trim().length() < 10)
+        {
+            throw new ReglaNegocioException("La descripción de la avería debe tener al menos 10 caracteres.");
+        }
+
+        IncidenciaVehiculo incidencia = new IncidenciaVehiculo();
+        incidencia.setFechaHora(LocalDateTime.now());
+        incidencia.setDescripcion(dto.descripcion().trim());
+        incidencia.setEstado(EstadoIncidencia.PENDIENTE);
+        incidencia.setVehiculo(vehiculo);
+        incidencia.setProfesor(profesor);
+
+        IncidenciaVehiculo incidenciaGuardada = this.incidenciaVehiculoRepository.save(incidencia);
+
+        // Notificación por correo electrónico al Administrador del sistema
+        try
+        {
+            List<Administrador> administradores = this.personaRepository.findAdministradoresActivos();
+            String nombreProfesor = profesor.getNombre() + " " + profesor.getApellidos();
+            String vehiculoInfo = vehiculo.getMarca() + " " + vehiculo.getModelo();
+            String urlIncidencias = (baseUrl != null && baseUrl.endsWith("/"))
+                    ? baseUrl + "admin/incidencias"
+                    : (baseUrl != null ? baseUrl + "/admin/incidencias" : "http://localhost:8080/admin/incidencias");
+
+            if (administradores != null && !administradores.isEmpty())
+            {
+                for (Administrador admin : administradores)
+                {
+                    if (admin.getCorreo() != null && !admin.getCorreo().isBlank())
+                    {
+                        this.emailService.enviarNotificacionIncidenciaAdmin(
+                                admin.getCorreo(),
+                                admin.getNombre(),
+                                nombreProfesor,
+                                vehiculoInfo,
+                                vehiculo.getMatricula(),
+                                dto.descripcion().trim(),
+                                urlIncidencias);
+                    }
+                }
+            }
+            else
+            {
+                this.emailService.enviarNotificacionIncidenciaAdmin(
+                        "admin@autoescuela.es",
+                        "Administrador",
+                        nombreProfesor,
+                        vehiculoInfo,
+                        vehiculo.getMatricula(),
+                        dto.descripcion().trim(),
+                        urlIncidencias);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fallback silencioso ante servidor SMTP apagado
+        }
+
+        return incidenciaGuardada;
     }
 }
 

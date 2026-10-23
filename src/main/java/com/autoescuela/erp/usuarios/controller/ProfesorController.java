@@ -15,9 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,35 +35,28 @@ import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.academico.model.Matricula;
-import com.autoescuela.erp.academico.repository.MatriculaRepository;
-import com.autoescuela.erp.core.email.EmailService;
+import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
-import com.autoescuela.erp.core.enums.EstadoIncidencia;
-import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.model.Examen;
-import com.autoescuela.erp.examenes.repository.ExamenRepository;
+import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.dto.ReportarIncidenciaDTO;
 import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
 import com.autoescuela.erp.flota.model.Vehiculo;
-import com.autoescuela.erp.flota.repository.IncidenciaVehiculoRepository;
-import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.flota.service.FlotaService;
+import com.autoescuela.erp.flota.service.IncidenciaVehiculoService;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.practicas.dto.EventoCalendarioDTO;
-import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
-import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.service.ClasePracticaService;
 import com.autoescuela.erp.usuarios.dto.CambiarPasswordDTO;
 import com.autoescuela.erp.usuarios.dto.ContactarAlumnoDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
-import com.autoescuela.erp.usuarios.model.Administrador;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
-import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
-import com.autoescuela.erp.usuarios.repository.PersonaRepository;
-import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
+import com.autoescuela.erp.usuarios.service.ProfesorService;
 
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
@@ -85,20 +76,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProfesorController
 {
-    private final ProfesorRepository profesorRepository;
-    private final AlumnoRepository alumnoRepository;
-    private final ClasePracticaRepository clasePracticaRepository;
-    private final VehiculoRepository vehiculoRepository;
-    private final IncidenciaVehiculoRepository incidenciaVehiculoRepository;
-    private final ExamenRepository examenRepository;
-    private final MatriculaRepository matriculaRepository;
-    private final PersonaRepository personaRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
-    private final ProfesorMapper profesorMapper;
+    private final ProfesorService profesorService;
     private final AlumnoService alumnoService;
+    private final AcademicoService academicoService;
+    private final ExamenService examenService;
+    private final ClasePracticaService clasePracticaService;
+    private final FlotaService flotaService;
+    private final IncidenciaVehiculoService incidenciaVehiculoService;
     private final CalendarioService calendarioService;
     private final EstadisticaService estadisticaService;
+    private final ProfesorMapper profesorMapper;
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
@@ -124,38 +111,12 @@ public class ProfesorController
         {
             return userDetails.getNombreCompleto();
         }
-        Profesor profe = this.obtenerProfesorActual(principal);
+        Profesor profe = this.profesorService.obtenerProfesorActual(principal);
         if (profe != null)
         {
             return profe.getNombre() + " " + profe.getApellidos();
         }
         return "Laura Sánchez Romero";
-    }
-
-    /**
-     * Resuelve la entidad Profesor del usuario autenticado con fallback robusto a datos semilla si procede.
-     */
-    private Profesor obtenerProfesorActual(Object principal)
-    {
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            Optional<Profesor> profesorOptional = this.profesorRepository.findById(userDetails.getId());
-            if (profesorOptional.isPresent())
-            {
-                return profesorOptional.get();
-            }
-        }
-        else if (principal instanceof UserDetails user)
-        {
-            Optional<Profesor> profesorOptional = this.profesorRepository.findByNombreUsuario(user.getUsername());
-            if (profesorOptional.isPresent())
-            {
-                return profesorOptional.get();
-            }
-        }
-        // Fallback para entornos de desarrollo/test
-        List<Profesor> todos = this.profesorRepository.findAll();
-        return todos.isEmpty() ? null : todos.get(0);
     }
 
     // =========================================================================
@@ -164,7 +125,7 @@ public class ProfesorController
     @GetMapping("/dashboard")
     public String mostrarDashboard(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -175,11 +136,11 @@ public class ProfesorController
         LocalDateTime finHoy = hoy.atTime(23, 59, 59);
 
         // Clases prácticas del día de hoy
-        List<ClasePractica> clasesHoy = this.clasePracticaRepository
-                .findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioHoy, finHoy);
+        List<ClasePractica> clasesHoy = this.clasePracticaService
+                .obtenerClasesPorProfesorYRango(profesor, inicioHoy, finHoy);
 
         // Próxima clase pendiente del profesor
-        List<ClasePractica> todasClases = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
+        List<ClasePractica> todasClases = this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor);
         ClasePractica proximaClase = null;
         LocalDateTime ahora = LocalDateTime.now();
 
@@ -194,12 +155,12 @@ public class ProfesorController
         }
 
         // Contar el número de alumnos asignados al profesor
-        List<Alumno> misAlumnos = this.alumnoRepository.findByProfesor(profesor);
+        List<Alumno> misAlumnos = this.alumnoService.buscarPorProfesor(profesor);
         // Obtener el vehículo asignado al profesor
         Vehiculo vehiculo = profesor.getVehiculo();
 
         // Contar el número de exámenes pendientes de calificación del profesor
-        List<Examen> misExamenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        List<Examen> misExamenes = this.examenService.obtenerExamenesPorProfesor(profesor);
         long pendientesCalificar = 0;
         for (Examen examen : misExamenes)
         {
@@ -225,7 +186,7 @@ public class ProfesorController
     @GetMapping("/calendario")
     public String mostrarCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -260,7 +221,7 @@ public class ProfesorController
     @GetMapping("/calendario/cuadricula")
     public String obtenerCuadriculaCalendario(@RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -301,14 +262,14 @@ public class ProfesorController
     @ResponseBody
     public List<EventoCalendarioDTO> obtenerEventosCalendario(@AuthenticationPrincipal Object principal)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         List<EventoCalendarioDTO> eventos = new ArrayList<>();
         if (profesor == null)
         {
             return eventos;
         }
 
-        List<ClasePractica> clases = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
+        List<ClasePractica> clases = this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor);
         DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         for (ClasePractica clase : clases)
@@ -357,7 +318,7 @@ public class ProfesorController
         }
 
         // Jornadas oficiales DGT del mes donde el profesor tiene citaciones
-        List<Examen> examenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
         for (Examen examen : examenes)
         {
             Map<String, Object> props = new HashMap<>();
@@ -389,13 +350,13 @@ public class ProfesorController
     @GetMapping("/clases/{id}/modal")
     public String obtenerModalClasePractica(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
         }
 
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(id);
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
         if (claseOptional.isEmpty())
         {
             return "error/404";
@@ -421,20 +382,20 @@ public class ProfesorController
     @GetMapping("/examenes/{id}/modal")
     public String obtenerModalExamenDgt(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
         }
 
-        Optional<Examen> examenOptional = this.examenRepository.findById(id);
+        Optional<Examen> examenOptional = this.examenService.buscarExamenPorId(id);
         if (examenOptional.isEmpty())
         {
             return "error/404";
         }
 
         Examen examen = examenOptional.get();
-        List<Examen> examenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
 
         model.addAttribute("examen", examen);
         model.addAttribute("alumnosCitados", examenes.size());
@@ -447,10 +408,9 @@ public class ProfesorController
      * Soporta peticiones tradicionales y peticiones dinámicas HTMX.
      */
     @PostMapping("/clases/completar")
-    @Transactional
     public String completarClasePractica(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("completarClaseDTO") CompletarClaseDTO dto, BindingResult bindingResult, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(dto.claseId());
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(dto.claseId());
         if (claseOptional.isEmpty())
         {
             if (hxRequest != null)
@@ -480,7 +440,11 @@ public class ProfesorController
             return "redirect:/profesor/calendario";
         }
 
-        if (dto.kmFin() != null && dto.kmInicio() != null && dto.kmFin() <= dto.kmInicio())
+        try
+        {
+            this.clasePracticaService.completarClasePractica(dto);
+        }
+        catch (ReglaNegocioException ex)
         {
             if (hxRequest != null)
             {
@@ -489,41 +453,11 @@ public class ProfesorController
                         : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
                 model.addAttribute("kmActualVehiculo", kmActualVehiculo);
                 model.addAttribute("clase", clase);
-                model.addAttribute("error", "El kilometraje final debe ser estrictamente superior al kilometraje inicial.");
+                model.addAttribute("error", ex.getMessage());
                 return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
             }
-            redirectAttributes.addFlashAttribute("error", "El kilometraje final debe ser estrictamente superior al kilometraje inicial.");
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/profesor/calendario";
-        }
-
-        clase.setKmInicio(dto.kmInicio());
-        clase.setKmFin(dto.kmFin());
-        clase.setObservaciones(dto.observaciones());
-        clase.setEstadoClase(EstadoClase.RECIBIDA);
-        this.clasePracticaRepository.save(clase);
-
-        // Actualizar odómetro del vehículo automáticamente con el odómetro final de la clase práctica
-        if (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && dto.kmFin() != null)
-        {
-            Vehiculo vehiculo = clase.getProfesor().getVehiculo();
-            vehiculo.setKm(dto.kmFin());
-            this.vehiculoRepository.save(vehiculo);
-        }
-
-        // Deducción automática de 1 unidad de saldo en la matrícula del alumno (Decisión #840)
-        Alumno alumno = clase.getAlumno();
-        if (alumno != null)
-        {
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
-            if (matriculaOptional.isPresent())
-            {
-                Matricula matricula = matriculaOptional.get();
-                if (matricula.getSaldoClases() != null && matricula.getSaldoClases() > 0)
-                {
-                    matricula.setSaldoClases(matricula.getSaldoClases() - 1);
-                    this.matriculaRepository.save(matricula);
-                }
-            }
         }
 
         String mensajeExito = "Ficha técnica de la clase registrada correctamente. Se ha descontado 1 unidad de saldo al alumno.";
@@ -543,48 +477,21 @@ public class ProfesorController
      * Soporta peticiones tradicionales y peticiones dinámicas HTMX.
      */
     @PostMapping("/clases/cancelar")
-    @Transactional
     public String cancelarClasePractica(@AuthenticationPrincipal Object principal, @RequestParam("claseId") Long claseId, @RequestParam(value = "motivo", required = false) String motivo, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Optional<ClasePractica> claseOptional = this.clasePracticaRepository.findById(claseId);
-        if (claseOptional.isEmpty())
+        try
+        {
+            this.clasePracticaService.cancelarClasePorProfesor(claseId, motivo);
+        }
+        catch (ReglaNegocioException ex)
         {
             if (hxRequest != null)
             {
-                model.addAttribute("error", "No se encontró la clase práctica a cancelar.");
+                model.addAttribute("error", ex.getMessage());
                 return "profesor/fragments/alerta-feedback :: feedbackExito";
             }
-            redirectAttributes.addFlashAttribute("error", "No se encontró la clase práctica a cancelar.");
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
             return "redirect:/profesor/calendario";
-        }
-
-        ClasePractica clase = claseOptional.get();
-        clase.setEstadoClase(EstadoClase.CANCELADA);
-        clase.setIsCanceladaPorProfesor(true);
-        clase.setIsCancelacionJornada(false);
-        if (motivo != null && !motivo.isBlank())
-        {
-            clase.setMotivoCancelacion(motivo.trim());
-        }
-        this.clasePracticaRepository.save(clase);
-
-        // Notificación al alumno por email
-        if (clase.getAlumno() != null && clase.getAlumno().getCorreo() != null)
-        {
-            try
-            {
-                this.emailService.enviarNotificacionAlumno(
-                        clase.getAlumno().getCorreo(),
-                        "Cancelación de clase práctica programada",
-                        "Estimado/a " + clase.getAlumno().getNombre() + ",\n\nTu clase práctica del "
-                                + clase.getFechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                                + " ha sido cancelada por el profesor. Motivo: "
-                                + (motivo != null && !motivo.isBlank() ? motivo.trim() : "Imprevisto del Profesor") + ".\n\nTu saldo de clases permanece intacto para que reserves una nueva fecha.");
-            }
-            catch (Exception ex)
-            {
-                // Fallback silencioso ante servidor SMTP apagado
-            }
         }
 
         String mensajeExito = "Clase práctica cancelada correctamente y alumno notificado por correo.";
@@ -605,7 +512,7 @@ public class ProfesorController
     @GetMapping("/calendario/cancelar-dia/modal")
     public String obtenerModalCancelarDia(@RequestParam(value = "fecha", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @RequestParam(value = "fechaRef", required = false) String fechaRefStr, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -669,7 +576,7 @@ public class ProfesorController
     @GetMapping("/calendario/cancelar-dia/calcular-clases")
     public String calcularClasesCancelarDia(@RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -684,10 +591,9 @@ public class ProfesorController
      * imposibilita reservas futuras en esa jornada y notifica por correo electrónico a todos los alumnos asignados al profesor.
      */
     @PostMapping("/calendario/cancelar-dia")
-    @Transactional
     public String cancelarClasesDia(@AuthenticationPrincipal Object principal, @RequestParam("fecha") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha, @RequestParam(value = "motivo", required = false) String motivo, @RequestHeader(value = "HX-Request", required = false) String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -713,7 +619,7 @@ public class ProfesorController
             return this.devolverErrorCancelacion("No se puede cancelar una jornada en festivo nacional o periodo vacacional.", hxRequest, model, redirectAttributes);
         }
 
-        List<Examen> examenesDgt = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        List<Examen> examenesDgt = this.examenService.obtenerExamenesPorProfesor(profesor);
         for (Examen examen : examenesDgt)
         {
             if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
@@ -727,103 +633,17 @@ public class ProfesorController
             return this.devolverErrorCancelacion("Debes indicar obligatoriamente el motivo de la cancelación masiva.", hxRequest, model, redirectAttributes);
         }
 
-        LocalDateTime inicioDia = fecha.atStartOfDay();
-        LocalDateTime finDia = fecha.atTime(23, 59, 59);
-
-        List<ClasePractica> clasesTodas = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioDia, finDia);
-
-        boolean yaCanceladaPreviamente = false;
-        boolean hayPendientes = false;
-        for (ClasePractica c : clasesTodas)
+        int totalCanceladas;
+        try
         {
-            if (c.getEstadoClase() == EstadoClase.PENDIENTE)
-            {
-                hayPendientes = true;
-            }
-            else if (c.getEstadoClase() == EstadoClase.CANCELADA && Boolean.TRUE.equals(c.getIsCancelacionJornada()))
-            {
-                yaCanceladaPreviamente = true;
-            }
+            totalCanceladas = this.clasePracticaService.cancelarJornadaProfesor(profesor, fecha, motivo);
+        }
+        catch (ReglaNegocioException ex)
+        {
+            return this.devolverErrorCancelacion(ex.getMessage(), hxRequest, model, redirectAttributes);
         }
 
-        if (yaCanceladaPreviamente && !hayPendientes)
-        {
-            return this.devolverErrorCancelacion("Esta jornada ya ha sido cancelada previamente por el profesor.", hxRequest, model, redirectAttributes);
-        }
-
-        int totalCanceladas = 0;
-
-        for (ClasePractica clase : clasesTodas)
-        {
-            if (clase.getEstadoClase() == EstadoClase.PENDIENTE)
-            {
-                clase.setEstadoClase(EstadoClase.CANCELADA);
-                clase.setIsCanceladaPorProfesor(true);
-                clase.setIsCancelacionJornada(true);
-                clase.setMotivoCancelacion(motivo.trim());
-                this.clasePracticaRepository.save(clase);
-                totalCanceladas++;
-            }
-        }
-
-        // Generar bloqueos en los tramos horarios restantes del turno que estuvieran libres
-        List<TramoHorarioDTO> tramos = this.calendarioService.generarTramos(profesor.getTurno());
-        Long kmActual = (profesor.getVehiculo() != null && profesor.getVehiculo().getKm() != null)
-                ? profesor.getVehiculo().getKm()
-                : 0L;
-
-        for (TramoHorarioDTO tramo : tramos)
-        {
-            LocalDateTime slotFechaHora = fecha.atTime(tramo.horaInicio());
-            boolean existeClaseEnSlot = false;
-            for (ClasePractica c : clasesTodas)
-            {
-                if (c.getFechaHora() != null && c.getFechaHora().toLocalTime().equals(tramo.horaInicio()))
-                {
-                    existeClaseEnSlot = true;
-                    break;
-                }
-            }
-
-            if (!existeClaseEnSlot)
-            {
-                ClasePractica claseCancelada = new ClasePractica();
-                claseCancelada.setProfesor(profesor);
-                claseCancelada.setAlumno(null);
-                claseCancelada.setFechaHora(slotFechaHora);
-                claseCancelada.setDuracion(45);
-                claseCancelada.setPuntoRecogida("Autoescuela");
-                claseCancelada.setKmInicio(kmActual);
-                claseCancelada.setKmFin(kmActual);
-                claseCancelada.setEstadoClase(EstadoClase.CANCELADA);
-                claseCancelada.setIsCanceladaPorProfesor(true);
-                claseCancelada.setIsCancelacionJornada(true);
-                claseCancelada.setMotivoCancelacion(motivo.trim());
-                this.clasePracticaRepository.save(claseCancelada);
-            }
-        }
-
-        // Notificación por correo a TODOS los alumnos asignados al profesor
-        List<Alumno> alumnosDelProfesor = this.alumnoRepository.findByProfesor(profesor);
         String fechaFormatoLegible = fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        for (Alumno alumno : alumnosDelProfesor)
-        {
-            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
-            {
-                try
-                {
-                    this.emailService.enviarNotificacionAlumno(
-                            alumno.getCorreo(),
-                            "Cancelación de clases prácticas - Jornada del " + fechaFormatoLegible,
-                            "Estimado/a " + alumno.getNombre() + ",\n\nTe informamos de que todas las clases prácticas programadas con tu profesor para el día " + fechaFormatoLegible + " han sido canceladas.\n\nMotivo de la cancelación: " + motivo.trim() + ".\n\nSi disponías de una reserva para dicho día, tu saldo de clases permanece intacto para que reserves una nueva fecha.\n\nDisculpa las molestias.");
-                }
-                catch (Exception ex)
-                {
-                    // Fallback silencioso ante servidor SMTP apagado
-                }
-            }
-        }
-
         String mensajeExito = (totalCanceladas > 0)
                 ? "Se han cancelado las " + totalCanceladas + " clases prácticas del día "
                         + fechaFormatoLegible + " y se ha notificado por correo a todos tus alumnos asignados."
@@ -880,7 +700,7 @@ public class ProfesorController
         }
         else
         {
-            List<Examen> examenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+            List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
             for (Examen examen : examenes)
             {
                 if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
@@ -897,7 +717,7 @@ public class ProfesorController
         {
             LocalDateTime inicioDia = fecha.atStartOfDay();
             LocalDateTime finDia = fecha.atTime(23, 59, 59);
-            List<ClasePractica> clasesTodas = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioDia, finDia);
+            List<ClasePractica> clasesTodas = this.clasePracticaService.obtenerClasesPorProfesorYRango(profesor, inicioDia, finDia);
             boolean tieneCancelacionJornada = false;
             for (ClasePractica c : clasesTodas)
             {
@@ -938,14 +758,14 @@ public class ProfesorController
     @GetMapping("/alumnos")
     public String mostrarAlumnos(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
         }
 
-        List<Alumno> alumnos = this.alumnoRepository.findByProfesor(profesor);
-        List<ClasePractica> todasLasClasesProfesor = this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor);
+        List<Alumno> alumnos = this.alumnoService.buscarPorProfesor(profesor);
+        List<ClasePractica> todasLasClasesProfesor = this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor);
 
         // Estructura de apoyo para renderizar expedientes de cada alumno
         List<Map<String, Object>> fichasAlumnos = new ArrayList<>();
@@ -954,7 +774,7 @@ public class ProfesorController
             Map<String, Object> ficha = new HashMap<>();
             ficha.put("alumno", alumno);
 
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
+            Optional<Matricula> matriculaOptional = this.academicoService.buscarMatriculaActiva(alumno);
             if (matriculaOptional.isPresent())
             {
                 Matricula matricula = matriculaOptional.get();
@@ -1009,7 +829,7 @@ public class ProfesorController
     @GetMapping("/alumnos/detalle/{id}")
     public String cargarModalDetalleAlumno(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1039,18 +859,14 @@ public class ProfesorController
             return "redirect:/profesor/alumnos";
         }
 
-        Optional<Alumno> alumnoOptional = this.alumnoRepository.findById(dto.alumnoId());
-        if (alumnoOptional.isEmpty())
-        {
-            redirectAttributes.addFlashAttribute("error", "No se encontró el alumno indicado.");
-            return "redirect:/profesor/alumnos";
-        }
-
-        Alumno alumno = alumnoOptional.get();
         try
         {
-            this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), dto.asunto(), dto.mensaje());
+            Alumno alumno = this.alumnoService.contactarAlumno(dto.alumnoId(), dto.asunto(), dto.mensaje());
             redirectAttributes.addFlashAttribute("mensajeExito", "Mensaje enviado con éxito a " + alumno.getNombre() + " (" + alumno.getCorreo() + ").");
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
         catch (Exception ex)
         {
@@ -1066,13 +882,13 @@ public class ProfesorController
     @GetMapping("/examenes")
     public String mostrarExamenes(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
         }
 
-        List<Examen> misExamenes = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        List<Examen> misExamenes = this.examenService.obtenerExamenesPorProfesor(profesor);
         model.addAttribute("profesor", profesor);
         model.addAttribute("examenes", misExamenes);
         model.addAttribute("calificarExamenDTO", new CalificarExamenDTO());
@@ -1084,7 +900,6 @@ public class ProfesorController
      * Asienta la calificación oficial de un examen práctico DGT (CU-025).
      */
     @PostMapping("/examenes/calificar")
-    @Transactional
     public String calificarExamen(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("calificarExamenDTO") CalificarExamenDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)
     {
         if (bindingResult.hasErrors())
@@ -1093,157 +908,16 @@ public class ProfesorController
             return "redirect:/profesor/examenes";
         }
 
-        Optional<Examen> examenOptional = this.examenRepository.findById(dto.examenId());
-        if (examenOptional.isEmpty())
+        try
         {
-            redirectAttributes.addFlashAttribute("error", "No se encontró el examen a calificar.");
-            return "redirect:/profesor/examenes";
+            this.examenService.calificarExamenOficial(dto);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Calificación registrada con éxito. Resultado: " + (Boolean.TRUE.equals(dto.esApto()) ? "APTO" : "NO APTO") + ".");
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
 
-        Examen examen = examenOptional.get();
-        if (examen.getEsApto() != null)
-        {
-            redirectAttributes.addFlashAttribute("error", "Este examen ya ha sido calificado previamente y no puede modificarse.");
-            return "redirect:/profesor/examenes";
-        }
-
-        examen.setEsApto(dto.esApto());
-        this.examenRepository.save(examen);
-
-        // Si suspende, computar convocatoria gastada en la matrícula y notificar por email
-        if (Boolean.FALSE.equals(dto.esApto()) && examen.getAlumno() != null)
-        {
-            Alumno alumno = examen.getAlumno();
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
-            int gastadas = 0;
-            String nombreCarnet = "";
-            if (matriculaOptional.isPresent())
-            {
-                Matricula matricula = matriculaOptional.get();
-                gastadas = matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
-                gastadas++;
-                matricula.setConvocatoriasGastadas(gastadas);
-                this.matriculaRepository.save(matricula);
-                if (matricula.getPermisoCarnet() != null)
-                {
-                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
-                }
-            }
-
-            int convocatoriasRestantes = Math.max(0, 2 - gastadas);
-
-            // Notificación por correo electrónico oficial de suspenso al alumno según tipo de examen
-            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
-            {
-                if (examen.getTipo() == TipoExamen.TEORICO) // Si ha suspendido el examen teórico
-                {
-                    String asunto = "Resultado oficial de tu Examen Teórico DGT - ManDS Autoescuela";
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                            + "Te comunicamos oficialmente que el resultado de tu examen teórico oficial de conducir"
-                            + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + " ha sido calificado como NO APTO.\n\n"
-                            + "Queremos transmitirte mucho ánimo. En esta convocatoria se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
-                            + (gastadas >= 2
-                                    ? "Has agotado las 2 convocatorias oficiales incluidas en tu matrícula. Para poder presentarte a una nueva convocatoria oficial de examen deberás abonar las tasas de Renovación de Matrícula desde tu panel de pagos.\n\n"
-                                    : "Te recomendamos continuar repasando los test y el temario teórico. Podrás solicitar una nueva fecha de examen oficial desde tu panel de alumno en cuanto te sientas preparado/a.\n\n")
-                            + "Recuerda que el acceso a clases prácticas de circulación se habilitará una vez superada la prueba teórica oficial ante la DGT.\n\n"
-                            + "¡Mucho ánimo y a seguir adelante!\n\n"
-                            + "Un cordial saludo,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
-                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
-                }
-                else // Si ha suspendido el examen práctico
-                {
-                    String asunto = "Resultado oficial de tu Examen Práctico DGT - ManDS Autoescuela";
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                            + "Te comunicamos oficialmente que el resultado de tu examen práctico oficial de conducir"
-                            + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + " ha sido calificado como NO APTO.\n\n"
-                            + "No te desanimes, es una etapa habitual en el aprendizaje de la conducción. En esta prueba se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
-                            + (gastadas >= 2
-                                    ? "Has acumulado 2 convocatorias agotadas. Por normativa oficial, la adquisición de saldo y la reserva de clases prácticas quedan temporalmente pausadas hasta que tramites la Renovación de Matrícula desde tu panel de pagos.\n\n"
-                                    : "Mantienes asignado a tu profesor de autoescuela. Te recomendamos reservar clases prácticas adicionales en el calendario para pulir las maniobras antes de tu siguiente examen.\n\n")
-                            + "¡Mucho ánimo, estamos a tu lado para conseguirlo!\n\n"
-                            + "Un cordial saludo,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
-                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
-                }
-            }
-        }
-        // Si aprueba el examen práctico, finalizar el expediente del carnet y liberar cupo del profesor
-        else if (Boolean.TRUE.equals(dto.esApto()) && examen.getAlumno() != null && examen.getTipo() == TipoExamen.PRACTICO)
-        {
-            Alumno alumno = examen.getAlumno();
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
-            String nombreCarnet = "";
-            if (matriculaOptional.isPresent())
-            {
-                Matricula matricula = matriculaOptional.get();
-                matricula.setEstaActiva(false);
-                this.matriculaRepository.save(matricula);
-                if (matricula.getPermisoCarnet() != null)
-                {
-                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
-                }
-            }
-
-            // Desvinculación de profesor asignado para liberar su cupo oficial
-            alumno.setProfesor(null);
-            this.alumnoRepository.save(alumno);
-
-            // Cancelación de clases prácticas futuras pendientes si quedase alguna agendada
-            List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
-            for (ClasePractica clase : clasesPendientes)
-            {
-                clase.setEstadoClase(EstadoClase.CANCELADA);
-                this.clasePracticaRepository.save(clase);
-            }
-
-            // Notificación por correo electrónico oficial de felicitación al alumno
-            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
-            {
-                String asunto = "¡Enhorabuena! Has aprobado tu examen práctico en ManDS Autoescuela";
-                String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                        + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen práctico de conducir"
-                        + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + ".\n\n"
-                        + "Tu expediente para este permiso ha finalizado con éxito. A partir de ahora podrás consultar todo tu historial de clases y notas desde tu panel de usuario.\n\n"
-                        + "Si en el futuro deseas matricularte en un nuevo permiso de conducir, podrás gestionarlo directamente desde tu panel personal.\n\n"
-                        + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
-                        + "Un cordial saludo,\n"
-                        + "Equipo de Coordinación - ManDS Autoescuela";
-                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
-            }
-        }
-        // Si aprueba el examen teórico, notificar por correo electrónico oficial de felicitación e inicio de prácticas
-        else if (Boolean.TRUE.equals(dto.esApto()) && examen.getAlumno() != null && examen.getTipo() == TipoExamen.TEORICO)
-        {
-            Alumno alumno = examen.getAlumno();
-            Optional<Matricula> matriculaOptional = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno);
-            String nombreCarnet = "";
-            if (matriculaOptional.isPresent())
-            {
-                Matricula matricula = matriculaOptional.get();
-                if (matricula.getPermisoCarnet() != null)
-                {
-                    nombreCarnet = matricula.getPermisoCarnet().getDescripcion();
-                }
-            }
-
-            // Notificación por correo electrónico oficial de felicitación al alumno
-            if (alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
-            {
-                String asunto = "¡Enhorabuena! Has aprobado tu examen teórico en ManDS Autoescuela";
-                String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                        + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen teórico oficial de conducir"
-                        + (nombreCarnet.isBlank() ? "" : " para el " + nombreCarnet) + ".\n\n"
-                        + "Has superado con éxito la fase teórica. A partir de este momento ya puedes comenzar con tu formación práctica y reservar tus clases en el calendario desde tu panel de alumno.\n\n"
-                        + "Tu profesor asignado estará encantado de acompañarte en las prácticas de circulación.\n\n"
-                        + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
-                        + "Un cordial saludo,\n"
-                        + "Equipo de Coordinación - ManDS Autoescuela";
-                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
-            }
-        }
-
-        redirectAttributes.addFlashAttribute("mensajeExito", "Calificación registrada con éxito. Resultado: " + (Boolean.TRUE.equals(dto.esApto()) ? "APTO" : "NO APTO") + ".");
         return "redirect:/profesor/examenes";
     }
 
@@ -1253,7 +927,7 @@ public class ProfesorController
     @GetMapping("/vehiculo")
     public String mostrarVehiculo(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1261,8 +935,8 @@ public class ProfesorController
 
         Vehiculo vehiculo = profesor.getVehiculo();
         List<IncidenciaVehiculo> incidencias = vehiculo != null
-                ? this.incidenciaVehiculoRepository.findByVehiculoOrderByFechaHoraDesc(vehiculo)
-                : this.incidenciaVehiculoRepository.findByProfesorOrderByFechaHoraDesc(profesor);
+                ? this.incidenciaVehiculoService.obtenerIncidenciasPorVehiculoDesc(vehiculo)
+                : this.incidenciaVehiculoService.obtenerIncidenciasPorProfesorDesc(profesor);
 
         model.addAttribute("profesor", profesor);
         model.addAttribute("vehiculo", vehiculo);
@@ -1277,10 +951,9 @@ public class ProfesorController
      * Soporta peticiones tradicionales y peticiones dinámicas HTMX.
      */
     @PostMapping("/vehiculo/incidencia")
-    @Transactional
     public String reportarIncidencia(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("reportarIncidenciaDTO") ReportarIncidenciaDTO dto, BindingResult bindingResult, HttpServletRequest request, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1291,7 +964,7 @@ public class ProfesorController
         Vehiculo vehiculo = profesor.getVehiculo();
         if (vehiculo == null && dto.vehiculoId() != null)
         {
-            vehiculo = this.vehiculoRepository.findById(dto.vehiculoId()).orElse(null);
+            vehiculo = this.flotaService.buscarPorId(dto.vehiculoId()).orElse(null);
         }
 
         if (bindingResult.hasErrors())
@@ -1319,59 +992,21 @@ public class ProfesorController
             return "redirect:/profesor/vehiculo";
         }
 
-        IncidenciaVehiculo incidencia = new IncidenciaVehiculo();
-        incidencia.setFechaHora(LocalDateTime.now());
-        incidencia.setDescripcion(dto.descripcion());
-        incidencia.setEstado(EstadoIncidencia.PENDIENTE);
-        incidencia.setVehiculo(vehiculo);
-        incidencia.setProfesor(profesor);
-
-        this.incidenciaVehiculoRepository.save(incidencia);
-
-        // Notificación por correo al Administrador del sistema
         try
         {
-            List<Administrador> administradores = this.personaRepository.findAdministradoresActivos();
-            String nombreProfesor = profesor.getNombre() + " " + profesor.getApellidos();
-            String vehiculoInfo = vehiculo.getMarca() + " " + vehiculo.getModelo();
-            String urlIncidencias = (this.appBaseUrl != null && this.appBaseUrl.endsWith("/"))
-                    ? this.appBaseUrl + "admin/incidencias"
-                    : (this.appBaseUrl != null ? this.appBaseUrl + "/admin/incidencias" : "http://localhost:8080/admin/incidencias");
-
-            if (administradores != null && !administradores.isEmpty())
-            {
-                for (Administrador admin : administradores)
-                {
-                    if (admin.getCorreo() != null && !admin.getCorreo().isBlank())
-                    {
-                        this.emailService.enviarNotificacionIncidenciaAdmin(
-                                admin.getCorreo(),
-                                admin.getNombre(),
-                                nombreProfesor,
-                                vehiculoInfo,
-                                vehiculo.getMatricula(),
-                                dto.descripcion(),
-                                urlIncidencias
-                        );
-                    }
-                }
-            }
-            else
-            {
-                this.emailService.enviarNotificacionIncidenciaAdmin(
-                        "admin@autoescuela.es",
-                        "Administrador",
-                        nombreProfesor,
-                        vehiculoInfo,
-                        vehiculo.getMatricula(),
-                        dto.descripcion(),
-                        urlIncidencias
-                );
-            }
+            this.incidenciaVehiculoService.reportarIncidencia(profesor, vehiculo, dto, this.appBaseUrl);
         }
-        catch (Exception ex)
+        catch (ReglaNegocioException ex)
         {
-            // Fallback silencioso ante indisponibilidad del servidor SMTP para no romper la experiencia de usuario
+            if (esPeticionHtmx)
+            {
+                model.addAttribute("errorReportarIncidencia", ex.getMessage());
+                model.addAttribute("vehiculo", vehiculo);
+                model.addAttribute("abrirModalReportarIncidencia", true);
+                return "profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia";
+            }
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/profesor/vehiculo";
         }
 
         String mensajeExito = "Incidencia mecánica reportada correctamente. El Administrador ha sido notificado para su revisión.";
@@ -1405,7 +1040,7 @@ public class ProfesorController
     @GetMapping("/estadisticas")
     public String mostrarEstadisticas(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1425,7 +1060,7 @@ public class ProfesorController
     @GetMapping("/perfil")
     public String mostrarPerfil(@AuthenticationPrincipal Object principal, Model model)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1440,10 +1075,9 @@ public class ProfesorController
     }
 
     @PostMapping("/perfil")
-    @Transactional
     public String actualizarPerfil(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("perfilDTO") EditarPerfilProfesorDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1458,35 +1092,28 @@ public class ProfesorController
             return "profesor/perfil";
         }
 
-        // Comprobar unicidad de teléfono si ha cambiado
-        String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";
-        if (!nuevoTel.equals(profesor.getTelefono()) && this.personaRepository.existsByTelefonoAndIdNot(nuevoTel, profesor.getId()))
+        try
+        {
+            this.profesorService.actualizarPerfil(profesor.getId(), dto);
+        }
+        catch (ReglaNegocioException ex)
         {
             EditarPerfilProfesorDTO perfilRepoblado = this.profesorMapper.repoblarPerfilDTO(profesor, dto);
             model.addAttribute("profesor", profesor);
             model.addAttribute("perfilDTO", perfilRepoblado);
             model.addAttribute("vehiculo", profesor.getVehiculo());
-            model.addAttribute("error", "El número de teléfono introducido ya está registrado por otro usuario.");
+            model.addAttribute("error", ex.getMessage());
             return "profesor/perfil";
         }
-
-        profesor.setNombre(dto.nombre() != null ? dto.nombre().trim() : "");
-        profesor.setApellidos(dto.apellidos() != null ? dto.apellidos().trim() : "");
-        profesor.setTelefono(nuevoTel);
-        profesor.setDireccion(dto.direccion() != null ? dto.direccion().trim() : "");
-        profesor.setFechaNacimiento(dto.fechaNacimiento());
-
-        this.profesorRepository.save(profesor);
 
         redirectAttributes.addFlashAttribute("mensajeExito", "Tus datos personales han sido actualizados correctamente.");
         return "redirect:/profesor/perfil";
     }
 
     @PostMapping("/perfil/password")
-    @Transactional
     public String cambiarPassword(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("passwordDTO") CambiarPasswordDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)
     {
-        Profesor profesor = this.obtenerProfesorActual(principal);
+        Profesor profesor = this.profesorService.obtenerProfesorActual(principal);
         if (profesor == null)
         {
             return "redirect:/login";
@@ -1498,22 +1125,16 @@ public class ProfesorController
             return "redirect:/profesor/perfil";
         }
 
-        if (!this.passwordEncoder.matches(dto.passwordActual(), profesor.getPassword()))
+        try
         {
-            redirectAttributes.addFlashAttribute("errorPassword", "La contraseña actual no es correcta.");
-            return "redirect:/profesor/perfil";
+            this.profesorService.cambiarPassword(profesor.getId(), dto.passwordActual(), dto.nuevaPassword(), dto.confirmPassword());
+            redirectAttributes.addFlashAttribute("mensajeExito", "Tu contraseña de acceso ha sido cambiada correctamente.");
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("errorPassword", ex.getMessage());
         }
 
-        if (!dto.nuevaPassword().equals(dto.confirmPassword()))
-        {
-            redirectAttributes.addFlashAttribute("errorPassword", "Las nuevas contraseñas no coinciden.");
-            return "redirect:/profesor/perfil";
-        }
-
-        profesor.actualizarPassword(this.passwordEncoder.encode(dto.nuevaPassword()));
-        this.profesorRepository.save(profesor);
-
-        redirectAttributes.addFlashAttribute("mensajeExito", "Tu contraseña de acceso ha sido cambiada correctamente.");
         return "redirect:/profesor/perfil";
     }
 }

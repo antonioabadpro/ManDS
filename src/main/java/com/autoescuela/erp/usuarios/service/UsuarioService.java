@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.mapper.UsuarioMapper;
+import com.autoescuela.erp.usuarios.model.Administrador;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
@@ -219,5 +221,16 @@ public class UsuarioService
         persona.setFechaNacimiento(dto.getFechaNacimiento());
 
         this.personaRepository.save(persona);
+    }
+
+    /**
+     * Recupera la lista de todos los administradores activos en el sistema.
+     *
+     * @return Lista de administradores activos.
+     */
+    @Transactional(readOnly = true)
+    public List<Administrador> obtenerAdministradoresActivos()
+    {
+        return this.personaRepository.findAdministradoresActivos();
     }
 }
