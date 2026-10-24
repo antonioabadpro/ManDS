@@ -1,6 +1,5 @@
 package com.autoescuela.erp.usuarios.controller;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,37 +12,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
-import com.autoescuela.erp.core.enums.EstadoClase;
-import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
-import com.autoescuela.erp.core.enums.EstadoVehiculo;
-import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
-import com.autoescuela.erp.practicas.service.ClasePracticaService;
-import com.autoescuela.erp.core.enums.TipoCambio;
-import com.autoescuela.erp.core.enums.TipoCarnet;
-import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
-import com.autoescuela.erp.estadisticas.dto.EstadisticasAdminDTO;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
-import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
-import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
-import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
-import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
-import com.autoescuela.erp.flota.dto.VehiculoDetalleDTO;
-import com.autoescuela.erp.flota.dto.VehiculoResumenDTO;
-import com.autoescuela.erp.flota.model.IncidenciaVehiculo;
-import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.service.FlotaService;
-import com.autoescuela.erp.flota.service.IncidenciaVehiculoService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
@@ -76,26 +56,7 @@ public class AdministradorController
     private final FlotaService flotaService;
     private final ExamenService examenService;
     private final EstadisticaService estadisticaService;
-    private final IncidenciaVehiculoService incidenciaVehiculoService;
-    private final ClasePracticaService clasePracticaService;
 
-    /**
-     * Proporciona el nombre corto/de pila del Administrador a todas las vistas para evitar
-     * desbordamientos horizontales en el pie de la barra lateral.
-     */
-    @ModelAttribute("nomUsuario")
-    public String mostrarNombreUsuario(@AuthenticationPrincipal Object principal)
-    {
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            return userDetails.getNombreUsuario();
-        }
-        else if (principal instanceof UserDetails user)
-        {
-            return user.getUsername();
-        }
-        return "nomUsuario";
-    }
 
     /**
      * Muestra el panel de control (dashboard) del Administrador.
@@ -107,11 +68,6 @@ public class AdministradorController
     @GetMapping("/dashboard")
     public String mostrarDashboard(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
     {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
         cargarDatosDashboard(model);
         cargarCatalogosAltaProfesor(model);
 
@@ -129,11 +85,6 @@ public class AdministradorController
         String referer = request.getHeader("Referer");
         boolean esDesdeProfesores = (hxCurrentUrl != null && hxCurrentUrl.contains("/admin/profesores"))
                 || (referer != null && referer.contains("/admin/profesores"));
-
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
 
         if (bindingResult.hasErrors())
         {
@@ -205,11 +156,6 @@ public class AdministradorController
     @GetMapping("/profesores")
     public String mostrarProfesores(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
     {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
         List<ProfesorResumenDTO> profesores = this.profesorService.obtenerTodosLosProfesores();
         model.addAttribute("profesores", profesores);
         model.addAttribute("totalProfesores", profesores.size());
@@ -232,8 +178,6 @@ public class AdministradorController
         model.addAttribute("editarProfesorDTO", dto);
         model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
         model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(id));
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-        model.addAttribute("turnos", TipoTurno.values());
         model.addAttribute("abrirModalEditarProfesor", true);
 
         return "admin/fragments/modal-editar-profesor :: modal-editar-profesor";
@@ -266,8 +210,6 @@ public class AdministradorController
             boolean tieneClasesPendientes = profesorId != null && this.profesorService.tieneClasesPracticasPendientes(profesorId);
             model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
             model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("turnos", TipoTurno.values());
             model.addAttribute("abrirModalEditarProfesor", true);
 
             if (esPeticionHtmx)
@@ -314,8 +256,6 @@ public class AdministradorController
             boolean tieneClasesPendientes = profesorId != null && this.profesorService.tieneClasesPracticasPendientes(profesorId);
             model.addAttribute("tieneClasesPendientes", tieneClasesPendientes);
             model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosParaEdicionProfesor(profesorId));
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("turnos", TipoTurno.values());
             model.addAttribute("errorEditarProfesor", ex.getMessage());
             model.addAttribute("abrirModalEditarProfesor", true);
 
@@ -499,8 +439,6 @@ public class AdministradorController
         }
 
         model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosDisponiblesParaProfesor());
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-        model.addAttribute("turnos", TipoTurno.values());
     }
 
     /**
@@ -510,11 +448,6 @@ public class AdministradorController
     @GetMapping("/alumnos")
     public String mostrarAlumnos(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
     {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
         List<AlumnoResumenDTO> alumnos = this.alumnoService.obtenerTodosLosAlumnos();
         model.addAttribute("alumnos", alumnos);
         model.addAttribute("totalAlumnos", alumnos.size());
@@ -721,558 +654,6 @@ public class AdministradorController
     }
 
     /**
-     * Muestra la vista de gestión de flota de vehículos con datos reales del parque móvil.
-     */
-    @GetMapping("/flota")
-    public String mostrarFlota(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
-    {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
-        this.cargarDatosMetricasFlota(model);
-        this.cargarCatalogosAltaVehiculo(model);
-
-        return "admin/flota";
-    }
-
-    /**
-     * Procesa el formulario de alta de un nuevo vehículo en el parque móvil de la autoescuela.
-     */
-    @PostMapping("/flota/alta")
-    public String darAltaVehiculo(
-            @AuthenticationPrincipal Object principal,
-            @Valid @ModelAttribute("altaVehiculoDTO") AltaVehiculoDTO altaVehiculoDTO,
-            BindingResult bindingResult,
-            Model model,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            RedirectAttributes redirectAttributes)
-    {
-        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
-
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
-        if (bindingResult.hasErrors())
-        {
-            this.cargarCatalogosAltaVehiculo(model);
-            this.cargarDatosMetricasFlota(model);
-            model.addAttribute("abrirModalAltaVehiculo", true);
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
-            }
-            return "admin/flota";
-        }
-
-        try
-        {
-            Vehiculo vehiculoRegistrado = this.flotaService.darAltaVehiculo(altaVehiculoDTO);
-            String mensajeExito = "El vehículo " + vehiculoRegistrado.getMarca() + " " + vehiculoRegistrado.getModelo()
-                    + " (" + vehiculoRegistrado.getMatricula() + ") ha sido dado de alta correctamente en estado DISPONIBLE.";
-
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            this.cargarCatalogosAltaVehiculo(model);
-            this.cargarDatosMetricasFlota(model);
-            bindingResult.rejectValue("matricula", "error.matricula", ex.getMessage());
-            model.addAttribute("errorAltaVehiculo", ex.getMessage());
-            model.addAttribute("abrirModalAltaVehiculo", true);
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-alta-vehiculo :: #modal-alta-vehiculo";
-            }
-            return "admin/flota";
-        }
-    }
-
-    /**
-     * Endpoint HTMX para validar de forma temprana el formato y unicidad de la matrícula en la BD.
-     * Permite validar tanto en alta (sin id) como en edición (excluyendo el id del vehículo actual).
-     */
-    @PostMapping("/flota/validar-matricula")
-    public String validarMatricula(@RequestParam(name = "matricula", required = false) String matricula, @RequestParam(name = "id", required = false) Long id, Model model)
-    {
-        if (matricula == null || matricula.isBlank())
-        {
-            model.addAttribute("mensaje", "La matrícula es obligatoria.");
-            return "auth/registro :: mensaje-error";
-        }
-
-        String limpia = matricula.trim().toUpperCase().replace(" ", "").replace("-", "");
-        if (!limpia.matches("^[0-9]{4}[A-Za-z]{3}$"))
-        {
-            model.addAttribute("mensaje", "Formato de matrícula inválido (ej. 1234-LMN o 1234LMN).");
-            return "auth/registro :: mensaje-error";
-        }
-
-        if(this.flotaService.existeMatriculaOtroVehiculo(matricula, id))
-        {
-            model.addAttribute("mensaje", "La matrícula ya está registrada en otro vehículo del sistema.");
-            return "auth/registro :: mensaje-error";
-        }
-
-        return "auth/registro :: fragmento-vacio";
-    }
-
-    /**
-     * Endpoint HTMX para cargar los datos del vehículo en el modal de edición.
-     */
-    @GetMapping("/flota/editar/{id}")
-    public String cargarModalEditarVehiculo(@PathVariable("id") Long id, Model model)
-    {
-        EditarVehiculoDTO dto = this.flotaService.obtenerVehiculoParaEdicion(id);
-        VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(id);
-        boolean tieneProfesorAsignado = detalle.profesorId() != null;
-
-        model.addAttribute("editarVehiculoDTO", dto);
-        model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
-        model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
-        model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
-        model.addAttribute("estadoVehiculo", detalle.estado());
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-        model.addAttribute("tiposCombustible", TipoCombustible.values());
-        model.addAttribute("tiposCambio", TipoCambio.values());
-        model.addAttribute("abrirModalEditarVehiculo", true);
-
-        return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
-    }
-
-    /**
-     * Procesa la modificación de los datos de un vehículo existente en el parque móvil.
-     */
-    @PostMapping("/flota/editar")
-    public String editarVehiculo(
-            @AuthenticationPrincipal Object principal,
-            @Valid @ModelAttribute("editarVehiculoDTO") EditarVehiculoDTO editarVehiculoDTO,
-            BindingResult bindingResult,
-            Model model,
-            HttpServletRequest request,
-            HttpServletResponse response,
-            RedirectAttributes redirectAttributes)
-    {
-        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
-
-        if (principal instanceof UserDetailsImpl userDetails)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
-        Long vehiculoId = editarVehiculoDTO != null ? editarVehiculoDTO.id() : null;
-
-        if (bindingResult.hasErrors())
-        {
-            if (vehiculoId != null)
-            {
-                VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(vehiculoId);
-                model.addAttribute("tieneProfesorAsignado", detalle.profesorId() != null);
-                model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
-                model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
-                model.addAttribute("estadoVehiculo", detalle.estado());
-            }
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("tiposCombustible", TipoCombustible.values());
-            model.addAttribute("tiposCambio", TipoCambio.values());
-            model.addAttribute("abrirModalEditarVehiculo", true);
-
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
-            }
-            this.cargarDatosMetricasFlota(model);
-            this.cargarCatalogosAltaVehiculo(model);
-            return "admin/flota";
-        }
-
-        try
-        {
-            Vehiculo vehiculoModificado = this.flotaService.modificarVehiculo(editarVehiculoDTO);
-            String mensajeExito = "El vehículo " + vehiculoModificado.getMarca() + " " + vehiculoModificado.getModelo()
-                    + " (" + vehiculoModificado.getMatricula() + ") ha sido modificado correctamente.";
-
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            if (vehiculoId != null)
-            {
-                VehiculoDetalleDTO detalle = this.flotaService.obtenerVehiculoParaDetalle(vehiculoId);
-                model.addAttribute("tieneProfesorAsignado", detalle.profesorId() != null);
-                model.addAttribute("profesorAsignadoNombre", detalle.profesorNombreCompleto());
-                model.addAttribute("profesorAsignadoTurno", detalle.profesorTurno());
-                model.addAttribute("estadoVehiculo", detalle.estado());
-            }
-            model.addAttribute("tiposCarnet", TipoCarnet.values());
-            model.addAttribute("tiposCombustible", TipoCombustible.values());
-            model.addAttribute("tiposCambio", TipoCambio.values());
-            model.addAttribute("errorEditarVehiculo", ex.getMessage());
-            model.addAttribute("abrirModalEditarVehiculo", true);
-
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo";
-            }
-            this.cargarDatosMetricasFlota(model);
-            this.cargarCatalogosAltaVehiculo(model);
-            return "admin/flota";
-        }
-    }
-
-    /**
-     * Endpoint HTMX para cargar y presentar los datos informativos del vehículo en el modal de detalle.
-     */
-    @GetMapping("/flota/detalle/{id}")
-    public String cargarModalDetalleVehiculo(@PathVariable("id") Long id, Model model)
-    {
-        VehiculoDetalleDTO dto = this.flotaService.obtenerVehiculoParaDetalle(id);
-        model.addAttribute("vehiculo", dto);
-        model.addAttribute("abrirModalDetalleVehiculo", true);
-
-        return "admin/fragments/modal-detalle-vehiculo :: modal-detalle-vehiculo";
-    }
-
-    /**
-     * Endpoint HTMX para cargar el modal de baja lógica y confirmación de un vehículo de la flota.
-     */
-    @GetMapping("/flota/baja/{id}")
-    public String cargarModalBajaVehiculo(@PathVariable("id") Long id, Model model)
-    {
-        VehiculoDetalleDTO vehiculo = this.flotaService.obtenerVehiculoParaDetalle(id);
-        boolean tieneProfesorAsignado = vehiculo.profesorId() != null;
-        boolean puedeDarBaja = !tieneProfesorAsignado && vehiculo.estado() == EstadoVehiculo.DISPONIBLE;
-
-        model.addAttribute("vehiculo", vehiculo);
-        model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
-        model.addAttribute("puedeDarBaja", puedeDarBaja);
-        model.addAttribute("abrirModalBajaVehiculo", true);
-
-        return "admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
-    }
-
-    /**
-     * Procesa la solicitud de baja lógica (borrado lógico) de un vehículo del parque móvil:
-     * - Transición de estado a INACTIVO con preservación histórica de inspecciones e incidencias.
-     * - Restricción estricta: No permite baja si tiene un profesor asignado o no está en estado DISPONIBLE.
-     * - Notificación y redirección limpia con cabecera HX-Redirect para peticiones HTMX.
-     */
-    @PostMapping("/flota/baja/{id}")
-    public String darBajaVehiculo(@PathVariable("id") Long id, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
-    {
-        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
-
-        try
-        {
-            Vehiculo vehiculoBaja = this.flotaService.darBajaVehiculo(id);
-            String mensajeExito = "El vehículo " + vehiculoBaja.getMarca() + " " + vehiculoBaja.getModelo()
-                    + " (" + vehiculoBaja.getMatricula() + ") ha sido dado de baja correctamente (estado INACTIVO).";
-
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            VehiculoDetalleDTO vehiculo = this.flotaService.obtenerVehiculoParaDetalle(id);
-            boolean tieneProfesorAsignado = vehiculo.profesorId() != null;
-            boolean puedeDarBaja = !tieneProfesorAsignado && vehiculo.estado() == EstadoVehiculo.DISPONIBLE;
-
-            model.addAttribute("vehiculo", vehiculo);
-            model.addAttribute("tieneProfesorAsignado", tieneProfesorAsignado);
-            model.addAttribute("puedeDarBaja", puedeDarBaja);
-            model.addAttribute("errorBajaVehiculo", ex.getMessage());
-            model.addAttribute("abrirModalBajaVehiculo", true);
-
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-baja-vehiculo :: modal-baja-vehiculo";
-            }
-            this.cargarDatosMetricasFlota(model);
-            this.cargarCatalogosAltaVehiculo(model);
-            return "admin/flota";
-        }
-    }
-
-    /**
-     * Muestra la bandeja de incidencias y averías mecánicas reportadas con datos en tiempo real
-     * y cálculo de KPIs en el servidor.
-     */
-    @GetMapping("/incidencias")
-    public String mostrarIncidencias(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
-    {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-
-        List<IncidenciaResumenDTO> incidencias = this.incidenciaVehiculoService.obtenerTodasLasIncidencias();
-        long totalPendientes = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.PENDIENTE);
-        long totalEnProceso = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.EN_PROCESO);
-        long totalResueltas = this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.RESUELTA);
-
-        model.addAttribute("incidencias", incidencias);
-        model.addAttribute("totalPendientes", totalPendientes);
-        model.addAttribute("totalEnProceso", totalEnProceso);
-        model.addAttribute("totalResueltas", totalResueltas);
-
-        return "admin/incidencias";
-    }
-
-    /**
-     * Endpoint HTMX para cargar los datos de una incidencia pendiente en el modal de gestión.
-     */
-    @GetMapping("/incidencias/gestionar/{id}")
-    public String cargarModalGestionarIncidencia(@PathVariable("id") Long id, Model model)
-    {
-        IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
-        model.addAttribute("incidencia", dto);
-        model.addAttribute("abrirModalGestionarIncidencia", true);
-
-        return "admin/fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
-    }
-
-    /**
-     * Endpoint HTMX para cargar los datos de una incidencia en el modal informativo de detalle.
-     */
-    @GetMapping("/incidencias/detalle/{id}")
-    public String cargarModalDetalleIncidencia(@PathVariable("id") Long id, Model model)
-    {
-        IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
-        model.addAttribute("incidencia", dto);
-        model.addAttribute("abrirModalDetalleIncidencia", true);
-
-        return "admin/fragments/modal-detalle-incidencia :: modal-detalle-incidencia";
-    }
-
-    /**
-     * Procesa la actualización del estado de una incidencia mecánica pendiente (EN_PROCESO o RESUELTA).
-     * Aplica la transición a MANTENIMIENTO, cancelación de clases y avisos por correo.
-     */
-    @PostMapping("/incidencias/gestionar")
-    public String gestionarIncidencia(@RequestParam("id") Long id, @RequestParam("estado") EstadoIncidencia nuevoEstado, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
-    {
-        boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
-
-        try
-        {
-            IncidenciaVehiculo incidencia = this.incidenciaVehiculoService.gestionarIncidencia(id, nuevoEstado);
-            String mensajeExito = (nuevoEstado == EstadoIncidencia.EN_PROCESO)
-                    ? "La incidencia del vehículo " + incidencia.getVehiculo().getMatricula()
-                            + " ha pasado a estado EN PROCESO. El vehículo ha entrado en MANTENIMIENTO, se han cancelado sus clases prácticas y se ha notificado por correo electrónico al profesor y a sus alumnos."
-                    : "La incidencia del vehículo " + incidencia.getVehiculo().getMatricula()
-                            + " ha sido RESUELTA. El vehículo ha recuperado su operatividad ("
-                            + incidencia.getVehiculo().getEstado() + ") y se ha notificado por correo electrónico la reapertura de reservas de clases prácticas.";
-
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/incidencias";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/incidencias";
-        }
-        catch (ReglaNegocioException ex)
-        {
-            IncidenciaDetalleDTO dto = this.incidenciaVehiculoService.obtenerIncidenciaParaDetalle(id);
-            model.addAttribute("incidencia", dto);
-            model.addAttribute("errorGestionarIncidencia", ex.getMessage());
-            model.addAttribute("abrirModalGestionarIncidencia", true);
-
-            if (esPeticionHtmx)
-            {
-                return "admin/fragments/modal-gestionar-incidencia :: modal-gestionar-incidencia";
-            }
-
-            model.addAttribute("incidencias", this.incidenciaVehiculoService.obtenerTodasLasIncidencias());
-            model.addAttribute("totalPendientes", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.PENDIENTE));
-            model.addAttribute("totalEnProceso", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.EN_PROCESO));
-            model.addAttribute("totalResueltas", this.incidenciaVehiculoService.contarPorEstado(EstadoIncidencia.RESUELTA));
-            return "admin/incidencias";
-        }
-    }
-
-    /**
-     * Muestra la gestión de convocatorias y solicitudes DGT (cola FIFO y cupos).
-     */
-    @GetMapping("/examenes")
-    public String mostrarExamenes(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
-    {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-        return "admin/examenes";
-    }
-
-    @PostMapping("/examenes/fijar-fechas-examen")
-    public String guardarConvocatoriasDgt(@RequestParam("mesAnio") String mesAnio, @RequestParam("fechaConvocatoria1") LocalDate fecha1, @RequestParam("horaConvocatoria1") String hora1, @RequestParam("fechaConvocatoria2") LocalDate fecha2, @RequestParam("horaConvocatoria2") String hora2, RedirectAttributes redirectAttributes)
-    {
-        // Lógica de servicio: fijar fechas y bloquear agendas de vehículos
-        redirectAttributes.addFlashAttribute("mensajeExito", "Convocatorias DGT fijadas correctamente.");
-        return "redirect:/admin/examenes";
-    }
-
-    /**
-     * Muestra la agenda global de prácticas de profesores y vehículos.
-     * Carga el catálogo de profesores para el filtro transversal sin consultas costosas a las clases.
-     */
-    @GetMapping("/practicas")
-    public String mostrarPracticas(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
-    {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-        model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
-        return "admin/practicas";
-    }
-
-    /**
-     * Endpoint HTMX para buscar y filtrar clases prácticas por profesor y/o estado,
-     * devolviendo el fragmento de tabla ordenado descendentemente.
-     */
-    @GetMapping("/practicas/buscar")
-    public String buscarPracticas(@RequestParam(name = "profesorId", required = false) Long profesorId, @RequestParam(name = "estadoClase", required = false) EstadoClase estadoClase, Model model)
-    {
-        List<ClasePracticaAdminDTO> clases = this.clasePracticaService.obtenerClasesParaAdmin(profesorId, estadoClase);
-        model.addAttribute("clases", clases);
-        model.addAttribute("totalClases", clases.size());
-        model.addAttribute("busquedaRealizada", true);
-        return "admin/fragments/tabla-practicas :: tabla-practicas-fragment";
-    }
-
-    /**
-     * Endpoint HTMX para cargar el modal con el resumen informativo detallado de una clase práctica.
-     */
-    @GetMapping("/practicas/detalle/{id}")
-    public String cargarModalDetalleClaseAdmin(@PathVariable("id") Long id, Model model)
-    {
-        ClasePracticaAdminDTO clase = this.clasePracticaService.obtenerClaseParaDetalleAdmin(id);
-        model.addAttribute("clase", clase);
-        model.addAttribute("abrirModalDetalleClase", true);
-        return "admin/fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin";
-    }
-
-
-    /**
-     * Muestra el panel de estadísticas globales y métricas de la autoescuela.
-     */
-    @GetMapping("/estadisticas")
-    public String mostrarEstadisticas(@AuthenticationPrincipal UserDetailsImpl userDetails, Model model)
-    {
-        if (userDetails != null)
-        {
-            model.addAttribute("nombreAdmin", userDetails.getNombreCompleto());
-        }
-        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
-        model.addAttribute("stats", stats);
-        return "admin/estadisticas";
-    }
-
-    /**
-     * Endpoint HTMX para cargar el modal con el desglose completo del rendimiento de todos los profesores.
-     */
-    @GetMapping("/estadisticas/profesores-modal")
-    public String cargarModalEstadisticasProfesores(Model model)
-    {
-        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
-        model.addAttribute("profesores", stats.todosProfesores());
-        return "admin/fragments/modal-estadisticas-profesores :: modal-estadisticas-profesores";
-    }
-
-    /**
-     * Endpoint HTMX para cargar el modal con el desglose completo de la demanda de todos los permisos de conducir.
-     */
-    @GetMapping("/estadisticas/carnets-modal")
-    public String cargarModalEstadisticasCarnets(Model model)
-    {
-        EstadisticasAdminDTO stats = this.estadisticaService.obtenerEstadisticasAdmin();
-        model.addAttribute("carnets", stats.todosCarnets());
-        return "admin/fragments/modal-estadisticas-carnets :: modal-estadisticas-carnets";
-    }
-
-    /**
      * Muestra el formulario de Mi Perfil con los datos personales del Administrador.
      */
     @GetMapping("/perfil")
@@ -1353,36 +734,5 @@ public class AdministradorController
             perfilDTO.setCorreo(original.getCorreo());
             perfilDTO.setRol(original.getRol());
         }
-    }
-
-    /**
-     * Carga en el modelo los catálogos y el DTO necesarios para renderizar el modal de alta de vehículo.
-     * Se utiliza en la vista de gestión de flota para dar de alta un nuevo vehículo en el parque móvil.
-     * @param model
-     */
-    private void cargarCatalogosAltaVehiculo(Model model)
-    {
-        if (!model.containsAttribute("altaVehiculoDTO"))
-        {
-            model.addAttribute("altaVehiculoDTO", new AltaVehiculoDTO());
-        }
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-        model.addAttribute("tiposCombustible", TipoCombustible.values());
-        model.addAttribute("tiposCambio", TipoCambio.values());
-    }
-
-    /**
-     * Carga en el modelo las métricas y estadísticas de la flota de vehículos para mostrar en el dashboard.
-     * Se utiliza en la vista de gestión de flota para mostrar el total de vehículos, los disponibles, ocupados y en mantenimiento.
-     * @param model
-     */
-    private void cargarDatosMetricasFlota(Model model)
-    {
-        List<VehiculoResumenDTO> vehiculos = this.flotaService.obtenerTodosLosVehiculos();
-        model.addAttribute("vehiculos", vehiculos);
-        model.addAttribute("totalVehiculos", vehiculos.size());
-        model.addAttribute("totalDisponibles", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.DISPONIBLE).count());
-        model.addAttribute("totalOcupados", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.OCUPADO).count());
-        model.addAttribute("totalMantenimiento", vehiculos.stream().filter(v -> v.estado() == EstadoVehiculo.MANTENIMIENTO).count());
     }
 }

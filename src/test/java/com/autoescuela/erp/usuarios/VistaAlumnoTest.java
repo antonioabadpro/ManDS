@@ -256,7 +256,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para clases individuales")
     void testComprarClasesIndividualesExito() throws Exception
     {
@@ -272,7 +272,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para Bono de 10 clases")
     void testComprarBono10Exito() throws Exception
     {
@@ -288,7 +288,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para Bono de 15 clases")
     void testComprarBonoExito() throws Exception
     {
@@ -301,6 +301,20 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .param("cantidadClases", "15"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_bono_15"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /alumno/pagos/comprar-clases bloquea compra si alumno dispone de saldo activo")
+    void testComprarClasesBloqueadoPorSaldoActivo() throws Exception
+    {
+        this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
+                .with(csrf())
+                .param("tipoProducto", "INDIVIDUAL")
+                .param("cantidadClases", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/pagos"))
+                .andExpect(flash().attribute("error", "No puedes adquirir nuevas clases ni bonos mientras dispongas de saldo activo en tu expediente."));
     }
 
     @Test
