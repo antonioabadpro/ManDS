@@ -71,6 +71,8 @@ public class AdministradorController
         cargarDatosDashboard(model);
         cargarCatalogosAltaProfesor(model);
 
+        model.addAttribute("nombreCorto", userDetails.getNombre());
+
         return "admin/dashboard";
     }
 

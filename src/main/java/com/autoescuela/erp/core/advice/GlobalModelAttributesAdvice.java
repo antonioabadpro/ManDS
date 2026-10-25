@@ -49,19 +49,14 @@ public class GlobalModelAttributesAdvice
     }
 
     /**
-     * Proporciona el nombre corto/de pila del Administrador para evitar desbordamientos horizontales.
+     * Proporciona el nombre completo del Administrador para su portal.
      */
     @ModelAttribute("nombreAdmin")
-    public String obtenerNombreCortoAdmin(@AuthenticationPrincipal Object principal)
+    public String obtenerNombre(@AuthenticationPrincipal Object principal)
     {
         if (principal instanceof UserDetailsImpl userDetails)
         {
-            String nombreCompleto = userDetails.getNombreCompleto();
-            if (nombreCompleto != null && !nombreCompleto.isBlank())
-            {
-                return nombreCompleto.trim().split("\\s+")[0];
-            }
-            return userDetails.getNombreUsuario();
+            return userDetails.getNombreCompleto();
         }
         else if (principal instanceof UserDetails user)
         {

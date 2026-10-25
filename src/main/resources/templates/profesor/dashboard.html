@@ -78,8 +78,8 @@
             <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 text-white shadow-xl shadow-violet-500/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div class="space-y-2 relative z-10">
                     <div class="flex items-center space-x-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white">
-                            Turno <span th:text="${profesor?.turno?.name()}"></span>
+                        <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
+                            <span>Bienvenida</span>
                         </span>
                         <span class="text-xs text-violet-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>

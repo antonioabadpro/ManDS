@@ -83,11 +83,14 @@
             <div class="rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-6 sm:p-8 shadow-lg shadow-blue-600/15 relative overflow-hidden">
                 <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                 <div class="relative z-10 space-y-2">
-                    <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
-                        <span>Bienvenida</span>
-                    </span>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
+                            <span>Bienvenida</span>
+                        </span>
+                        <span class="text-xs text-indigo-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                    </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                        ¡Hola, <span th:text="${nombreAdmin} ?: 'Administrador'"></span>!
+                        ¡Hola, <span th:text="${nombreCorto ?: 'Administrador'}"></span>!
                     </h2>
                     <p class="text-xs sm:text-sm text-blue-100 max-w-2xl leading-relaxed">
                         Accede de un vistazo a las métricas clave de la autoescuela, gestiona el profesorado y el alumnado, la flota de vehículos y tramita las convocatorias oficiales con la DGT.
