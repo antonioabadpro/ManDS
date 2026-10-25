@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.autoescuela.erp.academico.model.Matricula;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
  * Gestiona el modal HTMX y el procesamiento transaccional de peticiones del alumnado.
  */
 @Controller
+@RequestMapping("/alumno/examenes")
 @RequiredArgsConstructor
 public class SolicitudExamenController
 {
@@ -39,7 +41,7 @@ public class SolicitudExamenController
     /**
      * Modal HTMX para formalizar solicitud de examen DGT con verificación de requisitos previos.
      */
-    @GetMapping("/alumno/examenes/solicitar-modal")
+    @GetMapping("/solicitar-modal")
     public String obtenerModalSolicitarExamen(@AuthenticationPrincipal Object principal, Model model)
     {
         Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
@@ -82,7 +84,7 @@ public class SolicitudExamenController
     /**
      * Procesa la presentación de una nueva solicitud de examen DGT (CU-038).
      */
-    @PostMapping("/alumno/examenes/solicitar")
+    @PostMapping("/solicitar")
     @Transactional
     public String solicitarExamenDgt(
             @AuthenticationPrincipal Object principal,

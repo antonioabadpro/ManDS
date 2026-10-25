@@ -71,7 +71,7 @@ public class ConfiguracionSeguridad
                 // Rutas protegidas por Roles
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR")
-                .requestMatchers("/alumno/**").hasRole("ALUMNO")
+                .requestMatchers("/alumno/**", "/matricula/**").hasRole("ALUMNO")
 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated())

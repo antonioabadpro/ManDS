@@ -183,7 +183,7 @@
                     </div>
                 </div>
 
-                <form th:action="@{/alumno/matricular}" method="post" id="form-nueva-matricula" class="space-y-6">
+                <form th:action="@{/matricula/nueva}" method="post" id="form-nueva-matricula" class="space-y-6">
                     <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

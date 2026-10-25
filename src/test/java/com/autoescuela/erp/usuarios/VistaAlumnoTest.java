@@ -461,13 +461,13 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno22", roles = "ALUMNO")
-    @DisplayName("POST /alumno/matricular inicia sesión de pago en Stripe para alumno sin matrícula activa")
+    @DisplayName("POST /matricula/nueva inicia sesión de pago en Stripe para alumno sin matrícula activa")
     void testMatricularNuevoCarnetExito() throws Exception
     {
         when(this.pagoStripeService.crearSesionPagoMatricula(eq(TipoCarnet.PERMISO_C), any()))
                 .thenReturn(new SesionPagoDTO("cs_test_mock_matricula", "https://checkout.stripe.com/pay/cs_test_mock_matricula", 45000L, "EUR"));
 
-        this.mockMvc.perform(post("/alumno/matricular")
+        this.mockMvc.perform(post("/matricula/nueva")
                 .with(csrf())
                 .param("tipoCarnet", "PERMISO_C"))
                 .andExpect(status().is3xxRedirection())
@@ -476,15 +476,41 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("POST /alumno/matricular rechaza la solicitud si el alumno ya tiene un permiso activo")
+    @DisplayName("POST /matricula/nueva rechaza la solicitud si el alumno ya tiene un permiso activo")
     void testMatricularNuevoCarnetRechazadoPorPermisoActivo() throws Exception
     {
-        this.mockMvc.perform(post("/alumno/matricular")
+        this.mockMvc.perform(post("/matricula/nueva")
                 .with(csrf())
                 .param("tipoCarnet", "PERMISO_A2"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/alumno/dashboard"))
                 .andExpect(flash().attribute("error", containsString("Ya tienes una matrícula activa")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @DisplayName("POST /matricula/renovar inicia sesión de pago en Stripe para renovar matrícula con convocatorias agotadas")
+    void testRenovarMatriculaExito() throws Exception
+    {
+        when(this.pagoStripeService.crearSesionPagoRenovacionMatricula(any(), any()))
+                .thenReturn(new SesionPagoDTO("cs_test_mock_renovacion", "https://checkout.stripe.com/pay/cs_test_mock_renovacion", 25000L, "EUR"));
+
+        this.mockMvc.perform(post("/matricula/renovar")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_test_mock_renovacion"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
+    @DisplayName("POST /matricula/renovar rechaza la renovación si el alumno todavía dispone de convocatorias vigentes")
+    void testRenovarMatriculaRechazadoConvocatoriasVigentes() throws Exception
+    {
+        this.mockMvc.perform(post("/matricula/renovar")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/pagos"))
+                .andExpect(flash().attribute("error", containsString("Aún dispones de convocatorias de examen vigentes")));
     }
 
     @Test
