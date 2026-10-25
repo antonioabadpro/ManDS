@@ -60,7 +60,7 @@
   | Clase práctica suelta | 60 € | 30 € |
   | Bono 10 / Bono 15 / Bono 20 | 540 € / 800 € / 1.000 € | 270 € / 400 € / 500 € |
   | Renovación de Matrícula | Tarifa de renovación estipulada tras agotar 2 convocatorias |
-- **Modalidades de Matrícula:** *Teórico + Prácticas*, *Sólo Prácticas*, *Individual* (futuro). Tipos: *Nueva Matriculación* y *Renovación de Matrícula*.
+- **Modalidades de Matrícula:** *Teórico + Prácticas*, *Sólo Prácticas*. Tipos: *Nueva Matriculación* y *Renovación de Matrícula*.
 - **Vinculación Alumno-Profesor:** Un alumno solo tiene profesor asignado si dispone de matrícula activa habilitada para dicho carnet. Sin matrícula activa, el campo `profesor` es obligatoriamente `null`.
 - **Convocatorias y Suspensos:** 2 convocatorias iniciales por matrícula. Al agotar convocatorias (`convocatorias <= 0`) o acumular 2 suspensos, se bloquea la adquisición de saldo, el acceso a los Test Teóricos y el acceso al calendario de reservas hasta abonar la Renovación vía Stripe.
 - **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) en fecha previa para acceder al calendario, reservar clases prácticas o solicitar examen práctico oficial.

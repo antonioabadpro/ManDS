@@ -8,8 +8,7 @@ import lombok.RequiredArgsConstructor;
 public enum ModalidadMatricula
 {
     TEORICO_PRACTICA("Teórico-Práctica"),
-    PRACTICA("Práctica"),
-    INDIVIDUAL("Individual");
+    PRACTICA("Práctica");
 
     private final String descripcion;
 }
