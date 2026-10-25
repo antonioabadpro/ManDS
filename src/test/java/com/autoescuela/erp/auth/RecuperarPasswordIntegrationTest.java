@@ -47,14 +47,14 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
     private PasswordEncoder passwordEncoder;
 
     @Test
-    @DisplayName("POST /recuperar-password con correo existente genera token y redirige a ?enviado=true")
+    @DisplayName("POST /recuperar-password con correo existente genera token y redirige a /recuperar-password")
     void testSolicitudRecuperacionCorreoExistente() throws Exception
     {
         this.mockMvc.perform(post("/recuperar-password")
                         .with(csrf())
                         .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?enviado=true"));
+                .andExpect(redirectedUrl("/recuperar-password"));
 
         Persona persona = this.personaRepository.findByCorreo("jose.alumno@autoescuela.es").orElseThrow();
 
@@ -75,7 +75,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /recuperar-password con cabecera HX-Request devuelve cabecera HX-Redirect")
+    @DisplayName("POST /recuperar-password con cabecera HX-Request devuelve cabecera HX-Redirect a /recuperar-password")
     void testSolicitudRecuperacionHtmxDevuelveHxRedirect() throws Exception
     {
         this.mockMvc.perform(post("/recuperar-password")
@@ -83,11 +83,11 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .header("HX-Request", "true")
                         .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("HX-Redirect", "/recuperar-password?enviado=true"));
+                .andExpect(header().string("HX-Redirect", "/recuperar-password"));
     }
 
     @Test
-    @DisplayName("POST /recuperar-password con correo desconocido redirige a ?enviado=true sin generar token (Anti-Enumeration)")
+    @DisplayName("POST /recuperar-password con correo desconocido redirige a /recuperar-password sin generar token (Anti-Enumeration)")
     void testSolicitudRecuperacionCorreoDesconocido() throws Exception
     {
         long numTokensAntes = this.tokenVerificacionRepository.count();
@@ -96,7 +96,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .with(csrf())
                         .param("correo", "inexistente@autoescuela.es"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?enviado=true"));
+                .andExpect(redirectedUrl("/recuperar-password"));
 
         long numTokensDespues = this.tokenVerificacionRepository.count();
         assertTrue(numTokensAntes == numTokensDespues, "No debe crearse ningún token para correos no registrados.");
@@ -139,7 +139,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("POST /recuperar-password/restablecer con token inválido redirige a ?tokenInvalido=true")
+    @DisplayName("POST /recuperar-password/restablecer con token inválido redirige a /recuperar-password con flash attribute")
     void testRestablecerPasswordTokenInvalido() throws Exception
     {
         this.mockMvc.perform(post("/recuperar-password/restablecer")
@@ -148,7 +148,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .param("password", "nuevaClave123")
                         .param("confirmPassword", "nuevaClave123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?tokenInvalido=true"));
+                .andExpect(redirectedUrl("/recuperar-password"));
     }
 
     @Test
@@ -171,7 +171,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .param("password", "nuevaPasswordSegura123")
                         .param("confirmPassword", "nuevaPasswordSegura123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?exito=true"));
+                .andExpect(redirectedUrl("/recuperar-password"));
 
         // Verificamos que el token se marcó como usado en la BD
         TokenVerificacion tokenEnBd = this.tokenVerificacionRepository.findByToken(token.getToken()).orElseThrow();
@@ -186,7 +186,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
         // Intentamos reutilizar el mismo token debe fallar
         this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?tokenInvalido=true"));
+                .andExpect(redirectedUrl("/recuperar-password"));
 
         // Verificamos que el usuario puede autenticarse en /login con la nueva contraseña
         this.mockMvc.perform(post("/login")

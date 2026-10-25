@@ -56,8 +56,12 @@ public class AuthenticationController
      * automáticamente y se le redirige a la vista limpia de acceso.
      */
     @GetMapping("/login")
-    public String iniciarSesion(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+    public String iniciarSesion(@RequestParam(name = "registrado", required = false) String registrado, @RequestParam(name = "tokenInvalido", required = false) String tokenInvalido, @RequestParam(name = "activado", required = false) String activado, HttpServletRequest request, HttpServletResponse response, Authentication authentication)
     {
+        if (registrado != null || tokenInvalido != null || activado != null)
+        {
+            return "redirect:/login";
+        }
         if (this.autenticacionService.estaAutenticado(authentication))
         {
             this.autenticacionService.cerrarSesion(request, response, authentication);
@@ -139,14 +143,24 @@ public class AuthenticationController
      * Si el token es inválido o ha expirado, se redirige inmediatamente con la alerta correspondiente.
      */
     @GetMapping("/recuperar-password")
-    public String recuperarPassword(@RequestParam(name = "token", required = false) String token, Model model)
+    public String recuperarPassword(@RequestParam(name = "token", required = false) String token,
+                                    @RequestParam(name = "enviado", required = false) String enviado,
+                                    @RequestParam(name = "exito", required = false) String exito,
+                                    @RequestParam(name = "tokenInvalido", required = false) String tokenInvalido,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes)
     {
+        if (enviado != null || exito != null || tokenInvalido != null)
+        {
+            return "redirect:/recuperar-password";
+        }
         if (token != null && !token.isBlank())
         {
             model.addAttribute("token", token.trim());
             if (this.autenticacionService.validarTokenRecuperacion(token.trim()) == false)
             {
-                return "redirect:/recuperar-password?tokenInvalido=true";
+                redirectAttributes.addFlashAttribute("errorToken", true);
+                return "redirect:/recuperar-password";
             }
             model.addAttribute("token", token.trim());
         }
@@ -159,20 +173,22 @@ public class AuthenticationController
      * Soporta peticiones reactivas HTMX emitiendo el encabezado HX-Redirect.
      */
     @PostMapping("/recuperar-password")
-    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request, HttpServletResponse response)
+    public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
     {
         boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
         String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
         this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
 
+        redirectAttributes.addFlashAttribute("mensajeEnviado", true);
+
         if (esPeticionHtmx)
         {
             String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            response.setHeader("HX-Redirect", contextPath + "/recuperar-password?enviado=true");
+            response.setHeader("HX-Redirect", contextPath + "/recuperar-password");
             return null;
         }
 
-        return "redirect:/recuperar-password?enviado=true";
+        return "redirect:/recuperar-password";
     }
 
     /**
@@ -180,7 +196,7 @@ public class AuthenticationController
      * Si la operación tiene éxito, redirige a la vista con el estado de éxito (?exito=true).
      */
     @PostMapping("/recuperar-password/restablecer")
-    public String procesarRestablecimientoPassword(@Valid @ModelAttribute("restablecerDTO") RestablecerPasswordDTO dto, BindingResult bindingResult, Model model)
+    public String procesarRestablecimientoPassword(@Valid @ModelAttribute("restablecerDTO") RestablecerPasswordDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
     {
         if (bindingResult.hasErrors())
         {
@@ -193,13 +209,15 @@ public class AuthenticationController
         try
         {
             this.autenticacionService.restablecerPassword(dto);
-            return "redirect:/recuperar-password?exito=true";
+            redirectAttributes.addFlashAttribute("mensajeExito", true);
+            return "redirect:/recuperar-password";
         }
         catch (ReglaNegocioException ex)
         {
             if (ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"))
             {
-                return "redirect:/recuperar-password?tokenInvalido=true";
+                redirectAttributes.addFlashAttribute("errorToken", true);
+                return "redirect:/recuperar-password";
             }
             model.addAttribute("token", dto.token());
             model.addAttribute("mensajeError", ex.getMessage());
@@ -211,11 +229,12 @@ public class AuthenticationController
      * Muestra la vista de activación de cuenta para el nuevo profesor (Regla 7.1).
      */
     @GetMapping("/activar-cuenta")
-    public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model)
+    public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model, RedirectAttributes redirectAttributes)
     {
         if (token == null || token.isBlank() || !this.autenticacionService.validarTokenRecuperacion(token.trim()))
         {
-            return "redirect:/login?tokenInvalido=true";
+            redirectAttributes.addFlashAttribute("tokenInvalido", true);
+            return "redirect:/login";
         }
         model.addAttribute("token", token.trim());
         model.addAttribute("activarDTO", new ActivarCuentaProfesorDTO(token.trim(), null, null, null));
@@ -226,7 +245,7 @@ public class AuthenticationController
      * Procesa la activación de cuenta del profesor, configurando su nombre de usuario y contraseña definitivos.
      */
     @PostMapping("/activar-cuenta")
-    public String procesarActivacionCuenta(@Valid @ModelAttribute("activarDTO") ActivarCuentaProfesorDTO dto, BindingResult bindingResult, Model model)
+    public String procesarActivacionCuenta(@Valid @ModelAttribute("activarDTO") ActivarCuentaProfesorDTO dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes)
     {
         if (bindingResult.hasErrors())
         {
@@ -239,7 +258,8 @@ public class AuthenticationController
         try
         {
             this.autenticacionService.activarCuentaProfesor(dto);
-            return "redirect:/login?activado=true";
+            redirectAttributes.addFlashAttribute("cuentaActivada", true);
+            return "redirect:/login";
         }
         catch (ReglaNegocioException ex)
         {
