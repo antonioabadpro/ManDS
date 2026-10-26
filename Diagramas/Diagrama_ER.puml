@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v15
+@startuml Diagrama_ER_v16
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -138,7 +138,8 @@ package "Usuarios" {
     + consultarVehiculos(): List<Vehiculo>
     + consultarEstadisticas(): void
     + getRol(): Rol
-    + fijarFechasExamenMes(anio: Integer, mes: Integer, fecha1: LocalDate, fecha2: LocalDate): void
+    + fijarFechasExamen(mes: LocalDate, fechaHora1: LocalDateTime, fechaHora2: LocalDateTime): void
+    + fijarCuposExamen(mes: LocalDate, cupos: List<CupoExamen>): void
     + consultarSolicitudesExamen(): List<SolicitudExamen>
     + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
     + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
@@ -245,8 +246,25 @@ package "Autoescuela" {
     + cambiarEstado(): Boolean
   }
 
+  class FechaExamen {
+    - id: Long
+    - mes: LocalDate
+    - fechaHora1: LocalDateTime
+    - fechaHora2: LocalDateTime
+  }
+
+  class CupoExamen {
+    - id: Long
+    - mes: LocalDate
+    - tipoPermiso: TipoCarnet
+    - cupoTeorico: Integer
+    - cupoPractico: Integer
+  }
+
   class SolicitudExamen {
     - id: Long
+    - fechaHora: LocalDateTime
+    - tipo: TipoExamen
     - estado: EstadoSolicitud
     - comentarioJustificacion: String
     - alumno: Alumno
@@ -297,6 +315,9 @@ ClasePractica "0..*" -up-> "1" Profesor : impartida por >
 
 Matricula "1" -down-> "0..*" SolicitudExamen : genera >
 Administrador "1" -down-> "0..*" SolicitudExamen : gestiona >
+Administrador "1" -down-> "0..*" FechaExamen : fija >
+Administrador "1" -down-> "0..*" CupoExamen : fija >
+FechaExamen -[hidden]right-> CupoExamen
 Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
 Alumno "1" -down-> "0..*" Examen : realiza >
