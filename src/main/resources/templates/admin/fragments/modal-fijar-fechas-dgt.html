@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- MODAL 1: Fijar Fechas Oficiales DGT del Mes (Con Doble Paso)  -->
+    <!-- ------------------------------------------------------------- -->
+    <div th:fragment="modal-fijar-fechas-dgt" id="modal-fijar-fechas-dgt" role="dialog" aria-modal="true" aria-labelledby="titulo-fijar-fechas" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-fijar-fechas-dgt"></div>
+        <div class="relative z-10 w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5">
+
+            <div id="contenedor-paso-1-fechas" class="space-y-5">
+                <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div>
+                        <h3 id="titulo-fijar-fechas" class="text-base font-bold text-slate-900 dark:text-white">Fijar Fechas Oficiales DGT</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 capitalize" th:text="${'Convocatorias para ' + #temporals.format(mesSeleccionado, 'MMMM yyyy')}">Configuración de las 2 convocatorias asignadas por Tráfico</p>
+                    </div>
+                    <button type="button" data-modal-close="modal-fijar-fechas-dgt" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="form-fijar-fechas-dgt" th:action="@{/admin/examenes/fijar-fechas-examen}" method="post" class="space-y-4">
+                    <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                    <input type="hidden" name="mes" th:value="${mesSeleccionado}" id="input-mes-fijar-fechas" />
+
+                    <!-- 1ª Convocatoria -->
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
+                        <div>
+                            <label for="fechaHora1" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha y Hora de Examen *</label>
+                            <input type="datetime-local" id="fechaHora1" name="fechaHora1" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+
+                    <!-- 2ª Convocatoria -->
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
+                        <div>
+                            <label for="fechaHora2" class="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha y Hora de Examen *</label>
+                            <input type="datetime-local" id="fechaHora2" name="fechaHora2" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900/60 text-xs text-blue-800 dark:text-blue-300 space-y-1">
+                        <p class="font-bold">Efecto normativo:</p>
+                        <p>• La 2ª fecha debe ser igual o posterior a la 1ª fecha y ninguna puede coincidir en festivo o vacaciones.</p>
+                        <p>• Se aplicará el bloqueo preventivo en la agenda de prácticas de los vehículos durante esas jornadas.</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                        <button type="button" data-modal-close="modal-fijar-fechas-dgt" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">Cancelar</button>
+                        <button type="button" id="btn-pre-fijar-fechas" class="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm cursor-pointer">Fijar Fechas del Mes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 2º Paso de Confirmación Irreversible para Fechas (Limpio) -->
+            <div id="submodal-confirmar-fijar-fechas" class="hidden flex flex-col justify-center items-center text-center space-y-4 py-3">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-base font-bold text-slate-900 dark:text-white">¿Confirmar Fijación Irreversible de Fechas?</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                        Esta operación es <strong>definitiva e inmutable</strong>. Una vez guardadas las 2 fechas de examen para este mes, <strong>NO podrán modificarse</strong> en el sistema.
+                    </p>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" id="btn-cancelar-submodal-fechas" class="px-5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Volver
+                    </button>
+                    <button type="button" id="btn-ejecutar-fijar-fechas" class="px-6 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm cursor-pointer">
+                        Sí, Fijar Definitivamente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

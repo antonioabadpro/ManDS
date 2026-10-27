@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <div id="contenedor-jornadas-dgt" th:fragment="modal-fechas-cupos-dgt" class="space-y-4">
+
+        <!-- 1. JORNADAS OFICIALES DGT Y CUPOS DEL MES (Selector de Mes / Navegación Flexible Asíncrona) -->
+        <section class="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30 p-5 sm:p-6 shadow-sm space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-blue-100 dark:border-slate-800 pb-3">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-blue-600 text-white">
+                        DGT Oficial
+                    </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Parametrización Anticipada e Inmutable</span>
+                    </div>
+                    <!-- Navegación mensual interactiva sin recargar la página ni alterar parámetros de URL -->
+                    <div class="flex items-center space-x-2 mt-3">
+                        <button type="button" th:attr="hx-get=@{/admin/examenes/jornadas(mes=${mesAnterior})}" hx-target="#contenedor-jornadas-dgt" hx-swap="outerHTML" hx-replace-url="/admin/examenes" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes anterior">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white capitalize" th:text="${#temporals.format(mesSeleccionado, 'MMMM yyyy')}">
+                            Octubre 2026
+                        </h3>
+                        <button type="button" th:attr="hx-get=@{/admin/examenes/jornadas(mes=${mesSiguiente})}" hx-target="#contenedor-jornadas-dgt" hx-swap="outerHTML" hx-replace-url="/admin/examenes" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes siguiente">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Botón Fijar Fechas del Mes (o badge si ya están fijadas) -->
+                    <th:block th:if="${fechasMes == null}">
+                        <button type="button" data-modal-target="modal-fijar-fechas-dgt" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>Fijar Fechas del Mes</span>
+                        </button>
+                    </th:block>
+                    <th:block th:unless="${fechasMes == null}">
+                        <span class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>2 Fechas Fijadas</span>
+                        </span>
+                    </th:block>
+
+                    <!-- Botón Fijar Cupos de Examen (o badge si ya están fijados) -->
+                    <th:block th:if="${#lists.isEmpty(cuposMes)}">
+                        <button type="button" data-modal-target="modal-fijar-cupos-dgt" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <span>Fijar Cupos del Mes</span>
+                        </button>
+                    </th:block>
+                    <th:block th:unless="${#lists.isEmpty(cuposMes)}">
+                        <span class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Cupos Fijados</span>
+                        </span>
+                    </th:block>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Jornada 1 -->
+                <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
+                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora1, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
+                            Jueves, 15 de Octubre de 2026
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora1, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
+                            Hora de examen: 08:30h · Jefatura Provincial
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span th:if="${fechasMes != null}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        Convocatoria 1
+                    </span>
+                        <span th:unless="${fechasMes != null}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        Sin fijar
+                    </span>
+                    </div>
+                </div>
+
+                <!-- Jornada 2 -->
+                <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
+                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora2, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
+                            Jueves, 29 de Octubre de 2026
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora2, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
+                            Hora de examen: 08:30h · Jefatura Provincial
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <span th:if="${fechasMes != null}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                        Convocatoria 2
+                    </span>
+                        <span th:unless="${fechasMes != null}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        Sin fijar
+                    </span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-500 dark:text-slate-400 italic">
+                * Cada mes dispone de 2 fechas de examen oficiales y sus cupos independientes para pruebas teóricas y prácticas. Ambas operaciones son irreversibles tras su confirmación y bloquean preventivamente las clases en los vehículos afectados.
+            </p>
+        </section>
+
+        <!-- Modales modulares separados para fijar fechas y fijar cupos -->
+        <div th:replace="~{admin/fragments/modal-fijar-fechas-dgt :: modal-fijar-fechas-dgt}"></div>
+        <div th:replace="~{admin/fragments/modal-fijar-cupos-dgt :: modal-fijar-cupos-dgt}"></div>
+
+    </div>
+
+</body>
+
+</html>

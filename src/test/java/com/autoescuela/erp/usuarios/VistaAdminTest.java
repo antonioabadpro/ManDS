@@ -299,7 +299,61 @@ class VistaAdminTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/examenes"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/examenes"));
+                .andExpect(view().name("admin/examenes"))
+                .andExpect(model().attributeExists("solicitudes"))
+                .andExpect(model().attributeExists("profesores"))
+                .andExpect(model().attributeExists("tiposCarnet"))
+                .andExpect(model().attributeExists("tiposExamen"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes con parámetro mes redirige limpiando la URL con flash attribute")
+    void testExamenesParametroMesRedirigeLimpio() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes").param("mes", "2026-11-01"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/examenes"))
+                .andExpect(flash().attributeExists("mes"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes/jornadas renderiza el fragmento HTMX de jornadas y cupos del mes")
+    void testJornadasDgtMesHTMX() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes/jornadas")
+                        .param("mes", "2026-11-01"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
+                .andExpect(model().attributeExists("mesSeleccionado"))
+                .andExpect(model().attributeExists("mesSiguiente"))
+                .andExpect(model().attributeExists("mesAnterior"))
+                .andExpect(model().attributeExists("tiposCarnet"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes/buscar renderiza el fragmento HTMX de la tabla de solicitudes filtradas")
+    void testBuscarSolicitudesExamenHTMX() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes/buscar")
+                        .param("estado", "PENDIENTE"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/tabla-solicitudes-admin :: tablaSolicitudesFragment"))
+                .andExpect(model().attributeExists("solicitudes"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes/{id}/editar-modal renderiza el fragmento modal de resolución de solicitud")
+    void testModalEditarSolicitudExamenHTMX() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes/46/editar-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-editar-solicitud-examen :: modalEditarSolicitud"))
+                .andExpect(model().attributeExists("diagnostico"))
+                .andExpect(model().attributeExists("solicitud"));
     }
 
     @Test

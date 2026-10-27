@@ -1389,6 +1389,70 @@ INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitu
 VALUES (38, TRUE, '2026-09-16 10:00:00', 30, 'TEORICO', 226, 45);
 
 -- ------------------------------------------------------------------------------
+-- 8.1. SOLICITUDES DE EXAMEN PENDIENTES Y RECHAZADAS PARA TESTING FIFO
+-- ------------------------------------------------------------------------------
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (46, '2026-10-18 10:00:00', 'PENDIENTE', 'PRACTICO', NULL, 201, 100, 2);
+
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (47, '2026-10-19 11:30:00', 'PENDIENTE', 'PRACTICO', NULL, 203, 100, 4);
+
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (48, '2026-10-20 09:00:00', 'PENDIENTE', 'TEORICO', NULL, 205, NULL, 6);
+
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (49, '2026-10-21 16:00:00', 'PENDIENTE', 'PRACTICO', NULL, 209, 101, 10);
+
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (50, '2026-10-12 12:00:00', 'RECHAZADA', 'PRACTICO', 'No cumple con las destrezas minimas en maniobras de estacionamiento y circulacion urbana.', 204, 100, 5);
+
+-- ------------------------------------------------------------------------------
+-- 8.2. CONVOCATORIAS OFICIALES DGT DEL MES (fecha_examen)
+-- ------------------------------------------------------------------------------
+INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
+VALUES (1, '2026-10-01', '2026-10-15 08:30:00', '2026-10-29 08:30:00');
+
+INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
+VALUES (2, '2026-09-01', '2026-09-10 08:30:00', '2026-09-24 08:30:00');
+
+-- ------------------------------------------------------------------------------
+-- 8.3. CUPOS DE EXAMEN POR TIPO DE CARNET (cupo_examen)
+-- ------------------------------------------------------------------------------
+-- Octubre 2026
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (1, '2026-10-01', 'PERMISO_B', 5, 4);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (2, '2026-10-01', 'PERMISO_A2', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (3, '2026-10-01', 'PERMISO_A', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (4, '2026-10-01', 'PERMISO_AM', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (5, '2026-10-01', 'PERMISO_C', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (6, '2026-10-01', 'PERMISO_D', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (7, '2026-10-01', 'PERMISO_B_E', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (8, '2026-10-01', 'PERMISO_A1', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (9, '2026-10-01', 'PERMISO_B1', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (10, '2026-10-01', 'PERMISO_C_E', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (11, '2026-10-01', 'PERMISO_D_E', 3, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (12, '2026-10-01', 'PERMISO_LVA', 3, 2);
+
+-- Septiembre 2026
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (13, '2026-09-01', 'PERMISO_B', 5, 4);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (14, '2026-09-01', 'PERMISO_A2', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico)
+VALUES (15, '2026-09-01', 'PERMISO_C', 4, 3);
+
+-- ------------------------------------------------------------------------------
 -- 9. REAJUSTE DE SECUENCIAS DE IDENTIDAD (H2)
 -- ------------------------------------------------------------------------------
 -- Permite que las inserciones posteriores desde los formularios de la aplicación
@@ -1400,3 +1464,6 @@ ALTER TABLE matricula ALTER COLUMN id RESTART WITH 1000;
 ALTER TABLE clase_practica ALTER COLUMN id RESTART WITH 1000;
 ALTER TABLE solicitud_examen ALTER COLUMN id RESTART WITH 1000;
 ALTER TABLE examen ALTER COLUMN id RESTART WITH 1000;
+ALTER TABLE fecha_examen ALTER COLUMN id RESTART WITH 1000;
+ALTER TABLE cupo_examen ALTER COLUMN id RESTART WITH 1000;
+
