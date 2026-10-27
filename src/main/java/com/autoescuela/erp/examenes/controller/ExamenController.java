@@ -244,15 +244,25 @@ public class ExamenController
 
     /**
      * Carga el fragmento HTMX del modal de edición/resolución de una solicitud de examen con diagnóstico de cupos.
+     * Permite la navegación mensual interactiva sin recarga de página.
      */
     @GetMapping("/admin/examenes/{id}/editar-modal")
-    public String obtenerModalEditarSolicitud(@PathVariable("id") Long id, Model model)
+    public String obtenerModalEditarSolicitud(@PathVariable("id") Long id, @RequestParam(value = "mes", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mesParam, Model model)
     {
         try
         {
-            GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(id);
+            GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(id, mesParam);
+            LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+            LocalDate mes = diagnostico.mesSeleccionado() != null ? diagnostico.mesSeleccionado() : mesActual;
+
             model.addAttribute("diagnostico", diagnostico);
             model.addAttribute("solicitud", diagnostico.solicitud());
+            model.addAttribute("mesActual", mesActual);
+            model.addAttribute("mesSeleccionado", mes);
+            model.addAttribute("mesSiguiente", mes.plusMonths(1));
+            model.addAttribute("mesAnterior", mes.minusMonths(1));
+            model.addAttribute("puedeIrAtras", mes.isAfter(mesActual));
+
             return "admin/fragments/modal-editar-solicitud-examen :: modalEditarSolicitud";
         }
         catch (ReglaNegocioException ex)
@@ -267,14 +277,11 @@ public class ExamenController
      * Operación irreversible.
      */
     @PostMapping("/admin/examenes/{id}/aceptar")
-    public String aceptarSolicitudExamenAdmin(
-            @PathVariable("id") Long id,
-            @RequestParam("numeroConvocatoria") int numeroConvocatoria,
-            RedirectAttributes redirectAttributes)
+    public String aceptarSolicitudExamenAdmin(@PathVariable("id") Long id, @RequestParam("numeroConvocatoria") int numeroConvocatoria, @RequestParam(value = "mes", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mes, RedirectAttributes redirectAttributes)
     {
         try
         {
-            this.examenService.aceptarSolicitudExamen(id, numeroConvocatoria);
+            this.examenService.aceptarSolicitudExamen(id, numeroConvocatoria, mes);
             redirectAttributes.addFlashAttribute("mensajeExito", "Solicitud aceptada y alumno citado oficialmente. Jornada bloqueada en el vehículo.");
         }
         catch (ReglaNegocioException ex)

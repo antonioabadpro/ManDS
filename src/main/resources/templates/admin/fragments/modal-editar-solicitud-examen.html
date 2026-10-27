@@ -57,58 +57,95 @@
                 <!-- 1. FORMULARIO DE ACEPTACIÓN Y CITACIÓN (Paso 1) -->
                 <form id="form-aceptar-solicitud" th:action="@{/admin/examenes/{id}/aceptar(id=${solicitud.id})}" method="post" class="space-y-4">
                     <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+                    <input type="hidden" name="mes" th:value="${#temporals.format(mesSeleccionado, 'yyyy-MM-dd')}" />
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                            Seleccionar Fecha Oficial DGT Fijada (Algoritmo de Cupo por Carnet):
-                        </label>
+                        <!-- Selector de Mes y Navegación Flexible Asíncrona (similar a examenes.html) -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 mb-3">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">Fechas de Examen Oficial DGT</span>
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Convocatorias del mes</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button th:if="${puedeIrAtras}" type="button" th:attr="hx-get=@{/admin/examenes/{id}/editar-modal(id=${solicitud.id}, mes=${mesAnterior})}" hx-target="#modal-editar-solicitud" hx-swap="outerHTML" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes anterior">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button th:unless="${puedeIrAtras}" type="button" disabled class="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 border border-slate-200/50 dark:border-slate-800 opacity-40 cursor-not-allowed" title="No es posible consultar meses anteriores al actual">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-white capitalize min-w-[120px] text-center" th:text="${#temporals.format(mesSeleccionado, 'MMMM yyyy')}">
+                                    Noviembre 2026
+                                </h4>
+                                <button type="button" th:attr="hx-get=@{/admin/examenes/{id}/editar-modal(id=${solicitud.id}, mes=${mesSiguiente})}" hx-target="#modal-editar-solicitud" hx-swap="outerHTML" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes siguiente">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
 
                         <div class="space-y-3">
                             <!-- Opción Convocatoria 1 -->
-                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer" th:classappend="${diagnostico?.convocatoria1?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
-                                <div class="flex items-start space-x-3">
+                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer gap-3" th:classappend="${diagnostico?.convocatoria1?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
+                                <div class="flex items-start space-x-3 flex-1 min-w-0">
                                     <input type="radio" name="numeroConvocatoria" value="1" th:disabled="${!diagnostico?.convocatoria1?.disponible()}" th:checked="${diagnostico?.convocatoria1?.disponible()}" class="mt-1 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
                                     <div>
                                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
-                                        <p class="text-sm font-bold text-slate-900 dark:text-white" th:text="${diagnostico?.convocatoria1?.fechaHora != null ? #temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Fecha no fijada'}">
+                                        <p class="text-sm font-bold text-slate-900 dark:text-white" th:text="${diagnostico?.convocatoria1?.fechaHora != null ? #temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Sin fijar'}">
                                             Jueves, 15 de Octubre de 2026 - 08:30h
                                         </p>
                                         <p class="text-xs text-slate-500 dark:text-slate-400">
-                                            Cupo oficial: <strong th:text="${diagnostico?.convocatoria1?.alumnosCitados + ' / ' + diagnostico?.convocatoria1?.cupoMaximo + ' plazas'}">2/4 plazas</strong>
+                                            Cupo oficial:
+                                            <th:block th:if="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
+                                                <strong th:text="${diagnostico.convocatoria1.alumnosCitados + ' / ' + diagnostico.convocatoria1.cupoMaximo + ' plazas'}">2/4 plazas</strong>
+                                            </th:block>
+                                            <th:block th:unless="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
+                                                <strong>Sin fijar</strong>
+                                            </th:block>
                                         </p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <span th:if="${diagnostico?.convocatoria1?.disponible()}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" th:text="${diagnostico.convocatoria1.plazasLibres + ' plazas libres'}">
+                                <div class="shrink-0 max-w-[200px] sm:max-w-[240px] text-left">
+                                    <span th:if="${diagnostico?.convocatoria1?.disponible()}" class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap" th:text="${diagnostico.convocatoria1.plazasLibres + ' plazas libres'}">
                                         2 libres
                                     </span>
-                                    <span th:unless="${diagnostico?.convocatoria1?.disponible()}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400" th:text="${diagnostico?.convocatoria1?.motivoNoDisponible ?: 'No disponible'}">
+                                    <p th:unless="${diagnostico?.convocatoria1?.disponible()}" class="text-left text-xs font-semibold text-rose-600 dark:text-rose-400 leading-snug" th:text="${diagnostico?.convocatoria1?.motivoNoDisponible ?: 'No disponible'}">
                                         Cupo Completo
-                                    </span>
+                                    </p>
                                 </div>
                             </label>
 
                             <!-- Opción Convocatoria 2 -->
-                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer" th:classappend="${diagnostico?.convocatoria2?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
-                                <div class="flex items-start space-x-3">
+                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer gap-3" th:classappend="${diagnostico?.convocatoria2?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
+                                <div class="flex items-start space-x-3 flex-1 min-w-0">
                                     <input type="radio" name="numeroConvocatoria" value="2" th:disabled="${!diagnostico?.convocatoria2?.disponible()}" th:checked="${!diagnostico?.convocatoria1?.disponible() and diagnostico?.convocatoria2?.disponible()}" class="mt-1 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
                                     <div>
                                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
-                                        <p class="text-sm font-bold text-slate-900 dark:text-white" th:text="${diagnostico?.convocatoria2?.fechaHora != null ? #temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Fecha no fijada'}">
+                                        <p class="text-sm font-bold text-slate-900 dark:text-white" th:text="${diagnostico?.convocatoria2?.fechaHora != null ? #temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Sin fijar'}">
                                             Jueves, 29 de Octubre de 2026 - 08:30h
                                         </p>
                                         <p class="text-xs text-slate-500 dark:text-slate-400">
-                                            Cupo oficial: <strong th:text="${diagnostico?.convocatoria2?.alumnosCitados + ' / ' + diagnostico?.convocatoria2?.cupoMaximo + ' plazas'}">1/4 plazas</strong>
+                                            Cupo oficial:
+                                            <th:block th:if="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
+                                                <strong th:text="${diagnostico.convocatoria2.alumnosCitados + ' / ' + diagnostico.convocatoria2.cupoMaximo + ' plazas'}">1/4 plazas</strong>
+                                            </th:block>
+                                            <th:block th:unless="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
+                                                <strong>Sin fijar</strong>
+                                            </th:block>
                                         </p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <span th:if="${diagnostico?.convocatoria2?.disponible()}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${diagnostico.convocatoria2.plazasLibres + ' plazas libres'}">
+                                <div class="shrink-0 max-w-[200px] sm:max-w-[240px] text-left">
+                                    <span th:if="${diagnostico?.convocatoria2?.disponible()}" class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 whitespace-nowrap" th:text="${diagnostico.convocatoria2.plazasLibres + ' plazas libres'}">
                                         3 libres
                                     </span>
-                                    <span th:unless="${diagnostico?.convocatoria2?.disponible()}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400" th:text="${diagnostico?.convocatoria2?.motivoNoDisponible ?: 'No disponible'}">
+                                    <p th:unless="${diagnostico?.convocatoria2?.disponible()}" class="text-left text-xs font-semibold text-rose-600 dark:text-rose-400 leading-snug" th:text="${diagnostico?.convocatoria2?.motivoNoDisponible ?: 'No disponible'}">
                                         Cupo Completo
-                                    </span>
+                                    </p>
                                 </div>
                             </label>
                         </div>
@@ -117,7 +154,7 @@
                     <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-200 dark:border-blue-900/60 text-xs text-blue-800 dark:text-blue-300 space-y-1">
                         <p class="font-bold">Acciones automáticas tras confirmar citación:</p>
                         <p>• Se emitirá la citación oficial por correo electrónico al alumno solicitante.</p>
-                        <p th:if="${solicitud?.tipo?.name() == 'PRACTICO'}">• Se cancelarán las clases prácticas de esa jornada en el vehículo y profesor asignados con aviso por correo (Regla 3.3).</p>
+                        <p th:if="${solicitud?.tipo?.name() == 'PRACTICO'}">• Se cancelarán las clases prácticas de esa jornada en el vehículo y profesor asignados con aviso por correo.</p>
                     </div>
 
                     <!-- Botón para abrir 2º Modal de Confirmación de Aceptación -->

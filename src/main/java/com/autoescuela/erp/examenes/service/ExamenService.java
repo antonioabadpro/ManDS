@@ -590,10 +590,20 @@ public class ExamenService
     }
 
     /**
-     * Evalúa la disponibilidad de cupo y prerrequisitos académicos para gestionar una solicitud de examen.
+     * Evalúa la disponibilidad de cupo y prerrequisitos académicos para gestionar una solicitud de examen en el mes activo o por defecto.
      */
     @Transactional(readOnly = true)
     public GestionarSolicitudExamenDTO obtenerGestionarSolicitud(Long solicitudId)
+    {
+        return this.obtenerGestionarSolicitud(solicitudId, null);
+    }
+
+    /**
+     * Evalúa la disponibilidad de cupo y prerrequisitos académicos para gestionar una solicitud de examen en un mes específico.
+     * Si no se indica mes, calcula automáticamente el mes pertinente sin retroceder a meses anteriores al actual.
+     */
+    @Transactional(readOnly = true)
+    public GestionarSolicitudExamenDTO obtenerGestionarSolicitud(Long solicitudId, LocalDate mesSolicitado)
     {
         SolicitudExamen solicitud = this.solicitudExamenRepository.findById(solicitudId)
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró la solicitud de examen indicada."));
@@ -601,34 +611,52 @@ public class ExamenService
         LocalDateTime ahora = LocalDateTime.now();
         LocalDate mesActual = ahora.toLocalDate().withDayOfMonth(1);
 
-        // Determinar el mes de las convocatorias a consultar:
-        // Si la solicitud es de un mes anterior o sus fechas ya expiraron, avanzamos al mes actual o siguiente
-        LocalDate mesSolicitud = solicitud.getFechaHora() != null ? solicitud.getFechaHora().toLocalDate().withDayOfMonth(1) : mesActual;
-        if (mesSolicitud.isBefore(mesActual))
+        LocalDate mesAUsar;
+        if (mesSolicitado != null)
         {
-            mesSolicitud = mesActual;
+            mesAUsar = mesSolicitado.withDayOfMonth(1);
+            if (mesAUsar.isBefore(mesActual))
+            {
+                mesAUsar = mesActual;
+            }
+        }
+        else
+        {
+            // Determinar el mes de las convocatorias a consultar:
+            // Si la solicitud es de un mes anterior o sus fechas ya expiraron, avanzamos al mes actual o siguiente
+            LocalDate mesSolicitud = solicitud.getFechaHora() != null ? solicitud.getFechaHora().toLocalDate().withDayOfMonth(1) : mesActual;
+            if (mesSolicitud.isBefore(mesActual))
+            {
+                mesSolicitud = mesActual;
+            }
+
+            Optional<FechaExamen> fechasOptDefault = this.fechaExamenRepository.findByMes(mesSolicitud);
+            // Si las fechas del mes seleccionado ya se celebraron, avanzamos al siguiente mes con fechas configuradas
+            if (fechasOptDefault.isPresent() && fechasOptDefault.get().getFechaHora2() != null && fechasOptDefault.get().getFechaHora2().isBefore(ahora))
+            {
+                LocalDate mesSiguiente = mesSolicitud.plusMonths(1).withDayOfMonth(1);
+                Optional<FechaExamen> fechasSiguienteOpt = this.fechaExamenRepository.findByMes(mesSiguiente);
+                if (fechasSiguienteOpt.isPresent())
+                {
+                    mesSolicitud = mesSiguiente;
+                }
+            }
+            else if (fechasOptDefault.isEmpty())
+            {
+                fechasOptDefault = this.fechaExamenRepository.findByMes(mesActual);
+                if (fechasOptDefault.isEmpty() || (fechasOptDefault.get().getFechaHora2() != null && fechasOptDefault.get().getFechaHora2().isBefore(ahora)))
+                {
+                    mesSolicitud = mesActual.plusMonths(1).withDayOfMonth(1);
+                }
+                else
+                {
+                    mesSolicitud = mesActual;
+                }
+            }
+            mesAUsar = mesSolicitud;
         }
 
-        Optional<FechaExamen> fechasOpt = this.fechaExamenRepository.findByMes(mesSolicitud);
-        // Si las fechas del mes seleccionado ya se celebraron, avanzamos al siguiente mes con fechas configuradas
-        if (fechasOpt.isPresent() && fechasOpt.get().getFechaHora2() != null && fechasOpt.get().getFechaHora2().isBefore(ahora))
-        {
-            LocalDate mesSiguiente = mesSolicitud.plusMonths(1).withDayOfMonth(1);
-            Optional<FechaExamen> fechasSiguienteOpt = this.fechaExamenRepository.findByMes(mesSiguiente);
-            if (fechasSiguienteOpt.isPresent())
-            {
-                fechasOpt = fechasSiguienteOpt;
-            }
-        }
-        else if (fechasOpt.isEmpty())
-        {
-            fechasOpt = this.fechaExamenRepository.findByMes(mesActual);
-            if (fechasOpt.isEmpty() || (fechasOpt.get().getFechaHora2() != null && fechasOpt.get().getFechaHora2().isBefore(ahora)))
-            {
-                LocalDate mesSiguiente = mesActual.plusMonths(1).withDayOfMonth(1);
-                fechasOpt = this.fechaExamenRepository.findByMes(mesSiguiente);
-            }
-        }
+        Optional<FechaExamen> fechasOpt = this.fechaExamenRepository.findByMes(mesAUsar);
 
         // Validación de matrícula activa
         String motivoBloqueo = null;
@@ -653,8 +681,8 @@ public class ExamenService
 
         if (fechasOpt.isEmpty())
         {
-            disp1 = new DisponibilidadConvocatoriaDTO(1, null, 0, 0, 0, false, "Fechas del mes pendientes de fijar");
-            disp2 = new DisponibilidadConvocatoriaDTO(2, null, 0, 0, 0, false, "Fechas del mes pendientes de fijar");
+            disp1 = new DisponibilidadConvocatoriaDTO(1, null, 0, 0, 0, false, "Sin Fijar");
+            disp2 = new DisponibilidadConvocatoriaDTO(2, null, 0, 0, 0, false, "Sin Fijar");
         }
         else
         {
@@ -673,50 +701,56 @@ public class ExamenService
                         : cupoOpt.get().getCupoPractico();
             }
 
-            int citados1 = carnet != null
-                    ? (int) this.solicitudExamenRepository.countAlumnosCitados(fechas.getFechaHora1(), carnet, solicitud.getTipo())
-                    : 0;
-            int citados2 = carnet != null
-                    ? (int) this.solicitudExamenRepository.countAlumnosCitados(fechas.getFechaHora2(), carnet, solicitud.getTipo())
-                    : 0;
+            if (cupoOpt.isEmpty() || cupoMaximo == 0)
+            {
+                disp1 = new DisponibilidadConvocatoriaDTO(1, fechas.getFechaHora1(), 0, 0, 0, false, "Sin Fijar");
+                disp2 = new DisponibilidadConvocatoriaDTO(2, fechas.getFechaHora2(), 0, 0, 0, false, "Sin Fijar");
+            }
+            else
+            {
+                int citados1 = carnet != null
+                        ? (int) this.solicitudExamenRepository.countAlumnosCitados(fechas.getFechaHora1(), carnet, solicitud.getTipo())
+                        : 0;
+                int citados2 = carnet != null
+                        ? (int) this.solicitudExamenRepository.countAlumnosCitados(fechas.getFechaHora2(), carnet, solicitud.getTipo())
+                        : 0;
 
-            int libres1 = Math.max(0, cupoMaximo - citados1);
-            int libres2 = Math.max(0, cupoMaximo - citados2);
+                int libres1 = Math.max(0, cupoMaximo - citados1);
+                int libres2 = Math.max(0, cupoMaximo - citados2);
 
-            // Regla Temporal: las convocatorias pasadas no admiten asignación
-            boolean fecha1Pasada = fechas.getFechaHora1() != null && fechas.getFechaHora1().isBefore(ahora);
-            boolean fecha2Pasada = fechas.getFechaHora2() != null && fechas.getFechaHora2().isBefore(ahora);
+                // Regla Temporal: las convocatorias pasadas no admiten asignación
+                boolean fecha1Pasada = fechas.getFechaHora1() != null && fechas.getFechaHora1().isBefore(ahora);
+                boolean fecha2Pasada = fechas.getFechaHora2() != null && fechas.getFechaHora2().isBefore(ahora);
 
-            // Regla de Clases Pendientes vs Fecha de Examen:
-            // Se bloquea la fecha si el alumno tiene alguna clase práctica pendiente con fecha posterior a dicha convocatoria.
-            final List<ClasePractica> pendientesFinal = clasesPendientes;
-            boolean tieneClasesPosteriores1 = solicitud.getTipo() == TipoExamen.PRACTICO &&
-                    pendientesFinal.stream().anyMatch(c -> c.getFechaHora() != null && c.getFechaHora().isAfter(fechas.getFechaHora1()));
+                // Regla de Clases Pendientes vs Fecha de Examen:
+                // Se bloquea la fecha si el alumno tiene alguna clase práctica pendiente con fecha posterior a dicha convocatoria.
+                final List<ClasePractica> pendientesFinal = clasesPendientes;
+                boolean tieneClasesPosteriores1 = solicitud.getTipo() == TipoExamen.PRACTICO &&
+                        pendientesFinal.stream().anyMatch(c -> c.getFechaHora() != null && c.getFechaHora().isAfter(fechas.getFechaHora1()));
 
-            boolean tieneClasesPosteriores2 = solicitud.getTipo() == TipoExamen.PRACTICO &&
-                    pendientesFinal.stream().anyMatch(c -> c.getFechaHora() != null && c.getFechaHora().isAfter(fechas.getFechaHora2()));
+                boolean tieneClasesPosteriores2 = solicitud.getTipo() == TipoExamen.PRACTICO &&
+                        pendientesFinal.stream().anyMatch(c -> c.getFechaHora() != null && c.getFechaHora().isAfter(fechas.getFechaHora2()));
 
-            boolean disponible1 = motivoBloqueo == null && !fecha1Pasada && cupoMaximo > 0 && libres1 > 0 && !tieneClasesPosteriores1;
-            String motivo1 = motivoBloqueo != null ? motivoBloqueo
-                    : (fecha1Pasada ? "Convocatoria ya celebrada"
-                    : (cupoMaximo == 0 ? "Sin cupo fijado para este carnet"
-                    : (libres1 == 0 ? "Cupo completo (" + citados1 + "/" + cupoMaximo + ")"
-                    : (tieneClasesPosteriores1 ? "El alumno tiene clase(s) pendiente(s) posterior(es) a esta fecha" : null))));
+                boolean disponible1 = motivoBloqueo == null && !fecha1Pasada && libres1 > 0 && !tieneClasesPosteriores1;
+                String motivo1 = motivoBloqueo != null ? motivoBloqueo
+                        : (fecha1Pasada ? "Convocatoria ya celebrada"
+                        : (libres1 == 0 ? "Cupo completo (" + citados1 + "/" + cupoMaximo + ")"
+                        : (tieneClasesPosteriores1 ? "El alumno tiene clase(s) pendiente(s) posterior(es) a esta fecha" : null)));
 
-            boolean disponible2 = motivoBloqueo == null && !fecha2Pasada && cupoMaximo > 0 && libres2 > 0 && !tieneClasesPosteriores2;
-            String motivo2 = motivoBloqueo != null ? motivoBloqueo
-                    : (fecha2Pasada ? "Convocatoria ya celebrada"
-                    : (cupoMaximo == 0 ? "Sin cupo fijado para este carnet"
-                    : (libres2 == 0 ? "Cupo completo (" + citados2 + "/" + cupoMaximo + ")"
-                    : (tieneClasesPosteriores2 ? "El alumno tiene clase(s) pendiente(s) posterior(es) a esta fecha" : null))));
+                boolean disponible2 = motivoBloqueo == null && !fecha2Pasada && libres2 > 0 && !tieneClasesPosteriores2;
+                String motivo2 = motivoBloqueo != null ? motivoBloqueo
+                        : (fecha2Pasada ? "Convocatoria ya celebrada"
+                        : (libres2 == 0 ? "Cupo completo (" + citados2 + "/" + cupoMaximo + ")"
+                        : (tieneClasesPosteriores2 ? "El alumno tiene clase(s) pendiente(s) posterior(es) a esta fecha" : null)));
 
-            disp1 = new DisponibilidadConvocatoriaDTO(1, fechas.getFechaHora1(), cupoMaximo, citados1, libres1, disponible1, motivo1);
-            disp2 = new DisponibilidadConvocatoriaDTO(2, fechas.getFechaHora2(), cupoMaximo, citados2, libres2, disponible2, motivo2);
+                disp1 = new DisponibilidadConvocatoriaDTO(1, fechas.getFechaHora1(), cupoMaximo, citados1, libres1, disponible1, motivo1);
+                disp2 = new DisponibilidadConvocatoriaDTO(2, fechas.getFechaHora2(), cupoMaximo, citados2, libres2, disponible2, motivo2);
+            }
         }
 
         boolean puedeAceptar = disp1.disponible() || disp2.disponible();
 
-        return new GestionarSolicitudExamenDTO(solicitud, disp1, disp2, puedeAceptar, motivoBloqueo);
+        return new GestionarSolicitudExamenDTO(solicitud, disp1, disp2, puedeAceptar, motivoBloqueo, mesAUsar);
     }
 
     /**
@@ -725,6 +759,16 @@ public class ExamenService
      */
     @Transactional
     public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria)
+    {
+        return this.aceptarSolicitudExamen(solicitudId, numeroConvocatoria, null);
+    }
+
+    /**
+     * Acepta una solicitud de examen y cita oficialmente al alumno para Fecha 1 o Fecha 2 del mes especificado.
+     * Operación irreversible.
+     */
+    @Transactional
+    public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria, LocalDate mes)
     {
         if (solicitudId == null)
         {
@@ -744,7 +788,7 @@ public class ExamenService
             throw new ReglaNegocioException("Esta solicitud ya ha sido resuelta previamente y no puede modificarse.");
         }
 
-        GestionarSolicitudExamenDTO diagnostico = this.obtenerGestionarSolicitud(solicitudId);
+        GestionarSolicitudExamenDTO diagnostico = this.obtenerGestionarSolicitud(solicitudId, mes);
         DisponibilidadConvocatoriaDTO convElegida = numeroConvocatoria == 1 ? diagnostico.convocatoria1() : diagnostico.convocatoria2();
 
         if (!convElegida.disponible())

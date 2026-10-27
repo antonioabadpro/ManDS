@@ -487,4 +487,121 @@ class ExamenServiceTest
 
         assertTrue(ex.getMessage().contains("obligatoriamente el motivo"));
     }
+
+    // =========================================================================
+    // 5. NAVEGACIÓN MENSUAL Y ESTADO "SIN FIJAR"
+    // =========================================================================
+
+    @Test
+    @DisplayName("Mes sin fechas fijadas muestra 'Sin Fijar' en ambas convocatorias")
+    void testObtenerGestionarSolicitud_MesSinFechasMuestraSinFijar()
+    {
+        SolicitudExamen solicitud = new SolicitudExamen();
+        solicitud.setAlumno(this.alumnoEjemplo);
+        solicitud.setMatricula(this.matriculaEjemplo);
+        solicitud.setTipo(TipoExamen.TEORICO);
+        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 1, 10, 0));
+
+        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
+
+        when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
+        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.empty());
+
+        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesNoviembre);
+
+        assertFalse(diagnostico.puedeAceptar());
+        assertFalse(diagnostico.convocatoria1().disponible());
+        assertEquals("Sin Fijar", diagnostico.convocatoria1().motivoNoDisponible());
+        assertFalse(diagnostico.convocatoria2().disponible());
+        assertEquals("Sin Fijar", diagnostico.convocatoria2().motivoNoDisponible());
+        assertEquals(mesNoviembre, diagnostico.mesSeleccionado());
+    }
+
+    @Test
+    @DisplayName("Mes con fechas pero sin cupos fijados para el carnet muestra 'Sin Fijar' en ambas convocatorias")
+    void testObtenerGestionarSolicitud_MesSinCuposMuestraSinFijar()
+    {
+        SolicitudExamen solicitud = new SolicitudExamen();
+        solicitud.setAlumno(this.alumnoEjemplo);
+        solicitud.setMatricula(this.matriculaEjemplo);
+        solicitud.setTipo(TipoExamen.TEORICO);
+        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 1, 10, 0));
+
+        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
+        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
+        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
+        FechaExamen fechas = new FechaExamen(mesNoviembre, f1, f2);
+
+        when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
+        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.of(fechas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesNoviembre, TipoCarnet.PERMISO_B)).thenReturn(Optional.empty());
+
+        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesNoviembre);
+
+        assertFalse(diagnostico.puedeAceptar());
+        assertFalse(diagnostico.convocatoria1().disponible());
+        assertEquals("Sin Fijar", diagnostico.convocatoria1().motivoNoDisponible());
+        assertFalse(diagnostico.convocatoria2().disponible());
+        assertEquals("Sin Fijar", diagnostico.convocatoria2().motivoNoDisponible());
+    }
+
+    @Test
+    @DisplayName("Navegación hacia mes anterior al actual fuerza el mes actual")
+    void testObtenerGestionarSolicitud_MesAnteriorAlActualForzadoAlMesActual()
+    {
+        SolicitudExamen solicitud = new SolicitudExamen();
+        solicitud.setAlumno(this.alumnoEjemplo);
+        solicitud.setMatricula(this.matriculaEjemplo);
+        solicitud.setTipo(TipoExamen.TEORICO);
+
+        LocalDate mesPasado = LocalDate.of(2020, 1, 1);
+        LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+
+        when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.empty());
+
+        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesPasado);
+
+        assertEquals(mesActual, diagnostico.mesSeleccionado());
+    }
+
+    @Test
+    @DisplayName("Aceptar solicitud con mes especificado cita en la fecha oficial de dicho mes")
+    void testAceptarSolicitudExamen_ConMesEspecificado_Exito()
+    {
+        SolicitudExamen solicitud = new SolicitudExamen();
+        solicitud.setEstado(EstadoSolicitud.PENDIENTE);
+        solicitud.setAlumno(this.alumnoEjemplo);
+        solicitud.setProfesor(this.profesorEjemplo);
+        solicitud.setMatricula(this.matriculaEjemplo);
+        solicitud.setTipo(TipoExamen.PRACTICO);
+        solicitud.setFechaHora(LocalDateTime.of(2026, 10, 20, 10, 0));
+
+        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
+        LocalDateTime f1Nov = LocalDateTime.of(2026, 11, 12, 8, 30);
+        LocalDateTime f2Nov = LocalDateTime.of(2026, 11, 26, 8, 30);
+        FechaExamen fechasNov = new FechaExamen(mesNoviembre, f1Nov, f2Nov);
+
+        CupoExamen cupoNov = new CupoExamen(mesNoviembre, TipoCarnet.PERMISO_B, 5, 4);
+
+        when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
+        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.of(fechasNov));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesNoviembre, TipoCarnet.PERMISO_B))
+                .thenReturn(Optional.of(cupoNov));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
+                .thenReturn(5);
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.PENDIENTE))
+                .thenReturn(List.of());
+        when(this.solicitudExamenRepository.countAlumnosCitados(f1Nov, TipoCarnet.PERMISO_B, TipoExamen.PRACTICO))
+                .thenReturn(0L);
+        when(this.examenRepository.save(any(Examen.class))).thenAnswer(i -> i.getArgument(0));
+        when(this.solicitudExamenRepository.save(any(SolicitudExamen.class))).thenAnswer(i -> i.getArgument(0));
+
+        SolicitudExamen resultado = this.examenService.aceptarSolicitudExamen(1L, 1, mesNoviembre);
+
+        assertEquals(EstadoSolicitud.ACEPTADA, resultado.getEstado());
+        assertNotNull(resultado.getExamen());
+        assertEquals(f1Nov, resultado.getExamen().getFechaHora());
+        verify(this.emailService).enviarNotificacionAlumno(eq("david.ruiz@example.com"), anyString(), anyString());
+    }
 }
