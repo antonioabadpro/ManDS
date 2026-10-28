@@ -45,8 +45,12 @@ public class AuthenticationController
      * a la pantalla principal canónica de acceso (/login).
      */
     @GetMapping({"/", "/login/"})
-    public String redirigirALogin()
+    public String redirigirALogin(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
     {
+        if (this.autenticacionService.estaAutenticado(authentication))
+        {
+            this.autenticacionService.cerrarSesion(request, response, authentication);
+        }
         return "redirect:/login";
     }
 
@@ -56,12 +60,8 @@ public class AuthenticationController
      * automáticamente y se le redirige a la vista limpia de acceso.
      */
     @GetMapping("/login")
-    public String iniciarSesion(@RequestParam(name = "registrado", required = false) String registrado, @RequestParam(name = "tokenInvalido", required = false) String tokenInvalido, @RequestParam(name = "activado", required = false) String activado, HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+    public String iniciarSesion(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
     {
-        if (registrado != null || tokenInvalido != null || activado != null)
-        {
-            return "redirect:/login";
-        }
         if (this.autenticacionService.estaAutenticado(authentication))
         {
             this.autenticacionService.cerrarSesion(request, response, authentication);
@@ -143,23 +143,14 @@ public class AuthenticationController
      * Si el token es inválido o ha expirado, se redirige inmediatamente con la alerta correspondiente.
      */
     @GetMapping("/recuperar-password")
-    public String recuperarPassword(@RequestParam(name = "token", required = false) String token,
-                                    @RequestParam(name = "enviado", required = false) String enviado,
-                                    @RequestParam(name = "exito", required = false) String exito,
-                                    @RequestParam(name = "tokenInvalido", required = false) String tokenInvalido,
-                                    Model model,
-                                    RedirectAttributes redirectAttributes)
+    public String recuperarPassword(@RequestParam(name = "token", required = false) String token, Model model, RedirectAttributes redirectAttributes)
     {
-        if (enviado != null || exito != null || tokenInvalido != null)
-        {
-            return "redirect:/recuperar-password";
-        }
         if (token != null && !token.isBlank())
         {
             model.addAttribute("token", token.trim());
             if (this.autenticacionService.validarTokenRecuperacion(token.trim()) == false)
             {
-                redirectAttributes.addFlashAttribute("errorToken", true);
+                redirectAttributes.addFlashAttribute("tokenInvalido", true);
                 return "redirect:/recuperar-password";
             }
             model.addAttribute("token", token.trim());
@@ -216,7 +207,7 @@ public class AuthenticationController
         {
             if (ex.getMessage().contains("caducado") || ex.getMessage().contains("inválido"))
             {
-                redirectAttributes.addFlashAttribute("errorToken", true);
+                redirectAttributes.addFlashAttribute("tokenInvalido", true);
                 return "redirect:/recuperar-password";
             }
             model.addAttribute("token", dto.token());

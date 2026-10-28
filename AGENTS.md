@@ -50,6 +50,7 @@
 - **Alta y Verificación:** Alta de profesores exclusiva del Administrador con `TokenVerificacion` efímero de 60 min. Tokens de recuperación de contraseña expiran a los 15 min (`TokenVerificacionService`).
 - **Alta de Alumnos:** Registro público en BD como `INACTIVO`. Se activa (`ACTIVO`) y formaliza su matrícula tras confirmación de pago en Stripe Checkout; purga automática de huérfanos en cancelación/abandono.
 - **Trazabilidad Lógica:** Borrado lógico (`INACTIVO`) en profesores y alumnos preservando histórico inmutable de clases, exámenes y pagos.
+- **Control de URLs y Notificaciones:** Prohibidos parámetros en URL de login o auth; estados notificados exclusivamente mediante Flash Attributes normalizados (`errorLogin`, `logoutExitoso`, `sesionExpirada`, `registroExitoso`, `cuentaActivada`, `tokenInvalido`, `mensajeEnviado`, `mensajeExito`) con URLs limpias (`/login`, `/recuperar-password`). Acceso de usuario autenticado a `/` o `/login` cierra su sesión automáticamente.
 
 ## 3.2. Matrícula, Tarifas y Convocatorias de Examen
 - **Límite de Carnet:** 1 carnet activo simultáneamente por alumno.

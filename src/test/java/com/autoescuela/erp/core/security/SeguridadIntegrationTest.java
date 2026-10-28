@@ -61,7 +61,7 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("Login fallido con contraseña incorrecta -> Redirige a /login?error=true")
+    @DisplayName("Login fallido con contraseña incorrecta -> Redirige a /login")
     void testLoginCredencialesIncorrectas() throws Exception
     {
         this.mockMvc.perform(post("/login")
@@ -69,7 +69,7 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
                 .param("password", "password_incorrecto")
                 .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?error=true"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -88,7 +88,7 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/alumno/reservar")
                 .header("HX-Request", "true"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(header().string("HX-Redirect", "/login?sesionExpirada=true"));
+                .andExpect(header().string("HX-Redirect", "/login"));
     }
 
     @Test
@@ -195,13 +195,13 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("Cierre de sesión -> Invalida y redirige a /login?logout=true")
+    @DisplayName("Cierre de sesión -> Invalida y redirige a /login")
     void testLogoutExitoso() throws Exception
     {
         this.mockMvc.perform(post("/logout")
                 .with(csrf())) // Inyectamos el token CSRF para simular un formulario legítimo
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?logout=true"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -229,11 +229,11 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/dashboard"));
 
-        // Acceso a la ruta protegida desde la Sesión 1 -> Es redirigido a /login?expirada=true
+        // Acceso a la ruta protegida desde la Sesión 1 -> Es redirigido a /login
         this.mockMvc.perform(get("/admin/dashboard")
                 .session((MockHttpSession) primeraSesion)) // Simulamos el acceso desde la Sesión 1 (que ha sido invalidada)
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?expirada=true"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -286,7 +286,7 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/admin/dashboard")
                 .session((MockHttpSession) sesionAdmin))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?expirada=true"));
+                .andExpect(redirectedUrl("/login"));
 
         // Sesión 2 del Alumno DEBE SEGUIR TOTALMENTE ACTIVA
         this.mockMvc.perform(get("/alumno/dashboard")

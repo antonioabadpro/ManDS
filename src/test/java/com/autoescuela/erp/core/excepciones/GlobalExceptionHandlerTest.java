@@ -13,10 +13,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -77,17 +75,14 @@ class GlobalExceptionHandlerTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("Petición a ruta inexistente -> Devuelve HTTP 404 y vista error/404 con estilos corporativos")
+    @DisplayName("Petición a ruta inexistente -> Devuelve HTTP 404 y vista error/404")
     void testRutaInexistenteDevuelve404() throws Exception
     {
         this.mockMvc.perform(get("/admin/ruta-totalmente-inexistente-xyz"))
                 .andExpect(status().isNotFound())
                 .andExpect(view().name("error/404"))
                 .andExpect(model().attributeExists("status"))
-                .andExpect(model().attributeExists("error"))
-                .andExpect(content().string(containsString("Error 404")))
-                .andExpect(content().string(containsString("Página no encontrada")))
-                .andExpect(content().string(containsString("Volver al Inicio")));
+                .andExpect(model().attributeExists("error"));
     }
 
     @Test

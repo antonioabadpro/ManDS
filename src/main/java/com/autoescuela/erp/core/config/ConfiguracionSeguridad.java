@@ -12,6 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
+import com.autoescuela.erp.core.security.FlashAuthenticationFailureHandler;
+import com.autoescuela.erp.core.security.FlashInvalidSessionStrategy;
+import com.autoescuela.erp.core.security.FlashLogoutSuccessHandler;
+import com.autoescuela.erp.core.security.FlashSessionInformationExpiredStrategy;
 import com.autoescuela.erp.core.security.HtmxAuthenticationEntryPoint;
 import com.autoescuela.erp.core.security.RedireccionPorRolSuccessHandler;
 
@@ -25,6 +29,10 @@ public class ConfiguracionSeguridad
 {
     private final RedireccionPorRolSuccessHandler redireccionPorRolSuccessHandler;
     private final HtmxAuthenticationEntryPoint htmxAuthenticationEntryPoint;
+    private final FlashAuthenticationFailureHandler flashAuthenticationFailureHandler;
+    private final FlashLogoutSuccessHandler flashLogoutSuccessHandler;
+    private final FlashSessionInformationExpiredStrategy flashSessionInformationExpiredStrategy;
+    private final FlashInvalidSessionStrategy flashInvalidSessionStrategy;
 
     @Bean
     public PasswordEncoder passwordEncoder()
@@ -93,13 +101,15 @@ public class ConfiguracionSeguridad
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .successHandler(this.redireccionPorRolSuccessHandler)
-                        .failureUrl("/login?error=true")
+
+                        .failureHandler(this.flashAuthenticationFailureHandler)
                         .permitAll())
 
                 // Cierre de sesión seguro con invalidación total de estado
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
+
+                        .logoutSuccessHandler(this.flashLogoutSuccessHandler)
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
@@ -108,10 +118,12 @@ public class ConfiguracionSeguridad
                 // Gestión de sesiones: prevención de fijación de sesión y limitación estricta a 1 sesión por usuario
                 .sessionManagement(session -> session
                         .sessionFixation(fixation -> fixation.migrateSession())
+                        .invalidSessionStrategy(this.flashInvalidSessionStrategy)
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
                         .sessionRegistry(sessionRegistry())
-                        .expiredUrl("/login?expirada=true"));
+
+                        .expiredSessionStrategy(this.flashSessionInformationExpiredStrategy));
 
         return http.build();
     }

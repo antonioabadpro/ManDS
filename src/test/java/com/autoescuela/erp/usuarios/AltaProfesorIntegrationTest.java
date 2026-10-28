@@ -198,7 +198,8 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/activar-cuenta").param("token", "token-no-existente-xyz"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?tokenInvalido=true"));
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(flash().attribute("tokenInvalido", true));
     }
 
     @Test
@@ -246,7 +247,8 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("password", passwordDefinitiva)
                 .param("confirmPassword", passwordDefinitiva))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?activado=true"));
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(flash().attribute("cuentaActivada", true));
 
         // 4. Verificaciones en la base de datos
         Profesor profesorActualizado = this.profesorRepository.findById(profesor.getId()).orElseThrow();

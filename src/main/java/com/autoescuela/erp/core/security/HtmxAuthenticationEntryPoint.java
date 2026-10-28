@@ -6,6 +6,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,9 +45,22 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
         String hxRequest = request.getHeader("HX-Request");
         if (hxRequest != null && hxRequest.equalsIgnoreCase("true"))
         {
-            response.setHeader("HX-Redirect", request.getContextPath() + "/login?sesionExpirada=true");
+            FlashMap flashMap = new FlashMap();
+            flashMap.put("sesionExpirada", true);
+            FlashMapManager flashMapManager = new SessionFlashMapManager();
+            flashMapManager.saveOutputFlashMap(flashMap, request, response);
+
+            response.setHeader("HX-Redirect", request.getContextPath() + "/login");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
+        }
+
+        if (request.getRequestedSessionId() != null)
+        {
+            FlashMap flashMap = new FlashMap();
+            flashMap.put("sesionExpirada", true);
+            FlashMapManager flashMapManager = new SessionFlashMapManager();
+            flashMapManager.saveOutputFlashMap(flashMap, request, response);
         }
 
         this.delegate.commence(request, response, authException);

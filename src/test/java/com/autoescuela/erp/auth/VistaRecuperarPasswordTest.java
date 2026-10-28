@@ -11,6 +11,7 @@ import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -37,10 +38,10 @@ class VistaRecuperarPasswordTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("GET /recuperar-password?enviado=true responde 200 OK y resuelve la plantilla")
-    void testAlertaCorreoEnviado() throws Exception
+    @DisplayName("GET /recuperar-password con flash attribute mensajeEnviado responde 200 OK y resuelve la plantilla")
+    void testAlertaCorreoEnviadoConFlashAttribute() throws Exception
     {
-        this.mockMvc.perform(get("/recuperar-password?enviado=true"))
+        this.mockMvc.perform(get("/recuperar-password").flashAttr("mensajeEnviado", true))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"));
     }
@@ -58,28 +59,29 @@ class VistaRecuperarPasswordTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("GET /recuperar-password con token inexistente redirige a ?tokenInvalido=true")
+    @DisplayName("GET /recuperar-password con token inexistente redirige a /recuperar-password con flash attribute tokenInvalido")
     void testTokenInexistenteRedirige() throws Exception
     {
         this.mockMvc.perform(get("/recuperar-password?token=token_falso_inexistente"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/recuperar-password?tokenInvalido=true"));
+                .andExpect(redirectedUrl("/recuperar-password"))
+                .andExpect(flash().attribute("tokenInvalido", true));
     }
 
     @Test
-    @DisplayName("GET /recuperar-password?tokenInvalido=true responde 200 OK y resuelve la plantilla")
-    void testAlertaTokenInvalido() throws Exception
+    @DisplayName("GET /recuperar-password con flash attribute tokenInvalido responde 200 OK y resuelve la plantilla")
+    void testAlertaTokenInvalidoConFlashAttribute() throws Exception
     {
-        this.mockMvc.perform(get("/recuperar-password?tokenInvalido=true"))
+        this.mockMvc.perform(get("/recuperar-password").flashAttr("tokenInvalido", true))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"));
     }
 
     @Test
-    @DisplayName("GET /recuperar-password?exito=true responde 200 OK y resuelve la plantilla")
-    void testPantallaExitoRestablecimiento() throws Exception
+    @DisplayName("GET /recuperar-password con flash attribute mensajeExito responde 200 OK y resuelve la plantilla")
+    void testPantallaExitoRestablecimientoConFlashAttribute() throws Exception
     {
-        this.mockMvc.perform(get("/recuperar-password?exito=true"))
+        this.mockMvc.perform(get("/recuperar-password").flashAttr("mensajeExito", true))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"));
     }

@@ -81,12 +81,6 @@
                 </p>
             </div>
 
-            <!-- Ficha Técnica de la Operación -->
-            <div th:if="${path}" class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-400 max-w-md mx-auto flex items-center justify-between">
-                <span class="text-slate-400 dark:text-slate-500">Operación solicitada:</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-200 truncate ml-2" th:text="${path}">/operacion</span>
-            </div>
-
             <!-- Botones de Acción -->
             <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}" class="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-md shadow-orange-500/20 transition cursor-pointer">
