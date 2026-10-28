@@ -34,6 +34,7 @@ import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.FechaExamen;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.service.AlumnoService;
@@ -240,6 +241,27 @@ public class ExamenController
 
         redirectAttributes.addFlashAttribute("mes", mesNormalizado);
         return "redirect:/admin/examenes";
+    }
+
+    /**
+     * Carga el fragmento HTMX con la ficha informativa completa de una solicitud de examen DGT.
+     */
+    @GetMapping("/admin/examenes/{id}/detalle-modal")
+    public String obtenerModalDetalleSolicitudAdmin(@PathVariable("id") Long id, Model model)
+    {
+        Optional<SolicitudExamen> solicitudOpt = this.examenService.buscarSolicitudPorId(id);
+        if (solicitudOpt.isEmpty())
+        {
+            return "error/404";
+        }
+
+        SolicitudExamen solicitud = solicitudOpt.get();
+        Vehiculo vehiculo = (solicitud.getProfesor() != null) ? solicitud.getProfesor().getVehiculo() : null;
+
+        model.addAttribute("solicitud", solicitud);
+        model.addAttribute("vehiculo", vehiculo);
+
+        return "admin/fragments/modal-detalle-solicitud-admin :: modalDetalleSolicitudAdmin";
     }
 
     /**

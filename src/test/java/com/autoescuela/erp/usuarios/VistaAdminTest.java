@@ -358,6 +358,17 @@ class VistaAdminTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes/{id}/detalle-modal renderiza el fragmento modal informativo de detalle de solicitud")
+    void testModalDetalleSolicitudExamenHTMX() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes/46/detalle-modal"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-detalle-solicitud-admin :: modalDetalleSolicitudAdmin"))
+                .andExpect(model().attributeExists("solicitud"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("GET /admin/practicas renderiza correctamente la agenda global de prácticas")
     void testPracticasRenderizado() throws Exception
     {
