@@ -155,9 +155,14 @@
 
                             <!-- Datos del Vehículo de Prácticas -->
                             <div th:if="${perfilDTO?.vehiculoMatricula != null}" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 space-y-1.5">
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Vehículo de Prácticas</span>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Vehículo de Prácticas</span>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="7" cy="17" r="2" />
+                                            <circle cx="17" cy="17" r="2" />
+                                            <path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9m-4-6h15m-6 0V6" />
+                                        </svg>
                                         <span class="text-sm font-semibold text-slate-900 dark:text-white" th:text="${(perfilDTO.vehiculoMarca ?: '') + ' ' + (perfilDTO.vehiculoModelo ?: '')}">Peugeot 208 PureTech</span>
                                     </div>
                                     <span class="px-2.5 py-1 rounded-md bg-slate-200/80 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono text-xs font-bold" th:text="${perfilDTO.vehiculoMatricula}">1234-LMN</span>
