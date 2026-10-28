@@ -8,7 +8,7 @@
         <span th:if="${esBusquedaHtmx}" id="contador-solicitudes" hx-swap-oob="true" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${'Total: ' + totalSolicitudes + ' solicitudes'}">
             Total: 0 solicitudes
         </span>
-        <table class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+        <table id="tabla-solicitudes" class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
             <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
                 <tr>
                     <th class="py-3 px-4 text-center whitespace-nowrap">Alumno</th>
@@ -25,11 +25,15 @@
                     <!-- 1. Alumno -->
                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                         <p class="font-bold text-slate-900 dark:text-white" th:text="${s.alumno?.nombre + ' ' + s.alumno?.apellidos}">David Ruiz Gómez</p>
+                        <!-- Metadatos accesibles e indexables para búsqueda rápida por DNI, correo o teléfono -->
+                        <span class="sr-only" th:text="|DNI: ${s.alumno?.dni} ${s.alumno?.correo} ${s.alumno?.telefono}|"></span>
                     </td>
 
                     <!-- 2. Profesor -->
                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                         <span th:if="${s.profesor != null}" class="font-medium text-slate-900 dark:text-white" th:text="${s.profesor.nombre + ' ' + s.profesor.apellidos}">Laura Sánchez Romero</span>
+                        <!-- Metadatos accesibles e indexables para búsqueda rápida del profesor -->
+                        <span class="sr-only" th:if="${s.profesor != null}" th:text="|DNI: ${s.profesor.dni} ${s.profesor.correo} ${s.profesor.telefono}|"></span>
                         <span th:if="${s.profesor == null and s.tipo?.name() == 'TEORICO'}" class="text-xs text-slate-400 italic">Sin profesor (Teórico)</span>
                         <span th:if="${s.profesor == null and s.tipo?.name() != 'TEORICO'}" class="text-xs text-slate-400">-</span>
                     </td>

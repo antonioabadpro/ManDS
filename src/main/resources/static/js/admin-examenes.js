@@ -11,6 +11,12 @@ document.addEventListener('htmx:afterSwap', (event) => {
     if (event.detail && event.detail.target && event.detail.target.id === 'contenedor-jornadas-dgt') {
         limitarFechasAlMesSeleccionado();
     }
+    if (event.detail && event.detail.target && event.detail.target.id === 'contenedor-tabla-solicitudes') {
+        const inputBusqueda = document.querySelector('input[data-table-search="tabla-solicitudes"]');
+        if (inputBusqueda && inputBusqueda.value.trim() !== '') {
+            inputBusqueda.dispatchEvent(new Event('input'));
+        }
+    }
 });
 
 function inicializarExamenesAdmin() {
@@ -162,6 +168,20 @@ function inicializarExamenesAdmin() {
             return;
         }
     });
+
+    // Atajo de teclado: Enter en el buscador de solicitudes para forzar la búsqueda en servidor
+    const inputBusqueda = document.getElementById('filtro-busqueda');
+    if (inputBusqueda) {
+        inputBusqueda.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const btnBuscar = document.getElementById('btn-buscar-solicitudes');
+                if (btnBuscar) {
+                    btnBuscar.click();
+                }
+            }
+        });
+    }
 
     // Cerrar modales con tecla Escape
     document.addEventListener('keydown', (event) => {

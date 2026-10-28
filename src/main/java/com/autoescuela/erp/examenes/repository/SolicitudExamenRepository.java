@@ -90,7 +90,20 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
            "LEFT JOIN s.profesor p " +
            "WHERE (:terminoBusqueda IS NULL OR :terminoBusqueda = '' " +
            "   OR LOWER(CONCAT(a.nombre, ' ', a.apellidos)) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
-           "   OR LOWER(a.dni) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%'))) " +
+           "   OR LOWER(a.dni) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR LOWER(a.correo) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR LOWER(a.telefono) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR (p IS NOT NULL AND (" +
+           "       LOWER(CONCAT(p.nombre, ' ', p.apellidos)) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "       OR LOWER(p.dni) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "       OR LOWER(p.correo) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "       OR LOWER(p.telefono) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%'))" +
+           "   )) " +
+           "   OR LOWER(CONCAT('', m.permisoCarnet)) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR LOWER(CONCAT('', s.tipo)) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR LOWER(CONCAT('', s.estado)) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR LOWER(s.comentarioJustificacion) LIKE LOWER(CONCAT('%', :terminoBusqueda, '%')) " +
+           "   OR CONCAT('', s.id) LIKE CONCAT('%', :terminoBusqueda, '%')) " +
            "AND (:profesorId IS NULL OR (p IS NOT NULL AND p.id = :profesorId)) " +
            "AND (:tipoPermiso IS NULL OR m.permisoCarnet = :tipoPermiso) " +
            "AND (:tipoExamen IS NULL OR s.tipo = :tipoExamen) " +
