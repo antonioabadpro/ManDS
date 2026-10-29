@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
@@ -48,18 +49,25 @@ public class PagoStripeService
     }
 
     /**
-     * Crea una sesión de pago para la matrícula de un alumno según el tipo de carnet y su DNI.
+     * Crea una sesión de pago para la matrícula de un alumno según el tipo de carnet, la modalidad y su ID de alumno.
+     * En ambas modalidades incluye tasas oficiales DGT y apertura de expediente.
+     * En modalidad TEORICO_PRACTICA incluye además credenciales de acceso a la plataforma oficial de tests de examen.
+     * Preserva la privacidad del alumno utilizando el ID de expediente sin exponer el DNI en pantalla ni en sesión.
+     *
      * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
-     * @param dniAlumno DNI del alumno.
+     * @param modalidad Modalidad de matrícula (TEORICO_PRACTICA o PRACTICA).
+     * @param alumnoId Identificador numérico del alumno.
      * @return DTO con la información de la sesión de pago.
      */
-    public SesionPagoDTO crearSesionPagoMatricula(TipoCarnet tipoCarnet, String dniAlumno)
+    public SesionPagoDTO crearSesionPagoMatricula(TipoCarnet tipoCarnet, ModalidadMatricula modalidad, Long alumnoId)
     {
-        if(tipoCarnet == null || dniAlumno == null || dniAlumno.isBlank())
+        if (tipoCarnet == null || alumnoId == null)
         {
-            throw new ReglaNegocioException("El DNI del alumno y el tipo de carnet son obligatorios para formalizar la matrícula.");
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para formalizar la matrícula.");
         }
-        // Regla de Negocio: Permisos C y D (450€), resto (250€)
+
+        ModalidadMatricula modalidadEfectiva = modalidad != null ? modalidad : ModalidadMatricula.TEORICO_PRACTICA;
+
         boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
         long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
 
@@ -68,6 +76,18 @@ public class PagoStripeService
 
         double tasaDgt = tasaDgtCents / 100.0;
         double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
+
+        String nombreConceptoMatricula = "Matrícula Autoescuela - " + tipoCarnet.getDescripcion();
+        String descripcionConceptoMatricula;
+
+        if (modalidadEfectiva == ModalidadMatricula.TEORICO_PRACTICA)
+        {
+            descripcionConceptoMatricula = "Incluye tramitación de matrícula, 2 convocatorias oficiales a examen, credenciales de acceso a la plataforma de tests y seguro escolar.";
+        }
+        else
+        {
+            descripcionConceptoMatricula = "Incluye tramitación de matrícula, 2 convocatorias oficiales a examen práctico y seguro escolar.";
+        }
 
         // Creamos la sesión de pago en Stripe con los parámetros necesarios
         SessionCreateParams parametros = SessionCreateParams.builder()
@@ -99,15 +119,16 @@ public class PagoStripeService
                                                 .setUnitAmount(cuotaAutoescuelaCents)
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("Matrícula Autoescuela - " + tipoCarnet.getDescripcion())
-                                                                .setDescription("Incluye 2 convocatorias oficiales a examen, seguro escolar y seguro de responsabilidad civil (Alumno DNI: " + dniAlumno + ").")
+                                                                .setName(nombreConceptoMatricula)
+                                                                .setDescription(descripcionConceptoMatricula)
                                                                 .build())
                                                 .build())
                                 .build())
                 // Metadata que Stripe devolverá en los webhooks para identificar y conciliar la operación
                 .putMetadata("tipoOperacion", "MATRICULA")
                 .putMetadata("tipoCarnet", tipoCarnet.name())
-                .putMetadata("dniAlumno", dniAlumno)
+                .putMetadata("modalidad", modalidadEfectiva.name())
+                .putMetadata("alumnoId", alumnoId.toString())
                 .putMetadata("tasaDgt", String.format(Locale.US, "%.2f", tasaDgt))
                 .putMetadata("cuotaAutoescuela", String.format(Locale.US, "%.2f", cuotaAutoescuela))
                 .build();
@@ -116,17 +137,17 @@ public class PagoStripeService
     }
 
     /**
-     * Crea una sesión de pago para la renovación de matrícula de un alumno según el tipo de carnet y su DNI.
+     * Crea una sesión de pago para la renovación de matrícula de un alumno según el tipo de carnet y su ID de alumno.
      * Aplica las tarifas oficiales: 450 € para vehículos pesados (C y D) y 250 € para el resto.
      * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
-     * @param dniAlumno DNI del alumno.
+     * @param alumnoId Identificador numérico del alumno.
      * @return DTO con URL de la pasarela y Session ID generado por Stripe.
      */
-    public SesionPagoDTO crearSesionPagoRenovacionMatricula(TipoCarnet tipoCarnet, String dniAlumno)
+    public SesionPagoDTO crearSesionPagoRenovacionMatricula(TipoCarnet tipoCarnet, Long alumnoId)
     {
-        if (tipoCarnet == null || dniAlumno == null || dniAlumno.isBlank())
+        if (tipoCarnet == null || alumnoId == null)
         {
-            throw new ReglaNegocioException("El DNI del alumno y el tipo de carnet son obligatorios para renovar la matrícula.");
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para renovar la matrícula.");
         }
 
         // Regla de Negocio: Permisos C y D (450€), resto (250€)
@@ -169,13 +190,14 @@ public class PagoStripeService
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                                 .setName("Renovación Matrícula Autoescuela - " + tipoCarnet.getDescripcion())
-                                                                .setDescription("Renovación de matrícula con 2 convocatorias oficiales a examen y seguro escolar (Alumno DNI: " + dniAlumno + ").")
+                                                                .setDescription("Renovación de matrícula con 2 convocatorias oficiales a examen y seguro escolar.")
                                                                 .build())
                                                 .build())
                                 .build())
                 .putMetadata("tipoOperacion", "RENOVACION_MATRICULA")
                 .putMetadata("tipoCarnet", tipoCarnet.name())
-                .putMetadata("dniAlumno", dniAlumno)
+                .putMetadata("modalidad", ModalidadMatricula.TEORICO_PRACTICA.name())
+                .putMetadata("alumnoId", alumnoId.toString())
                 .putMetadata("tasaDgt", String.format(Locale.US, "%.2f", tasaDgt))
                 .putMetadata("cuotaAutoescuela", String.format(Locale.US, "%.2f", cuotaAutoescuela))
                 .build();

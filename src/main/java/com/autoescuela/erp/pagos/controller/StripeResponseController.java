@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.auth.service.AuthenticationService;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 
@@ -93,21 +94,35 @@ public class StripeResponseController
     @GetMapping("/checkout/success")
     public String mostrarExitoCheckout(@RequestParam(name = "session_id", required = false) String sessionId, Model model, HttpSession sesion)
     {
-        // Obtenemos los datos del alumno y del importe abonado desde la sesión HTTP
-        String dniAlumno = (String) sesion.getAttribute("dniAlumno");
+        // Obtenemos los identificadores del alumno y del importe abonado desde la sesión HTTP
+        Long alumnoId = (Long) sesion.getAttribute("alumnoId");
         String tipoCarnetStr = (String) sesion.getAttribute("tipoCarnet");
+        String modalidadStr = (String) sesion.getAttribute("modalidad");
         Float importeTotal = (Float) sesion.getAttribute("importeTotal");
 
-        if (dniAlumno != null && !dniAlumno.isBlank())
+        ModalidadMatricula modalidad = null;
+        if (modalidadStr != null && !modalidadStr.isBlank())
         {
-            // Formalizamos la matrícula y activamos la cuenta de forma idempotente
-            Matricula matricula = this.academicoService.matricularTrasPago(dniAlumno, tipoCarnetStr, importeTotal);
+            try
+            {
+                modalidad = ModalidadMatricula.valueOf(modalidadStr.trim().toUpperCase());
+            }
+            catch (IllegalArgumentException ignored)
+            {
+                modalidad = ModalidadMatricula.TEORICO_PRACTICA;
+            }
+        }
 
-            sesion.removeAttribute("dniAlumno");
+        if (alumnoId != null)
+        {
+            Matricula matricula = this.academicoService.matricularTrasPago(alumnoId, tipoCarnetStr, modalidad, importeTotal != null ? importeTotal : 250.0f);
+
+            sesion.removeAttribute("alumnoId");
             sesion.removeAttribute("tipoCarnet");
+            sesion.removeAttribute("modalidad");
             sesion.removeAttribute("importeTotal");
 
-            model.addAttribute("importeTotal", String.format(Locale.GERMAN, "%.2f", importeTotal));
+            model.addAttribute("importeTotal", String.format(Locale.GERMAN, "%.2f", importeTotal != null ? importeTotal : 250.0f));
             model.addAttribute("tipoCarnet", matricula != null && matricula.getPermisoCarnet() != null ? matricula.getPermisoCarnet().getDescripcion() : tipoCarnetStr);
             model.addAttribute("nombreAlumno", matricula != null && matricula.getAlumno() != null ? matricula.getAlumno().getNombre() : "Alumno");
         }
@@ -132,14 +147,16 @@ public class StripeResponseController
     @GetMapping("/checkout/cancel")
     public String mostrarCancelacionCheckout(HttpSession sesion)
     {
-        String dniAlumno = (String) sesion.getAttribute("dniAlumno");
-        if (dniAlumno != null && !dniAlumno.isBlank())
+        Long alumnoId = (Long) sesion.getAttribute("alumnoId");
+
+        if (alumnoId != null)
         {
-            this.autenticacionService.eliminarAlumnoInactivoPorDni(dniAlumno);
-            sesion.removeAttribute("dniAlumno");
+            this.autenticacionService.eliminarAlumnoInactivoPorId(alumnoId);
+            sesion.removeAttribute("alumnoId");
             sesion.removeAttribute("tipoCarnet");
+            sesion.removeAttribute("modalidad");
             sesion.removeAttribute("importeTotal");
-            log.info("Cancelación de pago procesada: Alumno inactivo con DNI {} purgado satisfactoriamente.", dniAlumno);
+            log.info("Cancelación de pago procesada: Alumno inactivo con ID {} purgado satisfactoriamente.", alumnoId);
         }
         return "pagos/matricula-cancel";
     }
@@ -156,21 +173,20 @@ public class StripeResponseController
     @GetMapping("/clases/success")
     public String mostrarExitoPagoClases(@RequestParam(name = "session_id", required = false) String sessionId, Model model, HttpSession sesion)
     {
-        String dniAlumno = (String) sesion.getAttribute("pagoClases_dni");
+        Long alumnoId = (Long) sesion.getAttribute("pagoClases_alumnoId");
         Integer numeroClases = (Integer) sesion.getAttribute("pagoClases_numero");
         Float importeTotal = (Float) sesion.getAttribute("pagoClases_importe");
         String tipoCarnetStr = (String) sesion.getAttribute("pagoClases_tipoCarnet");
 
-        if (dniAlumno != null && !dniAlumno.isBlank() && numeroClases != null && numeroClases > 0)
+        if (alumnoId != null && numeroClases != null && numeroClases > 0)
         {
-            Matricula matricula = this.academicoService.recargarSaldoClasesTrasPago(dniAlumno, numeroClases, sessionId);
+            Matricula matricula = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, numeroClases, sessionId);
 
-            sesion.removeAttribute("pagoClases_dni");
+            sesion.removeAttribute("pagoClases_alumnoId");
             sesion.removeAttribute("pagoClases_numero");
             sesion.removeAttribute("pagoClases_importe");
             sesion.removeAttribute("pagoClases_tipoCarnet");
 
-            model.addAttribute("dniAlumno", dniAlumno);
             model.addAttribute("numeroClases", numeroClases);
             model.addAttribute("saldoTotal", matricula != null ? matricula.getSaldoClases() : numeroClases);
             model.addAttribute("importeTotal", importeTotal != null ? String.format(Locale.GERMAN, "%.2f", importeTotal) : "0,00");
@@ -219,19 +235,18 @@ public class StripeResponseController
     @GetMapping("/renovacion/success")
     public String mostrarExitoPagoRenovacion(@RequestParam(name = "session_id", required = false) String sessionId, Model model, HttpSession sesion)
     {
-        String dniAlumno = (String) sesion.getAttribute("pagoRenovacion_dni");
+        Long alumnoId = (Long) sesion.getAttribute("pagoRenovacion_alumnoId");
         Float importeTotal = (Float) sesion.getAttribute("pagoRenovacion_importe");
         String tipoCarnetStr = (String) sesion.getAttribute("pagoRenovacion_tipoCarnet");
 
-        if (dniAlumno != null && !dniAlumno.isBlank())
+        if (alumnoId != null)
         {
-            Matricula matricula = this.academicoService.renovarMatriculaTrasPago(dniAlumno, sessionId, importeTotal);
+            Matricula matricula = this.academicoService.renovarMatriculaTrasPago(alumnoId, sessionId, importeTotal);
 
-            sesion.removeAttribute("pagoRenovacion_dni");
+            sesion.removeAttribute("pagoRenovacion_alumnoId");
             sesion.removeAttribute("pagoRenovacion_importe");
             sesion.removeAttribute("pagoRenovacion_tipoCarnet");
 
-            model.addAttribute("dniAlumno", dniAlumno);
             model.addAttribute("convocatorias", matricula != null ? matricula.getConvocatorias() : 2);
             model.addAttribute("importeTotal", importeTotal != null ? String.format(Locale.GERMAN, "%.2f", importeTotal) : "250,00");
             model.addAttribute("tipoCarnet", matricula != null && matricula.getPermisoCarnet() != null ? matricula.getPermisoCarnet().getDescripcion() : tipoCarnetStr);
@@ -258,7 +273,7 @@ public class StripeResponseController
     @GetMapping("/renovacion/cancel")
     public String mostrarCancelacionPagoRenovacion(HttpSession sesion)
     {
-        sesion.removeAttribute("pagoRenovacion_dni");
+        sesion.removeAttribute("pagoRenovacion_alumnoId");
         sesion.removeAttribute("pagoRenovacion_importe");
         sesion.removeAttribute("pagoRenovacion_tipoCarnet");
 

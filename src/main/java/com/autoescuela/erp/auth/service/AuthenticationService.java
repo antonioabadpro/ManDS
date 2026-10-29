@@ -298,6 +298,24 @@ public class AuthenticationService
      * @param dni DNI del alumno a eliminar.
      */
     @Transactional
+    public void eliminarAlumnoInactivoPorId(Long id)
+    {
+        if (id == null)
+        {
+            return;
+        }
+
+        this.alumnoRepository.findById(id).ifPresent(alumno -> {
+            if (esAlumnoInactivoSinMatricula(alumno))
+            {
+                this.alumnoRepository.delete(alumno);
+                this.alumnoRepository.flush();
+                log.info("Alumno inactivo con ID {} purgado satisfactoriamente tras cancelación de pago.", id);
+            }
+        });
+    }
+
+    @Transactional
     public void eliminarAlumnoInactivoPorDni(String dni)
     {
         if (dni == null || dni.isBlank())

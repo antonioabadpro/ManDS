@@ -8,11 +8,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.email.EmailService;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -52,15 +54,16 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago crea y persiste una nueva matrícula activa con 2 convocatorias para carnet estándar")
     void testMatricularTrasPagoExitoso()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula resultado = this.academicoService.matricularTrasPago(dni, "PERMISO_B", 250.00f);
+        Matricula resultado = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_B", ModalidadMatricula.TEORICO_PRACTICA, 250.00f);
 
         assertNotNull(resultado);
         assertTrue(resultado.getEstaActiva());
@@ -72,7 +75,7 @@ class AcademicoServiceTest
         assertEquals(TipoMatricula.NUEVA, resultado.getTipo());
         assertEquals(alumno, resultado.getAlumno());
 
-        verify(this.alumnoRepository).findByDni(dni);
+        verify(this.alumnoRepository).findById(alumnoId);
         verify(this.matriculaRepository).save(any(Matricula.class));
     }
 
@@ -80,15 +83,16 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago crea matrícula de vehículo pesado (Permiso C) con tarifa de 450 €")
     void testMatricularTrasPagoPermisoPesado()
     {
-        String dni = "87654321X";
+        Long alumnoId = 202L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("87654321X");
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula resultado = this.academicoService.matricularTrasPago(dni, "PERMISO_C", 450.00f);
+        Matricula resultado = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_C", ModalidadMatricula.TEORICO_PRACTICA, 450.00f);
 
         assertNotNull(resultado);
         assertEquals(TipoCarnet.PERMISO_C, resultado.getPermisoCarnet());
@@ -100,27 +104,23 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago lanza ReglaNegocioException cuando el alumno no existe en el sistema")
     void testMatricularTrasPagoAlumnoNoExiste()
     {
-        String dni = "99999999R";
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.empty());
+        Long alumnoId = 999L;
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.empty());
 
         ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
-                this.academicoService.matricularTrasPago(dni, "PERMISO_B", 250.00f)
+                this.academicoService.matricularTrasPago(alumnoId, "PERMISO_B", ModalidadMatricula.TEORICO_PRACTICA, 250.00f)
         );
 
-        assertTrue(excepcion.getMessage().contains(dni));
+        assertTrue(excepcion.getMessage().contains("999"));
         verify(this.matriculaRepository, never()).save(any(Matricula.class));
     }
 
     @Test
-    @DisplayName("matricularTrasPago lanza ReglaNegocioException si el DNI es nulo o está en blanco")
+    @DisplayName("matricularTrasPago lanza ReglaNegocioException si el ID del alumno es nulo")
     void testMatricularTrasPagoDniInvalido()
     {
         assertThrows(ReglaNegocioException.class, () ->
-                this.academicoService.matricularTrasPago(null, "PERMISO_B", 250.00f)
-        );
-
-        assertThrows(ReglaNegocioException.class, () ->
-                this.academicoService.matricularTrasPago("   ", "PERMISO_B", 250.00f)
+                this.academicoService.matricularTrasPago(null, "PERMISO_B", ModalidadMatricula.TEORICO_PRACTICA, 250.00f)
         );
     }
 
@@ -128,9 +128,10 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago aplica idempotencia: si el alumno ya tiene matrícula activa para ese carnet, la reutiliza")
     void testMatricularTrasPagoIdempotencia()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
         Matricula matriculaExistente = new Matricula();
         matriculaExistente.setEstaActiva(true);
@@ -138,10 +139,10 @@ class AcademicoServiceTest
         matriculaExistente.setPrecio(200.00f);
         matriculaExistente.setAlumno(alumno);
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matriculaExistente));
 
-        Matricula resultado = this.academicoService.matricularTrasPago(dni, "PERMISO_B", 250.00f);
+        Matricula resultado = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_B", ModalidadMatricula.TEORICO_PRACTICA, 250.00f);
 
         assertNotNull(resultado);
         assertEquals(200.00f, resultado.getPrecio());
@@ -152,15 +153,16 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago asigna PERMISO_B por defecto si el tipo de carnet recibido no es reconocido")
     void testMatricularTrasPagoCarnetInvalido()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula resultado = this.academicoService.matricularTrasPago(dni, "PERMISO_DESCONOCIDO_XYZ", 250.00f);
+        Matricula resultado = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_DESCONOCIDO_XYZ", ModalidadMatricula.TEORICO_PRACTICA, 250.00f);
 
         assertNotNull(resultado);
         assertEquals(TipoCarnet.PERMISO_B, resultado.getPermisoCarnet());
@@ -170,19 +172,20 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago lanza ReglaNegocioException si el alumno ya tiene otra matrícula activa diferente")
     void testMatricularTrasPagoLanzaExcepcionSiYaTieneMatriculaActivaParaOtroCarnet()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
         Matricula matriculaExistente = new Matricula();
         matriculaExistente.setEstaActiva(true);
         matriculaExistente.setPermisoCarnet(TipoCarnet.PERMISO_B);
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matriculaExistente));
 
         ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
-                this.academicoService.matricularTrasPago(dni, "PERMISO_C", 450.00f)
+                this.academicoService.matricularTrasPago(alumnoId, "PERMISO_C", ModalidadMatricula.TEORICO_PRACTICA, 450.00f)
         );
 
         assertTrue(excepcion.getMessage().contains("No es posible cursar dos permisos de conducir simultáneamente"));
@@ -192,15 +195,16 @@ class AcademicoServiceTest
     @DisplayName("matricularTrasPago crea nueva matrícula activa si el alumno tenía una matrícula previa cerrada/inactiva")
     void testMatricularTrasPagoCreaNuevaMatriculaSiMatriculaPreviaEstabaInactiva()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula nueva = this.academicoService.matricularTrasPago(dni, "PERMISO_C", 450.00f);
+        Matricula nueva = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_C", ModalidadMatricula.TEORICO_PRACTICA, 450.00f);
 
         assertNotNull(nueva);
         assertEquals(TipoCarnet.PERMISO_C, nueva.getPermisoCarnet());
@@ -213,9 +217,10 @@ class AcademicoServiceTest
     @DisplayName("renovarMatriculaTrasPago acumula el importe de renovación sobre el precio previo de la matrícula y restablece 2 convocatorias")
     void testRenovarMatriculaTrasPagoAcumulaPrecio()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
         Matricula matricula = new Matricula();
         matricula.setEstaActiva(true);
@@ -225,11 +230,11 @@ class AcademicoServiceTest
         matricula.setTipo(TipoMatricula.NUEVA);
         matricula.setAlumno(alumno);
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula renovada = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_renovacion_1", 250.00f);
+        Matricula renovada = this.academicoService.renovarMatriculaTrasPago(alumnoId, "cs_test_renovacion_1", 250.00f);
 
         assertNotNull(renovada);
         assertEquals(TipoMatricula.RENOVACION, renovada.getTipo());
@@ -242,9 +247,10 @@ class AcademicoServiceTest
     @DisplayName("renovarMatriculaTrasPago aplica idempotencia evitando duplicar la acumulación ante sesiones idénticas")
     void testRenovarMatriculaTrasPagoIdempotencia()
     {
-        String dni = "12345678Z";
+        Long alumnoId = 201L;
         Alumno alumno = new Alumno();
-        alumno.setDni(dni);
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setDni("12345678Z");
 
         Matricula matricula = new Matricula();
         matricula.setEstaActiva(true);
@@ -254,15 +260,15 @@ class AcademicoServiceTest
         matricula.setTipo(TipoMatricula.NUEVA);
         matricula.setAlumno(alumno);
 
-        when(this.alumnoRepository.findByDni(dni)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
         when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Matricula primera = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_idempotente_rep", 250.00f);
+        Matricula primera = this.academicoService.renovarMatriculaTrasPago(alumnoId, "cs_test_idempotente_rep", 250.00f);
         assertEquals(500.00f, primera.getPrecio());
 
         // Segunda llamada con el mismo sessionId no debe duplicar la suma
-        Matricula segunda = this.academicoService.renovarMatriculaTrasPago(dni, "cs_test_idempotente_rep", 250.00f);
+        Matricula segunda = this.academicoService.renovarMatriculaTrasPago(alumnoId, "cs_test_idempotente_rep", 250.00f);
         assertEquals(500.00f, segunda.getPrecio());
     }
 }

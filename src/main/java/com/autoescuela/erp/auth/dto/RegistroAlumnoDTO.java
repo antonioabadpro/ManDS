@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 
 import jakarta.validation.constraints.AssertTrue;
@@ -67,15 +68,23 @@ public record RegistroAlumnoDTO(
         Boolean terminos,
 
         @NotNull(message = "Debe seleccionar un tipo de carnet")
-        TipoCarnet tipoCarnet
+        TipoCarnet tipoCarnet,
+
+        @NotNull(message = "Debe seleccionar la modalidad de matrícula")
+        ModalidadMatricula modalidad
     )
 {
     public RegistroAlumnoDTO()
     {
-        this(null, null, null, null, null, null, null, null, null, null, null, null);
+        this(null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public RegistroAlumnoDTO(String nombreUsuario, String correo, String password, String confirmPassword, String nombre, String apellidos, String dni, LocalDate fechaNacimiento, String telefono, String direccion, Boolean terminos, TipoCarnet tipoCarnet)
+    {
+        this(nombreUsuario, correo, password, confirmPassword, nombre, apellidos, dni, fechaNacimiento, telefono, direccion, terminos, tipoCarnet, ModalidadMatricula.TEORICO_PRACTICA);
+    }
+
+    public RegistroAlumnoDTO(String nombreUsuario, String correo, String password, String confirmPassword, String nombre, String apellidos, String dni, LocalDate fechaNacimiento, String telefono, String direccion, Boolean terminos, TipoCarnet tipoCarnet, ModalidadMatricula modalidad)
     {
         this.nombreUsuario = nombreUsuario;
         this.correo = correo;
@@ -89,6 +98,7 @@ public record RegistroAlumnoDTO(
         this.direccion = direccion;
         this.terminos = terminos;
         this.tipoCarnet = tipoCarnet;
+        this.modalidad = modalidad;
     }
 
     /**

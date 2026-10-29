@@ -464,7 +464,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /matricula/nueva inicia sesión de pago en Stripe para alumno sin matrícula activa")
     void testMatricularNuevoCarnetExito() throws Exception
     {
-        when(this.pagoStripeService.crearSesionPagoMatricula(eq(TipoCarnet.PERMISO_C), any()))
+        when(this.pagoStripeService.crearSesionPagoMatricula(eq(TipoCarnet.PERMISO_C), any(), any()))
                 .thenReturn(new SesionPagoDTO("cs_test_mock_matricula", "https://checkout.stripe.com/pay/cs_test_mock_matricula", 45000L, "EUR"));
 
         this.mockMvc.perform(post("/matricula/nueva")

@@ -25,6 +25,7 @@ import com.autoescuela.erp.usuarios.model.Alumno;
 import org.springframework.mock.web.MockHttpSession;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,10 +121,10 @@ class StripeWebhookControllerTest
         matriculaMock.setAlumno(alumnoMock);
         matriculaMock.setPermisoCarnet(TipoCarnet.PERMISO_B);
 
-        when(this.academicoService.matricularTrasPago("12345678Z", "PERMISO_B", 250.00f)).thenReturn(matriculaMock);
+        when(this.academicoService.matricularTrasPago(eq(205L), eq("PERMISO_B"), any(), eq(250.00f))).thenReturn(matriculaMock);
 
         MockHttpSession sesion = new MockHttpSession();
-        sesion.setAttribute("dniAlumno", "12345678Z");
+        sesion.setAttribute("alumnoId", 205L);
         sesion.setAttribute("tipoCarnet", "PERMISO_B");
         sesion.setAttribute("importeTotal", 250.00f);
 
@@ -135,7 +136,7 @@ class StripeWebhookControllerTest
                 .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
                 .andExpect(content().string(containsString("250,00 €")));
 
-        verify(this.academicoService).matricularTrasPago(eq("12345678Z"), eq("PERMISO_B"), eq(250.00f));
+        verify(this.academicoService).matricularTrasPago(eq(205L), eq("PERMISO_B"), any(), eq(250.00f));
     }
 
     @Test
@@ -232,7 +233,7 @@ class StripeWebhookControllerTest
               "metadata": {
                 "tipoOperacion": "MATRICULA",
                 "tipoCarnet": "PERMISO_B",
-                "dniAlumno": "12345678Z"
+                "alumnoId": "205"
               }
             }
           }

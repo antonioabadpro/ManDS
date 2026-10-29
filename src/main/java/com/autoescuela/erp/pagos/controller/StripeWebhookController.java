@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
@@ -101,7 +102,22 @@ public class StripeWebhookController
 
                 String tipoOperacion = (session != null) ? session.getMetadata().get("tipoOperacion") : null;
                 String tipoCarnet = (session != null) ? session.getMetadata().get("tipoCarnet") : null;
-                String dniAlumno = (session != null) ? session.getMetadata().get("dniAlumno") : null;
+                String alumnoIdStr = (session != null) ? session.getMetadata().get("alumnoId") : null;
+                Long alumnoId = Long.valueOf(alumnoIdStr);
+                String modalidadStr = (session != null) ? session.getMetadata().get("modalidad") : null;
+
+                ModalidadMatricula modalidad = null;
+                if (modalidadStr != null && !modalidadStr.isBlank())
+                {
+                    try
+                    {
+                        modalidad = ModalidadMatricula.valueOf(modalidadStr.trim().toUpperCase());
+                    }
+                    catch (IllegalArgumentException ignored)
+                    {
+                        modalidad = ModalidadMatricula.TEORICO_PRACTICA;
+                    }
+                }
 
                 // Obtenemos el importe real verificado en céntimos desde Stripe
                 float importeTotal = (session != null) ? (session.getAmountTotal() / 100.0f) : 0.0f;
@@ -110,11 +126,18 @@ public class StripeWebhookController
                 {
                     case "MATRICULA": // Pago de la matrícula de un nuevo alumno tras finalizar el proceso de registro
                     {
-                        log.info("Evento checkout.session.completed recibido para MATRICULA. DNI: {}, Carnet: {}, Importe: {} €",
-                                dniAlumno, tipoCarnet, importeTotal);
-                        if (dniAlumno != null && !dniAlumno.isBlank())
+                        log.info("Evento checkout.session.completed recibido para MATRICULA. Alumno ID: {}, Carnet: {}, Modalidad: {}, Importe: {} €",
+                                alumnoId, tipoCarnet, modalidad, importeTotal);
+                        if (alumnoId != null)
                         {
-                            this.academicoService.matricularTrasPago(dniAlumno, tipoCarnet, importeTotal);
+                            try
+                            {
+                                this.academicoService.matricularTrasPago(alumnoId, tipoCarnet, modalidad, importeTotal);
+                            }
+                            catch (NumberFormatException e)
+                            {
+                                log.error("ID de alumno no válido en metadata de Stripe: {}", alumnoIdStr, e);
+                            }
                         }
                         respuesta = ResponseEntity.ok("Evento de matrícula procesado correctamente");
                     }; break;
@@ -125,22 +148,28 @@ public class StripeWebhookController
                         int numeroClases = (numeroClases_string != null) ? Integer.parseInt(numeroClases_string) : 0;
 
                         String idSesionStripe = (session != null) ? session.getId() : null;
-                        log.info("Evento checkout.session.completed recibido para CLASES_PRACTICAS. DNI: {}, Clases: {}, Importe: {} €",
-                                dniAlumno, numeroClases, importeTotal);
-                        if (dniAlumno != null && !dniAlumno.isBlank() && numeroClases > 0)
+                        log.info("Evento checkout.session.completed recibido para CLASES_PRACTICAS. ID: {}, Clases: {}, Importe: {} €", alumnoId, numeroClases, importeTotal);
+                        if (alumnoId != null && numeroClases > 0)
                         {
-                            this.academicoService.recargarSaldoClasesTrasPago(dniAlumno, numeroClases, idSesionStripe);
+                            this.academicoService.recargarSaldoClasesTrasPago(alumnoId, numeroClases, idSesionStripe);
                         }
                         respuesta = ResponseEntity.ok("Evento de clases prácticas procesado correctamente");
                     }; break;
                     case "RENOVACION_MATRICULA": // Renovación de matrícula tras agotar convocatorias
                     {
                         String idSesionStripe = (session != null) ? session.getId() : null;
-                        log.info("Evento checkout.session.completed recibido para RENOVACION_MATRICULA. DNI: {}, Carnet: {}, Importe: {} €",
-                                dniAlumno, tipoCarnet, importeTotal);
-                        if (dniAlumno != null && !dniAlumno.isBlank())
+                        log.info("Evento checkout.session.completed recibido para RENOVACION_MATRICULA. Alumno ID: {}, Carnet: {}, Importe: {} €",
+                                alumnoIdStr, tipoCarnet, importeTotal);
+                        if (alumnoIdStr != null)
                         {
-                            this.academicoService.renovarMatriculaTrasPago(dniAlumno, idSesionStripe, importeTotal);
+                            try
+                            {
+                                this.academicoService.renovarMatriculaTrasPago(alumnoId, idSesionStripe, importeTotal);
+                            }
+                            catch (NumberFormatException e)
+                            {
+                                log.error("ID de alumno no válido en metadata de renovación de Stripe: {}", alumnoIdStr, e);
+                            }
                         }
                         respuesta = ResponseEntity.ok("Evento de renovación de matrícula procesado correctamente");
                     }; break;

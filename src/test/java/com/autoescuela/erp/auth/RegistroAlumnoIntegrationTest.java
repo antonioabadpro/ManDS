@@ -16,6 +16,7 @@ import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -51,7 +52,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
     @BeforeEach
     void setUpRegistro()
     {
-        when(this.pagoStripeService.crearSesionPagoMatricula(any(), any()))
+        when(this.pagoStripeService.crearSesionPagoMatricula(any(), any(), any()))
                 .thenReturn(new SesionPagoDTO("cs_123", "https://checkout.stripe.com/pay/cs_123", 25000L, "EUR"));
     }
 
@@ -73,6 +74,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "611223344")
                 .param("direccion", "Calle Real 45, Madrid")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_123"))
@@ -80,7 +82,8 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
 
         MockHttpSession session = (MockHttpSession) postResult.getRequest().getSession();
         assertNotNull(session, "La sesión debe crearse para retener temporalmente los datos de registro");
-        assertEquals("77889900K", session.getAttribute("dniAlumno"), "El DNI del alumno debe persistirse en la sesión");
+        assertNull(session.getAttribute("dniAlumno"), "El DNI del alumno NO debe persistirse en la sesión");
+        assertNotNull(session.getAttribute("alumnoId"), "El ID del alumno debe persistirse en la sesión");
         assertNotNull(session.getAttribute("importeTotal"), "El importe debe persistirse en la sesión");
 
         // Verificamos que el alumno fue creado de inmediato en la base de datos con estado INACTIVO
@@ -134,6 +137,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "622334455")
                 .param("direccion", "Avenida Sol 1")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -158,6 +162,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "622334455")
                 .param("direccion", "Avenida Sol 1")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -182,6 +187,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "622334455")
                 .param("direccion", "Avenida Sol 1")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -206,6 +212,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "633445566")
                 .param("direccion", "Calle Luna 2")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -230,6 +237,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "633445566")
                 .param("direccion", "Calle Luna 2")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "false"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -253,6 +261,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "633445566")
                 .param("direccion", "Calle Luna 2")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -276,6 +285,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "633445566")
                 .param("direccion", "Calle Luna 2")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -405,6 +415,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "600444555") // Teléfono de alumno1 en data.sql
                 .param("direccion", "Avenida Sol 1")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
@@ -465,6 +476,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "611009988")
                 .param("direccion", "Calle Fin 1")
                 .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
                 .param("terminos", "true"))
                 .andExpect(status().is3xxRedirection())
                 .andReturn();

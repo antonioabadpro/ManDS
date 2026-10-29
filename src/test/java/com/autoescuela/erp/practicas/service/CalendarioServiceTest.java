@@ -207,7 +207,7 @@ class CalendarioServiceTest
         alumnoActual.setNombre("Carlos");
         alumnoActual.setProfesor(profesor);
 
-        LocalDate lunes = LocalDate.now().plusWeeks(1).with(DayOfWeek.MONDAY);
+        LocalDate lunes = LocalDate.now().plusWeeks(2).with(DayOfWeek.MONDAY);
 
         // Clase previa CANCELADA en lunes a las 08:00
         ClasePractica claseCancelada = new ClasePractica();

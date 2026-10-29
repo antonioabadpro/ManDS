@@ -11,6 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
@@ -62,10 +63,11 @@ public class MatriculaController
 
         try
         {
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(tipoCarnet, alumno.getDni());
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(tipoCarnet, ModalidadMatricula.TEORICO_PRACTICA, alumno.getId());
 
-            sesion.setAttribute("dniAlumno", alumno.getDni());
+            sesion.setAttribute("alumnoId", alumno.getId());
             sesion.setAttribute("tipoCarnet", tipoCarnet.name());
+            sesion.setAttribute("modalidad", ModalidadMatricula.TEORICO_PRACTICA.name());
             sesion.setAttribute("importeTotal", sesionPago.importeTotal() / 100.0f);
 
             return "redirect:" + sesionPago.urlStripe();
@@ -104,9 +106,9 @@ public class MatriculaController
 
         try
         {
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoRenovacionMatricula(matricula.getPermisoCarnet(), alumno.getDni());
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoRenovacionMatricula(matricula.getPermisoCarnet(), alumno.getId());
 
-            sesion.setAttribute("pagoRenovacion_dni", alumno.getDni());
+            sesion.setAttribute("pagoRenovacion_alumnoId", alumno.getId());
             sesion.setAttribute("pagoRenovacion_importe", sesionPago.importeTotal() / 100.0f);
             sesion.setAttribute("pagoRenovacion_tipoCarnet", matricula.getPermisoCarnet().getDescripcion());
 

@@ -34,6 +34,14 @@ function actualizarInformacionTasa() {
     if (elemTitulo) elemTitulo.textContent = nombreCarnet;
     if (elemPrecio) elemPrecio.textContent = importeTexto;
     if (elemBotonTexto) elemBotonTexto.textContent = `Pagar Matrícula (${importeTexto})`;
+
+    const selectModalidad = document.getElementById('reg-modalidad');
+    const valorModalidad = selectModalidad?.value || 'TEORICO_PRACTICA';
+    const esTeoricoPractica = valorModalidad === 'TEORICO_PRACTICA';
+    const puntoTests = document.getElementById('punto-incluido-tests');
+    if (puntoTests) {
+        puntoTests.style.display = esTeoricoPractica ? 'flex' : 'none';
+    }
 }
 
 /**
@@ -392,6 +400,11 @@ function inicializarEventosRegistro() {
     const selectCarnet = document.getElementById('reg-tipoCarnet');
     if (selectCarnet) {
         selectCarnet.addEventListener('change', actualizarInformacionTasa);
+    }
+
+    const selectModalidad = document.getElementById('reg-modalidad');
+    if (selectModalidad) {
+        selectModalidad.addEventListener('change', actualizarInformacionTasa);
     }
 
     const inputDni = document.getElementById('reg-dni');
