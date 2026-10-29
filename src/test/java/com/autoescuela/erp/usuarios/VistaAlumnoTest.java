@@ -261,7 +261,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para clases individuales")
     void testComprarClasesIndividualesExito() throws Exception
     {
@@ -279,7 +279,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para Bono de 10 clases")
     void testComprarBono10Exito() throws Exception
     {
@@ -295,7 +295,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases redirige a Stripe para Bono de 15 clases")
     void testComprarBonoExito() throws Exception
     {
@@ -312,16 +312,43 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
-    @DisplayName("POST /alumno/pagos/comprar-clases bloquea compra si alumno dispone de saldo activo")
-    void testComprarClasesBloqueadoPorSaldoActivo() throws Exception
+    @DisplayName("POST /alumno/pagos/comprar-clases permite compra de clases aunque el alumno disponga de saldo activo")
+    void testComprarClasesPermitidoConSaldoActivo() throws Exception
+    {
+        when(this.pagoStripeService.crearSesionPagoClasesPracticas(any(), any(), eq(1), eq(false)))
+                .thenReturn(new SesionPagoDTO("cs_clases_1", "https://checkout.stripe.com/pay/cs_clases_1", 3000L, "EUR"));
+
+        this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
+                .with(csrf())
+                .param("tipoProducto", "INDIVIDUAL")
+                .param("cantidadClases", "1"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_clases_1"));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @DisplayName("GET /alumno/pagos redirige a dashboard si alumno no ha aprobado el examen teórico")
+    void testPagosBloqueadoSinTeoricoAprobado() throws Exception
+    {
+        this.mockMvc.perform(get("/alumno/pagos"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("No puedes acceder a la compra de clases prácticas hasta haber aprobado el examen teórico")));
+    }
+
+    @Test
+    @WithMockUser(username = "alumno18", roles = "ALUMNO")
+    @DisplayName("POST /alumno/pagos/comprar-clases bloquea compra si alumno no ha aprobado el examen teórico")
+    void testComprarClasesBloqueadoSinTeoricoAprobado() throws Exception
     {
         this.mockMvc.perform(post("/alumno/pagos/comprar-clases")
                 .with(csrf())
                 .param("tipoProducto", "INDIVIDUAL")
                 .param("cantidadClases", "1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/alumno/pagos"))
-                .andExpect(flash().attribute("error", "No puedes adquirir nuevas clases ni bonos mientras dispongas de saldo activo en tu expediente."));
+                .andExpect(redirectedUrl("/alumno/dashboard"))
+                .andExpect(flash().attribute("error", containsString("No puedes adquirir clases prácticas hasta haber aprobado el examen teórico")));
     }
 
     @Test
