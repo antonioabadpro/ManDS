@@ -65,7 +65,7 @@ public record AltaProfesorDTO(
     Long vehiculoId,
 
     /**
-     * Lista de permisos de carnet autorizados que puede impartir el docente.
+     * Lista de permisos de carnet autorizados que puede impartir el profesor.
      */
     @NotEmpty(message = "Debe seleccionar al menos un permiso de conducción autorizado.")
     List<TipoCarnet> permisos

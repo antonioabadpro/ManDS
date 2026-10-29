@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -54,8 +54,8 @@
                     <tr th:each="c : ${clases}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
                         <!-- 1. Fecha & Hora -->
                         <td class="py-3 px-4 text-center whitespace-nowrap tabular-nums">
-                            <p class="font-semibold text-slate-900 dark:text-white" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy')}">10/09/2026</p>
-                            <p class="text-[10px] text-slate-400" th:text="${#temporals.format(c.fechaHora, 'HH:mm')} + ' h'">10:00 h</p>
+                            <p class="font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(c.fechaHora, 'dd/MM/yyyy')}">10/09/2026</p>
+                            <p class="text-[10px] text-slate-400 tabular-nums whitespace-nowrap" th:text="${#temporals.format(c.fechaHora, 'HH:mm')} + ' h'">10:00 h</p>
                         </td>
 
                         <!-- 2. Alumno -->

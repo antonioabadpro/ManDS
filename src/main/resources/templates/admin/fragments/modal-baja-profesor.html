@@ -1,5 +1,5 @@
-<th:block th:fragment="modal-baja-profesor">
-    <!-- MODAL 1: Selección y Advertencia de Baja Lógica (Regla 7.3) -->
+﻿<th:block th:fragment="modal-baja-profesor">
+    <!-- MODAL 1: Selección y Advertencia de Baja Lógica -->
     <div id="modal-baja-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-baja" th:classappend="${abrirModalBajaProfesor} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
         <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-baja-profesor"></div>
         <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
@@ -14,7 +14,6 @@
                     </div>
                     <div>
                         <h3 id="titulo-modal-baja" class="text-base font-bold text-slate-900 dark:text-white">Baja Lógica del Profesor</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Protocolo estricto conforme a la Regla de Negocio 7.3</p>
                     </div>
                 </div>
                 <button type="button" data-modal-close="modal-baja-profesor" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar modal">
@@ -36,7 +35,7 @@
             <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-900 dark:text-white" th:text="${profesor.nombreCompleto}"></span>
-                    <span class="text-[11px] font-mono text-slate-500" th:text="|DNI: ${profesor.dni}|"></span>
+                    <span class="text-[11px] tabular-nums text-slate-500" th:text="|DNI: ${profesor.dni}|"></span>
                 </div>
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
@@ -51,9 +50,9 @@
                 </div>
             </div>
 
-            <!-- Resumen de Impacto de la Regla 7.3 -->
+            <!-- Resumen de Impacto de la baja -->
             <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-amber-500/5 dark:bg-amber-500/10 p-3.5 rounded-xl border border-amber-500/20">
-                <p class="font-semibold text-amber-800 dark:text-amber-300">Consecuencias operativas de la baja (Regla 7.3):</p>
+                <p class="font-semibold text-amber-800 dark:text-amber-300">Consecuencias operativas de la baja:</p>
                 <ul class="list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-400 text-[11px]">
                     <li>El estado pasará a <strong>INACTIVO</strong> preservando todo el histórico.</li>
                     <li>El vehículo asignado quedará libre y en estado <strong>DISPONIBLE</strong>.</li>
@@ -61,7 +60,7 @@
                 </ul>
             </div>
 
-            <!-- Formulario de Selección Docente de Paso 1 -->
+            <!-- Formulario de Selección de Profesor de Paso 1 -->
             <form id="form-baja-profesor" th:attr="data-total-alumnos=${profesor.totalAlumnos}" class="space-y-4">
                 <!-- Bloque de Gestión de Alumnos si tiene alumnos asignados -->
                 <div th:if="${profesor.totalAlumnos > 0}" class="space-y-2">
@@ -75,7 +74,7 @@
                             <div class="flex-1">
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Reasignar a otro profesor activo</span>
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${profesor.vehiculoTipo != null}" th:text="|Profesores activos habilitados para ${profesor.vehiculoTipoDescripcion} (ordenados por menor número de alumnos).|">Profesores activos habilitados para el permiso del vehículo (ordenados por menor número de alumnos).</p>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${profesor.vehiculoTipo == null}">Se notificará por correo a los alumnos con su nuevo docente y la cancelación de prácticas pendientes (ordenados por menor número de alumnos).</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${profesor.vehiculoTipo == null}">Se notificará por correo a los alumnos con su nuevo profesor y la cancelación de prácticas pendientes (ordenados por menor número de alumnos).</p>
 
                                 <div th:if="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
                                     <select id="select-nuevo-profesor-baja" name="nuevoProfesorId" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-red-500">
@@ -94,7 +93,7 @@
                             <input type="radio" id="radio-baja-sin-profesor" name="opcionAlumnos" value="SIN_PROFESOR" th:checked="${#lists.isEmpty(profesoresDisponibles)}" class="mt-1 text-red-600 focus:ring-red-500" />
                             <div>
                                 <span class="font-semibold text-slate-800 dark:text-slate-200">Dejar temporalmente sin profesor</span>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Se avisará por correo a los alumnos de la baja de su docente y de la cancelación de clases pendientes.</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Se avisará por correo a los alumnos de la baja de su profesor y de la cancelación de clases pendientes.</p>
                             </div>
                         </label>
                     </div>
@@ -137,7 +136,7 @@
                     </div>
                     <div>
                         <h3 id="titulo-modal-confirmar-baja" class="text-base font-bold text-slate-900 dark:text-white">Confirmar Baja Definitiva</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Verificación previa obligatoria (Regla 7.3)</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Verificación previa obligatoria</p>
                     </div>
                 </div>
                 <button type="button" data-modal-close="modal-confirmar-baja-profesor" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar modal">
@@ -168,7 +167,7 @@
                     </div>
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="text-slate-500 dark:text-slate-400">Destino de alumnos:</span>
-                        <span id="resumen-confirmacion-destino-alumnos" class="font-bold text-indigo-600 dark:text-indigo-400 text-right truncate max-w-[200px]" th:text="${profesor.totalAlumnos == 0} ? 'Sin alumnos tutelados' : 'Por determinar'">Sin alumnos tutelados</span>
+                        <span id="resumen-confirmacion-destino-alumnos" class="font-bold text-indigo-600 dark:text-indigo-400 text-right truncate max-w-[200px]" th:text="${profesor.totalAlumnos == 0} ? 'Sin alumnos asignados' : 'Por determinar'">Sin alumnos asignados</span>
                     </div>
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="text-slate-500 dark:text-slate-400">Clases prácticas:</span>
@@ -177,7 +176,7 @@
                 </div>
 
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 italic">
-                    Esta acción desactivará al docente, liberará sus recursos y enviará notificaciones por correo a los alumnos afectados si procede.
+                    Esta acción desactivará al profesor, liberará sus recursos y enviará notificaciones por correo a los alumnos afectados si procede.
                 </p>
             </div>
 

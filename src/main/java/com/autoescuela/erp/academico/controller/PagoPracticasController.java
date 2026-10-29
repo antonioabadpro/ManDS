@@ -102,14 +102,14 @@ public class PagoPracticasController
             return "redirect:/alumno/pagos";
         }
 
-        // Regla: Bloqueo de compra de clases si ha agotado sus convocatorias
+        // Bloqueo de compra de clases si ha agotado sus convocatorias
         if (matricula.tieneConvocatoriasAgotadas())
         {
             redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de examen de tu matrícula. No puedes adquirir clases prácticas ni bonos hasta renovar tu matrícula.");
             return "redirect:/alumno/pagos";
         }
 
-        // Regla: Examen teórico aprobado en modalidad TEORICO_PRACTICA
+        // Examen teórico aprobado en modalidad TEORICO_PRACTICA
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
         {
             boolean teoricoAprobado = this.examenService.tieneTeoricoAprobado(alumno);

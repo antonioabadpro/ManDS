@@ -1,4 +1,4 @@
-<div id="modal-expediente-alumno" th:fragment="modal-expediente-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-expediente" th:classappend="${abrirModalExpedienteAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-3 sm:p-4 overflow-y-auto">
+﻿<div id="modal-expediente-alumno" th:fragment="modal-expediente-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-expediente" th:classappend="${abrirModalExpedienteAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-expediente-alumno"></div>
     <div class="relative z-10 w-full max-w-2xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-7 space-y-6 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
 
@@ -47,7 +47,7 @@
             <div th:if="${expediente.ultimasClases != null and not #lists.isEmpty(expediente.ultimasClases)}" class="space-y-2 text-xs">
                 <div th:each="clase : ${expediente.ultimasClases}" class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 flex justify-between items-start gap-3">
                     <div class="space-y-0.5">
-                        <p class="font-semibold text-slate-900 dark:text-white" th:text="|${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')} (${clase.duracion} min) · ${clase.puntoRecogida}|">
+                        <p class="font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="|${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')} (${clase.duracion} min) · ${clase.puntoRecogida}|">
                             10/09/2026 10:00 (45 min) · Calle Alcalá 45
                         </p>
                         <p class="text-slate-500 dark:text-slate-400 text-[11px]" th:text="|${clase.kmFormateado} · Prof: ${clase.profesorNombre != null ? clase.profesorNombre : 'No asignado'}|">
@@ -84,7 +84,7 @@
             <div th:if="${expediente.ultimosExamenes != null and not #lists.isEmpty(expediente.ultimosExamenes)}" class="space-y-2 text-xs">
                 <div th:each="examen : ${expediente.ultimosExamenes}" class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 flex justify-between items-center text-xs gap-3">
                     <div>
-                        <p class="font-semibold text-slate-900 dark:text-white" th:text="|${examen.titulo} · ${#temporals.format(examen.fechaHora, 'dd/MM/yyyy')}|">
+                        <p class="font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="|${examen.titulo} · ${#temporals.format(examen.fechaHora, 'dd/MM/yyyy')}|">
                             Examen Teórico Oficial · 20/07/2026
                         </p>
                         <p class="text-[11px] text-slate-400 dark:text-slate-500" th:text="|Duración: ${examen.duracion} min · ${examen.centroDgt}|">

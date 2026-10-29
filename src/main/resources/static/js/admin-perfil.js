@@ -1,17 +1,28 @@
 /**
- * admin-perfil.js
- * JavaScript no intrusivo y modular para la vista "Mi Perfil" del Administrador en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * admin-perfil.js - Gestión del Perfil Personal y Datos del Administrador
  *
- * Responsabilidades:
- * 1. Restricciones dinámicas de fecha de nacimiento (18 a 100 años respecto a la fecha actual).
- * 2. Validación en cliente en tiempo real de DNI/NIE, nombre, apellidos, teléfono nacional y dirección.
- * 3. Prevención de envío ante errores y sincronización con validaciones asíncronas de HTMX.
+ * =====================================================================================
+ * 1. PATRÓN DE MANEJADORES CON NOMBRE (NAMED EVENT HANDLERS):
+ *    En lugar de funciones anónimas o código inline en Thymeleaf, cada interacción
+ *    (blur, input, change, submit) está asignada a una función con nombre explicativo
+ *    dentro de un ámbito IIFE seguro.
+ *
+ * 2. REGLAS DE VALIDACIÓN EN CLIENTE PARA EL PERFIL:
+ *    - DNI/NIE español: regex que valida 8 números + letra o NIE con X/Y/Z inicial.
+ *    - Teléfono nacional: regex que admite prefijo internacional (+34 / 0034) y números
+ *      iniciados por 6, 7, 8 o 9 con 9 dígitos en total.
+ *    - Fecha de nacimiento: cálculo de mayoría de edad (mínimo 18 años, máximo 100).
+ *    - Límites de longitud: nombre (50 caracteres), apellidos (100) y dirección (200).
+ *
+ * 3. RETROALIMENTACIÓN SINCRONIZADA CON HTMX:
+ *    Si el backend detecta algún conflicto asíncrono (ej. DNI o email ya en uso),
+ *    el evento 'htmx:afterSwap' actualiza los bordes visuales y muestra el mensaje.
+ * =====================================================================================
  */
 (function () {
     'use strict';
 
-    // Helpers locales con fallback seguro a AdminUI
+    // Helpers locales con fallback seguro a AdminUI (definido en admin.js)
     function formatFecha(fecha) {
         if (window.AdminUI && window.AdminUI.formatearFechaISO) {
             return window.AdminUI.formatearFechaISO(fecha);
@@ -37,6 +48,11 @@
     // =========================================================================
     // VALIDACIONES DE CAMPOS INDIVIDUALES
     // =========================================================================
+
+    /**
+     * Valida el formato del DNI o NIE español del administrador.
+     * @returns {boolean} - true si el documento es válido.
+     */
     function validarDniPerfil() {
         const input = document.getElementById('dni');
         if (!input) return true;
@@ -47,6 +63,7 @@
             return false;
         }
 
+        // Formato estándar DNI: 8 dígitos y letra | NIE: X, Y o Z seguido de 7 dígitos y letra
         const regexDni = /^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$/;
         if (!regexDni.test(valor)) {
             mostrarError('dni', 'feedback-dni', 'El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
@@ -60,6 +77,10 @@
         return true;
     }
 
+    /**
+     * Valida que la fecha de nacimiento certifique la mayoría de edad (al menos 18 años).
+     * @returns {boolean} - true si la fecha es válida.
+     */
     function validarFechaNacimientoPerfil() {
         const input = document.getElementById('fechaNacimiento');
         if (!input) return true;
@@ -110,6 +131,9 @@
         return true;
     }
 
+    /**
+     * Valida el nombre del administrador (no vacío y máximo 50 caracteres).
+     */
     function validarNombrePerfil() {
         const input = document.getElementById('nombre');
         if (!input) return true;
@@ -128,6 +152,9 @@
         return true;
     }
 
+    /**
+     * Valida los apellidos del administrador (no vacío y máximo 100 caracteres).
+     */
     function validarApellidosPerfil() {
         const input = document.getElementById('apellidos');
         if (!input) return true;
@@ -146,6 +173,9 @@
         return true;
     }
 
+    /**
+     * Valida el número de teléfono con formato nacional español.
+     */
     function validarTelefonoPerfil() {
         const input = document.getElementById('telefono');
         if (!input) return true;
@@ -156,6 +186,7 @@
             return false;
         }
 
+        // Formato: opcional +34 o 0034, seguido de 9 dígitos empezando por 6, 7, 8 o 9
         const regexTel = /^(\+34|0034)?[6789]\d{8}$/;
         if (!regexTel.test(valor)) {
             mostrarError('telefono', 'feedback-telefono', 'El formato del teléfono no es válido (ej. 600111222).');
@@ -169,6 +200,9 @@
         return true;
     }
 
+    /**
+     * Valida la dirección postal (máximo 200 caracteres).
+     */
     function validarDireccionPerfil() {
         const input = document.getElementById('direccion');
         if (!input) return true;
@@ -223,6 +257,10 @@
         if (input && input.value.trim()) validarDireccionPerfil();
     }
 
+    /**
+     * Valida todos los campos antes de permitir el envío del formulario.
+     * @param {SubmitEvent} evento - Evento submit.
+     */
     function manejarSubmitPerfil(evento) {
         const vDni = validarDniPerfil();
         const vFecha = validarFechaNacimientoPerfil();
@@ -234,6 +272,7 @@
         const formPerfil = document.getElementById('form-perfil-admin');
         const feedbackError = formPerfil ? formPerfil.querySelector('.mensaje-error-campo') : null;
 
+        // Si algún campo no pasa la validación, cancelamos el envío y ponemos el foco en el primero con error
         if (!vDni || !vFecha || !vNombre || !vApellidos || !vTel || !vDir || feedbackError) {
             evento.preventDefault();
             const primerInvalido = formPerfil ? formPerfil.querySelector('.border-red-500') : null;
@@ -243,6 +282,9 @@
         }
     }
 
+    /**
+     * Sincroniza clases visuales de error cuando HTMX devuelve respuestas de validación.
+     */
     function manejarHtmxAfterSwapPerfil(evento) {
         const targetId = evento.detail && evento.detail.target ? evento.detail.target.id : '';
         if (targetId && targetId.startsWith('feedback-')) {
@@ -266,8 +308,9 @@
     // =========================================================================
     function inicializarPerfilAdmin() {
         const formPerfil = document.getElementById('form-perfil-admin');
-        if (!formPerfil) return; // Solo ejecutar en la vista de perfil
+        if (!formPerfil) return; // Guard clause
 
+        // Configuración de restricciones de fecha de nacimiento
         const inputFechaNac = document.getElementById('fechaNacimiento');
         if (inputFechaNac) {
             const hoy = new Date();
@@ -279,6 +322,7 @@
             inputFechaNac.addEventListener('change', manejarChangeFechaNacimiento);
         }
 
+        // Registro de escuchadores para cada campo interactivo
         const inputDni = document.getElementById('dni');
         if (inputDni) {
             inputDni.addEventListener('blur', manejarBlurDni);
@@ -315,4 +359,3 @@
 
     document.addEventListener('DOMContentLoaded', inicializarPerfilAdmin);
 })();
-

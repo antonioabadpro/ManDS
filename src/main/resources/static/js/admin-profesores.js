@@ -1,18 +1,30 @@
 /**
- * admin-profesores.js
- * JavaScript no intrusivo y modular para la Gestión de Profesores en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * admin-profesores.js - Gestión de Profesores, Habilitaciones y Asignación de Vehículos
  *
- * Responsabilidades:
- * 1. Restricciones dinámicas de fechas en calendarios nativos (nacimiento 18-100 años, contratación +-1 mes).
- * 2. Validación de campos en tiempo real (nombre, apellidos, DNI/NIE, teléfono, correo, dirección).
- * 3. Validación de permisos obligatorios y compatibilidad carnet-vehículo (Regla 7.3).
- * 4. Interceptación y sincronización con el ciclo de vida de peticiones HTMX.
+ * =====================================================================================
+ * 1. REGLAS DE NEGOCIO ESTRICTAS:
+ *    - El alta de profesor es exclusiva del Administrador (se le enviará un correo con token).
+ *    - Compatibilidad Carnet-Vehículo: un profesor solo puede tener asignado un vehículo de la flota
+ *      si está habilitado expresamente en su lista de permisos ('listaTiposCarnet'). Si se le intenta
+ *      asignar un camión (C) sin tener el permiso marcado, el cliente lo bloquea y explica el motivo.
+ *    - Selección obligatoria de al menos un permiso de conducción.
+ *    - Restricción de fecha de contratación: debe encontrarse dentro de la ventana de +/- 1 mes respecto a hoy.
+ *    - Restricción de fecha de nacimiento: el profesor debe tener entre 18 y 100 años.
+ *
+ * 2. PATRÓN DE MODAL REUTILIZABLE CON SUFIJO:
+ *    Para no duplicar validadores entre el formulario de ALTA (campos con IDs estándar) y el de
+ *    EDICIÓN (campos con sufijo '-editar'), las funciones de validación reciben el parámetro 'sufijo'.
+ *
+ * 3. RE-VINCULACIÓN DINÁMICA CON HTMX:
+ *    Cuando HTMX abre el modal de edición o re-renderiza el formulario tras una validación fallida,
+ *    'htmx:afterSwap' vuelve a registrar los escuchadores sin duplicar eventos gracias a la bandera
+ *    'form._eventosProfesorInicializados'.
+ * =====================================================================================
  */
 (function () {
     'use strict';
 
-    // Helpers locales con fallback seguro a AdminUI
+    // Helpers locales con fallback seguro a AdminUI (definido en admin.js)
     function formatFecha(fecha) {
         if (window.AdminUI && window.AdminUI.formatearFechaISO) {
             return window.AdminUI.formatearFechaISO(fecha);
@@ -38,11 +50,16 @@
     // =========================================================================
     // CONFIGURACIÓN DE RESTRICCIONES DE FECHAS
     // =========================================================================
+    /**
+     * Configura los límites 'min' y 'max' en los selectores HTML5 de fecha.
+     * @param {string} sufijo - Vacío para alta ('') o '-editar' para edición.
+     */
     function configurarRestriccionesFechasProfesor(sufijo = '') {
         const inputNacimiento = document.getElementById(`profesor-nacimiento${sufijo}`);
         const inputContratacion = document.getElementById(`profesor-fecha${sufijo}`);
         const hoy = new Date();
 
+        // Nacimiento: entre 18 y 100 años atrás
         if (inputNacimiento) {
             const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
             const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
@@ -50,6 +67,7 @@
             inputNacimiento.setAttribute('min', formatFecha(hace100Anios));
         }
 
+        // Contratación (solo en alta): ventana de +/- 1 mes respecto a la fecha actual
         if (inputContratacion && sufijo !== '-editar') {
             const hace1Mes = new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
             const en1Mes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate());
@@ -61,6 +79,10 @@
     // =========================================================================
     // VALIDACIONES DE CAMPOS INDIVIDUALES
     // =========================================================================
+
+    /**
+     * Valida el nombre del profesor (obligatorio y máx. 50 caracteres).
+     */
     function validarNombreProfesor(sufijo = '') {
         const inputId = `profesor-nombre${sufijo}`;
         const feedbackId = `feedback-nombre${sufijo}`;
@@ -80,6 +102,9 @@
         return true;
     }
 
+    /**
+     * Valida los apellidos del profesor (obligatorio y máx. 100 caracteres).
+     */
     function validarApellidosProfesor(sufijo = '') {
         const inputId = `profesor-apellidos${sufijo}`;
         const feedbackId = `feedback-apellidos${sufijo}`;
@@ -99,6 +124,9 @@
         return true;
     }
 
+    /**
+     * Valida el formato del DNI o NIE español del profesor.
+     */
     function validarDniProfesor(sufijo = '') {
         const inputId = `profesor-dni${sufijo}`;
         const feedbackId = `feedback-dni${sufijo}`;
@@ -122,6 +150,9 @@
         return true;
     }
 
+    /**
+     * Valida el teléfono móvil del profesor (9 dígitos con formato nacional español).
+     */
     function validarTelefonoProfesor(sufijo = '') {
         const inputId = `profesor-telefono${sufijo}`;
         const feedbackId = `feedback-telefono${sufijo}`;
@@ -145,6 +176,9 @@
         return true;
     }
 
+    /**
+     * Valida el formato del correo electrónico institucional o personal del profesor.
+     */
     function validarCorreoProfesor(sufijo = '') {
         const inputId = `profesor-correo${sufijo}`;
         const feedbackId = `feedback-correo${sufijo}`;
@@ -172,6 +206,9 @@
         return true;
     }
 
+    /**
+     * Valida la dirección postal de residencia del profesor.
+     */
     function validarDireccionProfesor(sufijo = '') {
         const inputId = `profesor-direccion${sufijo}`;
         const feedbackId = `feedback-direccion${sufijo}`;
@@ -191,6 +228,9 @@
         return true;
     }
 
+    /**
+     * Valida que la fecha de nacimiento certifique la mayoría de edad laboral (18 a 100 años).
+     */
     function validarFechaNacimientoProfesor(sufijo = '') {
         const inputId = `profesor-nacimiento${sufijo}`;
         const feedbackId = `feedback-nacimiento${sufijo}`;
@@ -243,6 +283,9 @@
         return true;
     }
 
+    /**
+     * Valida que la fecha de contratación se encuentre en el rango permitido (+/- 1 mes respecto a hoy).
+     */
     function validarFechaContratacionProfesor(sufijo = '') {
         const inputId = `profesor-fecha${sufijo}`;
         const feedbackId = `feedback-fecha-contratacion${sufijo}`;
@@ -280,6 +323,9 @@
         return true;
     }
 
+    /**
+     * Valida que se haya seleccionado al menos una casilla de permiso de conducir.
+     */
     function validarPermisosProfesor(modalId = 'modal-alta-profesor', sufijo = '') {
         const modal = document.getElementById(modalId);
         if (!modal) return true;
@@ -308,6 +354,10 @@
         return true;
     }
 
+    /**
+     * Valida la regla de negocio de compatibilidad carnet-vehículo:
+     * Comprueba que el profesor posea el permiso requerido por el vehículo seleccionado en el desplegable.
+     */
     function validarCompatibilidadVehiculo(modalId = 'modal-alta-profesor', sufijo = '') {
         const selectId = `profesor-vehiculo${sufijo}`;
         const feedbackId = `feedback-vehiculo-compatibilidad${sufijo}`;
@@ -322,7 +372,7 @@
         const tipoVehiculo = selectedOption ? selectedOption.getAttribute('data-tipo') : null;
         const nombreTipo = selectedOption ? (selectedOption.getAttribute('data-tipo-nombre') || tipoVehiculo) : '';
 
-        // Si no hay vehículo seleccionado ("-- Sin Vehículo Asignado --"), es válido
+        // Si no hay vehículo asignado ("-- Sin Vehículo Asignado --"), la asignación es válida
         if (!tipoVehiculo || selectVehiculo.value === '') {
             if (feedback) feedback.innerHTML = '';
             selectVehiculo.classList.remove('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
@@ -331,7 +381,7 @@
             return true;
         }
 
-        // Comprobar si entre los permisos marcados está el requerido
+        // Comprueba si entre las casillas marcadas está el carnet correspondiente al vehículo
         const modal = document.getElementById(modalId);
         const checkboxCarnet = modal ? modal.querySelector(`input[name="permisos"][value="${tipoVehiculo}"]`) : null;
         const estaMarcado = checkboxCarnet && checkboxCarnet.checked;
@@ -363,6 +413,9 @@
         return true;
     }
 
+    /**
+     * Validador integral del formulario de profesor antes del envío.
+     */
     function validarFormularioProfesor(formId, modalId, sufijo = '') {
         const form = document.getElementById(formId);
         if (!form) return true;
@@ -501,7 +554,7 @@
     }
 
     /**
-     * Intercepta evento de confirmación HTMX para abortar peticiones no válidas.
+     * Intercepta el evento de confirmación HTMX para abortar peticiones no válidas.
      */
     function manejarHtmxConfirmProfesor(evento) {
         const formId = evento.target ? evento.target.id : '';
@@ -707,4 +760,3 @@
 
     document.addEventListener('DOMContentLoaded', inicializarGestionProfesores);
 })();
-

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -150,13 +150,13 @@
         <!-- Pie de la Barra Lateral: Usuario conectado y Logout rápido -->
         <div id="sidebar-footer" class="p-4 border-t border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
             <div id="sidebar-footer-content" class="flex items-center justify-between">
-                <a th:href="@{/profesor/perfil}" class="flex items-center space-x-3 min-w-0 group hover:opacity-80 transition" title="Ver mi perfil docente">
+                <a th:href="@{/profesor/perfil}" class="flex items-center space-x-3 min-w-0 group hover:opacity-80 transition" title="Ver mi perfil de profesor">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-inner shrink-0" th:text="${#strings.substring(nombreProfesor != null ? nombreProfesor : 'Profesor', 0, 1).toUpperCase()}">
                         P
                     </div>
                     <div class="sidebar-text-element truncate">
                         <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-violet-600 dark:group-hover:text-violet-400 transition" th:text="${nomUsuario} ?: 'profesor'"></p>
-                        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate">Docente Activo</p>
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate">Profesor Activo</p>
                     </div>
                 </a>
 
@@ -218,7 +218,7 @@
                 </svg>
                 <div class="flex flex-col text-left leading-tight shrink-0">
                     <span id="reloj-sistema-fecha" class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-medium capitalize select-none whitespace-nowrap">--</span>
-                    <span id="reloj-sistema-hora" class="text-[11px] sm:text-xs font-bold font-mono tabular-nums text-slate-800 dark:text-slate-200 whitespace-nowrap">--:--</span>
+                    <span id="reloj-sistema-hora" class="text-[11px] sm:text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200 whitespace-nowrap">--:--</span>
                     <span id="reloj-sistema-texto" class="sr-only">--:--</span>
                 </div>
             </div>
@@ -259,7 +259,7 @@
                             </span>
                         </div>
                         <div>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Docente Conectado</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wider">Profesor Conectado</p>
                             <p class="text-sm font-bold text-slate-900 dark:text-white truncate" th:text="${nombreProfesor} ?: 'Profesor'"></p>
                         </div>
                     </div>

@@ -1,12 +1,24 @@
 /**
- * alumno.js
- * JavaScript no intrusivo para el portal del Alumno en ManDS ERP.
- * Las funciones generales de interfaz (tema oscuro, reloj, modales, menú de usuario) residen en layout.js.
+ * alumno.js - Lógica Cliente para el Portal del Alumno (Calendario, Clases y Tarifas)
  *
- * Funcionalidades específicas de Alumno:
- * 1. Alternancia del menú lateral (Sidebar) en modo compacto para escritorio con persistencia.
- * 2. Filtrado rápido de tablas en cliente mediante data-table-search.
- * 3. Integración con FullCalendar v6 y HTMX para reserva y consulta de clases prácticas.
+ * =====================================================================================
+ * 1. NAVEGACIÓN Y EXPERIENCIA DEL ALUMNO:
+ *    - Menú lateral en modo compacto para pantallas grandes (>= 1024px) con persistencia.
+ *    - Búsqueda instantánea en tablas de histórico de pagos y clases.
+ *
+ * 2. CÁLCULO DINÁMICO DE TARIFAS DE CLASES SUELTAS:
+ *    - Calcula en tiempo real el precio total al variar la cantidad de clases individuales
+ *      deseadas, leyendo el precio unitario del atributo 'data-precio-clase' (30 € en carnets
+ *      estándar o 60 € en pesados C/D).
+ *
+ * 3. DESPLAZAMIENTO SUAVE (SMOOTH SCROLL) A RENOVACIÓN DE MATRÍCULA:
+ *    - Cuando el alumno agota sus convocatorias (2 suspensos o convocatorias <= 0),
+ *      se le presenta un acceso directo que desplaza suavemente la vista hasta la sección de
+ *      renovación mediante 'scrollIntoView({ behavior: "smooth" })'.
+ *
+ * 4. LEYENDA DEL CALENDARIO COLAPSABLE:
+ *    - Permite alternar la guía de colores de la cuadrícula semanal con persistencia en 'localStorage'.
+ * =====================================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     const TEMA_ALMACENADO_SIDEBAR = 'mands_alumno_sidebar_compact';
 
+    /**
+     * Alterna las clases Tailwind para colapsar o expandir el menú lateral del alumno.
+     * @param {boolean} esCompacto - True para colapsar a solo iconos (w-20).
+     */
     function aplicarModoCompactoEscritorio(esCompacto) {
         if (!sidebar) return;
 
@@ -103,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. ACTUALIZACIÓN REACTIVA DE LA CUADRÍCULA SEMANAL (HTMX)
     // =========================================================================
+    // Escucha el evento disparado por el servidor tras reservar o cancelar una clase
     document.body.addEventListener('actualizarCalendario', () => {
         document.body.classList.remove('overflow-hidden');
         const modal = document.getElementById('contenedor-modal');
@@ -117,12 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputCantidadIndividual = document.getElementById('cantidad-clases-individual');
     const displayTotalIndividual = document.getElementById('total-clases-individual');
     if (inputCantidadIndividual && displayTotalIndividual) {
+        /**
+         * Recalcula el precio total según la cantidad seleccionada y el precio unitario del permiso.
+         */
         function actualizarTotalIndividual() {
             let cant = parseInt(inputCantidadIndividual.value, 10);
             if (isNaN(cant) || cant < 1) {
                 cant = 1;
                 inputCantidadIndividual.value = 1;
             }
+            // Lee el precio unitario del dataset (30 € estándar o 60 € pesados)
             const precioClase = parseFloat(inputCantidadIndividual.dataset.precioClase) || 30;
             const total = cant * precioClase;
             displayTotalIndividual.textContent = total.toFixed(2) + ' €';
@@ -142,10 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
             evento.preventDefault();
             const seccionRenovacion = document.getElementById('seccion-renovacion');
             if (seccionRenovacion) {
+                // Desplazamiento animado suave de la ventana
                 seccionRenovacion.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
                 });
+                // Actualización limpia de la URL con el hash sin recargar
                 if (window.history && window.history.pushState) {
                     window.history.pushState(null, '', '#seccion-renovacion');
                 }
@@ -154,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inicializarDesplazamientoRenovacion();
+
     // =========================================================================
     // 6. TOGGLE DE LEYENDA DEL CALENDARIO (COLAPSABLE CON PERSISTENCIA)
     // =========================================================================
@@ -165,6 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!btnToggleLeyenda || !filaLeyenda || !chevronLeyenda) return;
 
+        /**
+         * Actualiza las clases visuales de la leyenda según su estado de visibilidad.
+         */
         function actualizarEstadoLeyenda(visible) {
             if (visible) {
                 filaLeyenda.classList.remove('hidden');
@@ -181,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Estado inicial: cerrado por defecto para no ocupar espacio salvo preferencia persistida del usuario
+        // Cargar estado inicial desde localStorage
         try {
             const preferencia = localStorage.getItem(CLAVE_STORAGE);
             if (preferencia !== null) {
@@ -207,4 +234,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inicializarToggleLeyenda();
 });
-

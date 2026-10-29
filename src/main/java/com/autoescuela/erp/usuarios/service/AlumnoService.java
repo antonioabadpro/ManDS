@@ -169,7 +169,7 @@ public class AlumnoService
      * Reasigna el profesor de un alumno o lo deja temporalmente sin profesor.
      * Conforme a los requerimientos de negocio:
      * - Se cancelan automáticamente todas las clases prácticas pendientes del alumno.
-     * - Se envía una notificación transaccional por correo electrónico informándole del cambio de docente o desasignación.
+     * - Se envía una notificación transaccional por correo electrónico informándole del cambio de profesor o desasignación.
      *
      * @param dto Parámetros de la solicitud (alumnoId, opcion, nuevoProfesorId).
      */
@@ -226,7 +226,7 @@ public class AlumnoService
             Long nuevoProfesorId = dto.nuevoProfesorId();
             if (alumno.getProfesor() != null && alumno.getProfesor().getId().equals(nuevoProfesorId))
             {
-                throw new ReglaNegocioException("El alumno ya tiene asignado al profesor seleccionado. Elige un docente diferente o la opción de dejarlo sin profesor.");
+                throw new ReglaNegocioException("El alumno ya tiene asignado al profesor seleccionado. Elige un profesor diferente o la opción de dejarlo sin profesor.");
             }
 
             Profesor nuevoProfesor = this.profesorRepository.findById(nuevoProfesorId)
@@ -277,7 +277,7 @@ public class AlumnoService
     }
 
     /**
-     * Tramita la baja lógica de un alumno conforme a las reglas de negocio del ERP:
+     * Tramita la baja lógica de un alumno.
      * - Su estado pasa a INACTIVO preservando todo el histórico de clases, exámenes y facturación.
      * - Se desvincula a su profesor actual para liberar el recuento de alumnos a su cargo.
      * - Se cancelan automáticamente todas sus clases prácticas en estado PENDIENTE.

@@ -39,7 +39,7 @@ import com.autoescuela.erp.BaseIntegrationTest;
 
 /**
  * Pruebas de integración para el flujo completo de Alta de Profesor desde el Dashboard
- * y activación de cuenta con configuración de credenciales (Regla de negocio 7.1).
+ * y activación de cuenta con configuración de credenciales.
  */
 class AltaProfesorIntegrationTest extends BaseIntegrationTest
 {
@@ -208,7 +208,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     {
         // 1. Damos de alta primero a un profesor para generar su token de invitación
         String dni = "77788899K";
-        String correo = "docente.activar@autoescuela.es";
+        String correo = "profesor.activar@autoescuela.es";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
@@ -233,12 +233,12 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/activar-cuenta"))
                 .andExpect(model().attributeExists("activarDTO"))
-                .andExpect(content().string(containsString("Activa tu Cuenta Docente")))
+                .andExpect(content().string(containsString("Activa tu Cuenta de Profesor")))
                 .andExpect(content().string(containsString("Nombre de Usuario deseado")));
 
         // 3. Envío del formulario de activación con nuevo nombre de usuario y contraseña
         String usernameDefinitivo = "clara.campoamor";
-        String passwordDefinitiva = "Docente2026Segura*";
+        String passwordDefinitiva = "Profesor2026Segura*";
 
         this.mockMvc.perform(post("/activar-cuenta")
                 .with(csrf())
@@ -265,7 +265,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     void testActivarCuentaProfesorPasswordNoCoincide() throws Exception
     {
         String dni = "55566677M";
-        String correo = "docente.error@autoescuela.es";
+        String correo = "profesor.error@autoescuela.es";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
@@ -304,7 +304,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Anciano")
-                .param("apellidos", "Docente")
+                .param("apellidos", "Perez")
                 .param("dni", "98765432X")
                 .param("fechaNacimiento", "1920-01-01") // Más de 100 años
                 .param("correo", "anciano@autoescuela.es")
@@ -326,7 +326,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Joven")
-                .param("apellidos", "Docente")
+                .param("apellidos", "Perez")
                 .param("dni", "98765433Z")
                 .param("fechaNacimiento", LocalDate.now().minusYears(17).toString()) // 17 años
                 .param("correo", "joven@autoescuela.es")
@@ -348,7 +348,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Futuro")
-                .param("apellidos", "Docente")
+                .param("apellidos", "Perez")
                 .param("dni", "98765431Y")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "futuro@autoescuela.es")
@@ -371,7 +371,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Incompatible")
-                .param("apellidos", "Docente")
+                .param("apellidos", "Perez")
                 .param("dni", "98765430Z")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "incompatible@autoescuela.es")
@@ -395,7 +395,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
                 .param("nombre", "Antiguo")
-                .param("apellidos", "Docente")
+                .param("apellidos", "Perez")
                 .param("dni", "98765432W")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "antiguo@autoescuela.es")

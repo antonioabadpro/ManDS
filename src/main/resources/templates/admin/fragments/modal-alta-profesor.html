@@ -1,4 +1,4 @@
-<div id="modal-alta-profesor" th:fragment="modal-alta-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-profesor" th:classappend="${abrirModalAltaProfesor} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+﻿<div id="modal-alta-profesor" th:fragment="modal-alta-profesor" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-profesor" th:classappend="${abrirModalAltaProfesor} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
     <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
     <div class="relative z-10 w-full max-w-7xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-5 lg:p-7 space-y-3 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden lg:max-h-none lg:overflow-visible">
 
@@ -68,7 +68,7 @@
                     <!-- DNI / NIE -->
                     <div>
                         <label for="profesor-dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
-                        <input type="text" id="profesor-dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-mono transition" />
+                        <input type="text" id="profesor-dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase tabular-nums transition" />
                         <p th:if="${#fields.hasErrors('dni')}" th:errors="*{dni}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                         <div id="feedback-dni"></div>
                     </div>
@@ -143,7 +143,7 @@
                                 </svg>
                             </span>
                         </div>
-                        <span class="text-[10px] text-slate-400 mt-0.5 block">Solo vehículos disponibles sin docente asignado.</span>
+                        <span class="text-[10px] text-slate-400 mt-0.5 block">Solo vehículos disponibles sin profesor asignado.</span>
                         <div id="feedback-vehiculo-compatibilidad"></div>
                     </div>
 

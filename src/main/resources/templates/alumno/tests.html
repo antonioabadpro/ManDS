@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -14,14 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Prevención de FOUC para Tema Oscuro -->
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -128,7 +122,7 @@
                                 <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
                                     DGT - Tests de Examen
                                 </h4>
-                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">sedeweb.dgt.gob.es</p>
+                                <p class="text-xs tabular-nums text-fuchsia-700 dark:text-fuchsia-400 font-medium">sedeweb.dgt.gob.es</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                                     Cuestionarios reales ofrecidos directamente por la Dirección General de Tráfico. Mismo formato, cronómetro y preguntas que encontrarás el día del examen oficial.
                                 </p>
@@ -184,7 +178,7 @@
                                 <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
                                     TodoTest
                                 </h4>
-                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">todotest.com</p>
+                                <p class="text-xs tabular-nums text-fuchsia-700 dark:text-fuchsia-400 font-medium">todotest.com</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                                     Referente en España para preparar el teórico. Incluye tests oficiales de la DGT, tests clasificados por temas específicos y test de fallos para repasar debilidades.
                                 </p>
@@ -240,7 +234,7 @@
                                 <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
                                     PracticaTest
                                 </h4>
-                                <p class="text-xs font-mono text-fuchsia-700 dark:text-fuchsia-400 font-medium">practicatest.com</p>
+                                <p class="text-xs tabular-nums text-fuchsia-700 dark:text-fuchsia-400 font-medium">practicatest.com</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                                     Simulador de examen inteligente con explicaciones razonadas para cada fallo. Ideal para consolidar conceptos de señales, prioridades y velocidades.
                                 </p>
@@ -325,7 +319,7 @@
                                 <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
                                     Matferline
                                 </h4>
-                                <p class="text-xs font-mono text-blue-600 dark:text-blue-400 font-medium">matferline.com</p>
+                                <p class="text-xs tabular-nums text-blue-600 dark:text-blue-400 font-medium">matferline.com</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                                     Plataforma editorial con temarios interactivos en vídeo, seguimiento pormenorizado del progreso y test tutorizados directamente por la autoescuela.
                                 </p>
@@ -385,7 +379,7 @@
                                 <h4 class="text-base font-bold text-slate-900 dark:text-white transition">
                                     AEOL Cloud
                                 </h4>
-                                <p class="text-xs font-mono text-orange-600 dark:text-orange-400 font-medium">aeolcloud.es</p>
+                                <p class="text-xs tabular-nums text-orange-600 dark:text-orange-400 font-medium">aeolcloud.es</p>
                                 <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
                                     Sistema multimedia de tests líder en el sector. Interfaz interactiva idéntica a la pantalla táctil de la Jefatura Provincial de Tráfico.
                                 </p>

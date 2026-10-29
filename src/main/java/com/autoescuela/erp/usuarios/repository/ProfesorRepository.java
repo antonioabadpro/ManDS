@@ -94,7 +94,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
     /**
      * Busca un profesor a partir de su Documento Nacional de Identidad o NIE.
      *
-     * @param dni DNI o NIE del docente.
+     * @param dni DNI o NIE del profesor.
      * @return Optional con el Profesor encontrado o vacío si no existe.
      */
     Optional<Profesor> findByDni(String dni);

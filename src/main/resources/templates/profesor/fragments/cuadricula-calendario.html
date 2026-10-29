@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <!-- Fragmento Cuadrícula Semanal del Profesor (SSR + HTMX) -->
@@ -84,7 +84,7 @@
                     <!-- Columna de Hora -->
                     <td class="p-2 sm:p-3 text-center bg-slate-50/50 dark:bg-slate-950/30 border-r border-slate-200 dark:border-slate-800 align-middle">
                         <span class="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200" th:text="${fila.tramo.etiqueta}">08:00</span>
-                        <span class="block text-[10px] text-slate-400 dark:text-slate-500 font-mono" th:text="${fila.tramo.etiquetaCompleta}">08:00 - 08:45</span>
+                        <span class="block text-[10px] text-slate-400 dark:text-slate-500 tabular-nums" th:text="${fila.tramo.etiquetaCompleta}">08:00 - 08:45</span>
                     </td>
 
                     <!-- Celdas para cada día de la semana -->
@@ -127,7 +127,7 @@
                                         <span class="w-2 h-2 rounded-full shrink-0" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-500' : (celda.estado == 'CANCELADA' ? 'bg-rose-500' : 'bg-amber-500')}"></span>
                                         <span class="text-[10px] font-semibold uppercase tracking-wider" th:text="${celda.subtitulo}">Pendiente</span>
                                     </div>
-                                    <span class="text-[9px] font-mono opacity-70" th:text="${fila.tramo.etiqueta}">08:00</span>
+                                    <span class="text-[9px] tabular-nums opacity-70" th:text="${fila.tramo.etiqueta}">08:00</span>
                                 </div>
 
                                 <div class="mt-1">

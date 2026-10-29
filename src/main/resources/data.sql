@@ -4,7 +4,7 @@
 -- Este script puebla todas las entidades del dominio modelando el flujo operativo
 -- real de una autoescuela oficial española (DGT), garantizando integridad referencial,
 -- consistencia matemática en saldos y odómetros, y cumplimiento estricto de las reglas
--- de negocio establecidas en AGENTS.md.
+-- de negocio establecidas.
 --
 -- Ordenación estricta de identidades (persona):
 --   * Administrador (id = 1)

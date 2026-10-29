@@ -21,7 +21,7 @@ public interface PersonaRepository extends JpaRepository<Persona, Long>
     List<Administrador> findAdministradoresActivos();
     /**
      * Busca una persona por su nombre de usuario o por su correo electrónico.
-     * Permite la autenticación dual requerida por la regla de negocio 7.1.
+     * Permite la autenticación dual.
      * @param nombreUsuario Nombre de usuario de la persona.
      * @param correo Correo electrónico de la persona.
      * @return Un Optional con la Persona encontrada o vacío si no existe.

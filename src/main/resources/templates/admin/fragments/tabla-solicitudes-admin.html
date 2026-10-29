@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -73,7 +73,7 @@
 
                     <!-- 6. Fecha Solicitud -->
                     <td class="py-3.5 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
-                        <span th:text="${#temporals.format(s.fechaHora, 'dd/MM/yyyy HH:mm')}">10/10/2026 10:00</span>
+                        <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(s.fechaHora, 'dd/MM/yyyy HH:mm')}">10/10/2026 10:00</span>
                     </td>
 
                     <!-- 7. Acciones (SVG Ojo siempre visible, SVG Lápiz solo para PENDIENTE) -->

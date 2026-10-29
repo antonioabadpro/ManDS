@@ -1,17 +1,31 @@
 /**
- * admin-flota.js
- * JavaScript no intrusivo y modular para la Gestión de Flota de Vehículos en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * admin-flota.js - Gestión del Parque de Vehículos, Matrículas e Inspecciones Técnicas (ITV)
  *
- * Responsabilidades:
- * 1. Restricciones dinámicas y cruzadas de fechas de revisión (ITV) y año de matriculación.
- * 2. Validación en tiempo real de formato de matrícula DGT, potencias, kilometrajes no negativos y textos.
- * 3. Prevención de doble alta/modificación y sincronización completa con el ciclo de vida HTMX.
+ * =====================================================================================
+ * 1. CONTROL DE INTEGRIDAD DE FLOTA:
+ *    - Matrículas oficiales DGT: valida el formato español estándar (4 dígitos y 3 letras,
+ *      con o sin guion/espacio: ej. '1234-LMN' o '1234LMN').
+ *    - Especificaciones técnicas: año de matriculación (desde 1990 hasta el año en curso),
+ *      potencia (0 a 1000 CV) y kilometraje no negativo.
+ *    - Fechas de revisión técnica (ITV): validación cruzada estricta:
+ *        * La última ITV no puede ser futura ni anterior a hace 4 años.
+ *        * La próxima ITV debe ser obligatoria, futura (hasta 10 años) y estrictamente
+ *          posterior a la última revisión.
+ *
+ * 2. PATRÓN DE MODAL REUTILIZABLE:
+ *    Permite validar tanto el modal de Alta como el modal de Edición mediante la función
+ *    con parámetro 'sufijo' ('-editar').
+ *
+ * 3. PREVENCIÓN DE DOBLE ENVÍO Y MANEJO DE ERRORES HTMX:
+ *    - Deshabilita el botón de envío al enviar la solicitud.
+ *    - Escucha eventos de fallo ('htmx:responseError' y 'htmx:sendError') para rehabilitar
+ *      el botón si la conexión con el servidor falla.
+ * =====================================================================================
  */
 (function () {
     'use strict';
 
-    // Helpers locales con fallback seguro a AdminUI
+    // Helpers locales con fallback seguro a AdminUI (definido en admin.js)
     function formatFecha(fecha) {
         if (window.AdminUI && window.AdminUI.formatearFechaISO) {
             return window.AdminUI.formatearFechaISO(fecha);
@@ -37,12 +51,17 @@
     // =========================================================================
     // CONFIGURACIÓN DE RESTRICCIONES DE FECHAS EN CALENDARIOS
     // =========================================================================
+    /**
+     * Ajusta dinámicamente los atributos min y max en los selectores HTML5 de ITV y año.
+     * @param {string} sufijo - Cadena vacía para alta o '-editar' para edición.
+     */
     function configurarRestriccionesFechasVehiculo(sufijo = '') {
         const inputAnio = document.getElementById(`vehiculo-anio${sufijo}`);
         const inputUltima = document.getElementById(`vehiculo-fecha-ultima${sufijo}`);
         const inputProxima = document.getElementById(`vehiculo-fecha-proxima${sufijo}`);
         const hoy = new Date();
 
+        // Año: entre 1990 y el año actual
         if (inputAnio) {
             inputAnio.setAttribute('min', '1990');
             inputAnio.setAttribute('max', hoy.getFullYear().toString());
@@ -51,6 +70,7 @@
         const hace4Anios = new Date(hoy.getFullYear() - 4, hoy.getMonth(), hoy.getDate());
         const en10Anios = new Date(hoy.getFullYear() + 10, hoy.getMonth(), hoy.getDate());
 
+        // Última ITV: máximo hoy (fecha pasada), mínimo hace 4 años
         if (inputUltima) {
             inputUltima.setAttribute('min', formatFecha(hace4Anios));
             let maxUltima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -69,6 +89,7 @@
             inputUltima.setAttribute('max', formatFecha(maxUltima));
         }
 
+        // Próxima ITV: mínimo hoy (fecha futura), máximo 10 años
         if (inputProxima) {
             inputProxima.setAttribute('max', formatFecha(en10Anios));
             let minProxima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -89,6 +110,10 @@
     // =========================================================================
     // VALIDACIONES DE CAMPOS INDIVIDUALES
     // =========================================================================
+
+    /**
+     * Valida el formato de la matrícula del vehículo según el estándar DGT.
+     */
     function validarMatriculaVehiculo(sufijo = '') {
         const inputId = `vehiculo-matricula${sufijo}`;
         const feedbackId = `feedback-matricula${sufijo}`;
@@ -101,6 +126,7 @@
             return false;
         }
 
+        // 4 dígitos seguidos opcionalmente de espacio o guion y 3 letras (ej. 1234-BBB)
         const regexMatricula = /^[0-9]{4}[ -]?[A-Za-z]{3}$/;
         if (!regexMatricula.test(valor)) {
             mostrarError(inputId, feedbackId, 'Formato de matrícula inválido (ej. 1234-LMN o 1234LMN).');
@@ -114,6 +140,9 @@
         return true;
     }
 
+    /**
+     * Valida la marca del fabricante del vehículo.
+     */
     function validarMarcaVehiculo(sufijo = '') {
         const inputId = `vehiculo-marca${sufijo}`;
         const feedbackId = `feedback-marca${sufijo}`;
@@ -134,6 +163,9 @@
         return true;
     }
 
+    /**
+     * Valida el modelo comercial del vehículo.
+     */
     function validarModeloVehiculo(sufijo = '') {
         const inputId = `vehiculo-modelo${sufijo}`;
         const feedbackId = `feedback-modelo${sufijo}`;
@@ -154,6 +186,9 @@
         return true;
     }
 
+    /**
+     * Valida el color de la carrocería del vehículo.
+     */
     function validarColorVehiculo(sufijo = '') {
         const inputId = `vehiculo-color${sufijo}`;
         const feedbackId = `feedback-color${sufijo}`;
@@ -174,6 +209,9 @@
         return true;
     }
 
+    /**
+     * Valida el año de primera matriculación del vehículo (1990 - año actual).
+     */
     function validarAnioVehiculo(sufijo = '') {
         const inputId = `vehiculo-anio${sufijo}`;
         const feedbackId = `feedback-anio${sufijo}`;
@@ -197,6 +235,9 @@
         return true;
     }
 
+    /**
+     * Valida la potencia fiscal o real en caballos de vapor (CV).
+     */
     function validarCvVehiculo(sufijo = '') {
         const inputId = `vehiculo-cv${sufijo}`;
         const feedbackId = `feedback-cv${sufijo}`;
@@ -219,6 +260,9 @@
         return true;
     }
 
+    /**
+     * Valida el odómetro / kilometraje del vehículo.
+     */
     function validarKmVehiculo(sufijo = '') {
         const inputId = `vehiculo-km${sufijo}`;
         const feedbackId = `feedback-km${sufijo}`;
@@ -241,6 +285,9 @@
         return true;
     }
 
+    /**
+     * Valida las fechas de revisión técnica (última y próxima ITV) de forma cruzada.
+     */
     function validarFechasRevisionVehiculo(sufijo = '') {
         const inputUltima = document.getElementById(`vehiculo-fecha-ultima${sufijo}`);
         const inputProxima = document.getElementById(`vehiculo-fecha-proxima${sufijo}`);
@@ -258,6 +305,7 @@
         let esUltimaValida = true;
         let fechaUltima = null;
 
+        // Comprobación de última ITV (opcional si es vehículo nuevo a estrenar)
         if (inputUltima && inputUltima.value.trim()) {
             const valUltima = inputUltima.value.trim();
             const partesUltima = valUltima.split('-');
@@ -283,6 +331,7 @@
             limpiarError(`vehiculo-fecha-ultima${sufijo}`, feedbackUltimaId);
         }
 
+        // Comprobación de próxima ITV (siempre obligatoria)
         let esProximaValida = true;
         let fechaProxima = null;
         const valProxima = inputProxima.value.trim();
@@ -312,6 +361,7 @@
             }
         }
 
+        // Validación de orden cronológico: próxima revisión > última revisión
         if (esUltimaValida && esProximaValida && fechaUltima && fechaProxima && fechaProxima <= fechaUltima) {
             mostrarError(`vehiculo-fecha-proxima${sufijo}`, feedbackProximaId, 'La fecha de la próxima revisión debe ser estrictamente posterior a la fecha de la última revisión.');
             esProximaValida = false;
@@ -320,6 +370,9 @@
         return esUltimaValida && esProximaValida;
     }
 
+    /**
+     * Validador integral del formulario de vehículo antes de su persistencia.
+     */
     function validarFormularioVehiculo(formId, sufijo = '') {
         const form = document.getElementById(formId);
         if (!form) return true;
@@ -450,7 +503,7 @@
     }
 
     /**
-     * Intercepta evento de confirmación HTMX para abortar peticiones no válidas.
+     * Intercepta el evento de confirmación de HTMX antes del disparo de la petición HTTP.
      */
     function manejarHtmxConfirmVehiculo(evento) {
         const formId = evento.target ? evento.target.id : '';
@@ -471,6 +524,9 @@
         }
     }
 
+    /**
+     * Si la petición HTMX falla (error de red o servidor), rehabilita el botón de acción.
+     */
     function manejarHtmxErrorVehiculo(evento) {
         const formId = evento.target ? evento.target.id : '';
         if (formId === 'form-alta-vehiculo') {

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -19,14 +19,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Estilos globales y Tailwind CSS (Play CDN con configuración unificada) -->
-    <!-- Prevención de FOUC para Tema Oscuro -->
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <!-- Estilos globales y Tailwind CSS -->
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
@@ -76,7 +70,7 @@
                     <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
                 </div>
 
-                <!-- Banner Alerta: Convocatorias Agotadas (Regla 7.2) -->
+                <!-- Banner Alerta: Convocatorias Agotadas -->
                 <div th:if="${convocatoriasAgotadas}" class="p-5 sm:p-6 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800/80 shadow-md shadow-rose-500/5 flex flex-col md:flex-row md:items-center justify-between gap-4 text-rose-900 dark:text-rose-100">
                     <div class="flex items-start space-x-3.5">
                         <div class="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -93,7 +87,7 @@
                             </div>
                             <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Has consumido todas las convocatorias de tu matrícula</h3>
                             <p class="text-xs sm:text-sm text-rose-700 dark:text-rose-300 max-w-2xl leading-relaxed">
-                                De acuerdo con la normativa oficial (Regla 7.2), no puedes acceder a la preparación de test teóricos, reservar fechas de examen ni reservar clases prácticas hasta que tramites la renovación de tu matrícula.
+                                De acuerdo con la normativa oficial, no puedes acceder a la preparación de test teóricos, reservar fechas de examen ni reservar clases prácticas hasta que tramites la renovación de tu matrícula.
                             </p>
                         </div>
                     </div>
@@ -115,7 +109,7 @@
                         <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
                             <span>Bienvenida</span>
                         </span>
-                        <span class="text-xs text-indigo-100 font-medium" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                        <span class="text-xs text-indigo-100 font-medium tabular-nums whitespace-nowrap" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
                         ¡Hola, <span th:text="${alumno?.nombre ?: 'Alumno'}"></span>!
@@ -295,7 +289,7 @@
                     </div>
                     <div class="mt-2 mb-3 flex-1 flex flex-col justify-start">
                         <div th:if="${proximaClase != null}">
-                            <p class="text-lg font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
+                            <p class="text-lg font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></p>
                             <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" th:text="${proximaClase.puntoRecogida}"></p>
                         </div>
                         <div th:if="${proximaClase == null}">

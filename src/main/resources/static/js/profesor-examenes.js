@@ -1,8 +1,24 @@
 /**
- * profesor-examenes.js
- * JavaScript no intrusivo para la vista de Convocatorias y Calificaciones DGT del Profesor.
- * Gestiona la apertura reactiva del modal de calificación y el flujo de confirmación en dos pasos
- * diferenciando de forma pedagógica las consecuencias de calificar APTO vs NO APTO.
+ * profesor-examenes.js - Acta de Exámenes Oficiales DGT y Flujo de Calificación en 2 Pasos
+ *
+ * =====================================================================================
+ * 1. INMUTABILIDAD Y TRASCENDENCIA DE LA CALIFICACIÓN:
+ *    - La calificación de un examen DGT es estrictamente irreversible e inmutable en base de datos.
+ *    - Si el resultado es APTO en examen práctico: se cierra la matrícula ('estaActiva = false'),
+ *      se desvincula al profesor y se envía email oficial de felicitación.
+ *    - Si el resultado es NO APTO: se descuenta una convocatoria DGT ('convocatorias -= 1'). Si las
+ *      convocatorias llegan a 0, se bloquea la cuenta del alumno hasta que abone una Renovación.
+ *
+ * 2. PATRÓN DE MODAL EN 2 PASOS (SELECCIÓN Y CONFIRMACIÓN DIFERENCIADA):
+ *    - Paso 1 ('modal-calificar-examen'): El profesor selecciona mediante radio button si el alumno
+ *      ha resultado APTO o NO APTO.
+ *    - Paso 2 ('modal-confirmar-apto' o 'modal-confirmar-no-apto'): Se oculta el Paso 1 y se abre
+ *      un modal específico que detalla de forma pedagógica las consecuencias exactas antes de consolidar.
+ *
+ * 3. PASO DE DATOS MEDIANTE DATASET (SIN JS INLINE):
+ *    Los datos del examen (ID, alumno, DNI, fecha/hora, tipo de prueba) se leen directamente
+ *    de los atributos 'data-*' de cada botón de la tabla.
+ * =====================================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,7 +34,7 @@ function inicializarGestionExamenesProfesor() {
 }
 
 /**
- * Estado en memoria del examen seleccionado actualmente para calificar.
+ * Almacenamiento temporal en memoria de los metadatos del examen que se está calificando.
  */
 const estadoExamenSeleccionado = {
     id: null,
@@ -29,13 +45,14 @@ const estadoExamenSeleccionado = {
 };
 
 /**
- * Registra los escuchadores en los botones "Calificar" de cada fila de la tabla.
+ * Escucha los clics en los botones "Calificar" de la tabla de actas de examen.
  */
 function registrarEscuchadoresAperturaCalificar() {
     document.addEventListener('click', (evento) => {
         const btnCalificar = evento.target.closest('[data-calificar-examen]');
         if (!btnCalificar) return;
 
+        // Extracción segura de datos desde los atributos 'data-*' del botón HTML
         estadoExamenSeleccionado.id = btnCalificar.dataset.calificarExamen;
         estadoExamenSeleccionado.alumnoNombre = btnCalificar.dataset.alumnoNombre || 'Alumno';
         estadoExamenSeleccionado.alumnoDni = btnCalificar.dataset.alumnoDni || '';
@@ -67,7 +84,7 @@ function abrirModalSeleccionCalificar() {
         elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora} (${tipoTexto})`;
     }
 
-    // Desmarcar opciones previas
+    // Desmarcar selecciones previas de radio buttons
     const radios = modal.querySelectorAll('input[name="modalEsApto"]');
     radios.forEach(r => { r.checked = false; });
 
@@ -81,7 +98,7 @@ function abrirModalSeleccionCalificar() {
 }
 
 /**
- * Gestiona el clic en "Continuar con la Calificación" para validar y abrir el modal 2 correspondiente.
+ * Valida la elección (APTO vs NO APTO) y realiza la transición hacia el Modal 2 de confirmación.
  */
 function registrarEscuchadoresTransicionConfirmacion() {
     const btnContinuar = document.getElementById('btn-continuar-calificacion');
@@ -92,6 +109,7 @@ function registrarEscuchadoresTransicionConfirmacion() {
         const opcionSeleccionada = modal1 ? modal1.querySelector('input[name="modalEsApto"]:checked') : null;
         const errorMsg = document.getElementById('error-seleccion-calificacion');
 
+        // Obligatoriedad de seleccionar una opción
         if (!opcionSeleccionada) {
             if (errorMsg) {
                 errorMsg.textContent = 'Debes seleccionar obligatoriamente si el resultado oficial es APTO o NO APTO.';
@@ -106,10 +124,11 @@ function registrarEscuchadoresTransicionConfirmacion() {
 
         const esApto = opcionSeleccionada.value === 'true';
 
-        // Ocultar modal 1
+        // Ocultar Modal 1
         modal1.classList.add('hidden');
         modal1.classList.remove('flex');
 
+        // Abrir el submodal específico correspondiente
         if (esApto) {
             abrirModalConfirmarApto();
         } else {
@@ -119,7 +138,7 @@ function registrarEscuchadoresTransicionConfirmacion() {
 }
 
 /**
- * Abre el modal de confirmación de APTO y vuelca los datos del formulario.
+ * Abre el modal de confirmación de APTO y vuelca los datos del examen y sus consecuencias.
  */
 function abrirModalConfirmarApto() {
     const modalApto = document.getElementById('modal-confirmar-apto');
@@ -137,6 +156,7 @@ function abrirModalConfirmarApto() {
         elDetalles.textContent = `${dniTexto}${estadoExamenSeleccionado.fechaHora}${tipoTexto}`;
     }
 
+    // Diferenciar consecuencias según si era examen teórico o práctico
     const listaTeorico = document.getElementById('consecuencias-apto-teorico');
     const listaPractico = document.getElementById('consecuencias-apto-practico');
 
@@ -155,7 +175,7 @@ function abrirModalConfirmarApto() {
 }
 
 /**
- * Abre el modal de confirmación de NO APTO y vuelca los datos del formulario.
+ * Abre el modal de confirmación de NO APTO y detalla el impacto en las convocatorias restantes.
  */
 function abrirModalConfirmarNoApto() {
     const modalNoApto = document.getElementById('modal-confirmar-no-apto');
@@ -191,7 +211,7 @@ function abrirModalConfirmarNoApto() {
 }
 
 /**
- * Registra los botones "Volver" para retroceder de la confirmación al modal de selección.
+ * Registra los botones "Volver" para regresar del submodal de confirmación al modal de selección.
  */
 function registrarEscuchadoresVolverModales() {
     document.addEventListener('click', (evento) => {
@@ -215,7 +235,7 @@ function registrarEscuchadoresVolverModales() {
 }
 
 /**
- * Cierre general de modales con tecla Escape y comprobación de backdrop.
+ * Cierre general de modales con tecla Escape y botones con 'data-modal-close'.
  */
 function registrarEscuchadoresCierreModales() {
     document.addEventListener('keydown', (evento) => {

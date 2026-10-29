@@ -1,16 +1,28 @@
 /**
- * profesor-perfil.js
- * JavaScript no intrusivo y modular para la vista "Mi Perfil" del Profesor en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * profesor-perfil.js - Gestión del Perfil y Datos Personales del Profesor
  *
- * Responsabilidades:
- * 1. Restricciones dinámicas de fecha de nacimiento (18 a 100 años respecto a la fecha actual).
- * 2. Validación en cliente en tiempo real de nombre, apellidos, teléfono nacional y dirección.
- * 3. Prevención de envío ante errores y sincronización con validaciones asíncronas de HTMX.
+ * =====================================================================================
+ * 1. PATRÓN DE MANEJADORES CON NOMBRE (NAMED EVENT HANDLERS):
+ *    Al igual que en el perfil del Administrador, todo el código cliente se estructura
+ *    en funciones atómicas nombradas dentro de un ámbito IIFE seguro para evitar colisiones
+ *    de nombres en el objeto global 'window'.
+ *
+ * 2. VALIDACIONES DE INTEGRIDAD DE DATOS:
+ *    - Teléfono móvil: formato español estándar con prefijo opcional (+34).
+ *    - Fecha de nacimiento: cálculo de mayoría de edad (mínimo 18 años, máximo 100).
+ *    - Nombre, apellidos y dirección: obligatoriedad y límites de longitud.
+ *
+ * 3. RETROALIMENTACIÓN SINCRONIZADA CON HTMX:
+ *    Escucha 'htmx:afterSwap' en los contenedores de feedback para marcar los bordes en rojo
+ *    si el servidor detecta algún error de validación en los datos modificados.
+ * =====================================================================================
  */
 (function () {
     'use strict';
 
+    /**
+     * Da formato ISO YYYY-MM-DD a una instancia de Date.
+     */
     function formatearFechaISO(fecha) {
         if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return '';
         const a = fecha.getFullYear();
@@ -19,6 +31,9 @@
         return `${a}-${m}-${d}`;
     }
 
+    /**
+     * Muestra feedback de error visual en el input y en el contenedor correspondiente.
+     */
     function mostrarError(inputId, feedbackId, mensaje) {
         const input = document.getElementById(inputId);
         const feedback = document.getElementById(feedbackId);
@@ -41,6 +56,9 @@
         }
     }
 
+    /**
+     * Restaura los estilos por defecto del input y vacía el mensaje de error.
+     */
     function limpiarError(inputId, feedbackId) {
         const input = document.getElementById(inputId);
         const feedback = document.getElementById(feedbackId);
@@ -59,6 +77,10 @@
     // =========================================================================
     // VALIDACIONES DE CAMPOS INDIVIDUALES
     // =========================================================================
+
+    /**
+     * Valida que la fecha de nacimiento certifique la mayoría de edad (al menos 18 años).
+     */
     function validarFechaNacimientoPerfil() {
         const input = document.getElementById('fechaNacimiento');
         if (!input) return true;
@@ -109,6 +131,9 @@
         return true;
     }
 
+    /**
+     * Valida el nombre del profesor (obligatorio y máx. 50 caracteres).
+     */
     function validarNombrePerfil() {
         const input = document.getElementById('nombre');
         if (!input) return true;
@@ -127,6 +152,9 @@
         return true;
     }
 
+    /**
+     * Valida los apellidos del profesor (obligatorio y máx. 100 caracteres).
+     */
     function validarApellidosPerfil() {
         const input = document.getElementById('apellidos');
         if (!input) return true;
@@ -145,6 +173,9 @@
         return true;
     }
 
+    /**
+     * Valida el número de teléfono con formato nacional español.
+     */
     function validarTelefonoPerfil() {
         const input = document.getElementById('telefono');
         if (!input) return true;
@@ -168,6 +199,9 @@
         return true;
     }
 
+    /**
+     * Valida la dirección postal de residencia (máx. 200 caracteres).
+     */
     function validarDireccionPerfil() {
         const input = document.getElementById('direccion');
         if (!input) return true;
@@ -216,6 +250,9 @@
         if (input && input.value.trim()) validarDireccionPerfil();
     }
 
+    /**
+     * Valida todos los campos antes del envío del formulario.
+     */
     function manejarSubmitPerfil(evento) {
         const vFecha = validarFechaNacimientoPerfil();
         const vNombre = validarNombrePerfil();
@@ -235,6 +272,9 @@
         }
     }
 
+    /**
+     * Sincroniza clases visuales de error cuando HTMX devuelve respuestas asíncronas.
+     */
     function manejarHtmxAfterSwapPerfil(evento) {
         const targetId = evento.detail && evento.detail.target ? evento.detail.target.id : '';
         if (targetId && targetId.startsWith('feedback-')) {
@@ -258,8 +298,9 @@
     // =========================================================================
     function inicializarPerfilProfesor() {
         const formPerfil = document.getElementById('form-perfil-profesor');
-        if (!formPerfil) return; // Solo ejecutar en la vista de perfil del profesor
+        if (!formPerfil) return; // Guard clause
 
+        // Configuración de límites temporales en fecha de nacimiento
         const inputFechaNac = document.getElementById('fechaNacimiento');
         if (inputFechaNac) {
             const hoy = new Date();
@@ -271,6 +312,7 @@
             inputFechaNac.addEventListener('change', manejarChangeFechaNacimiento);
         }
 
+        // Registro de escuchadores individuales
         const inputNombre = document.getElementById('nombre');
         if (inputNombre) {
             inputNombre.addEventListener('blur', manejarBlurNombre);

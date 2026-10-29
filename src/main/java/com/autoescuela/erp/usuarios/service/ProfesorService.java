@@ -61,7 +61,7 @@ public class ProfesorService
 
     /**
      * Da de alta a un nuevo profesor en el sistema, validando unicidad de datos,
-     * asignando el vehículo si procede (Regla 7.3) y generando la invitación segura por correo (Regla 7.1).
+     * asignando el vehículo si procede y generando la invitación segura por correo.
      *
      * @param dto Datos del nuevo profesor validados sintácticamente.
      * @param baseUrl URL base del servidor para generar el enlace de activación.
@@ -154,7 +154,7 @@ public class ProfesorService
             vehiculo.setProfesor(profesor);
         }
 
-        // Credenciales temporales hasta activación por el profesor (Regla 7.1)
+        // Credenciales temporales hasta activación por el profesor
         String provisionalUsername = "profe_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10);
         profesor.setNombreUsuario(provisionalUsername);
         profesor.actualizarPassword(this.passwordEncoder.encode(UUID.randomUUID().toString()));
@@ -165,7 +165,7 @@ public class ProfesorService
             this.vehiculoRepository.save(vehiculo);
         }
 
-        // Emisión de token criptográfico temporal para activación (Regla 7.1)
+        // Emisión de token criptográfico temporal para activación
         TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(profesor, duracionTokenMinutos);
         String enlaceActivacion = (baseUrl != null ? baseUrl : "") + "/activar-cuenta?token=" + token.getToken();
         this.emailService.enviarInvitacionProfesor(profesor.getCorreo(), profesor.getNombre(), enlaceActivacion, String.valueOf(duracionTokenMinutos));
@@ -253,7 +253,7 @@ public class ProfesorService
 
     /**
      * Modifica los datos de un profesor existente aplicando las mismas restricciones de negocio
-     * que en el alta, asegurando la unicidad de datos y la regla 7.3 (asignación 1 a 1 de flota y compatibilidad de carnet).
+     * que en el alta, asegurando la unicidad de datos, la asignación 1 a 1 de flota y compatibilidad de carnet.
      *
      * @param dto Datos actualizados y validados sintácticamente.
      * @return Entidad Profesor actualizada.
@@ -312,7 +312,7 @@ public class ProfesorService
             throw new ReglaNegocioException("Ya existe un usuario registrado con el número de teléfono " + telefonoLimpio + ".");
         }
 
-        // Gestión de la asignación 1 a 1 de flota y bloqueo si existen clases prácticas pendientes (Regla 6.3)
+        // Gestión de la asignación 1 a 1 de flota y bloqueo si existen clases prácticas pendientes
         Vehiculo vehiculoActual = profesor.getVehiculo();
         Long vehiculoActualId = vehiculoActual != null ? vehiculoActual.getId() : null;
         Long nuevoVehiculoId = dto.vehiculoId();
@@ -390,7 +390,7 @@ public class ProfesorService
     }
 
     /**
-     * Tramita la baja lógica de un profesor conforme a la Regla de Negocio 7.3:
+     * Tramita la baja lógica de un profesor.
      * - Su estado pasa a INACTIVO preservando todo su historial.
      * - El vehículo asignado se libera y pasa a estado DISPONIBLE.
      * - Se cancelan automáticamente todas sus clases prácticas pendientes.
@@ -415,7 +415,7 @@ public class ProfesorService
             throw new ReglaNegocioException("El profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " ya se encuentra en estado INACTIVO.");
         }
 
-        // Liberamos el vehículo asignado si lo tuviese (Regla 7.3)
+        // Liberamos el vehículo asignado si lo tuviese
         Vehiculo vehiculoActual = profesor.getVehiculo();
         if (vehiculoActual != null)
         {
@@ -425,7 +425,7 @@ public class ProfesorService
             profesor.setVehiculo(null);
         }
 
-        // Cancelamos clases prácticas pendientes del profesor directamente desde la BD (Regla 7.3)
+        // Cancelamos clases prácticas pendientes del profesor directamente desde la BD
         List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByProfesorAndEstadoClase(profesor, EstadoClase.PENDIENTE);
 
         for (ClasePractica clase : clasesPendientes)

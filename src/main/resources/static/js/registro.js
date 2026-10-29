@@ -1,44 +1,73 @@
 /**
- * Script de soporte para el Asistente de Registro Multi-Paso de Alumnos (ManDS).
- * Gestiona el avance y retroceso entre los 3 pasos, la validación de campos
- * y la visibilidad interactiva de contraseñas.
+ * registro.js - Asistente de Registro Multi-Paso de Alumnos (Wizard) para ManDS ERP
+ *
+ * =====================================================================================
+ * 1. EXPERIENCIA DE USUARIO GUIADA (WIZARD MULTI-STEP):
+ *    El alta de un nuevo alumno requiere recopilar datos de acceso, datos personales y
+ *    selección de permiso. Dividir el formulario en 4 pasos secuenciales reduce la carga
+ *    cognitiva del usuario y mejora la tasa de conversión respecto a un formulario kilométrico.
+ *
+ * 2. ESTRUCTURA DE LOS 4 PASOS:
+ *    - Paso 1: Credenciales (Usuario, Email, Contraseña y Confirmación).
+ *    - Paso 2: Datos Personales (DNI/NIE, Nombre, Apellidos, Teléfono, Fecha de Nacimiento).
+ *    - Paso 3: Configuración Académica (Tipo de Carnet y Modalidad Teórico-Práctica o Práctica).
+ *    - Paso 4: Resumen de Matrícula y Pasarela a Pago Seguro con Stripe.
+ *
+ * 3. DOBLE BARRERA DE VALIDACIÓN (CLIENTE + HTMX EN TIEMPO REAL):
+ *    - Validación nativa en cliente: Constraint Validation API ('checkValidity', 'setCustomValidity'),
+ *      cálculo de mayoría de edad (mínimo 18 años cumplidos) y coincidencia de contraseñas.
+ *    - Validación asíncrona mediante HTMX: comprueba en el backend si el DNI, email o username
+ *      ya están registrados antes de que el usuario avance de paso.
+ *
+ * 4. NAVEGACIÓN INTELIGENTE CON TECLADO:
+ *    Intercepta la pulsación de la tecla 'Enter' en los campos para enfocar el siguiente input
+ *    en lugar de disparar el envío prematuro del formulario.
+ * =====================================================================================
  */
 
+// Estado global del asistente: paso actual y número total de pasos
 let pasoActual = 1;
 const TOTAL_PASOS = 4;
 
 /**
- * Actualiza dinámicamente la información de la tasa de matrícula en el Paso 4
+ * Actualiza dinámicamente la información de la tasa de matrícula en el Paso 4 (Resumen)
  * según el tipo de carnet seleccionado en el desplegable del Paso 3:
- * - Permisos C y D (vehículos grandes y pesados): 450,00 €
- * - Resto de permisos: 250,00 €
+ * - Permisos C y D (vehículos pesados/industriales): 450,00 €.
+ * - Resto de permisos (B, A2, etc.): 250,00 €.
  */
 function actualizarInformacionTasa() {
     const selectCarnet = document.getElementById('reg-tipoCarnet');
     const inputDni = document.getElementById('reg-dni');
     const valorCarnet = selectCarnet?.value || 'PERMISO_B';
     const valorDni = inputDni?.value?.trim() || '';
+
+    // Extraemos la descripción legible de la opción seleccionada (ej. "Permiso B — Turismos")
     const textoOption = selectCarnet && selectCarnet.selectedIndex >= 0
         ? selectCarnet.options[selectCarnet.selectedIndex].text
         : 'Permiso B';
 
     const nombreCarnet = textoOption.split('—')[0].trim();
+
+    // Tarifas oficiales: Permisos C y D son pesados (450 €) vs estándar (250 €)
     const esVehiculoPesado = valorCarnet.startsWith('PERMISO_C') || valorCarnet.startsWith('PERMISO_D');
     const importeTexto = esVehiculoPesado ? '450,00 €' : '250,00 €';
 
+    // Elementos del DOM donde reflejaremos la tarifa recalculada
     const elemTitulo = document.getElementById('resumen-carnet-titulo');
     const elemPrecio = document.getElementById('resumen-tasa-precio');
     const elemBotonTexto = document.getElementById('btn-pago-texto');
-    const enlacePago = document.getElementById('btn-ir-pago');
 
     if (elemTitulo) elemTitulo.textContent = nombreCarnet;
     if (elemPrecio) elemPrecio.textContent = importeTexto;
     if (elemBotonTexto) elemBotonTexto.textContent = `Pagar Matrícula (${importeTexto})`;
 
+    // Ajuste de características incluidas según la modalidad elegida
     const selectModalidad = document.getElementById('reg-modalidad');
     const valorModalidad = selectModalidad?.value || 'TEORICO_PRACTICA';
     const esTeoricoPractica = valorModalidad === 'TEORICO_PRACTICA';
     const puntoTests = document.getElementById('punto-incluido-tests');
+
+    // Los tests teóricos solo se muestran incluidos si la modalidad es Teórico-Práctica
     if (puntoTests) {
         puntoTests.style.display = esTeoricoPractica ? 'flex' : 'none';
     }
@@ -53,18 +82,18 @@ function validarPaso(paso) {
     const contenedorPaso = document.getElementById(`panel-step-${paso}`);
     if (!contenedorPaso) return true;
 
-    // Validación específica del Paso 1: Coincidencia de contraseñas
+    // Validación específica del Paso 1: Coincidencia idéntica de contraseñas
     if (paso === 1) {
         if (!validarCoincidenciaPasswords()) {
             return false;
         }
     }
 
-    // Obtener todos los inputs obligatorios o con reglas del paso actual y validar en orden DOM
+    // Obtener todos los inputs obligatorios del paso y validar con la API nativa HTML5
     const inputs = contenedorPaso.querySelectorAll('input, select, textarea');
     for (const input of inputs) {
         if (!input.checkValidity()) {
-            input.reportValidity();
+            input.reportValidity(); // Muestra el globo de validación nativo del navegador
             return false;
         }
     }
@@ -78,7 +107,7 @@ function validarPaso(paso) {
         }
     }
 
-    // Comprobar si existen mensajes de error asíncronos activos devueltos por HTMX
+    // Comprobar si existen mensajes de error asíncronos activos devueltos por HTMX (ej. "DNI ya registrado")
     const errorHTMX = contenedorPaso.querySelector('.mensaje-error-campo');
     if (errorHTMX) {
         const feedbackDiv = errorHTMX.closest('[id^="feedback-"]');
@@ -96,8 +125,8 @@ function validarPaso(paso) {
 }
 
 /**
- * Valida que la confirmación de contraseña coincida exactamente con la contraseña.
- * Utiliza la Constraint Validation API nativa de HTML5.
+ * Valida que la confirmación de contraseña coincida exactamente con la contraseña principal.
+ * Utiliza la Constraint Validation API nativa de HTML5 ('setCustomValidity').
  * @returns {boolean} - true si ambas claves coinciden.
  */
 function validarCoincidenciaPasswords() {
@@ -106,11 +135,13 @@ function validarCoincidenciaPasswords() {
 
     if (!passInput || !confirmInput) return true;
 
+    // Si se ha escrito algo en la confirmación y no coincide con la original:
     if (confirmInput.value && passInput.value !== confirmInput.value) {
         confirmInput.setCustomValidity('Las contraseñas no coinciden.');
         confirmInput.reportValidity();
         return false;
     } else {
+        // Cadena vacía restablece el campo a estado válido
         confirmInput.setCustomValidity('');
         return true;
     }
@@ -125,9 +156,12 @@ function configurarRestriccionFechaNacimiento() {
     if (!inputFecha) return;
 
     const hoy = new Date();
+    // Restamos 18 años a la fecha actual para la fecha límite superior
     const hace18Anios = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+    // Restamos 100 años a la fecha actual para el límite inferior razonable
     const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
 
+    // Formateador auxiliar YYYY-MM-DD
     const formatearFecha = (d) => {
         const anio = d.getFullYear();
         const mes = String(d.getMonth() + 1).padStart(2, '0');
@@ -185,7 +219,7 @@ function limpiarErrorFechaNacimiento() {
 /**
  * Valida la fecha de nacimiento en el frontend:
  * - Debe ser obligatoria.
- * - Debe ser una fecha pasada.
+ * - Debe ser una fecha pasada válida.
  * - El alumno debe ser mayor de edad (al menos 18 años cumplidos).
  * - La edad no debe exceder un límite razonable (100 años).
  * @returns {boolean} true si la fecha es válida y cumple con la mayoría de edad.
@@ -209,7 +243,7 @@ function validarFechaNacimiento() {
     }
 
     const anio = parseInt(partes[0], 10);
-    const mes = parseInt(partes[1], 10) - 1;
+    const mes = parseInt(partes[1], 10) - 1; // En JavaScript los meses van de 0 (enero) a 11 (diciembre)
     const dia = parseInt(partes[2], 10);
     const fechaNac = new Date(anio, mes, dia);
 
@@ -222,12 +256,14 @@ function validarFechaNacimiento() {
     const hoy = new Date();
     const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
 
+    // La fecha no puede ser futura
     if (fechaNac > hoySinHora) {
         mostrarErrorFechaNacimiento('La fecha de nacimiento debe ser una fecha pasada.');
         input.setCustomValidity('La fecha de nacimiento debe ser una fecha pasada.');
         return false;
     }
 
+    // Límite de 100 años
     const hace100Anios = new Date(hoy.getFullYear() - 100, hoy.getMonth(), hoy.getDate());
     if (fechaNac < hace100Anios) {
         mostrarErrorFechaNacimiento('Introduce una fecha de nacimiento válida.');
@@ -235,6 +271,7 @@ function validarFechaNacimiento() {
         return false;
     }
 
+    // Comprobación de mayoría de edad (18 años cumplidos)
     const fechaMinima18 = new Date(anio + 18, mes, dia);
     if (hoySinHora < fechaMinima18) {
         mostrarErrorFechaNacimiento('El alumno debe ser mayor de edad (al menos 18 años).');
@@ -248,13 +285,13 @@ function validarFechaNacimiento() {
 }
 
 /**
- * Muestra el panel del paso indicado y actualiza la apariencia del Stepper.
- * @param {number} nuevoPaso - Paso al que se desea navegar (1, 2 o 3).
+ * Muestra el panel del paso indicado y actualiza visualmente los indicadores del Stepper superior.
+ * @param {number} nuevoPaso - Paso al que se desea navegar (1, 2, 3 o 4).
  */
 function irAPaso(nuevoPaso) {
     if (nuevoPaso < 1 || nuevoPaso > TOTAL_PASOS) return;
 
-    // 1. Alternar visibilidad de los paneles de formulario
+    // 1. Alternar visibilidad de los paneles de formulario con transición fade-in
     for (let i = 1; i <= TOTAL_PASOS; i++) {
         const panel = document.getElementById(`panel-step-${i}`);
         if (panel) {
@@ -268,7 +305,7 @@ function irAPaso(nuevoPaso) {
         }
     }
 
-    // 2. Actualizar estilos visuales e indicadores del Stepper
+    // 2. Actualizar estilos visuales e indicadores del Stepper en la cabecera
     for (let i = 1; i <= TOTAL_PASOS; i++) {
         const stepCircle = document.getElementById(`step-indicator-${i}`);
         const stepLabel = document.getElementById(`step-label-${i}`);
@@ -276,7 +313,7 @@ function irAPaso(nuevoPaso) {
 
         if (stepCircle && stepLabel) {
             if (i < nuevoPaso) {
-                // Paso completado: Fondo azul con check SVG
+                // Paso completado: Fondo azul corporativo con icono de check SVG
                 stepCircle.className = 'w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30';
                 stepCircle.innerHTML = `
                     <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
@@ -285,19 +322,19 @@ function irAPaso(nuevoPaso) {
                 `;
                 stepLabel.className = 'hidden sm:inline text-xs font-semibold text-blue-600 dark:text-blue-400';
             } else if (i === nuevoPaso) {
-                // Paso activo actual: Fondo azul con número y anillo pulsante
+                // Paso activo actual: Fondo azul con número y anillo iluminado
                 stepCircle.className = 'w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs bg-blue-600 text-white shadow-md shadow-blue-500/30 ring-4 ring-blue-500/20';
                 stepCircle.textContent = i;
                 stepLabel.className = 'hidden sm:inline text-xs font-bold text-slate-900 dark:text-white';
             } else {
-                // Paso futuro pendiente: Fondo gris neutro
+                // Paso futuro pendiente: Fondo gris neutro deshabilitado
                 stepCircle.className = 'w-8 h-8 rounded-full flex items-center justify-center font-medium text-xs bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700';
                 stepCircle.textContent = i;
                 stepLabel.className = 'hidden sm:inline text-xs font-medium text-slate-400 dark:text-slate-500';
             }
         }
 
-        // Conector de línea entre pasos
+        // Conector de línea entre los círculos del Stepper
         if (stepLine) {
             if (i < nuevoPaso) {
                 stepLine.className = 'flex-1 h-0.5 bg-blue-600 transition-colors duration-300';
@@ -309,11 +346,12 @@ function irAPaso(nuevoPaso) {
 
     pasoActual = nuevoPaso;
 
+    // Si entramos al Paso 4, refrescamos el desglose de tarifas
     if (nuevoPaso === 4) {
         actualizarInformacionTasa();
     }
 
-    // Foco automático en el primer input accesible del nuevo paso
+    // Foco automático en el primer input accesible del nuevo paso para mejorar usabilidad
     const primerInput = document.querySelector(`#panel-step-${nuevoPaso} input:not([type="hidden"])`);
     if (primerInput) {
         primerInput.focus();
@@ -322,8 +360,8 @@ function irAPaso(nuevoPaso) {
 
 /**
  * Alterna la visibilidad de un campo de contraseña entre 'password' y 'text'.
- * @param {string} inputId - ID del input de contraseña.
- * @param {string} iconId - ID del icono SVG del botón.
+ * @param {string} inputId - ID del input de contraseña en el DOM.
+ * @param {string} iconId - ID del SVG del icono para actualizar su forma geométrica.
  */
 function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
@@ -346,10 +384,10 @@ function togglePasswordVisibility(inputId, iconId) {
 }
 
 /**
- * Registra los escuchadores de eventos para el asistente de registro.
+ * Registra todos los escuchadores de eventos para los botones e inputs del asistente.
  */
 function inicializarEventosRegistro() {
-    // Botones de avance ("Siguiente")
+    // 1. Botones de avance ("Siguiente paso")
     const btnNext1 = document.getElementById('btn-next-step-1');
     const btnNext2 = document.getElementById('btn-next-step-2');
     const btnNext3 = document.getElementById('btn-next-step-3');
@@ -379,7 +417,7 @@ function inicializarEventosRegistro() {
         });
     }
 
-    // Botones de retroceso ("Atrás")
+    // 2. Botones de retroceso ("Paso anterior")
     const btnPrev2 = document.getElementById('btn-prev-step-2');
     const btnPrev3 = document.getElementById('btn-prev-step-3');
     const btnPrev4 = document.getElementById('btn-prev-step-4');
@@ -396,7 +434,7 @@ function inicializarEventosRegistro() {
         btnPrev4.addEventListener('click', () => irAPaso(3));
     }
 
-    // Cambio reactivo del tipo de carnet y DNI para recalcular tarifas y enlace a Stripe
+    // 3. Recálculo reactivo de tarifas al cambiar de carnet o modalidad
     const selectCarnet = document.getElementById('reg-tipoCarnet');
     if (selectCarnet) {
         selectCarnet.addEventListener('change', actualizarInformacionTasa);
@@ -413,7 +451,7 @@ function inicializarEventosRegistro() {
         inputDni.addEventListener('change', actualizarInformacionTasa);
     }
 
-    // Botones de visibilidad de contraseña
+    // 4. Botones para alternar visibilidad de las contraseñas
     const btnOcultarReg = document.getElementById('btn-ocultar-password-registro');
     const btnOcultarConfirm = document.getElementById('btn-ocultar-confirm-password');
 
@@ -425,13 +463,13 @@ function inicializarEventosRegistro() {
         btnOcultarConfirm.addEventListener('click', () => togglePasswordVisibility('reg-confirmPassword', 'eye-icon-confirm'));
     }
 
-    // Validación reactiva en tiempo real de coincidencia de contraseñas
+    // 5. Validación en tiempo real de coincidencia de contraseñas
     const passInput = document.getElementById('reg-password');
     const confirmInput = document.getElementById('reg-confirmPassword');
 
     if (passInput) {
         passInput.addEventListener('input', () => {
-            // Si ya se ha escrito en la confirmación, revalidamos al modificar la clave principal
+            // Si el usuario ya había escrito en la confirmación, revalidamos automáticamente
             if (confirmInput && confirmInput.value) {
                 validarCoincidenciaPasswords();
             }
@@ -442,11 +480,11 @@ function inicializarEventosRegistro() {
         confirmInput.addEventListener('input', validarCoincidenciaPasswords);
     }
 
-    // Validación reactiva de fecha de nacimiento (mayoría de edad)
+    // 6. Validación interactiva de la fecha de nacimiento
     const fechaNacInput = document.getElementById('reg-fechaNacimiento');
     if (fechaNacInput) {
+        // Al enfocar, limpia errores previos para permitir escribir con comodidad
         fechaNacInput.addEventListener('focus', () => {
-            // Limpia el error visual al enfocar el campo para que el usuario pueda escribir limpiamente
             limpiarErrorFechaNacimiento();
         });
 
@@ -473,14 +511,15 @@ function inicializarEventosRegistro() {
         });
     }
 
-    // Manejador del botón de pago con Stripe (validación estricta de pasos 1, 2 y 3)
+    // 7. Botón final para proceder al pago con Stripe Checkout
     const btnIrPago = document.getElementById('btn-ir-pago');
     if (btnIrPago) {
         btnIrPago.addEventListener('click', (e) => {
+            // Validación estricta acumulada de los pasos 1, 2 y 3
             for (let i = 1; i <= 3; i++) {
                 if (!validarPaso(i)) {
                     e.preventDefault();
-                    irAPaso(i);
+                    irAPaso(i); // Regresa al primer paso que contenga errores
                     return;
                 }
             }
@@ -488,10 +527,10 @@ function inicializarEventosRegistro() {
         });
     }
 
-    // Interceptar envío convencional de formulario para redirigir al flujo del wizard
+    // 8. Control del formulario y navegación suave con tecla Enter
     const formRegistro = document.getElementById('form-registro');
     if (formRegistro) {
-        // Prevenir avance involuntario o validación prematura al pulsar Enter dentro de los inputs de texto
+        // Al pulsar Enter en un campo de texto, enfoca el siguiente campo en vez de enviar el formulario
         formRegistro.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'submit') {
                 e.preventDefault();
@@ -500,6 +539,7 @@ function inicializarEventosRegistro() {
                 if (currentIndex >= 0 && currentIndex < inputsPaso.length - 1) {
                     inputsPaso[currentIndex + 1].focus();
                 } else if (currentIndex === inputsPaso.length - 1) {
+                    // Si es el último input del paso actual, simula clic en "Siguiente"
                     const btnSiguiente = document.getElementById(`btn-next-step-${pasoActual}`);
                     if (btnSiguiente) {
                         btnSiguiente.click();
@@ -508,6 +548,7 @@ function inicializarEventosRegistro() {
             }
         });
 
+        // Intercepta el evento submit general del formulario
         formRegistro.addEventListener('submit', (e) => {
             if (pasoActual < TOTAL_PASOS) {
                 e.preventDefault();
@@ -526,7 +567,9 @@ function inicializarEventosRegistro() {
             }
         });
     }
-    // Escucha de respuestas HTMX para alternar clases visuales de error/éxito en los inputs
+
+    // 9. Sincronización con respuestas HTMX:
+    // Cuando el backend valida de forma asíncrona (ej. DNI duplicado), añade estilos rojos o verdes según corresponda
     document.body.addEventListener('htmx:afterSwap', (event) => {
         const targetId = event.detail.target?.id;
         if (targetId && targetId.startsWith('feedback-')) {
@@ -547,11 +590,9 @@ function inicializarEventosRegistro() {
     });
 }
 
-// Inicializar el asistente al cargar la vista
+// Inicialización del asistente al completarse el DOM
 document.addEventListener('DOMContentLoaded', () => {
     configurarRestriccionFechaNacimiento();
     inicializarEventosRegistro();
     irAPaso(1);
 });
-
-

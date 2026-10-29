@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.autoescuela.erp.BaseIntegrationTest;
 
 /**
- * Pruebas de integración para la baja lógica y reactivación de profesores (Regla 7.3).
+ * Pruebas de integración para la baja lógica y reactivación de profesores.
  */
 class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
 {
@@ -96,7 +96,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
             }
         }
 
-        // Verificaciones de alumnos reasignados al nuevo docente (ID: 101)
+        // Verificaciones de alumnos reasignados al nuevo profesor (ID: 101)
         Profesor profesorDestino = this.profesorRepository.findById(101L).orElseThrow();
         for (Alumno alumno : alumnosPrevios)
         {
@@ -170,7 +170,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("GET /admin/profesores/baja/{id} renderiza modal HTMX con datos del profesor y lista de docentes")
+    @DisplayName("GET /admin/profesores/baja/{id} renderiza modal HTMX con datos del profesor y lista de profesores")
     void testCargarModalBajaProfesorHtmx() throws Exception
     {
         this.mockMvc.perform(get("/admin/profesores/baja/100"))
@@ -235,7 +235,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("POST /admin/profesores/reactivar/{id} con HTMX responde cabecera HX-Redirect")
     void testPostReactivarProfesorHtmx() throws Exception
     {
-        // Dejamos inactivo previamente al docente 100
+        // Dejamos inactivo previamente al profesor 100
         this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
 
         this.mockMvc.perform(post("/admin/profesores/reactivar/100")

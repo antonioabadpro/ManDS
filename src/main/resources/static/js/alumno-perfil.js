@@ -1,16 +1,28 @@
 /**
- * alumno-perfil.js
- * JavaScript no intrusivo y modular para la vista "Mi Perfil" del Alumno en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * alumno-perfil.js - Gestión del Perfil y Datos Personales del Alumno
  *
- * Responsabilidades:
- * 1. Restricciones dinámicas de fecha de nacimiento (18 a 100 años respecto a la fecha actual).
- * 2. Validación en cliente en tiempo real de DNI/NIE, nombre, apellidos, teléfono nacional y dirección.
- * 3. Prevención de envío ante errores y sincronización con validaciones asíncronas de HTMX.
+ * =====================================================================================
+ * 1. INTEGRIDAD DE DATOS DEL EXPEDIENTE:
+ *    - Los datos del alumno (DNI/NIE, nombre, apellidos, fecha de nacimiento, teléfono y dirección)
+ *      quedan vinculados a su expediente oficial de matrícula y a las actas de examen de la DGT.
+ *    - Por ello, cualquier modificación en la vista de perfil pasa por una validación exhaustiva
+ *      en cliente antes de llegar al backend:
+ *        * DNI/NIE: 8 números + letra o NIE con X/Y/Z.
+ *        * Mayoría de edad: cálculo exacto con fechas (18 a 100 años).
+ *        * Teléfono nacional: 9 dígitos con prefijo opcional (+34).
+ *        * Límites de texto: nombre (50 caracteres), apellidos (100) y dirección (200).
+ *
+ * 2. PATRÓN DE MANEJADORES CON NOMBRE Y FEEDBACK HTMX:
+ *    - Todas las funciones se declaran explícitamente ('manejarBlurDni', 'manejarInputTelefono', etc.).
+ *    - Sincroniza clases de error cuando HTMX devuelve respuestas del servidor ('htmx:afterSwap').
+ * =====================================================================================
  */
 (function () {
     'use strict';
 
+    /**
+     * Da formato ISO YYYY-MM-DD a una instancia de Date.
+     */
     function formatearFechaISO(fecha) {
         if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return '';
         const a = fecha.getFullYear();
@@ -19,6 +31,9 @@
         return `${a}-${m}-${d}`;
     }
 
+    /**
+     * Muestra feedback de error visual en el input y en el contenedor correspondiente.
+     */
     function mostrarError(inputId, feedbackId, mensaje) {
         const input = document.getElementById(inputId);
         const feedback = document.getElementById(feedbackId);
@@ -41,6 +56,9 @@
         }
     }
 
+    /**
+     * Restaura los estilos por defecto del input y vacía el mensaje de error.
+     */
     function limpiarError(inputId, feedbackId) {
         const input = document.getElementById(inputId);
         const feedback = document.getElementById(feedbackId);
@@ -59,6 +77,10 @@
     // =========================================================================
     // VALIDACIONES DE CAMPOS INDIVIDUALES
     // =========================================================================
+
+    /**
+     * Valida el formato del DNI o NIE español del alumno.
+     */
     function validarDniPerfil() {
         const input = document.getElementById('dni');
         if (!input) return true;
@@ -82,6 +104,9 @@
         return true;
     }
 
+    /**
+     * Valida que la fecha de nacimiento certifique la mayoría de edad (al menos 18 años).
+     */
     function validarFechaNacimientoPerfil() {
         const input = document.getElementById('fechaNacimiento');
         if (!input) return true;
@@ -132,6 +157,9 @@
         return true;
     }
 
+    /**
+     * Valida el nombre del alumno (obligatorio y máx. 50 caracteres).
+     */
     function validarNombrePerfil() {
         const input = document.getElementById('nombre');
         if (!input) return true;
@@ -150,6 +178,9 @@
         return true;
     }
 
+    /**
+     * Valida los apellidos del alumno (obligatorio y máx. 100 caracteres).
+     */
     function validarApellidosPerfil() {
         const input = document.getElementById('apellidos');
         if (!input) return true;
@@ -168,6 +199,9 @@
         return true;
     }
 
+    /**
+     * Valida el número de teléfono con formato nacional español.
+     */
     function validarTelefonoPerfil() {
         const input = document.getElementById('telefono');
         if (!input) return true;
@@ -191,6 +225,9 @@
         return true;
     }
 
+    /**
+     * Valida la dirección postal (máx. 200 caracteres).
+     */
     function validarDireccionPerfil() {
         const input = document.getElementById('direccion');
         if (!input) return true;
@@ -245,6 +282,9 @@
         if (input && input.value.trim()) validarDireccionPerfil();
     }
 
+    /**
+     * Valida todos los campos antes del envío del formulario.
+     */
     function manejarSubmitPerfil(evento) {
         const vDni = validarDniPerfil();
         const vFecha = validarFechaNacimientoPerfil();
@@ -265,6 +305,9 @@
         }
     }
 
+    /**
+     * Sincroniza clases visuales de error cuando HTMX devuelve respuestas asíncronas.
+     */
     function manejarHtmxAfterSwapPerfil(evento) {
         const targetId = evento.detail && evento.detail.target ? evento.detail.target.id : '';
         if (targetId && targetId.startsWith('feedback-')) {
@@ -288,8 +331,9 @@
     // =========================================================================
     function inicializarPerfilAlumno() {
         const formPerfil = document.getElementById('form-perfil-alumno');
-        if (!formPerfil) return;
+        if (!formPerfil) return; // Guard clause
 
+        // Configuración de límites en fecha de nacimiento
         const inputFechaNac = document.getElementById('fechaNacimiento');
         if (inputFechaNac) {
             const hoy = new Date();
@@ -301,6 +345,7 @@
             inputFechaNac.addEventListener('change', manejarChangeFechaNacimiento);
         }
 
+        // Registro de escuchadores individuales
         const inputDni = document.getElementById('dni');
         if (inputDni) {
             inputDni.addEventListener('blur', manejarBlurDni);

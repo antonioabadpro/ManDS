@@ -70,7 +70,7 @@ class FestivosCalendarioUtilTest
     }
 
     @Test
-    @DisplayName("Aplica regla de traslado al lunes cuando un festivo nacional coincide en domingo")
+    @DisplayName("Aplica traslado al lunes cuando un festivo nacional coincide en domingo")
     void testTrasladoFestivoEnDomingoAlLunes()
     {
         // En 2026, el 6 de diciembre (Día de la Constitución) cae en domingo

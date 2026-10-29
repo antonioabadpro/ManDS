@@ -85,7 +85,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
-    @DisplayName("Dejar alumno temporalmente sin profesor desasigna el docente y cancela clases pendientes")
+    @DisplayName("Dejar alumno temporalmente sin profesor desasigna el profesor y cancela clases pendientes")
     void testReasignarProfesorSinProfesorExito()
     {
         Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();

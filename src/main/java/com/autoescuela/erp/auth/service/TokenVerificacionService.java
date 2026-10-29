@@ -24,7 +24,7 @@ public class TokenVerificacionService
 
     /**
      * Genera un nuevo token criptográfico efímero de verificación para la persona indicada.
-     * Establece la expiración según los minutos indicados (p. ej. 15 minutos para recuperación o 60 minutos para activación docente).
+     * Establece la expiración según los minutos indicados (p. ej. 15 minutos para recuperación o 60 minutos para activación de cuenta de profesor).
      *
      * @param persona Persona destinataria del token.
      * @param duracionMinutos Duración en minutos antes de que el token caduque.

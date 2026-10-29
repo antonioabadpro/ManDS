@@ -22,7 +22,7 @@ public interface ProfesorMapper
      * Se ignoran deliberadamente los atributos controlados por la lógica de negocio y seguridad
      * en el servicio (id, credenciales provisionales, estado, vehículo y listas asociadas).
      *
-     * @param dto DTO validado con los datos de registro del docente.
+     * @param dto DTO validado con los datos de registro del profesor.
      * @return Entidad Profesor mapeada.
      */
     @Mapping(target = "id", ignore = true)
@@ -76,7 +76,7 @@ public interface ProfesorMapper
     /**
      * Mapea una entidad Profesor a su DTO de resumen para el listado reactivo del panel de administración.
      *
-     * @param profesor Entidad del docente.
+     * @param profesor Entidad del profesor.
      * @return DTO inmutable para presentación en la tabla.
      */
     @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
@@ -94,7 +94,7 @@ public interface ProfesorMapper
     /**
      * Mapea una entidad Profesor a su DTO de edición completa para el modal de administración.
      *
-     * @param profesor Entidad del docente a editar.
+     * @param profesor Entidad del profesor a editar.
      * @return DTO poblado con los datos actuales del profesor.
      */
     @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
@@ -102,9 +102,9 @@ public interface ProfesorMapper
     EditarProfesorDTO toEditarProfesorDTO(Profesor profesor);
 
     /**
-     * Mapea una entidad Profesor a su DTO de detalle completo para la visualización en el modal de ficha del docente.
+     * Mapea una entidad Profesor a su DTO de detalle completo para la visualización en el modal de ficha del profesor.
      *
-     * @param profesor Entidad del docente.
+     * @param profesor Entidad del profesor.
      * @return DTO inmutable con datos personales, laborales, antigüedad calculada y flota asignada.
      */
     @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
@@ -123,7 +123,7 @@ public interface ProfesorMapper
     ProfesorDetalleDTO toProfesorDetalleDTO(Profesor profesor);
 
     /**
-     * Calcula las iniciales del nombre y primer apellido de un docente para el avatar.
+     * Calcula las iniciales del nombre y primer apellido de un profesor para el avatar.
      */
     default String calcularIniciales(Profesor profesor)
     {

@@ -718,11 +718,11 @@ public class ExamenService
                 int libres1 = Math.max(0, cupoMaximo - citados1);
                 int libres2 = Math.max(0, cupoMaximo - citados2);
 
-                // Regla Temporal: las convocatorias pasadas no admiten asignación
+                // Validación temporal: las convocatorias pasadas no admiten asignación
                 boolean fecha1Pasada = fechas.getFechaHora1() != null && fechas.getFechaHora1().isBefore(ahora);
                 boolean fecha2Pasada = fechas.getFechaHora2() != null && fechas.getFechaHora2().isBefore(ahora);
 
-                // Regla de Clases Pendientes vs Fecha de Examen:
+                // Validación de Clases Pendientes vs Fecha de Examen:
                 // Se bloquea la fecha si el alumno tiene alguna clase práctica pendiente con fecha posterior a dicha convocatoria.
                 final List<ClasePractica> pendientesFinal = clasesPendientes;
                 boolean tieneClasesPosteriores1 = solicitud.getTipo() == TipoExamen.PRACTICO &&
@@ -817,7 +817,7 @@ public class ExamenService
 
         SolicitudExamen solicitudGuardada = this.solicitudExamenRepository.save(solicitud);
 
-        // 3. Si es práctico, bloquear jornada completa del vehículo y profesor cancelando clases prácticas del día (Regla 3.3 y 3.5)
+        // 3. Si es práctico, bloquear jornada completa del vehículo y profesor cancelando clases prácticas del día
         if (solicitud.getTipo() == TipoExamen.PRACTICO)
         {
             Profesor profesor = solicitud.getProfesor() != null ? solicitud.getProfesor() : solicitud.getAlumno().getProfesor();

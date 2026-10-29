@@ -35,7 +35,7 @@ public class StripeResponseController
 
     /**
      * Muestra la interfaz de pasarela de pago para el abono de la tasa de matrícula.
-     * Aplica la regla de negocio de precios según el tipo de permiso:
+     * Aplica los precios según el tipo de permiso:
      * - Permisos C y D (vehículos grandes y pesados): 450,00 €
      * - Resto de permisos: 250,00 €
      *
@@ -60,7 +60,7 @@ public class StripeResponseController
             }
         }
 
-        // Regla de Negocio: Permisos C y D (450€), resto (250€)
+        // Tarifas oficiales: Permisos C y D (450€), resto (250€)
         if (tipoCarnet == null)
         {
             throw new ReglaNegocioException("El tipo de carnet es obligatorio para iniciar el proceso de pago.");

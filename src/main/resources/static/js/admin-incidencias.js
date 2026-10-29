@@ -1,13 +1,21 @@
 /**
- * admin-incidencias.js
- * JavaScript no intrusivo y modular para la Gestión de Incidencias en ManDS ERP.
- * Implementa el Patrón de Manejadores de Eventos con Nombre y Punto de Entrada de Inicialización.
+ * admin-incidencias.js - Gestión de Averías e Incidencias Mecánicas de Flota
  *
- * Responsabilidades:
- * 1. Orquestación y accesibilidad de los modales HTMX de gestión y detalle de incidencia.
- * 2. Cierre accesible con tecla Escape y clic en backdrop / botones de cierre.
- * 3. Prevención de doble envío en la actualización de estados de reparación con feedback de carga.
- * 4. Sincronización de eventos de swap en contenedores dinámicos HTMX.
+ * =====================================================================================
+ * 1. CICLO DE VIDA DE INCIDENCIAS:
+ *    - Cuando un profesor reporta una incidencia mecánica, el vehículo puede pasar a
+ *      estado 'MANTENIMIENTO' (lo cual cancela automáticamente las clases futuras, bloquea
+ *      nuevas reservas y notifica a los alumnos afectados por email).
+ *    - Cuando el Administrador gestiona la avería y la marca como 'RESUELTA', el vehículo
+ *      regresa automáticamente a su estado operativo ('DISPONIBLE' u 'OCUPADO').
+ *
+ * 2. MODALES DINÁMICOS HTMX Y PREVENCIÓN DE DOBLE ENVÍO:
+ *    - Los modales para gestionar y consultar el detalle de averías se cargan asíncronamente
+ *      mediante HTMX en los contenedores '#contenedor-modal-gestionar-incidencia' y
+ *      '#contenedor-modal-detalle-incidencia'.
+ *    - 'manejarSubmitIncidencia' desactiva el botón de guardar ('btnSubmit.disabled = true')
+ *      al enviar la resolución para evitar dobles registros o transacciones duplicadas.
+ * =====================================================================================
  */
 (function () {
     'use strict';
@@ -18,6 +26,7 @@
 
     /**
      * Gestiona el cierre accesible de modales al presionar la tecla Escape.
+     * @param {KeyboardEvent} evento - Evento de teclado.
      */
     function manejarKeydownEscapeIncidencia(evento) {
         if (evento.key === 'Escape') {
@@ -26,14 +35,17 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             });
+            // Restablecer el scroll del fondo
             document.body.classList.remove('overflow-hidden');
         }
     }
 
     /**
-     * Gestiona el cierre al hacer clic en botones data-modal-close o backdrop.
+     * Cierra el modal cuando el usuario hace clic en botones de cierre o en el fondo oscuro translúcido.
+     * @param {MouseEvent} evento - Evento de clic.
      */
     function manejarClickCerrarModalIncidencia(evento) {
+        // Clic en botón de cierre explícito
         const btnCerrar = evento.target.closest('[data-modal-close]');
         if (btnCerrar) {
             const modalId = btnCerrar.getAttribute('data-modal-close');
@@ -46,6 +58,7 @@
             return;
         }
 
+        // Clic en el fondo oscuro exterior (Light-Dismiss)
         const backdrop = evento.target.closest('.modal-backdrop');
         if (backdrop) {
             const modal = backdrop.closest('[role="dialog"]');
@@ -58,12 +71,13 @@
     }
 
     /**
-     * Intercepta y sincroniza la carga de fragmentos HTMX en la gestión de incidencias.
+     * Intercepta la carga asíncrona de fragmentos HTMX en la gestión de incidencias.
+     * Si se acaba de insertar un modal, bloquea el scroll del body.
+     * @param {CustomEvent} evento - Evento 'htmx:afterSwap'.
      */
     function manejarHtmxAfterSwapIncidencias(evento) {
         const targetId = evento.detail && evento.detail.target ? evento.detail.target.id : '';
 
-        // Si se cargó el modal de gestión o de detalle, asegurar scroll bloqueado en body
         if (targetId === 'contenedor-modal-gestionar-incidencia' || targetId === 'contenedor-modal-detalle-incidencia') {
             const modalCargado = evento.detail.target.querySelector('[role="dialog"]');
             if (modalCargado && !modalCargado.classList.contains('hidden')) {
@@ -73,12 +87,14 @@
     }
 
     /**
-     * Controla el envío del formulario de actualización de incidencia para prevenir envíos duplicados.
+     * Controla el envío del formulario de actualización de incidencia para prevenir dobles envíos.
+     * @param {SubmitEvent} evento - Evento de envío de formulario.
      */
     function manejarSubmitIncidencia(evento) {
         const form = evento.target.closest('#modal-gestionar-incidencia form');
         if (!form) return;
 
+        // Deshabilita el botón de acción para proteger la transacción en base de datos
         const btnSubmit = form.querySelector('button[type="submit"]');
         if (btnSubmit) {
             btnSubmit.disabled = true;
@@ -90,8 +106,9 @@
     // =========================================================================
     function inicializarGestionIncidencias() {
         const tablaIncidencias = document.getElementById('tabla-incidencias');
-        if (!tablaIncidencias) return; // Solo ejecutar en la vista de incidencias
+        if (!tablaIncidencias) return; // Guard clause: solo ejecutar en la vista de incidencias
 
+        // Registro de escuchadores
         document.addEventListener('keydown', manejarKeydownEscapeIncidencia);
         document.addEventListener('click', manejarClickCerrarModalIncidencia);
         document.body.addEventListener('htmx:afterSwap', manejarHtmxAfterSwapIncidencias);

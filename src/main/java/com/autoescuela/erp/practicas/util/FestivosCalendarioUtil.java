@@ -65,7 +65,7 @@ public final class FestivosCalendarioUtil
             return "Viernes Santo";
         }
 
-        // 3. Regla de traslado al lunes: si un festivo nacional fijo cayó en domingo, se pasa al lunes siguiente
+        // 3. Traslado al lunes: si un festivo nacional fijo cayó en domingo, se pasa al lunes siguiente
         if (fecha.getDayOfWeek() == DayOfWeek.MONDAY)
         {
             LocalDate domingoAnterior = fecha.minusDays(1);

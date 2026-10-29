@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -14,14 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Prevención de FOUC para Tema Oscuro -->
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <!-- Estilos globales y Tailwind CSS (Play CDN con configuración unificada) -->
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
@@ -146,21 +140,21 @@
                                         <div th:if="${v.isRevisionVencida()}" class="space-y-0.5 flex flex-col items-center justify-center">
                                             <div class="flex items-center justify-center space-x-1.5">
                                                 <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                                <span class="font-medium text-red-600 dark:text-red-400" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
+                                                <span class="font-medium text-red-600 dark:text-red-400 tabular-nums whitespace-nowrap" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
                                             </div>
                                             <p class="text-[10px] text-red-600 dark:text-red-400 font-bold text-center">¡Revisión Vencida!</p>
                                         </div>
                                         <div th:if="${v.isRevisionProxima()}" class="space-y-0.5 flex flex-col items-center justify-center">
                                             <div class="flex items-center justify-center space-x-1.5">
                                                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
+                                                <span class="font-medium text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
                                             </div>
                                             <p class="text-[10px] text-amber-600 dark:text-amber-400 text-center">Próxima revisión (&lt; 60 días)</p>
                                         </div>
                                         <div th:if="${v.isRevisionAlDia()}" class="space-y-0.5 flex flex-col items-center justify-center">
                                             <div class="flex items-center justify-center space-x-1.5">
                                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                                <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
+                                                <span class="font-medium text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(v.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
                                             </div>
                                             <p class="text-[10px] text-emerald-600 dark:text-emerald-400 text-center">Al día</p>
                                         </div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -126,7 +126,7 @@
                             </div>
                             <div>
                                 <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Fecha de Solicitud</span>
-                                <span class="font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(solicitud.fechaHora, 'dd/MM/yyyy HH:mm')} + ' h'">10/10/2026 10:00 h</span>
+                                <span class="font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(solicitud.fechaHora, 'dd/MM/yyyy HH:mm')} + ' h'">10/10/2026 10:00 h</span>
                             </div>
                         </div>
 
@@ -139,7 +139,7 @@
                             </div>
                             <div>
                                 <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Fecha de Examen</span>
-                                <span th:if="${solicitud.examen != null}" class="font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(solicitud.examen.fechaHora, 'dd/MM/yyyy HH:mm')} + ' h'">15/10/2026 08:30 h</span>
+                                <span th:if="${solicitud.examen != null}" class="font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(solicitud.examen.fechaHora, 'dd/MM/yyyy HH:mm')} + ' h'">15/10/2026 08:30 h</span>
                                 <span th:if="${solicitud.examen == null and solicitud.estado?.name() == 'PENDIENTE'}" class="font-medium text-slate-400 italic">En cola de asignación</span>
                                 <span th:if="${solicitud.examen == null and solicitud.estado?.name() == 'RECHAZADA'}" class="font-medium text-slate-400">No asignada</span>
                             </div>

@@ -503,7 +503,7 @@ class VistaProfesorTest extends BaseIntegrationTest
                 .with(csrf())
                 .header("HX-Request", "true")
                 .param("fecha", fecha.toString())
-                .param("motivo", "Asunto personal docente programado."))
+                .param("motivo", "Asunto personal programado."))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Trigger", "actualizarCalendario"));
 

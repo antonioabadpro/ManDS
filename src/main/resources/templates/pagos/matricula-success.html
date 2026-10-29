@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
@@ -93,7 +93,7 @@
                 </div>
                 <div th:if="${importeTotal}" class="flex justify-between items-center text-slate-500 dark:text-slate-400">
                     <span>Importe Abonado:</span>
-                    <span class="text-slate-900 dark:text-white font-bold font-mono" th:text="${importeTotal + ' €'}">250,00 €</span>
+                    <span class="text-slate-900 dark:text-white font-bold tabular-nums" th:text="${importeTotal + ' €'}">250,00 €</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
                     <span>Acceso:</span>

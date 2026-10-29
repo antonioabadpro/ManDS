@@ -69,7 +69,7 @@
                     <span class="text-xs font-bold uppercase tracking-wider">Capacidad de Reserva Agotada</span>
                 </div>
                 <p class="text-xs leading-relaxed">
-                    Según la regla de negocio: <em>CapacidadReserva = SaldoClases (<span th:text="${matricula?.saldoClases ?: 0}"></span>) - ClasesReservadas (<span th:text="${clasesReservadas ?: 0}"></span>) = <span th:text="${capacidadReserva}"></span></em>.
+                    Cálculo de disponibilidad: <em>Capacidad de Reserva = Saldo de Clases (<span th:text="${matricula?.saldoClases ?: 0}"></span>) - Clases Reservadas (<span th:text="${clasesReservadas ?: 0}"></span>) = <span th:text="${capacidadReserva}"></span></em>.
                 </p>
                 <p class="text-xs text-rose-700 dark:text-rose-300">
                     No puedes realizar más reservas. Compra más clases o espera a que sean impartidas tus clases reservadas.

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -24,7 +24,7 @@
     <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
 
     <style>
-        .font-mono-card {
+        .tabular-nums-card {
             font-family: 'JetBrains Mono', monospace;
             letter-spacing: 0.12em;
         }
@@ -146,7 +146,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                     </svg>
                                 </div>
-                                <input type="text" id="card-number" required maxlength="19" placeholder="4532 8920 1234 5678" autocomplete="cc-number" inputmode="numeric" class="block w-full pl-10 pr-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+                                <input type="text" id="card-number" required maxlength="19" placeholder="4532 8920 1234 5678" autocomplete="cc-number" inputmode="numeric" class="block w-full pl-10 pr-4 py-2.5 text-sm tabular-nums rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
                             </div>
                             <div id="feedback-card-number"></div>
                         </div>
@@ -159,7 +159,7 @@
                                     Caducidad <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="text" id="card-expiry" required maxlength="5" placeholder="MM/AA" autocomplete="cc-exp" inputmode="numeric" class="block w-full px-3.5 py-2.5 text-sm text-center font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+                                    <input type="text" id="card-expiry" required maxlength="5" placeholder="MM/AA" autocomplete="cc-exp" inputmode="numeric" class="block w-full px-3.5 py-2.5 text-sm text-center tabular-nums rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
                                 </div>
                                 <div id="feedback-card-expiry"></div>
                             </div>
@@ -173,7 +173,7 @@
                                     <span class="text-[10px] text-slate-400 font-medium cursor-help" title="3 dígitos situados en el reverso de la tarjeta">¿Qué es?</span>
                                 </div>
                                 <div class="relative">
-                                    <input type="password" id="card-cvv" required maxlength="3" placeholder="123" autocomplete="cc-csc" inputmode="numeric" class="block w-full px-3.5 py-2.5 text-sm text-center font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+                                    <input type="password" id="card-cvv" required maxlength="3" placeholder="123" autocomplete="cc-csc" inputmode="numeric" class="block w-full px-3.5 py-2.5 text-sm text-center tabular-nums rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
                                 </div>
                                 <div id="feedback-card-cvv"></div>
                             </div>
@@ -222,7 +222,7 @@
 
                     <!-- Fila Central: Número de Tarjeta con Máscara -->
                     <div class="my-6 relative z-10">
-                        <div id="card-preview-number" class="text-base sm:text-xl font-mono-card font-bold tracking-widest text-slate-100 drop-shadow">
+                        <div id="card-preview-number" class="text-base sm:text-xl tabular-nums-card font-bold tracking-widest text-slate-100 drop-shadow">
                             •••• •••• •••• ••••
                         </div>
                     </div>
@@ -231,13 +231,13 @@
                     <div class="flex items-end justify-between relative z-10 text-xs uppercase tracking-wider">
                         <div>
                             <span class="block text-[9px] text-slate-400 font-semibold mb-0.5">Titular</span>
-                            <span id="card-preview-name" class="font-bold text-slate-100 font-mono tracking-wider truncate max-w-[180px] sm:max-w-[240px] block">
+                            <span id="card-preview-name" class="font-bold text-slate-100 tabular-nums tracking-wider truncate max-w-[180px] sm:max-w-[240px] block">
                                 NOMBRE Y APELLIDOS
                             </span>
                         </div>
                         <div class="text-right">
                             <span class="block text-[9px] text-slate-400 font-semibold mb-0.5">Caduca</span>
-                            <span id="card-preview-expiry" class="font-bold text-slate-100 font-mono">
+                            <span id="card-preview-expiry" class="font-bold text-slate-100 tabular-nums">
                                 MM/AA
                             </span>
                         </div>
@@ -269,11 +269,11 @@
                     <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-sm">
                         <div class="flex justify-between items-center text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                             <span>Gestión de expediente y material ManDS</span>
-                            <span class="font-mono font-medium text-slate-900 dark:text-slate-200" th:text="${cuotaAutoescuela} + ' €'">155,95 €</span>
+                            <span class="tabular-nums font-medium text-slate-900 dark:text-slate-200" th:text="${cuotaAutoescuela} + ' €'">155,95 €</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                             <span>Tasas oficiales DGT (Examen Teórico/Práctico)</span>
-                            <span class="font-mono font-medium text-slate-900 dark:text-slate-200" th:text="${tasaDgt} + ' €'">94,05 €</span>
+                            <span class="tabular-nums font-medium text-slate-900 dark:text-slate-200" th:text="${tasaDgt} + ' €'">94,05 €</span>
                         </div>
                         <div class="flex justify-between items-center text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                             <span>Acceso 24/7 a reserva de clases prácticas</span>
@@ -288,7 +288,7 @@
                             <span class="text-[11px] text-slate-400">Impuestos y tasas DGT incluidos</span>
                         </div>
                         <div class="text-right">
-                            <span class="text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 font-mono" th:text="${importeTotal} + ' €'">
+                            <span class="text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400 tabular-nums" th:text="${importeTotal} + ' €'">
                                 250,00 €
                             </span>
                         </div>
@@ -367,7 +367,7 @@
                 </div>
 
                 <!-- Recibo / Ficha de la Operación -->
-                <div class="rounded-2xl p-5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-left space-y-3 font-mono text-xs">
+                <div class="rounded-2xl p-5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-left space-y-3 tabular-nums text-xs">
                     <div class="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-700">
                         <span class="text-slate-500 dark:text-slate-400">ID Operación:</span>
                         <span id="receipt-txn-id" class="font-bold text-slate-900 dark:text-white">TXN-2026-984321</span>

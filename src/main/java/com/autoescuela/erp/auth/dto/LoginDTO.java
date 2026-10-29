@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 /**
  * DTO para la solicitud de inicio de sesión.
- * Permite la autenticación dual mediante nombre de usuario o correo electrónico (Regla de negocio 7.1).
+ * Permite la autenticación dual mediante nombre de usuario o correo electrónico.
  *
  * @param username Nombre de usuario o correo electrónico introducido por el usuario.
  * @param password Contraseña en texto plano antes de ser verificada por BCrypt.

@@ -272,7 +272,7 @@ public class AdministradorController
     }
 
     /**
-     * Endpoint HTMX para cargar el modal de confirmación de baja lógica de un profesor (Regla 7.3).
+     * Endpoint HTMX para cargar el modal de confirmación de baja lógica de un profesor.
      */
     @GetMapping("/profesores/baja/{id}")
     public String cargarModalBajaProfesor(@PathVariable("id") Long id, Model model)
@@ -291,7 +291,7 @@ public class AdministradorController
     }
 
     /**
-     * Procesa la solicitud de baja lógica de un profesor conforme a la Regla 7.3.
+     * Procesa la solicitud de baja lógica de un profesor.
      */
     @PostMapping("/profesores/baja")
     public String darBajaProfesor(@ModelAttribute BajaProfesorDTO bajaProfesorDTO, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)

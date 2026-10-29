@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -14,14 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Prevención de FOUC para Tema Oscuro -->
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -199,7 +193,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 dark:text-slate-400">Fecha de matriculación:</span>
-                            <span class="text-slate-800 dark:text-slate-200" th:text="${matricula?.fechaMatriculacion != null ? #temporals.format(matricula.fechaMatriculacion, 'dd/MM/yyyy') : '--'}">--</span>
+                            <span class="text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${matricula?.fechaMatriculacion != null ? #temporals.format(matricula.fechaMatriculacion, 'dd/MM/yyyy') : '--'}">--</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500 dark:text-slate-400">Estado del expediente:</span>

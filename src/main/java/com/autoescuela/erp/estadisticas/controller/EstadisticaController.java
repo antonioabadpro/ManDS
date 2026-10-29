@@ -114,7 +114,7 @@ public class EstadisticaController
     // =========================================================================
 
     /**
-     * Muestra el resumen de métricas docentes y rendimiento del profesor conectado.
+     * Muestra el resumen de métricas y rendimiento del profesor conectado.
      */
     @GetMapping("/profesor/estadisticas")
     public String mostrarEstadisticasProfesor(@AuthenticationPrincipal Object principal, Model model)

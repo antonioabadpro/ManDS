@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -14,13 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -93,7 +88,7 @@
 
                     <!-- Placa de Matrícula Europea y Botón Reportar Incidencia -->
                     <div class="flex flex-wrap items-center gap-3">
-                        <div class="inline-flex items-center border-2 border-slate-900 rounded-lg overflow-hidden bg-white shadow-sm font-mono font-bold tracking-widest text-slate-900 px-3 py-1">
+                        <div class="inline-flex items-center border-2 border-slate-900 rounded-lg overflow-hidden bg-white shadow-sm tabular-nums font-bold tracking-widest text-slate-900 px-3 py-1">
                             <span class="bg-blue-700 text-white text-[9px] px-1.5 py-1 -ml-3 mr-2 font-sans font-extrabold flex flex-col items-center leading-none">
                             <span class="text-[8px] mt-0.5">E</span>
                             </span>
@@ -142,14 +137,14 @@
                     <!-- 5. Última Revisión / ITV (fechaUltimaRevision) -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Última Revisión / ITV</span>
-                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${vehiculo.fechaUltimaRevision != null ? #temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy') : 'Sin registrar'}">10/01/2026</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 tabular-nums whitespace-nowrap" th:text="${vehiculo.fechaUltimaRevision != null ? #temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy') : 'Sin registrar'}">10/01/2026</p>
                         <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Inspección favorable</p>
                     </div>
 
                     <!-- 6. Próxima Revisión / Taller (fechaProximaRevision) -->
                     <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Próxima Revisión / Taller</span>
-                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 font-mono" th:text="${vehiculo.fechaProximaRevision != null ? #temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy') : 'Sin programar'}">10/01/2027</p>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 tabular-nums whitespace-nowrap" th:text="${vehiculo.fechaProximaRevision != null ? #temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy') : 'Sin programar'}">10/01/2027</p>
                         <p class="text-[11px] text-slate-500 mt-0.5">Control de mantenimiento preventivo</p>
                     </div>
                 </div>
@@ -194,7 +189,7 @@
                                 <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 max-w-md" th:text="${inc.descripcion}">
                                     Ruido anómalo en pastillas de freno delanteras al frenar en pendiente.
                                 </td>
-                                <td class="py-3 px-4 font-mono font-semibold" th:text="${inc.vehiculo?.matricula}">
+                                <td class="py-3 px-4 tabular-nums font-semibold" th:text="${inc.vehiculo?.matricula}">
                                     1234-LMN
                                 </td>
                                 <td class="py-3 px-4">

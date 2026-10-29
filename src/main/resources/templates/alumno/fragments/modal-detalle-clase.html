@@ -14,7 +14,7 @@
             <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white">Ficha de Clase Práctica</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Detalles de la sesión de formación e información docente</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Detalles de la sesión de formación e información del profesor</p>
                 </div>
                 <button type="button" data-modal-close="modal-detalle-clase" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Cerrar ventana">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,7 +66,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
                             <span class="text-slate-400 block text-[11px]">Fecha y Hora:</span>
-                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">Fecha</span>
                         </div>
                         <div>
                             <span class="text-slate-400 block text-[11px]">Duración:</span>
@@ -132,7 +132,7 @@
                     <span>Cancelar Reserva</span>
                 </button>
 
-                <!-- Aviso si la clase PENDIENTE ya ha comenzado (Regla de negocio: no cancelable) -->
+                <!-- Aviso si la clase PENDIENTE ya ha comenzado (No cancelable tras inicio) -->
                 <span th:if="${clase.estadoClase.name() == 'PENDIENTE' and clase.fechaHora != null and !clase.fechaHora.isAfter(#temporals.createNow())}" class="px-3 py-1 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 flex items-center space-x-1.5" title="La clase ya ha comenzado y no puede cancelarse según la normativa">
                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -97,15 +97,15 @@
                 </div>
                 <div class="flex justify-between items-center text-slate-500">
                     <span>Convocatorias Asignadas:</span>
-                    <span class="font-bold text-emerald-600 font-mono" th:text="${convocatorias != null ? convocatorias + ' convocatorias oficiales' : '2 convocatorias oficiales'}">2 convocatorias oficiales</span>
+                    <span class="font-bold text-emerald-600 tabular-nums" th:text="${convocatorias != null ? convocatorias + ' convocatorias oficiales' : '2 convocatorias oficiales'}">2 convocatorias oficiales</span>
                 </div>
                 <div th:if="${importeTotal}" class="flex justify-between items-center text-slate-500">
                     <span>Importe Abonado:</span>
-                    <span class="text-slate-900 font-bold font-mono" th:text="${importeTotal + ' €'}">250,00 €</span>
+                    <span class="text-slate-900 font-bold tabular-nums" th:text="${importeTotal + ' €'}">250,00 €</span>
                 </div>
                 <div th:if="${sessionId}" class="flex justify-between items-center text-slate-500 pt-1 border-t border-slate-200">
                     <span>Referencia:</span>
-                    <span class="text-slate-500 font-mono text-[10px] truncate max-w-[200px]" th:text="${sessionId}">cs_test_...</span>
+                    <span class="text-slate-500 tabular-nums text-[10px] truncate max-w-[200px]" th:text="${sessionId}">cs_test_...</span>
                 </div>
             </div>
 

@@ -1,10 +1,37 @@
-// Elementos DOM
+/**
+ * checkout.js - Terminal de Pago Seguro con Previsualización Interactiva de Tarjeta
+ *
+ * =====================================================================================
+ * 1. EXPERIENCIA VISUAL INTERACTIVA (TARJETA EN TIEMPO REAL):
+ *    A medida que el usuario teclea sus datos en el formulario, este script formatea
+ *    los campos en vivo y los proyecta sobre una tarjeta de crédito virtual interactiva
+ *    (efecto holográfico con Tailwind), actualizando:
+ *    - Número de tarjeta en bloques de 4 dígitos (con máscara '•••• •••• •••• ••••').
+ *    - Detección automática del emisor bancario según el prefijo (Visa, Mastercard, AMEX).
+ *    - Nombre del titular en mayúsculas y fecha de caducidad formateada 'MM/AA'.
+ *
+ * 2. VALIDACIÓN RIGUROSA EN CLIENTE:
+ *    - Titular: solo letras y longitud entre 3 y 50 caracteres.
+ *    - Número: exactamente 16 dígitos numéricos.
+ *    - Caducidad: mes válido (01-12) y año superior o igual al año/mes en curso.
+ *    - CVV: exactamente 3 dígitos numéricos.
+ *
+ * 3. PREVENCIÓN DE DOBLE COBRO Y RECIBO DIGITAL:
+ *    - Al pulsar "Pagar", desactiva el botón ('disabled = true') y muestra un spinner para
+ *      evitar dobles cargos accidentales.
+ *    - Genera dinámicamente un comprobante con identificador único de transacción, fecha y
+ *      PAN enmascarado, permitiendo imprimir el justificante con 'window.print()'.
+ * =====================================================================================
+ */
+
+// Elementos del formulario en el DOM
 const formPago = document.getElementById('form-pago-checkout');
 const inputHolder = document.getElementById('card-holder');
 const inputNumber = document.getElementById('card-number');
 const inputExpiry = document.getElementById('card-expiry');
 const inputCvv = document.getElementById('card-cvv');
 
+// Elementos de la tarjeta gráfica interactiva (previsualización visual)
 const previewHolder = document.getElementById('card-preview-name');
 const previewNumber = document.getElementById('card-preview-number');
 const previewExpiry = document.getElementById('card-preview-expiry');
@@ -12,6 +39,9 @@ const brandDisplay = document.getElementById('card-brand-display');
 
 /**
  * Muestra el error visual en el input con recuadro rojo y el mensaje debajo en su feedback container.
+ * @param {string} inputId - ID del input.
+ * @param {string} feedbackId - ID del contenedor del mensaje de error.
+ * @param {string} mensaje - Texto descriptivo del fallo.
  */
 function mostrarErrorCampo(inputId, feedbackId, mensaje) {
     const input = document.getElementById(inputId);
@@ -37,6 +67,8 @@ function mostrarErrorCampo(inputId, feedbackId, mensaje) {
 
 /**
  * Restablece el estilo estándar del input eliminando el recuadro rojo y vacía el contenedor de feedback.
+ * @param {string} inputId - ID del input a limpiar.
+ * @param {string} feedbackId - ID del contenedor de feedback a vaciar.
  */
 function limpiarErrorCampo(inputId, feedbackId) {
     const input = document.getElementById(inputId);
@@ -54,7 +86,9 @@ function limpiarErrorCampo(inputId, feedbackId) {
 }
 
 /**
- * Comprueba si el campo tiene un error activo en el DOM.
+ * Comprueba si un campo tiene actualmente un borde de error activo en el DOM.
+ * @param {string} inputId - ID del input.
+ * @returns {boolean} - true si contiene la clase 'border-red-500'.
  */
 function tieneErrorActivo(inputId) {
     const input = document.getElementById(inputId);
@@ -63,6 +97,7 @@ function tieneErrorActivo(inputId) {
 
 /**
  * Valida el nombre del titular de la tarjeta.
+ * @returns {boolean} - true si el titular es válido.
  */
 function validarTitular() {
     if (!inputHolder) return true;
@@ -71,6 +106,7 @@ function validarTitular() {
         mostrarErrorCampo('card-holder', 'feedback-card-holder', 'El nombre del titular es obligatorio.');
         return false;
     }
+    // Expresión regular: admite letras, espacios, acentos en español, apóstrofes y guiones
     const regexTitular = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{3,50}$/;
     if (!regexTitular.test(valor)) {
         mostrarErrorCampo('card-holder', 'feedback-card-holder', 'Introduce un nombre válido (solo letras, mínimo 3 caracteres).');
@@ -82,9 +118,11 @@ function validarTitular() {
 
 /**
  * Valida que el número de tarjeta contenga exactamente 16 dígitos numéricos.
+ * @returns {boolean} - true si el número tiene 16 dígitos.
  */
 function validarNumeroTarjeta() {
     if (!inputNumber) return true;
+    // Eliminamos los espacios en blanco introducidos por el formateador
     const rawNumber = inputNumber.value.replace(/\s/g, '');
     if (!rawNumber) {
         mostrarErrorCampo('card-number', 'feedback-card-number', 'El número de tarjeta es obligatorio.');
@@ -99,7 +137,9 @@ function validarNumeroTarjeta() {
 }
 
 /**
- * Comprueba que el formato de caducidad sea MM/AA y no esté en el pasado.
+ * Comprueba que el formato de caducidad sea MM/AA y no pertenezca al pasado.
+ * @param {string} fecha - Cadena en formato "MM/AA".
+ * @returns {boolean} - true si la fecha es sintácticamente válida y vigente.
  */
 function esFechaValidaMMYY(fecha) {
     const regex = /^(0[1-9]|1[0-2])\/\d{2}$/;
@@ -107,14 +147,16 @@ function esFechaValidaMMYY(fecha) {
 
     const [mes, anio] = fecha.split('/').map(Number);
     const ahora = new Date();
-    const anioActual = ahora.getFullYear() % 100;
+    const anioActual = ahora.getFullYear() % 100; // Últimos 2 dígitos del año actual (ej. 2026 -> 26)
     const mesActual = ahora.getMonth() + 1;
 
+    // Vigente si el año es futuro o si es el año actual con mes igual o mayor
     return (anio > anioActual) || (anio === anioActual && mes >= mesActual);
 }
 
 /**
  * Valida la fecha de caducidad de la tarjeta.
+ * @returns {boolean} - true si la caducidad es válida.
  */
 function validarCaducidad() {
     if (!inputExpiry) return true;
@@ -133,6 +175,7 @@ function validarCaducidad() {
 
 /**
  * Valida el código de seguridad CVV / CVC (3 dígitos numéricos).
+ * @returns {boolean} - true si el CVV es válido.
  */
 function validarCvv() {
     if (!inputCvv) return true;
@@ -150,7 +193,8 @@ function validarCvv() {
 }
 
 /**
- * Valida de forma integral todos los campos del formulario de pago.
+ * Valida de forma integral todos los campos del formulario de pago antes del cobro.
+ * @returns {boolean} - true si todos los campos son válidos.
  */
 function validarFormularioPago() {
     const esValidoTitular = validarTitular();
@@ -160,6 +204,7 @@ function validarFormularioPago() {
 
     const todoValido = esValidoTitular && esValidoNumero && esValidaCaducidad && esValidoCvv;
 
+    // Si hay algún fallo, trasladamos el foco al primer campo erróneo
     if (!todoValido) {
         if (!esValidoTitular) {
             inputHolder.focus();
@@ -175,21 +220,28 @@ function validarFormularioPago() {
     return true;
 }
 
+// =========================================================================
+// ESCUCHADORES REACTIVOS DE ENTRADA Y FORMATEO DINÁMICO
+// =========================================================================
+
 // Formateo y reflejo en tiempo real del Número de Tarjeta (grupos de 4 dígitos)
 if (inputNumber) {
     inputNumber.addEventListener('input', (e) => {
+        // Extrae solo dígitos y trunca a máximo 16
         let value = e.target.value.replace(/\D/g, '').substring(0, 16);
+        // Agrupa de 4 en 4 separados por un espacio: ej. "4555 1234 5678 9012"
         let formatted = value.match(/.{1,4}/g)?.join(' ') || '';
         e.target.value = formatted;
 
-        // Reflejo en la tarjeta de previsualización
+        // Reflejo en la tarjeta de previsualización superior
         if (formatted.length > 0) {
             previewNumber.textContent = formatted;
         } else {
             previewNumber.textContent = '•••• •••• •••• ••••';
         }
 
-        // Detección simple de marca (AMEX = 3, Visa = 4, Mastercard = 5)
+        // Detección simple de marca según primer dígito:
+        // 3: American Express / 4: Visa / 5: Mastercard
         if (value.startsWith('3')) {
             brandDisplay.textContent = 'AMEX';
         } else if (value.startsWith('4')) {
@@ -200,7 +252,7 @@ if (inputNumber) {
             brandDisplay.textContent = 'TARJETA';
         }
 
-        // Si ya tenía error visible, revalidar en caliente para limpiarlo
+        // Si ya tenía error visible, revalidar en caliente para limpiarlo en cuanto se corrija
         if (tieneErrorActivo('card-number')) {
             validarNumeroTarjeta();
         }
@@ -271,22 +323,25 @@ if (inputCvv) {
     });
 }
 
-// Función para realizar el procesamiento del pago simulado
+/**
+ * Simula el procesamiento seguro del pago con pasarela bancaria.
+ * Bloquea el botón, muestra animación de carga y genera el recibo de compra.
+ */
 function procesarPagoSimulado() {
     const btn = document.getElementById('btn-procesar-pago');
     const spinner = document.getElementById('btn-spinner');
     const lockIcon = document.getElementById('btn-lock-icon');
     const label = document.getElementById('btn-pago-label');
 
-    // Estado de carga
+    // Deshabilita el botón para evitar doble cobro accidental
     btn.disabled = true;
     spinner.classList.remove('hidden');
     lockIcon.classList.add('hidden');
     label.textContent = 'Procesando pago seguro...';
 
-    // Simulación de respuesta bancaria (1.2 segundos)
+    // Simulación de latencia de pasarela bancaria (1.2 segundos)
     setTimeout(() => {
-        // Preparar datos del recibo
+        // Extrae los últimos 4 dígitos de la tarjeta para el recibo (PCI-DSS compliance)
         const rawNumber = inputNumber.value.replace(/\s/g, '');
         const ultimos4 = rawNumber.length >= 4 ? rawNumber.substring(rawNumber.length - 4) : '4242';
         const titular = inputHolder.value || 'ALUMNO';
@@ -294,27 +349,30 @@ function procesarPagoSimulado() {
         const ahora = new Date();
         const fechaFormateada = ahora.toLocaleDateString('es-ES') + ' ' + ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
+        // Inyecta los metadatos en el recibo de confirmación
         document.getElementById('receipt-txn-id').textContent = randomId;
         document.getElementById('receipt-holder-name').textContent = titular;
         document.getElementById('receipt-card-masked').textContent = '•••• ' + ultimos4;
         document.getElementById('receipt-timestamp').textContent = fechaFormateada;
 
-        // Transición a la vista de confirmación visual
+        // Oculta el formulario de cobro y despliega la pantalla de éxito
         document.getElementById('checkout-view').classList.add('hidden');
         document.getElementById('confirmation-view').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 1200);
 }
 
-// Función para cerrar la ventana segura con fallback
+/**
+ * Cierra la ventana segura del checkout.
+ */
 function cerrarVentanaSegura() {
     window.close();
-    // Fallback si el navegador bloquea scripts cerrando ventanas no abiertas por window.open
+    // Mensaje de fallback si las restricciones del navegador impiden cerrar pestañas principales
     alert('Puedes cerrar esta pestaña en tu navegador.');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Interceptar envío del formulario para validación completa
+    // Interceptar el envío del formulario para procesar la transacción
     if (formPago) {
         formPago.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -324,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Botón para imprimir el recibo
     const btnImprimir = document.getElementById('btn-imprimir-comprobante');
     if (btnImprimir) {
         btnImprimir.addEventListener('click', () => {
@@ -331,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Botón para cerrar la pestaña
     const btnCerrar = document.getElementById('btn-cerrar-ventana');
     if (btnCerrar) {
         btnCerrar.addEventListener('click', cerrarVentanaSegura);

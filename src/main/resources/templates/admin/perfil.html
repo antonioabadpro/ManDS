@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -16,14 +16,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Prevención de FOUC para Tema Oscuro -->
-    <script>
-        if (localStorage.getItem('mands_theme') === 'dark' || (!('mands_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
 
     <!-- Estilos globales y Tailwind CSS (Play CDN con configuración unificada) -->
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
@@ -127,7 +121,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE <span class="text-rose-500">*</span></label>
-                                <input type="text" id="dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition uppercase font-mono" th:classappend="${#fields.hasErrors('dni')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <input type="text" id="dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition uppercase tabular-nums" th:classappend="${#fields.hasErrors('dni')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
                                 <div id="feedback-dni">
                                     <div th:if="${#fields.hasErrors('dni')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
                                         <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

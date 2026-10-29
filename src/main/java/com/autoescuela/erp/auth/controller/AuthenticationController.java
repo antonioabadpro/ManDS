@@ -218,7 +218,7 @@ public class AuthenticationController
     }
 
     /**
-     * Muestra la vista de activación de cuenta para el nuevo profesor (Regla 7.1).
+     * Muestra la vista de activación de cuenta para el nuevo profesor.
      */
     @GetMapping("/activar-cuenta")
     public String mostrarActivacionCuenta(@RequestParam(name = "token", required = false) String token, Model model, RedirectAttributes redirectAttributes)

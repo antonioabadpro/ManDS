@@ -1,4 +1,4 @@
-<div id="modal-detalle-alumno" th:fragment="modal-detalle-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle" th:classappend="${abrirModalDetalleAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+﻿<div id="modal-detalle-alumno" th:fragment="modal-detalle-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle" th:classappend="${abrirModalDetalleAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
     <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-detalle-alumno"></div>
     <div class="relative z-10 w-full max-w-4xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 lg:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
 
@@ -52,7 +52,7 @@
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">DNI / NIE</dt>
-                        <dd class="mt-0.5 font-mono font-semibold text-slate-800 dark:text-slate-200" th:text="${alumno.dni}">
+                        <dd class="mt-0.5 tabular-nums font-semibold text-slate-800 dark:text-slate-200" th:text="${alumno.dni}">
                             12345678Z
                         </dd>
                     </div>
@@ -60,7 +60,7 @@
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">Fecha de Nacimiento</dt>
                         <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200">
-                            <span th:text="${#temporals.format(alumno.fechaNacimiento, 'dd/MM/yyyy')}">15/04/2000</span>
+                            <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(alumno.fechaNacimiento, 'dd/MM/yyyy')}">15/04/2000</span>
                             <span th:if="${alumno.edad != null}" class="text-slate-400 font-normal" th:text="|(${alumno.edad} años)|">(24 años)</span>
                         </dd>
                     </div>
@@ -123,7 +123,7 @@
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">Fecha de Matriculación</dt>
                         <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200">
-                            <span th:if="${alumno.fechaMatriculacion != null}" th:text="${#temporals.format(alumno.fechaMatriculacion, 'dd/MM/yyyy')}">01/09/2026</span>
+                            <span th:if="${alumno.fechaMatriculacion != null}" class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(alumno.fechaMatriculacion, 'dd/MM/yyyy')}">01/09/2026</span>
                             <span th:if="${alumno.fechaMatriculacion == null}" class="text-slate-400 italic">Sin matrícula activa</span>
                         </dd>
                     </div>
@@ -189,7 +189,7 @@
                                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                                 <div>
                                     <p class="font-bold text-slate-900 dark:text-white" th:text="${alumno.vehiculoModelo}">Peugeot 208 PureTech</p>
-                                    <p class="text-[11px] font-mono text-slate-500 dark:text-slate-400" th:text="${alumno.vehiculoMatricula}">7890-XYZ</p>
+                                    <p class="text-[11px] tabular-nums text-slate-500 dark:text-slate-400" th:text="${alumno.vehiculoMatricula}">7890-XYZ</p>
                                 </div>
                             </div>
                             <span th:if="${alumno.vehiculoTipo?.name() == 'PERMISO_A' || alumno.vehiculoTipo?.name() == 'PERMISO_A1' || alumno.vehiculoTipo?.name() == 'PERMISO_A2' || alumno.vehiculoTipo?.name() == 'PERMISO_AM'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${alumno.vehiculoTipoDescripcion}">Permiso A2</span>

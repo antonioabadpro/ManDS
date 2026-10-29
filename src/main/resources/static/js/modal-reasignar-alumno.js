@@ -1,20 +1,33 @@
 /**
- * modal-reasignar-alumno.js
- * Lógica de interacción y transición orientada a eventos para el modal de reasignación de profesor a alumno.
- * Implementa un flujo en dos pasos: selección y confirmación previa obligatoria.
+ * modal-reasignar-alumno.js - Flujo de Doble Confirmación para Reasignación de Alumnos
+ *
+ * =====================================================================================
+ * 1. VINCULACIÓN ACADÉMICA:
+ *    - Un alumno solo puede tener profesor asignado si posee una matrícula activa.
+ *    - La reasignación permite transferir el expediente de un alumno a otro profesor activo
+ *      de la autoescuela que esté habilitado en su tipo de carnet ('listaTiposCarnet').
+ *    - Alternativamente, se permite desvincular temporalmente al profesor dejándolo 'SIN_PROFESOR'.
+ *
+ * 2. PATRÓN DE MODAL EN 2 PASOS (SELECCIÓN Y CONFIRMACIÓN):
+ *    - Paso 1 ('modal-reasignar-alumno'): Selección del nuevo profesor mediante radio y select.
+ *    - Paso 2 ('modal-confirmar-reasignacion-alumno'): Traslada el nombre y ID del profesor elegido
+ *      al formulario final de confirmación, asegurando que el administrador no cometa errores.
+ * =====================================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicialización si fuese necesaria
+    'use strict';
 });
 
 /**
- * Escuchador delegado para el envío del formulario de Paso 1 (Transición a Confirmación).
+ * Escuchador delegado para el envío del formulario del Paso 1 (Transición a Confirmación).
+ * Valida la selección del nuevo profesor y prepara el formulario del Paso 2.
  */
 document.addEventListener('submit', (e) => {
     const form = e.target.closest('#form-reasignar-alumno');
     if (!form) return;
 
+    // Detiene el envío real para mostrar primero el modal de confirmación
     e.preventDefault();
 
     const opcion = form.querySelector('input[name="opcion"]:checked')?.value || 'REASIGNAR';
@@ -28,6 +41,7 @@ document.addEventListener('submit', (e) => {
         if (inputOpcion) inputOpcion.value = 'SIN_PROFESOR';
         if (inputProfesor) inputProfesor.value = '';
     } else {
+        // Validación obligatoria de selección de profesor en el desplegable
         if (!selectProfesor || !selectProfesor.value) {
             alert('Debes seleccionar un profesor activo disponible.');
             return;
@@ -39,6 +53,7 @@ document.addEventListener('submit', (e) => {
         if (inputOpcion) inputOpcion.value = 'REASIGNAR';
     }
 
+    // Ocultar Modal 1 y desplegar Modal 2
     const modal1 = document.getElementById('modal-reasignar-alumno');
     const modal2 = document.getElementById('modal-confirmar-reasignacion-alumno');
     if (modal1 && modal2) {
@@ -50,7 +65,8 @@ document.addEventListener('submit', (e) => {
 });
 
 /**
- * Escuchador delegado de cambio de opción docente (radio button) para habilitar/deshabilitar el select.
+ * Escuchador reactivo al cambiar de radio button:
+ * Habilita el desplegable solo si la opción marcada es 'REASIGNAR'.
  */
 document.addEventListener('change', (e) => {
     if (e.target && e.target.name === 'opcion') {

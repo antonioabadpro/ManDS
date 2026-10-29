@@ -37,7 +37,7 @@ import lombok.AllArgsConstructor;
 
 /**
  * Servicio encargado de ensamblar la cuadrícula semanal Server-Side Rendering (SSR)
- * para los calendarios de alumno y profesor, conforme a las directrices de AGENTS.md.
+ * para los calendarios de alumno y profesor
  */
 @Service
 @AllArgsConstructor

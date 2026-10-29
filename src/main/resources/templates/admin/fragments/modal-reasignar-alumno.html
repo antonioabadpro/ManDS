@@ -1,4 +1,4 @@
-<th:block th:fragment="modal-reasignar-alumno">
+﻿<th:block th:fragment="modal-reasignar-alumno">
     <!-- MODAL 1: Selección y Advertencia de Reasignación -->
     <div id="modal-reasignar-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-reasignar" th:classappend="${abrirModalReasignarAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
         <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-reasignar-alumno"></div>
@@ -14,7 +14,7 @@
                     </div>
                     <div>
                         <h3 id="titulo-modal-reasignar" class="text-base font-bold text-slate-900 dark:text-white">Reasignar Profesor al Alumno</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Gestión de asignación docente y protocolo de clases</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Gestión de asignación de profesor y protocolo de clases</p>
                     </div>
                 </div>
                 <button type="button" data-modal-close="modal-reasignar-alumno" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer" aria-label="Cerrar modal">
@@ -36,7 +36,7 @@
             <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-semibold text-slate-900 dark:text-white" th:text="${alumno.nombreCompleto}">Alumno</span>
-                    <span class="text-[11px] font-mono text-slate-500" th:text="|DNI: ${alumno.dni}|">12345678Z</span>
+                    <span class="text-[11px] tabular-nums text-slate-500" th:text="|DNI: ${alumno.dni}|">12345678Z</span>
                 </div>
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
@@ -73,17 +73,17 @@
                     </li>
                     <li>
                         <strong>Notificación por correo:</strong> Se enviará un correo electrónico informativo a
-                        <span class="font-mono font-medium text-slate-800 dark:text-slate-200" th:text="${alumno.correo}"></span>
-                        notificándole su nueva situación docente (nuevo profesor o desasignación temporal).
+                        <span class="tabular-nums font-medium text-slate-800 dark:text-slate-200" th:text="${alumno.correo}"></span>
+                        notificándole su nueva asignación de profesor (nuevo profesor o desasignación temporal).
                     </li>
                 </ul>
             </div>
 
-            <!-- Formulario de Selección Docente -->
+            <!-- Formulario de Selección de Profesor -->
             <form id="form-reasignar-alumno" class="space-y-4">
                 <div class="space-y-2.5">
                     <label class="block text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        Selecciona el nuevo destino docente:
+                        Selecciona el nuevo destino de profesor:
                     </label>
 
                     <!-- Opción 1: Reasignar a un profesor activo -->
@@ -92,7 +92,7 @@
                         <div class="flex-1 min-w-0">
                             <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Asignar a otro profesor activo</span>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet != null}" th:text="|Profesores activos habilitados para ${alumno.tipoCarnetDescripcion} (ordenados por menor número de alumnos).|">Profesores activos habilitados para el permiso.</p>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet == null}">Se asignará al docente elegido y se cancelarán sus prácticas pendientes.</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet == null}">Se asignará al profesor elegido y se cancelarán sus prácticas pendientes.</p>
 
                             <div th:if="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
                                 <select id="select-nuevo-profesor" name="nuevoProfesorId" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500">
@@ -112,7 +112,7 @@
                         <div>
                             <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Dejar temporalmente sin profesor</span>
                             <span th:if="${alumno.profesorId == null}" class="text-[10px] text-amber-600 dark:text-amber-400 ml-1 font-normal">(Ya se encuentra sin profesor)</span>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">El expediente queda sin docente asignado a la espera de una nueva asignación.</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">El expediente queda sin profesor asignado a la espera de una nueva asignación.</p>
                         </div>
                     </label>
                 </div>
@@ -175,7 +175,7 @@
                     </div>
                     <div class="flex items-center justify-between text-[11px]">
                         <span class="text-slate-500 dark:text-slate-400">Notificación al alumno:</span>
-                        <span th:text="${alumno.correo}" class="font-mono text-slate-700 dark:text-slate-300 text-right">correo@alumno.es</span>
+                        <span th:text="${alumno.correo}" class="tabular-nums text-slate-700 dark:text-slate-300 text-right">correo@alumno.es</span>
                     </div>
                 </div>
 

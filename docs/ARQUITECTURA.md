@@ -78,8 +78,8 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 - **Convocatorias y Cupos DGT:** Configuración manual de las 2 fechas mensuales oficiales, gestión FIFO de solicitudes de examen, y resolución (aceptación con control de cupo por carnet o rechazo con motivo).
 - **Métricas e Incidencias:** Analítica agregada de rentabilidad, aprobados/suspensos y supervisión de averías mecánicas.
 
-### 4.2. Profesor (Gestión Docente y Operativa)
-- **Agenda de Clases:** FullCalendar exclusivo con sus tramos de trabajo según su turno asignado (`MATINAL` o `TARDE`).
+### 4.2. Profesor (Gestión Operativa y de Clases)
+- **Agenda de Clases:** Calendario laboral semanal nativo con sus tramos de trabajo según su turno asignado (`MATINAL` o `TARDE`).
 - **Ficha Pedagógica:** Registro inmutable de recogida del alumno y edición de odómetro (`kmInicio`, `kmFin`) y notas formativas tras cada clase.
 - **Control de Exámenes:** Consulta de solicitudes y alumnos citados a su vehículo; registro de actas de examen (`APTO` / `NO APTO`).
 - **Averías:** Notificación de incidencias mecánicas sobre su vehículo asignado.

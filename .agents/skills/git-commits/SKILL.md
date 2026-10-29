@@ -63,7 +63,7 @@ El ámbito (`scope`) sitúa el cambio en el módulo correspondiente del ERP:
 * `auth`: Autenticación, registro de alumnos, login dual, tokens efímeros, Spring Security.
 * `flota`: Gestión de vehículos, fichas mecánicas, revisiones ITV, altas y bajas lógicas.
 * `incidencias`: Registro y resolución de averías, transición a `MANTENIMIENTO`.
-* `profesores`: Panel docente, gestión de profesores, turnos, asignación 1-a-1 de vehículos.
+* `profesores`: Panel de profesor, gestión de profesores, turnos, asignación 1-a-1 de vehículos.
 * `alumnos`: Portal de estudiante, matrículas, expediente académico, balance de saldo.
 * `practicas`: Clases prácticas, algoritmo de reserva, cancelaciones, fichas pedagógicas.
 * `calendario`: Cuadrícula semanal SSR, franjas horarias de 45 min, control de festivos.
@@ -87,7 +87,7 @@ servicio rechaza reservas lanzando ReglaNegocioException.
 
 ### 5.2. Ejemplo de Corrección de Defecto (`fix`)
 ```text
-fix(alumnos): corregir desvinculación de profesor tutor tras calificar APTO
+fix(alumnos): corregir desvinculación de profesor tras calificar APTO
 
 Al superar el examen práctico oficial, la matrícula pasa a inactiva y el
 campo profesor del alumno se asigna a null para permitir la contratación

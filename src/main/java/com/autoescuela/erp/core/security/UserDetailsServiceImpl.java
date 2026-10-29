@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Servicio de autenticación que carga los detalles del usuario para Spring Security.
- * Soporta autenticación mediante nombre de usuario o correo electrónico según la regla 7.1.
+ * Soporta autenticación mediante nombre de usuario o correo electrónico.
  */
 @Service
 @RequiredArgsConstructor

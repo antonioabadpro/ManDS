@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -50,7 +50,7 @@
             <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2.5 text-xs">
                 <div class="flex items-center justify-between py-0.5">
                     <span class="text-slate-400">Fecha y hora:</span>
-                    <span class="font-bold text-slate-900 dark:text-white" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">18/10/2026 11:30</span>
+                    <span class="font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">18/10/2026 11:30</span>
                 </div>
                 <div class="flex items-center justify-between py-0.5">
                     <span class="text-slate-400">Duración:</span>

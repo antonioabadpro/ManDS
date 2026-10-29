@@ -150,7 +150,7 @@ public class PagoStripeService
             throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para renovar la matrícula.");
         }
 
-        // Regla de Negocio: Permisos C y D (450€), resto (250€)
+        // Tarifas oficiales: Permisos C y D (450€), resto (250€)
         boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
         long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
 
@@ -226,7 +226,7 @@ public class PagoStripeService
             throw new ReglaNegocioException("El número de clases prácticas debe ser un valor positivo.");
         }
 
-        // Regla de Negocio: Permisos C y D (vehículos pesados), resto (vehículos estándar)
+        // Tarifas oficiales: Permisos C y D (vehículos pesados), resto (vehículos estándar)
         boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
 
         if (esOferta) // Bono de formación intensiva con descuento

@@ -1,13 +1,36 @@
 /**
- * Módulo JavaScript no intrusivo para la gestión de Convocatorias, Cupos y Solicitudes DGT (Rol Admin).
- * Implementa el patrón Named Event Handlers y modales de doble confirmación con pantallas limpias sin superposiciones.
+ * admin-examenes.js - Gestión de Fechas Oficiales DGT, Cupos y Solicitudes de Alumnos
+ *
+ * =====================================================================================
+ * 1. REGLA DE NEGOCIO DGT:
+ *    - El Administrador fija exactamente 2 fechas oficiales de examen por mes (fecha 2 >= fecha 1).
+ *    - Fija cupos independientes de plazas por tipo de permiso (B, A2, C, D) y tipo (Teórico/Práctico).
+ *    - Como fijar estas fechas es una acción crítica e inmutable, se implementa un patrón
+ *      de MODAL EN 2 PASOS (Doble Confirmación): el Paso 1 se oculta completamente y se muestra
+ *      un submodal limpio de advertencia antes de persistir en base de datos.
+ *
+ * 2. RESTRICCIÓN ESTRICTA DE CALENDARIO AL MES SELECCIONADO:
+ *    La función 'limitarFechasAlMesSeleccionado' calcula dinámicamente el último día del mes
+ *    elegido (manejando años bisiestos con 'new Date(anio, mes, 0).getDate()') y fija los
+ *    atributos 'min' y 'max' en los selectores HTML5 'datetime-local' para impedir errores humanos.
+ *
+ * 3. RESOLUCIÓN DE PETICIONES (COLA FIFO):
+ *    Permite aceptar solicitudes o rechazarlas (exigiendo en este último caso una justificación
+ *    obligatoria que se remitirá por email al alumno).
+ * =====================================================================================
  */
+
 document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
     inicializarExamenesAdmin();
     limitarFechasAlMesSeleccionado();
 });
 
+// Sincronización con eventos de HTMX:
+// Al refrescar el contenedor de jornadas o la tabla de solicitudes, se re-aplica la restricción de fechas
+// y se re-aplica el filtro de búsqueda si el administrador ya tenía texto escrito en el buscador
 document.addEventListener('htmx:afterSwap', (event) => {
+    'use strict';
     if (event.detail && event.detail.target && event.detail.target.id === 'contenedor-jornadas-dgt') {
         limitarFechasAlMesSeleccionado();
     }
@@ -20,8 +43,11 @@ document.addEventListener('htmx:afterSwap', (event) => {
 });
 
 function inicializarExamenesAdmin() {
-    // 1. Modales globales (Abrir y Cerrar)
+    'use strict';
+
+    // Manejador centralizado de clics (Event Delegation)
     document.addEventListener('click', (event) => {
+        // 1. Apertura genérica de modales
         const targetBtn = event.target.closest('[data-modal-target]');
         if (targetBtn) {
             const modalId = targetBtn.getAttribute('data-modal-target');
@@ -36,6 +62,7 @@ function inicializarExamenesAdmin() {
             return;
         }
 
+        // Cierre genérico de modales
         const closeBtn = event.target.closest('[data-modal-close]');
         if (closeBtn) {
             const modalId = closeBtn.getAttribute('data-modal-close');
@@ -47,7 +74,8 @@ function inicializarExamenesAdmin() {
             return;
         }
 
-        // 2. Modales en 2 pasos para Fijar Fechas DGT
+        // 2. MODAL EN 2 PASOS: FIJAR FECHAS DGT
+        // Paso 1 -> Paso 2: Valida el formulario y muestra la pantalla de confirmación
         if (event.target.closest('#btn-pre-fijar-fechas')) {
             const form = document.getElementById('form-fijar-fechas-dgt');
             if (form && form.checkValidity()) {
@@ -61,6 +89,7 @@ function inicializarExamenesAdmin() {
             return;
         }
 
+        // Cancelar Paso 2 y regresar al Paso 1
         if (event.target.closest('#btn-cancelar-submodal-fechas')) {
             const paso1 = document.getElementById('contenedor-paso-1-fechas');
             const submodal = document.getElementById('submodal-confirmar-fijar-fechas');
@@ -69,13 +98,14 @@ function inicializarExamenesAdmin() {
             return;
         }
 
+        // Confirmar y enviar el formulario de fechas al backend
         if (event.target.closest('#btn-ejecutar-fijar-fechas')) {
             const form = document.getElementById('form-fijar-fechas-dgt');
             if (form) form.submit();
             return;
         }
 
-        // 3. Modales en 2 pasos para Fijar Cupos DGT
+        // 3. MODAL EN 2 PASOS: FIJAR CUPOS DGT
         if (event.target.closest('#btn-pre-fijar-cupos')) {
             const form = document.getElementById('form-fijar-cupos-dgt');
             if (form && form.checkValidity()) {
@@ -103,7 +133,8 @@ function inicializarExamenesAdmin() {
             return;
         }
 
-        // 4. Modal de Edición de Solicitud (HTMX Dinámico)
+        // 4. GESTIÓN DE SOLICITUDES DE EXAMEN (ACEPTAR / RECHAZAR)
+        // Desplegar campo de motivo de rechazo
         if (event.target.closest('#btn-desplegar-rechazar')) {
             const seccionRechazar = document.getElementById('seccion-rechazar-solicitud');
             if (seccionRechazar) seccionRechazar.classList.remove('hidden');
@@ -116,7 +147,7 @@ function inicializarExamenesAdmin() {
             return;
         }
 
-        // Paso 2: Aceptar Solicitud (Oculta paso 1 completamente y muestra confirmación limpia)
+        // Doble confirmación para Aceptar Solicitud
         if (event.target.closest('#btn-pre-aceptar')) {
             const paso1 = document.getElementById('contenedor-paso-1-solicitud');
             const submodal = document.getElementById('submodal-confirmar-aceptar');
@@ -139,7 +170,7 @@ function inicializarExamenesAdmin() {
             return;
         }
 
-        // Paso 2: Rechazar Solicitud (Oculta paso 1 completamente y muestra confirmación limpia)
+        // Doble confirmación para Rechazar Solicitud (requiere motivo no vacío)
         if (event.target.closest('#btn-pre-rechazar')) {
             const motivoText = document.getElementById('motivoRechazo');
             if (motivoText && motivoText.value.trim() === '') {
@@ -169,7 +200,7 @@ function inicializarExamenesAdmin() {
         }
     });
 
-    // Atajo de teclado: Enter en el buscador de solicitudes para forzar la búsqueda en servidor
+    // Atajo de teclado: pulsar Enter en el filtro de búsqueda dispara la consulta
     const inputBusqueda = document.getElementById('filtro-busqueda');
     if (inputBusqueda) {
         inputBusqueda.addEventListener('keydown', (event) => {
@@ -183,7 +214,7 @@ function inicializarExamenesAdmin() {
         });
     }
 
-    // Cerrar modales con tecla Escape
+    // Cierre accesible con tecla Escape
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(modal => {
@@ -205,15 +236,18 @@ function limitarFechasAlMesSeleccionado() {
     const inputMes = form.querySelector('input[name="mes"]');
     if (!inputMes || !inputMes.value) return;
 
+    // Descompone el mes seleccionado (formato "YYYY-MM", ej. "2026-10")
     const valorMes = inputMes.value;
     const partes = valorMes.split('-');
     const anio = parseInt(partes[0], 10);
     const mes = parseInt(partes[1], 10);
 
+    // Truco de Date en JS: el día 0 del mes siguiente devuelve el último día del mes actual
     const ultimoDia = new Date(anio, mes, 0).getDate();
     const mesStr = String(mes).padStart(2, '0');
     const ultimoDiaStr = String(ultimoDia).padStart(2, '0');
 
+    // Rangos ISO válidos para inputs datetime-local (dentro de la jornada laboral)
     const minIso = `${anio}-${mesStr}-01T08:00`;
     const maxIso = `${anio}-${mesStr}-${ultimoDiaStr}T21:45`;
 
@@ -223,15 +257,18 @@ function limitarFechasAlMesSeleccionado() {
     [fecha1Input, fecha2Input].forEach((input, index) => {
         if (!input) return;
 
+        // Asignación de límites HTML5
         input.min = minIso;
         input.max = maxIso;
 
+        // Si no tiene valor o está fuera de rango, sugerir días hábiles por defecto (día 10 y 24)
         if (!input.value || input.value < minIso || input.value > maxIso) {
             const diaSugerido = index === 0 ? '10' : '24';
             input.value = `${anio}-${mesStr}-${diaSugerido}T08:30`;
         }
 
-        input.onchange = () => {
+        // Validación reactiva mediante addEventListener al modificar la fecha
+        input.addEventListener('change', () => {
             if (input.value) {
                 if (input.value < minIso || input.value > maxIso) {
                     input.setCustomValidity(`Solo puedes seleccionar fechas de ${mesStr}/${anio}.`);
@@ -242,6 +279,6 @@ function limitarFechasAlMesSeleccionado() {
                     input.setCustomValidity('');
                 }
             }
-        };
+        });
     });
 }

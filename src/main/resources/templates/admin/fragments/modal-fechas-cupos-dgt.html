@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -22,7 +22,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white capitalize" th:text="${#temporals.format(mesSeleccionado, 'MMMM yyyy')}">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(mesSeleccionado, 'MMMM yyyy')}">
                             Octubre 2026
                         </h3>
                         <button type="button" th:attr="hx-get=@{/admin/examenes/jornadas(mes=${mesSiguiente})}" hx-target="#contenedor-jornadas-dgt" hx-swap="outerHTML" hx-replace-url="/admin/examenes" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes siguiente">
@@ -72,10 +72,10 @@
                 <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
-                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora1, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
+                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora1, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
                             Jueves, 15 de Octubre de 2026
                         </h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora1, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora1, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
                             Hora de examen: 08:30h · Jefatura Provincial
                         </p>
                     </div>
@@ -93,10 +93,10 @@
                 <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 shadow-sm flex items-center justify-between">
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
-                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora2, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
+                        <h4 class="text-base font-extrabold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${fechasMes != null ? #temporals.format(fechasMes.fechaHora2, 'EEEE, dd ''de'' MMMM ''de'' yyyy') : 'Pendiente de fijar'}">
                             Jueves, 29 de Octubre de 2026
                         </h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora2, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
+                        <p class="text-xs text-slate-500 dark:text-slate-400 tabular-nums whitespace-nowrap" th:text="${fechasMes != null ? 'Hora oficial de citación: ' + #temporals.format(fechasMes.fechaHora2, 'HH:mm') + 'h · Jefatura DGT' : 'El Administrador puede parametrizar la fecha en cualquier momento'}">
                             Hora de examen: 08:30h · Jefatura Provincial
                         </p>
                     </div>

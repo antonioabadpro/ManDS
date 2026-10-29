@@ -1,15 +1,29 @@
 /**
- * modal-baja-profesor.js
- * Lógica de interacción y transición orientada a eventos para el modal de baja lógica de profesores (Regla 7.3).
- * Implementa un flujo en dos pasos: selección y confirmación previa obligatoria.
+ * modal-baja-profesor.js - Flujo de Doble Confirmación para Baja Lógica de Profesores
+ *
+ * =====================================================================================
+ * 1. REGLAS DE NEGOCIO AL DAR DE BAJA A UN PROFESOR:
+ *    - El profesor pasa a 'INACTIVO' (soft delete).
+ *    - Su vehículo asignado queda liberado automáticamente a estado 'DISPONIBLE'.
+ *    - Todas sus clases futuras se cancelan y se notifica a los alumnos por email.
+ *    - Gestión de alumnos asignados: El administrador puede optar por:
+ *        a) Reasignarlos a otro profesor activo disponible habilitado en su permiso.
+ *        b) Dejarlos temporalmente 'SIN_PROFESOR' para asignarlos más adelante.
+ *
+ * 2. PATRÓN DE MODAL EN 2 PASOS (SELECCIÓN Y CONFIRMACIÓN):
+ *    - Paso 1 ('modal-baja-profesor'): Selección del destino de los alumnos (radio buttons y select).
+ *    - Paso 2 ('modal-confirmar-baja-profesor'): Vuelca los datos seleccionados en campos ocultos
+ *      y muestra un resumen limpio del impacto antes de ejecutar la baja definitiva en Spring Boot.
+ * =====================================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicialización si fuese necesaria
+    'use strict';
 });
 
 /**
- * Escuchador delegado para el envío del formulario de Paso 1 (Transición a Confirmación).
+ * Escuchador delegado para el envío del formulario del Paso 1 (Transición a Confirmación).
+ * Valida la opción elegida, sincroniza el texto de resumen y traslada los datos al Modal 2.
  */
 document.addEventListener('submit', (e) => {
     const form = e.target.closest('#form-baja-profesor');
@@ -36,6 +50,7 @@ document.addEventListener('submit', (e) => {
         if (inputOpcion) inputOpcion.value = 'SIN_PROFESOR';
         if (inputProfesor) inputProfesor.value = '';
     } else {
+        // Opción REASIGNAR: exige seleccionar un profesor activo en el desplegable
         if (!selectProfesor || !selectProfesor.value) {
             alert('Debes seleccionar un profesor activo disponible para reasignar a los alumnos.');
             return;
@@ -47,6 +62,7 @@ document.addEventListener('submit', (e) => {
         if (inputOpcion) inputOpcion.value = 'REASIGNAR';
     }
 
+    // Transición visual: oculta Modal 1 y muestra Modal 2
     const modal1 = document.getElementById('modal-baja-profesor');
     const modal2 = document.getElementById('modal-confirmar-baja-profesor');
     if (modal1 && modal2) {
@@ -58,7 +74,8 @@ document.addEventListener('submit', (e) => {
 });
 
 /**
- * Escuchador delegado de cambio de opción docente (radio button) para habilitar/deshabilitar el select.
+ * Escuchador reactivo al cambiar de radio button:
+ * Habilita el menú desplegable de profesores solo si se selecciona la opción 'REASIGNAR'.
  */
 document.addEventListener('change', (e) => {
     if (e.target && e.target.name === 'opcionAlumnos') {

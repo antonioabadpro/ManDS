@@ -1,11 +1,11 @@
-<div id="modal-detalle-vehiculo" th:fragment="modal-detalle-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle" th:classappend="${abrirModalDetalleVehiculo} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+﻿<div id="modal-detalle-vehiculo" th:fragment="modal-detalle-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-detalle" th:classappend="${abrirModalDetalleVehiculo} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
     <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-detalle-vehiculo"></div>
     <div class="relative z-10 w-full max-w-4xl rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 lg:p-7 space-y-5 my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden">
 
         <!-- Cabecera del Modal con Avatar / Matrícula y Estado -->
         <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div class="flex items-center space-x-3.5 sm:space-x-4">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono font-extrabold text-sm sm:text-base flex items-center justify-center shrink-0 border border-blue-500/20" th:text="${vehiculo.matriculaPrefijo}">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 tabular-nums font-extrabold text-sm sm:text-base flex items-center justify-center shrink-0 border border-blue-500/20" th:text="${vehiculo.matriculaPrefijo}">
                     1234
                 </div>
                 <div>
@@ -58,7 +58,7 @@
                 <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">Matrícula</dt>
-                        <dd class="mt-0.5 font-mono font-semibold text-slate-800 dark:text-slate-200" th:text="${vehiculo.matricula}">
+                        <dd class="mt-0.5 tabular-nums font-semibold text-slate-800 dark:text-slate-200" th:text="${vehiculo.matricula}">
                             1234-LMN
                         </dd>
                     </div>
@@ -156,7 +156,7 @@
                     <div>
                         <dt class="text-slate-400 dark:text-slate-500 font-medium">Última Revisión Pasada</dt>
                         <dd class="mt-0.5 font-medium text-slate-800 dark:text-slate-200">
-                            <span th:if="${vehiculo.fechaUltimaRevision != null}" th:text="${#temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy')}">10/01/2026</span>
+                            <span th:if="${vehiculo.fechaUltimaRevision != null}" class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy')}">10/01/2026</span>
                             <span th:if="${vehiculo.fechaUltimaRevision == null}" class="text-slate-400 italic">Sin registrar</span>
                         </dd>
                     </div>
@@ -168,21 +168,21 @@
                                 <div th:if="${vehiculo.isRevisionVencida()}" class="space-y-0.5">
                                     <div class="flex items-center space-x-1.5">
                                         <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                        <span class="font-bold text-red-600 dark:text-red-400" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
+                                        <span class="font-bold text-red-600 dark:text-red-400 tabular-nums whitespace-nowrap" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">05/09/2026</span>
                                     </div>
                                     <p class="text-[10px] text-red-600 dark:text-red-400 font-bold">¡Revisión Vencida!</p>
                                 </div>
                                 <div th:if="${vehiculo.isRevisionProxima()}" class="space-y-0.5">
                                     <div class="flex items-center space-x-1.5">
                                         <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">20/11/2026</span>
                                     </div>
                                     <p class="text-[10px] text-amber-600 dark:text-amber-400">Próxima (&lt; 60 días)</p>
                                 </div>
                                 <div th:if="${vehiculo.isRevisionAlDia()}" class="space-y-0.5">
                                     <div class="flex items-center space-x-1.5">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <span class="font-medium text-slate-800 dark:text-slate-200" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
+                                        <span class="font-medium text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy')}">10/01/2027</span>
                                     </div>
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
                                 </div>
@@ -225,7 +225,7 @@
                                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
                                 <div>
                                     <p class="font-bold text-slate-900 dark:text-white" th:text="${vehiculo.profesorNombreCompleto}">Laura Sánchez Romero</p>
-                                    <p th:if="${vehiculo.profesorDni != null}" class="text-[11px] font-mono text-slate-500 dark:text-slate-400" th:text="|DNI: ${vehiculo.profesorDni}|">DNI: 12345678Z</p>
+                                    <p th:if="${vehiculo.profesorDni != null}" class="text-[11px] tabular-nums text-slate-500 dark:text-slate-400" th:text="|DNI: ${vehiculo.profesorDni}|">DNI: 12345678Z</p>
                                 </div>
                             </div>
                             <span th:if="${vehiculo.profesorTurno?.name() == 'MATINAL'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">

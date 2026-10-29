@@ -1,13 +1,25 @@
 /**
- * profesor.js
- * JavaScript no intrusivo para el portal del Profesor en ManDS ERP.
- * Las funciones generales de interfaz (tema oscuro, reloj, modales, menú de usuario) residen en layout.js.
+ * profesor.js - Lógica Cliente para el Panel de Gestión del Profesor
  *
- * Funcionalidades específicas de Profesor:
- * 1. Alternancia del menú lateral (Sidebar) en modo compacto para escritorio con persistencia.
- * 2. Filtrado rápido de tablas en cliente mediante data-table-search.
- * 3. Integración con FullCalendar v6 (código de colores acordado, visualización de eventos y modal de ficha de clase).
- * 4. Validación técnica de kilometraje (kmFin >= kmInicio) antes del envío del reporte de clase.
+ * =====================================================================================
+ * 1. REGLAS DE NEGOCIO DEL PROFESOR:
+ *    - Cuadrícula de Calendario Semanal: turnos Matinal (8:00-14:45) y Tarde (15:00-21:45)
+ *      con franjas de 45 minutos.
+ *    - Registro de Ficha Pedagógica (Consolidar Clase a RECIBIDA): exige anotar el odómetro
+ *      del vehículo. Valida en cliente que el kilometraje final sea estrictamente superior
+ *      al inicial ('kmFin > kmInicio').
+ *    - Doble Confirmación Interactiva: tanto para consolidar la clase como para cancelarla
+ *      por imprevisto del profesor ('canceladaPorProfesor = true', que bloquea el tramo en
+ *      ambos calendarios) o cancelar la jornada completa.
+ *
+ * 2. LEYENDA DEL CALENDARIO COLAPSABLE CON PERSISTENCIA:
+ *    Permite ocultar o mostrar la guía de colores (clase pendiente, impartida, examen DGT,
+ *    festivo, etc.), recordando la preferencia del usuario en 'localStorage'.
+ *
+ * 3. CONTROL DE MODALES HTMX Y REACTIVIDAD:
+ *    Escucha el evento personalizado 'actualizarCalendario' emitido por el backend tras
+ *    procesar una ficha para vaciar el modal y refrescar la vista.
+ * =====================================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     const TEMA_ALMACENADO_SIDEBAR = 'mands_profesor_sidebar_compact';
 
+    /**
+     * Aplica el estado contraído (w-20) o expandido (w-72) al menú del profesor.
+     * @param {boolean} esCompacto - True si debe mostrarse únicamente con iconos.
+     */
     function aplicarModoCompactoEscritorio(esCompacto) {
         if (!sidebar) return;
 
@@ -57,12 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Restauración de preferencia guardada en navegador
     try {
         if (localStorage.getItem(TEMA_ALMACENADO_SIDEBAR) === 'true' && window.innerWidth >= 1024) {
             aplicarModoCompactoEscritorio(true);
         }
     } catch (e) {
-        // Fallback silencioso
+        // Fallback silencioso en entornos restringidos
     }
 
     if (btnToggleSidebar) {
@@ -102,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 3. ACTUALIZACIÓN REACTIVA DE LA CUADRÍCULA SEMANAL (HTMX)
     // =========================================================================
+    // Escucha el evento personalizado disparado por cabeceras HX-Trigger desde Spring Boot
     document.body.addEventListener('actualizarCalendario', () => {
         document.body.classList.remove('overflow-hidden');
         const modal = document.getElementById('contenedor-modal');
@@ -113,6 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 4. VALIDACIÓN TÉCNICA (kmFin > kmInicio) Y DOBLE CONFIRMACIÓN DE CLASE
     // =========================================================================
+    /**
+     * Valida que el kilometraje final introducido por el profesor sea un número superior al inicial.
+     * @param {HTMLFormElement} form - Formulario de registro de clase.
+     * @returns {boolean} - true si el kilometraje es válido.
+     */
     function validarFormularioKilometraje(form) {
         const inputKmInicio = form.querySelector('#modal-clase-km-inicio');
         const inputKmFin = form.querySelector('#modal-clase-km-fin');
@@ -142,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
+        // Validación técnica: el vehículo debe haber recorrido al menos 1 km
         if (kmFin <= kmInicio) {
             if (errorKm) {
                 errorKm.textContent = 'El kilometraje final (' + kmFin + ' km) debe ser estrictamente superior al inicial (' + kmInicio + ' km).';
@@ -157,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // Delegación de clics para la doble verificación interactiva
+    // Delegación de clics para la navegación en 2 pasos de los modales de clase
     document.addEventListener('click', (e) => {
-        // 4.1. Abrir confirmación para consolidar clase
+        // 4.1. Abrir confirmación previa para consolidar clase a RECIBIDA
         const btnPreCompletar = e.target.closest('#btn-pre-completar-clase');
         if (btnPreCompletar) {
             const form = btnPreCompletar.closest('#form-completar-clase');
@@ -177,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4.2. Cancelar panel de confirmación de consolidación
+        // 4.2. Cancelar panel de confirmación y volver al formulario de odómetro
         const btnVolverCompletar = e.target.closest('#btn-cancelar-confirmacion-completar');
         if (btnVolverCompletar) {
             const contenedorPre = document.getElementById('contenedor-btn-pre-completar');
@@ -189,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4.3. Abrir confirmación para cancelar clase
+        // 4.3. Abrir confirmación para cancelar una clase individual por causa justificada
         const btnPreCancelar = e.target.closest('#btn-pre-cancelar-clase');
         if (btnPreCancelar) {
             const inputMotivo = document.getElementById('input-motivo-cancelacion-profesor');
@@ -210,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4.4. Cancelar panel de confirmación de cancelación
+        // 4.4. Regresar del panel de cancelación
         const btnVolverCancelar = e.target.closest('#btn-cancelar-confirmacion-cancelar');
         if (btnVolverCancelar) {
             const btnPreCancelar = document.getElementById('btn-pre-cancelar-clase');
@@ -222,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4.5. Abrir panel de confirmación para cancelar jornada completa
+        // 4.5. Abrir panel de confirmación para cancelar la jornada completa del día
         const btnPreCancelarDia = e.target.closest('#btn-pre-cancelar-dia');
         if (btnPreCancelarDia) {
             const inputMotivo = document.getElementById('motivo-cancelacion-masiva');
@@ -244,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4.6. Cancelar panel de confirmación de cancelación de jornada
+        // 4.6. Cancelar confirmación de cancelación de jornada
         const btnVolverCancelarDia = e.target.closest('#btn-cancelar-confirmacion-dia');
         if (btnVolverCancelarDia) {
             const contenedorBotones = document.getElementById('contenedor-botones-cancelar-dia');
@@ -257,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Validación preventiva en el evento submit de consolidar clase
+    // Validación preventiva en el evento submit antes de enviar al servidor
     document.addEventListener('submit', (e) => {
         const formCompletarClase = e.target.closest('#form-completar-clase');
         if (!formCompletarClase) return;
@@ -276,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 6. TOGGLE DE LEYENDA DEL CALENDARIO (COLAPSABLE CON PERSISTENCIA)
+    // 5. TOGGLE DE LEYENDA DEL CALENDARIO (COLAPSABLE CON PERSISTENCIA)
     // =========================================================================
     function inicializarToggleLeyenda() {
         const btnToggleLeyenda = document.getElementById('btn-toggle-leyenda');
@@ -286,6 +310,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!btnToggleLeyenda || !filaLeyenda || !chevronLeyenda) return;
 
+        /**
+         * Actualiza las clases visuales de la leyenda según si está desplegada o no.
+         * @param {boolean} visible - True para mostrar la leyenda.
+         */
         function actualizarEstadoLeyenda(visible) {
             if (visible) {
                 filaLeyenda.classList.remove('hidden');
@@ -302,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Estado inicial: cerrado por defecto para no ocupar espacio salvo preferencia persistida del usuario
+        // Cargar estado inicial desde localStorage (por defecto cerrado para maximizar el área visible)
         try {
             const preferencia = localStorage.getItem(CLAVE_STORAGE);
             if (preferencia !== null) {
