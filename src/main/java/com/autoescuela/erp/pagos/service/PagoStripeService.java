@@ -265,18 +265,18 @@ public class PagoStripeService
             if (numeroClases == 10)
             {
                 nombreProducto = "Bono 10 Clases Prácticas (1 Clase Gratis) - " + tipoCarnet.getDescripcion();
-                descripcionProducto = "Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
+                descripcionProducto = "Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para " + tipoCarnet.getDescripcion() + ".";
             }
             else
             {
                 nombreProducto = "Bono " + numeroClases + " Clases Prácticas - " + tipoCarnet.getDescripcion();
-                descripcionProducto = "Pack de formación intensiva (" + numeroClases + " clases) con tarifa bonificada para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
+                descripcionProducto = "Pack de formación intensiva (" + numeroClases + " clases) con tarifa bonificada para " + tipoCarnet.getDescripcion() + ".";
             }
         }
         else
         {
             nombreProducto = numeroClases + (numeroClases == 1 ? " Clase Práctica - " : " Clases Prácticas - ") + tipoCarnet.getDescripcion();
-            descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
+            descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + ".";
         }
 
         // Creamos la sesión de pago en Stripe Checkout
