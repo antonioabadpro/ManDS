@@ -108,12 +108,12 @@ public class AlumnoController
         }
 
         boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
-        boolean sinMatriculaActiva = (matricula == null);
+        boolean esMatriculaActiva = matricula != null && Boolean.TRUE.equals(matricula.getEstaActiva());
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("matricula", matricula);
         model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
-        model.addAttribute("sinMatriculaActiva", sinMatriculaActiva);
+        model.addAttribute("esMatriculaActiva", esMatriculaActiva);
         model.addAttribute("profesor", profesor);
         model.addAttribute("capacidadReserva", capacidadReserva);
         model.addAttribute("proximaClase", proximaClase);

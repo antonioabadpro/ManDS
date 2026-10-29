@@ -60,7 +60,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA, 201L);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(201L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA);
 
         assertNotNull(resultado);
         assertEquals("cs_test_abc123", resultado.idSesion());
@@ -91,7 +91,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_C, ModalidadMatricula.TEORICO_PRACTICA, 202L);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(202L, TipoCarnet.PERMISO_C, ModalidadMatricula.TEORICO_PRACTICA);
 
         assertNotNull(resultado);
         assertEquals(45000L, resultado.importeTotal());
@@ -103,12 +103,12 @@ class PagoStripeServiceTest
     void testCrearSesionPagoMatriculaCarnetNulo()
     {
         ReglaNegocioException excepcionCarnet = assertThrows(ReglaNegocioException.class, () ->
-                this.pagoStripeService.crearSesionPagoMatricula(null, ModalidadMatricula.TEORICO_PRACTICA, 201L)
+                this.pagoStripeService.crearSesionPagoMatricula(201L, null, ModalidadMatricula.TEORICO_PRACTICA)
         );
         assertTrue(excepcionCarnet.getMessage().contains("obligatorios para formalizar la matrícula"));
 
         ReglaNegocioException excepcionAlumno = assertThrows(ReglaNegocioException.class, () ->
-                this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA, null)
+                this.pagoStripeService.crearSesionPagoMatricula(201L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA)
         );
         assertTrue(excepcionAlumno.getMessage().contains("obligatorios para formalizar la matrícula"));
     }
@@ -123,7 +123,7 @@ class PagoStripeServiceTest
                 .thenThrow(apiException);
 
         ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
-                this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA, 201L)
+                this.pagoStripeService.crearSesionPagoMatricula(201L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA)
         );
 
         assertTrue(excepcion.getMessage().contains("No se pudo crear la sesión de pago"));
@@ -140,7 +140,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(TipoCarnet.PERMISO_B, "12345678Z", 10, true);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(205L, TipoCarnet.PERMISO_B, 10, true);
 
         assertNotNull(resultado);
         assertEquals("cs_test_bono10_estandar", resultado.idSesion());
@@ -153,11 +153,12 @@ class PagoStripeServiceTest
         assertEquals("CLASES_PRACTICAS", capturedParams.getMetadata().get("tipoOperacion"));
         assertEquals("10", capturedParams.getMetadata().get("numeroClases"));
         assertEquals("true", capturedParams.getMetadata().get("esOferta"));
-        assertEquals("12345678Z", capturedParams.getMetadata().get("dniAlumno"));
+        assertEquals("205", capturedParams.getMetadata().get("alumnoId"));
+        assertNull(capturedParams.getMetadata().get("dniAlumno"));
         assertEquals(1, capturedParams.getLineItems().size());
         assertEquals(27000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
         assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso B", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
-        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso B (Alumno DNI: 12345678Z).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso B (Alumno ID: 205).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
     }
 
     @Test
@@ -171,7 +172,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(TipoCarnet.PERMISO_C, "87654321X", 10, true);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(206L, TipoCarnet.PERMISO_C, 10, true);
 
         assertNotNull(resultado);
         assertEquals(54000L, resultado.importeTotal());
@@ -180,10 +181,12 @@ class PagoStripeServiceTest
         verify(this.stripeClient.v1().checkout().sessions()).create(paramsCaptor.capture());
 
         SessionCreateParams capturedParams = paramsCaptor.getValue();
+        assertEquals("206", capturedParams.getMetadata().get("alumnoId"));
+        assertNull(capturedParams.getMetadata().get("dniAlumno"));
         assertEquals(1, capturedParams.getLineItems().size());
         assertEquals(54000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
         assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso C", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
-        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso C (Alumno DNI: 87654321X).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso C (Alumno ID: 206).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
     }
 
     @Test
@@ -197,7 +200,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA, 205L);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(205L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA);
 
         assertNotNull(resultado);
         assertEquals(25000L, resultado.importeTotal());
@@ -224,7 +227,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(TipoCarnet.PERMISO_B, ModalidadMatricula.PRACTICA, 206L);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(206L, TipoCarnet.PERMISO_B, ModalidadMatricula.PRACTICA);
 
         assertNotNull(resultado);
         assertEquals(25000L, resultado.importeTotal());
@@ -249,7 +252,7 @@ class PagoStripeServiceTest
         when(this.stripeClient.v1().checkout().sessions().create(any(SessionCreateParams.class)))
                 .thenReturn(sessionMock);
 
-        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoRenovacionMatricula(TipoCarnet.PERMISO_B, 205L);
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoRenovacionMatricula(205L, TipoCarnet.PERMISO_B);
 
         assertNotNull(resultado);
         assertEquals(25000L, resultado.importeTotal());

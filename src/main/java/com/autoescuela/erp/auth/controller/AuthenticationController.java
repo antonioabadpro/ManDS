@@ -122,7 +122,7 @@ public class AuthenticationController
             sesion.setAttribute("modalidad", registroDTO.modalidad().name());
 
             // Creamos la sesión de la pasarela de pago en Stripe con la modalidad seleccionada y sin exponer el DNI
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(registroDTO.tipoCarnet(), registroDTO.modalidad(), alumno.getId());
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(alumno.getId(), registroDTO.tipoCarnet(), registroDTO.modalidad());
 
             // Almacenamos el importe total (en euros) en sesión para recuperarlo en la pantalla de éxito
             float importeTotal = sesionPago.importeTotal() / 100.0f;

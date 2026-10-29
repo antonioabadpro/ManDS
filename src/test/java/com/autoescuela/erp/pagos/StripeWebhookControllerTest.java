@@ -165,7 +165,7 @@ class StripeWebhookControllerTest
     void testMostrarExitoPagoClases() throws Exception
     {
         MockHttpSession sesion = new MockHttpSession();
-        sesion.setAttribute("pagoClases_dni", "12345678Z");
+        sesion.setAttribute("pagoClases_alumnoId", 205L);
         sesion.setAttribute("pagoClases_numero", 15);
         sesion.setAttribute("pagoClases_importe", 400.00f);
         sesion.setAttribute("pagoClases_tipoCarnet", "Permiso B");
@@ -178,7 +178,7 @@ class StripeWebhookControllerTest
                 .andExpect(content().string(containsString("¡Clases Adquiridas con Éxito!")))
                 .andExpect(content().string(containsString("+15 clases")));
 
-        verify(this.academicoService).recargarSaldoClasesTrasPago(eq("12345678Z"), eq(15), eq("cs_test_clases_123"));
+        verify(this.academicoService).recargarSaldoClasesTrasPago(eq(205L), eq(15), eq("cs_test_clases_123"));
     }
 
     @Test
@@ -270,7 +270,7 @@ class StripeWebhookControllerTest
               "metadata": {
                 "tipoOperacion": "CLASES_PRACTICAS",
                 "tipoCarnet": "PERMISO_B",
-                "dniAlumno": "12345678Z",
+                "alumnoId": "205",
                 "numeroClases": "15"
               }
             }
@@ -287,7 +287,7 @@ class StripeWebhookControllerTest
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Evento de clases prácticas procesado correctamente")));
 
-        verify(this.academicoService).recargarSaldoClasesTrasPago(eq("12345678Z"), eq(15), eq("cs_test_session_clases_1"));
+        verify(this.academicoService).recargarSaldoClasesTrasPago(eq(205L), eq(15), eq("cs_test_session_clases_1"));
     }
 
     @Test

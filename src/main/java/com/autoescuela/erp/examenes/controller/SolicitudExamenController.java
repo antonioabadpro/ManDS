@@ -55,7 +55,7 @@ public class SolicitudExamenController
         boolean practicoAprobado = this.examenService.tienePracticoAprobado(alumno);
 
         boolean expedienteCerrado = (matricula == null || !matricula.getEstaActiva()) && practicoAprobado;
-        boolean esMatriculaActiva = matricula == null || matricula.getEstaActiva();
+        boolean esMatriculaActiva = matricula != null && Boolean.TRUE.equals(matricula.getEstaActiva());
         boolean convocatoriasAgotadas = matricula != null && (matricula.getConvocatorias() == null || matricula.getConvocatorias() <= 0);
         boolean tieneSolicitudPendiente = this.examenService.tieneSolicitudPendiente(alumno);
         boolean tieneSolicitudAceptada = this.examenService.tieneSolicitudAceptadaConExamenPendiente(alumno);
@@ -69,7 +69,7 @@ public class SolicitudExamenController
 
         model.addAttribute("matricula", matricula);
         model.addAttribute("expedienteCerrado", expedienteCerrado);
-        model.addAttribute("sinMatriculaActiva", esMatriculaActiva);
+        model.addAttribute("esMatriculaActiva", esMatriculaActiva);
         model.addAttribute("convocatoriasAgotadas", convocatoriasAgotadas);
         model.addAttribute("tienePendiente", tieneSolicitudPendiente);
         model.addAttribute("tieneExamenProgramado", tieneSolicitudAceptada);

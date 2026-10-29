@@ -123,9 +123,9 @@ public class PagoPracticasController
 
         try
         {
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoClasesPracticas(matricula.getPermisoCarnet(), alumno.getDni(), clasesCompradas, esOferta);
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoClasesPracticas(alumno.getId(), matricula.getPermisoCarnet(), clasesCompradas, esOferta);
 
-            sesion.setAttribute("pagoClases_dni", alumno.getDni());
+            sesion.setAttribute("pagoClases_alumnoId", alumno.getId());
             sesion.setAttribute("pagoClases_numero", clasesCompradas);
             sesion.setAttribute("pagoClases_importe", sesionPago.importeTotal() / 100.0f);
             sesion.setAttribute("pagoClases_tipoCarnet", matricula.getPermisoCarnet().getDescripcion());

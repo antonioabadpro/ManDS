@@ -63,7 +63,7 @@ public class MatriculaController
 
         try
         {
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(tipoCarnet, ModalidadMatricula.TEORICO_PRACTICA, alumno.getId());
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoMatricula(alumno.getId(), tipoCarnet, ModalidadMatricula.TEORICO_PRACTICA);
 
             sesion.setAttribute("alumnoId", alumno.getId());
             sesion.setAttribute("tipoCarnet", tipoCarnet.name());
@@ -106,7 +106,7 @@ public class MatriculaController
 
         try
         {
-            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoRenovacionMatricula(matricula.getPermisoCarnet(), alumno.getId());
+            SesionPagoDTO sesionPago = this.pagoStripeService.crearSesionPagoRenovacionMatricula(alumno.getId(), matricula.getPermisoCarnet());
 
             sesion.setAttribute("pagoRenovacion_alumnoId", alumno.getId());
             sesion.setAttribute("pagoRenovacion_importe", sesionPago.importeTotal() / 100.0f);

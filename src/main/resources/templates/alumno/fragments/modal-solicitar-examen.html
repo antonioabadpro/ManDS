@@ -35,7 +35,7 @@
             </div>
 
             <!-- Caso 2: Sin Matrícula Activa -->
-            <div th:if="${sinMatriculaActiva and !expedienteCerrado}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2 text-rose-800 dark:text-rose-200 text-xs">
+            <div th:if="${!esMatriculaActiva and !expedienteCerrado}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2 text-rose-800 dark:text-rose-200 text-xs">
                 <p class="font-bold">Sin matrícula activa</p>
                 <p>Debes disponer de un expediente de matrícula activo para formalizar solicitudes de examen oficial ante la DGT.</p>
                 <div class="pt-2 flex justify-end">
@@ -46,7 +46,7 @@
             </div>
 
             <!-- Caso 3: Convocatorias Agotadas (Convocatorias <= 0) -->
-            <div th:if="${!sinMatriculaActiva and convocatoriasAgotadas}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2 text-rose-800 dark:text-rose-200 text-xs">
+            <div th:if="${esMatriculaActiva and convocatoriasAgotadas}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2 text-rose-800 dark:text-rose-200 text-xs">
                 <p class="font-bold">Has agotado las 2 convocatorias oficiales de tu matrícula.</p>
                 <p>Debes tramitar la <strong>Renovación de Matrícula</strong> en el apartado económico antes de poder presentar una nueva solicitud de examen.</p>
                 <div class="pt-2 flex justify-end space-x-2">
@@ -58,7 +58,7 @@
             </div>
 
             <!-- Caso 4: Solicitud PENDIENTE existente -->
-            <div th:if="${!sinMatriculaActiva and !convocatoriasAgotadas and tienePendiente}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2 text-amber-800 dark:text-amber-200 text-xs">
+            <div th:if="${esMatriculaActiva and !convocatoriasAgotadas and tienePendiente}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-2 text-amber-800 dark:text-amber-200 text-xs">
                 <p class="font-bold">Solicitud en trámite</p>
                 <p>Ya tienes una solicitud de examen en estado <strong>PENDIENTE</strong> de resolución por parte de la Administración. No puedes formular otra solicitud hasta que sea resuelta.</p>
                 <div class="pt-2 flex justify-end">
@@ -69,7 +69,7 @@
             </div>
 
             <!-- Caso 5: Solicitud ACEPTADA con Examen Pendiente de Realización -->
-            <div th:if="${!sinMatriculaActiva and !convocatoriasAgotadas and !tienePendiente and tieneExamenProgramado}" class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2 text-indigo-800 dark:text-indigo-200 text-xs">
+            <div th:if="${esMatriculaActiva and !convocatoriasAgotadas and !tienePendiente and tieneExamenProgramado}" class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2 text-indigo-800 dark:text-indigo-200 text-xs">
                 <p class="font-bold">Convocatoria oficial programada</p>
                 <p>Ya dispones de una solicitud aceptada con fecha oficial de examen programada. No podrás presentar otra solicitud hasta haber celebrado dicha prueba.</p>
                 <div class="pt-2 flex justify-end">
@@ -80,7 +80,7 @@
             </div>
 
             <!-- Formulario de Solicitud Habilitado -->
-            <form th:if="${!sinMatriculaActiva and !convocatoriasAgotadas and !tienePendiente and !tieneExamenProgramado and (puedeSolicitarTeorico or puedeSolicitarPractico)}" action="/alumno/examenes/solicitar" method="post" class="space-y-4">
+            <form th:if="${esMatriculaActiva and !convocatoriasAgotadas and !tienePendiente and !tieneExamenProgramado and (puedeSolicitarTeorico or puedeSolicitarPractico)}" action="/alumno/examenes/solicitar" method="post" class="space-y-4">
                 <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
 
                 <div class="p-3.5 rounded-2xl bg-indigo-50 dark:bg-slate-800/60 border border-indigo-100 dark:border-slate-800 text-xs space-y-1">

@@ -9,6 +9,7 @@ import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -36,7 +38,9 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/dashboard"));
+                .andExpect(view().name("alumno/dashboard"))
+                .andExpect(model().attributeExists("alumno", "matricula", "esMatriculaActiva", "capacidadReserva"))
+                .andExpect(model().attribute("esMatriculaActiva", true));
     }
 
     @Test
@@ -207,7 +211,8 @@ class VistaAlumnoTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/alumno/examenes/solicitar-modal"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-solicitar-examen :: modalSolicitarExamen"))
-                .andExpect(model().attributeExists("teoricoAprobado"));
+                .andExpect(model().attributeExists("teoricoAprobado", "esMatriculaActiva"))
+                .andExpect(model().attribute("esMatriculaActiva", true));
     }
 
     @Test
@@ -268,7 +273,9 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .param("tipoProducto", "INDIVIDUAL")
                 .param("cantidadClases", "3"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_clases_ind"));
+                .andExpect(redirectedUrl("https://checkout.stripe.com/pay/cs_clases_ind"))
+                .andExpect(request().sessionAttribute("pagoClases_alumnoId", notNullValue()))
+                .andExpect(request().sessionAttributeDoesNotExist("pagoClases_dni"));
     }
 
     @Test
@@ -324,7 +331,10 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/dashboard"));
+                .andExpect(view().name("alumno/dashboard"))
+                .andExpect(model().attributeExists("esMatriculaActiva", "convocatoriasAgotadas"))
+                .andExpect(model().attribute("esMatriculaActiva", true))
+                .andExpect(model().attribute("convocatoriasAgotadas", true));
     }
 
     @Test
@@ -456,7 +466,9 @@ class VistaAlumnoTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("alumno/dashboard"));
+                .andExpect(view().name("alumno/dashboard"))
+                .andExpect(model().attributeExists("esMatriculaActiva"))
+                .andExpect(model().attribute("esMatriculaActiva", false));
     }
 
     @Test
@@ -464,7 +476,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /matricula/nueva inicia sesión de pago en Stripe para alumno sin matrícula activa")
     void testMatricularNuevoCarnetExito() throws Exception
     {
-        when(this.pagoStripeService.crearSesionPagoMatricula(eq(TipoCarnet.PERMISO_C), any(), any()))
+        when(this.pagoStripeService.crearSesionPagoMatricula(any(), eq(TipoCarnet.PERMISO_C), any()))
                 .thenReturn(new SesionPagoDTO("cs_test_mock_matricula", "https://checkout.stripe.com/pay/cs_test_mock_matricula", 45000L, "EUR"));
 
         this.mockMvc.perform(post("/matricula/nueva")

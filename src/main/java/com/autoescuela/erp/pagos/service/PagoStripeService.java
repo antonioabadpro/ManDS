@@ -54,12 +54,12 @@ public class PagoStripeService
      * En modalidad TEORICO_PRACTICA incluye además credenciales de acceso a la plataforma oficial de tests de examen.
      * Preserva la privacidad del alumno utilizando el ID de expediente sin exponer el DNI en pantalla ni en sesión.
      *
+     * @param alumnoId Identificador numérico del alumno.
      * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
      * @param modalidad Modalidad de matrícula (TEORICO_PRACTICA o PRACTICA).
-     * @param alumnoId Identificador numérico del alumno.
      * @return DTO con la información de la sesión de pago.
      */
-    public SesionPagoDTO crearSesionPagoMatricula(TipoCarnet tipoCarnet, ModalidadMatricula modalidad, Long alumnoId)
+    public SesionPagoDTO crearSesionPagoMatricula(Long alumnoId, TipoCarnet tipoCarnet, ModalidadMatricula modalidad)
     {
         if (tipoCarnet == null || alumnoId == null)
         {
@@ -139,11 +139,11 @@ public class PagoStripeService
     /**
      * Crea una sesión de pago para la renovación de matrícula de un alumno según el tipo de carnet y su ID de alumno.
      * Aplica las tarifas oficiales: 450 € para vehículos pesados (C y D) y 250 € para el resto.
-     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
      * @param alumnoId Identificador numérico del alumno.
+     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
      * @return DTO con URL de la pasarela y Session ID generado por Stripe.
      */
-    public SesionPagoDTO crearSesionPagoRenovacionMatricula(TipoCarnet tipoCarnet, Long alumnoId)
+    public SesionPagoDTO crearSesionPagoRenovacionMatricula(Long alumnoId, TipoCarnet tipoCarnet)
     {
         if (tipoCarnet == null || alumnoId == null)
         {
@@ -206,20 +206,20 @@ public class PagoStripeService
     }
 
     /**
-     * Crea una sesión de pago para las clases prácticas de un alumno según el tipo de carnet y su DNI.
+     * Crea una sesión de pago para las clases prácticas de un alumno según el tipo de carnet y su ID de alumno.
+     * @param alumnoId Identificador numérico del alumno.
      * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
-     * @param dniAlumno DNI del alumno.
      * @param numeroClases Número de clases prácticas.
      * @param esOferta Indica si se trata de una oferta especial.
      * @return DTO con la información de la sesión de pago.
      */
-    public SesionPagoDTO crearSesionPagoClasesPracticas(TipoCarnet tipoCarnet, String dniAlumno, int numeroClases, boolean esOferta)
+    public SesionPagoDTO crearSesionPagoClasesPracticas(Long alumnoId, TipoCarnet tipoCarnet, int numeroClases, boolean esOferta)
     {
         long precioTotalCents = 0L;
 
-        if (tipoCarnet == null || dniAlumno == null || dniAlumno.isBlank())
+        if (tipoCarnet == null || alumnoId == null)
         {
-            throw new ReglaNegocioException("El DNI del alumno y el tipo de carnet son obligatorios para la compra de clases prácticas.");
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para la compra de clases prácticas.");
         }
         if (numeroClases <= 0)
         {
@@ -265,18 +265,18 @@ public class PagoStripeService
             if (numeroClases == 10)
             {
                 nombreProducto = "Bono 10 Clases Prácticas (1 Clase Gratis) - " + tipoCarnet.getDescripcion();
-                descripcionProducto = "Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para " + tipoCarnet.getDescripcion() + " (Alumno DNI: " + dniAlumno + ").";
+                descripcionProducto = "Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
             }
             else
             {
                 nombreProducto = "Bono " + numeroClases + " Clases Prácticas - " + tipoCarnet.getDescripcion();
-                descripcionProducto = "Pack de formación intensiva (" + numeroClases + " clases) con tarifa bonificada para " + tipoCarnet.getDescripcion() + " (Alumno DNI: " + dniAlumno + ").";
+                descripcionProducto = "Pack de formación intensiva (" + numeroClases + " clases) con tarifa bonificada para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
             }
         }
         else
         {
             nombreProducto = numeroClases + (numeroClases == 1 ? " Clase Práctica - " : " Clases Prácticas - ") + tipoCarnet.getDescripcion();
-            descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + " (Alumno DNI: " + dniAlumno + ").";
+            descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + " (Alumno ID: " + alumnoId + ").";
         }
 
         // Creamos la sesión de pago en Stripe Checkout
@@ -303,7 +303,7 @@ public class PagoStripeService
                 // Metadata devuelta en webhooks para reconciliación y abono
                 .putMetadata("tipoOperacion", "CLASES_PRACTICAS")
                 .putMetadata("tipoCarnet", tipoCarnet.name())
-                .putMetadata("dniAlumno", dniAlumno)
+                .putMetadata("alumnoId", alumnoId.toString())
                 .putMetadata("numeroClases", String.valueOf(numeroClases))
                 .putMetadata("esOferta", String.valueOf(esOferta))
                 .putMetadata("importeTotal", String.format(Locale.US, "%.2f", precioTotal))
