@@ -167,5 +167,34 @@ class UsuarioServiceTest
         assertThat(this.usuarioService.existeTelefono(null)).isFalse();
         assertThat(this.usuarioService.existeTelefono("   ")).isFalse();
     }
+
+    @Test
+    @DisplayName("esDniValido valida correctamente DNIs y NIEs mediante algoritmo módulo 23")
+    void testEsDniValido()
+    {
+        // DNIs válidos
+        assertThat(this.usuarioService.esLetraDniValida("12345678Z")).isTrue();
+        assertThat(this.usuarioService.esLetraDniValida("00000000T")).isTrue();
+        assertThat(this.usuarioService.esLetraDniValida("87654321X")).isTrue();
+        assertThat(this.usuarioService.esLetraDniValida(" 12345678z ")).isTrue(); // Soporta minúsculas y espacios
+
+        // NIEs válidos (X=0, Y=1, Z=2)
+        assertThat(this.usuarioService.esLetraDniValida("X1234567L")).isTrue();
+        assertThat(this.usuarioService.esLetraDniValida("Y1234567X")).isTrue();
+        assertThat(this.usuarioService.esLetraDniValida("Z1234567R")).isTrue();
+
+        // DNIs con letra errónea
+        assertThat(this.usuarioService.esLetraDniValida("12345678A")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("00000000A")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("X1234567A")).isFalse();
+
+        // Formatos inválidos o nulos
+        assertThat(this.usuarioService.esLetraDniValida(null)).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("   ")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("12345678")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("123456789Z")).isFalse();
+        assertThat(this.usuarioService.esLetraDniValida("A1234567Z")).isFalse();
+    }
 }
 

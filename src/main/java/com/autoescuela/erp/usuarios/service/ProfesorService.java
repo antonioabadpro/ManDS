@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProfesorService
 {
+    private final UsuarioService usuarioService;
     private final ProfesorRepository profesorRepository;
     private final PersonaRepository personaRepository;
     private final VehiculoRepository vehiculoRepository;
@@ -103,6 +104,11 @@ public class ProfesorService
         if (this.personaRepository.existsByDni(dniLimpio))
         {
             throw new ReglaNegocioException("Ya existe un usuario registrado con el DNI/NIE " + dniLimpio + ".");
+        }
+
+        if (!this.usuarioService.esLetraDniValida(dniLimpio))
+        {
+            throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
         }
 
         String correoLimpio = dto.correo().trim().toLowerCase();
@@ -298,6 +304,11 @@ public class ProfesorService
         if (this.personaRepository.existsByDniAndIdNot(dniLimpio, dto.id()))
         {
             throw new ReglaNegocioException("Ya existe un usuario registrado con el DNI/NIE " + dniLimpio + ".");
+        }
+
+        if (!dniLimpio.equalsIgnoreCase(profesor.getDni()) && !this.usuarioService.esLetraDniValida(dniLimpio))
+        {
+            throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
         }
 
         String correoLimpio = dto.correo().trim().toLowerCase();

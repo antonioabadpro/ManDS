@@ -109,6 +109,43 @@ public class UsuarioService
     }
 
     /**
+     * Valida que la letra de un DNI o NIE español se corresponda con el número mediante el algoritmo oficial de módulo 23.
+     * Soporta DNI estándar (8 dígitos + letra) y NIE estándar (X/Y/Z + 7 dígitos + letra).
+     *
+     * @param dni DNI o NIE a verificar (puede incluir espacios o letras minúsculas).
+     * @return true si el formato y la letra de control son correctos; false en caso contrario.
+     */
+    public boolean esLetraDniValida(String dni)
+    {
+        if (dni == null || dni.isBlank())
+        {
+            return false;
+        }
+        String limpio = dni.trim().toUpperCase();
+        if (!limpio.matches("^[0-9]{8}[A-Z]$|^[XYZ][0-9]{7}[A-Z]$"))
+        {
+            return false;
+        }
+
+        String numeroParte = limpio.substring(0, 8)
+                .replace('X', '0')
+                .replace('Y', '1')
+                .replace('Z', '2');
+        char letra = limpio.charAt(8);
+
+        try
+        {
+            int numero = Integer.parseInt(numeroParte);
+            char letraCalculada = "TRWAGMYFPDXBNJZSQVHLCKE".charAt(numero % 23);
+            return letra == letraCalculada;
+        }
+        catch (NumberFormatException e)
+        {
+            return false;
+        }
+    }
+
+    /**
      * Comprueba si un número de teléfono ya está registrado en el sistema.
      *
      * @param telefono Número de teléfono a comprobar.
@@ -189,6 +226,10 @@ public class UsuarioService
         }
 
         String dniLimpio = dto.getDni().trim().toUpperCase();
+        if (!dniLimpio.equalsIgnoreCase(persona.getDni()) && !esLetraDniValida(dniLimpio))
+        {
+            throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
+        }
         if (this.personaRepository.existsByDniAndIdNot(dniLimpio, personaId))
         {
             throw new ReglaNegocioException("El DNI/NIE ya se encuentra registrado por otro usuario.");

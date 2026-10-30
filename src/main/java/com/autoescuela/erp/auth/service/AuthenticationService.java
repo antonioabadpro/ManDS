@@ -25,6 +25,7 @@ import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
+import com.autoescuela.erp.usuarios.service.UsuarioService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthenticationService
 {
+    private final UsuarioService usuarioService;
     private final PersonaRepository personaRepository;
     private final AlumnoRepository alumnoRepository;
     private final PasswordEncoder passwordEncoder;
@@ -198,6 +200,11 @@ public class AuthenticationService
         if (this.personaRepository.existsByDni(dniLimpio))
         {
             throw new ReglaNegocioException("El DNI/NIE ya está registrado en el sistema.");
+        }
+
+        if (!this.usuarioService.esLetraDniValida(dniLimpio))
+        {
+            throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
         }
 
         if (this.personaRepository.existsByTelefono(telefonoLimpio))

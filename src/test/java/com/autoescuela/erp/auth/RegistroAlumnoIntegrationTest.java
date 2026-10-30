@@ -69,7 +69,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("confirmPassword", "claveSecreta123")
                 .param("nombre", "Alejandro")
                 .param("apellidos", "Sanz Prieto")
-                .param("dni", "77889900K")
+                .param("dni", "77889900D")
                 .param("fechaNacimiento", "2002-05-14")
                 .param("telefono", "611223344")
                 .param("direccion", "Calle Real 45, Madrid")
@@ -87,7 +87,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
         assertNotNull(session.getAttribute("importeTotal"), "El importe debe persistirse en la sesión");
 
         // Verificamos que el alumno fue creado de inmediato en la base de datos con estado INACTIVO
-        Optional<Alumno> alumnoInactivoOpt = this.alumnoRepository.findByDni("77889900K");
+        Optional<Alumno> alumnoInactivoOpt = this.alumnoRepository.findByDni("77889900D");
         assertTrue(alumnoInactivoOpt.isPresent(), "El alumno debe crearse en BD inmediatamente");
         assertEquals(EstadoUsuario.INACTIVO, alumnoInactivoOpt.get().getEstado(), "El alumno debe permanecer INACTIVO hasta el pago");
 
@@ -107,7 +107,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
         Alumno alumno = alumnoOpt.get();
         assertEquals("Alejandro", alumno.getNombre());
         assertEquals("Sanz Prieto", alumno.getApellidos());
-        assertEquals("77889900K", alumno.getDni());
+        assertEquals("77889900D", alumno.getDni());
         assertEquals("nuevo.alumno@autoescuela.es", alumno.getCorreo());
         assertEquals(LocalDate.of(2002, 5, 14), alumno.getFechaNacimiento());
         assertEquals("611223344", alumno.getTelefono());
@@ -393,9 +393,22 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
-                .param("dni", "99887766K"))
+                .param("dni", "99887766P"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: fragmento-vacio"));
+    }
+
+    @Test
+    @DisplayName("POST /usuario/validar-dni con letra errónea devuelve fragmento de error")
+    void testValidarDniLetraErroneaHtmx() throws Exception
+    {
+        this.mockMvc.perform(post("/usuario/validar-dni")
+                .with(csrf())
+                .param("dni", "99887766K"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/registro :: mensaje-error"))
+                .andExpect(model().attribute("mensaje", "La letra del DNI/NIE no es válida o no coincide con los números."))
+                .andExpect(content().string(containsString("La letra del DNI/NIE no es válida")));
     }
 
     @Test
@@ -410,7 +423,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("confirmPassword", "claveSecreta123")
                 .param("nombre", "Marcos")
                 .param("apellidos", "Vega")
-                .param("dni", "88776655L")
+                .param("dni", "88776655J")
                 .param("fechaNacimiento", "2000-01-01")
                 .param("telefono", "600444555") // Teléfono de alumno1 en data.sql
                 .param("direccion", "Avenida Sol 1")
@@ -471,7 +484,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("confirmPassword", "claveSecreta123")
                 .param("nombre", "Raúl")
                 .param("apellidos", "Cancela")
-                .param("dni", "11223344X")
+                .param("dni", "11223344B")
                 .param("fechaNacimiento", "2001-01-01")
                 .param("telefono", "611009988")
                 .param("direccion", "Calle Fin 1")
@@ -482,13 +495,13 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .andReturn();
 
         MockHttpSession session = (MockHttpSession) postResult.getRequest().getSession();
-        assertTrue(this.alumnoRepository.findByDni("11223344X").isPresent(), "El alumno debe existir inicialmente como inactivo");
+        assertTrue(this.alumnoRepository.findByDni("11223344B").isPresent(), "El alumno debe existir inicialmente como inactivo");
 
         this.mockMvc.perform(get("/pagos/checkout/cancel").session(session))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/matricula-cancel"));
 
-        assertTrue(this.alumnoRepository.findByDni("11223344X").isEmpty(), "El alumno inactivo debe haberse purgado de la BD tras cancelar");
+        assertTrue(this.alumnoRepository.findByDni("11223344B").isEmpty(), "El alumno inactivo debe haberse purgado de la BD tras cancelar");
     }
 }
 

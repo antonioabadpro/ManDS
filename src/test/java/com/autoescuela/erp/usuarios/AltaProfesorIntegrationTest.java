@@ -102,7 +102,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     @DisplayName("POST /admin/profesores/alta registra un nuevo profesor, asigna vehículo y genera token de invitación")
     void testAltaProfesorExito() throws Exception
     {
-        String nuevoDni = "87654321Z";
+        String nuevoDni = "87654321X";
         String nuevoCorreo = "nuevo.profesor@autoescuela.es";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
@@ -207,7 +207,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     void testActivarCuentaProfesorExito() throws Exception
     {
         // 1. Damos de alta primero a un profesor para generar su token de invitación
-        String dni = "77788899K";
+        String dni = "77788899R";
         String correo = "profesor.activar@autoescuela.es";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
@@ -264,7 +264,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     @DisplayName("POST /activar-cuenta con contraseñas no coincidentes retorna error en el formulario")
     void testActivarCuentaProfesorPasswordNoCoincide() throws Exception
     {
-        String dni = "55566677M";
+        String dni = "55566677B";
         String correo = "profesor.error@autoescuela.es";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
@@ -305,7 +305,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("nombre", "Anciano")
                 .param("apellidos", "Perez")
-                .param("dni", "98765432X")
+                .param("dni", "98765432M")
                 .param("fechaNacimiento", "1920-01-01") // Más de 100 años
                 .param("correo", "anciano@autoescuela.es")
                 .param("telefono", "611222333")
@@ -327,7 +327,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("nombre", "Joven")
                 .param("apellidos", "Perez")
-                .param("dni", "98765433Z")
+                .param("dni", "98765433Y")
                 .param("fechaNacimiento", LocalDate.now().minusYears(17).toString()) // 17 años
                 .param("correo", "joven@autoescuela.es")
                 .param("telefono", "611222335")
@@ -349,7 +349,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("nombre", "Futuro")
                 .param("apellidos", "Perez")
-                .param("dni", "98765431Y")
+                .param("dni", "98765431G")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "futuro@autoescuela.es")
                 .param("telefono", "611222334")
@@ -372,7 +372,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("nombre", "Incompatible")
                 .param("apellidos", "Perez")
-                .param("dni", "98765430Z")
+                .param("dni", "98765430A")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "incompatible@autoescuela.es")
                 .param("telefono", "611222335")
@@ -396,7 +396,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("nombre", "Antiguo")
                 .param("apellidos", "Perez")
-                .param("dni", "98765432W")
+                .param("dni", "98765432M")
                 .param("fechaNacimiento", "1990-05-15")
                 .param("correo", "antiguo@autoescuela.es")
                 .param("telefono", "611222336")
@@ -500,5 +500,28 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("errorEditarProfesor"))
                 .andExpect(model().attribute("errorEditarProfesor", "La fecha de contratación no puede ser modificada."));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta con letra de DNI inválida falla con alerta de negocio")
+    void testAltaProfesorDniLetraInvalidaFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                .with(csrf())
+                .param("nombre", "Erróneo")
+                .param("apellidos", "Perez")
+                .param("dni", "87654321Z") // Letra correcta para 87654321 es X
+                .param("fechaNacimiento", "1990-05-15")
+                .param("correo", "erroneo@autoescuela.es")
+                .param("telefono", "611222339")
+                .param("direccion", "Calle Falsa 1")
+                .param("fechaContratacion", LocalDate.now().toString())
+                .param("turno", "MATINAL")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/dashboard"))
+                .andExpect(model().attribute("abrirModalAltaProfesor", true))
+                .andExpect(model().attribute("errorAltaProfesor", containsString("La letra del DNI/NIE no es válida")));
     }
 }

@@ -98,8 +98,13 @@ function validarPaso(paso) {
         }
     }
 
-    // Validación específica del Paso 2: Fecha de nacimiento (mayoría de edad)
+    // Validación específica del Paso 2: DNI/NIE y Fecha de nacimiento (mayoría de edad)
     if (paso === 2) {
+        if (!validarDniRegistro()) {
+            const inputDni = document.getElementById('reg-dni');
+            if (inputDni) inputDni.focus();
+            return false;
+        }
         if (!validarFechaNacimiento()) {
             const inputFecha = document.getElementById('reg-fechaNacimiento');
             if (inputFecha) inputFecha.focus();
@@ -145,6 +150,108 @@ function validarCoincidenciaPasswords() {
         confirmInput.setCustomValidity('');
         return true;
     }
+}
+
+/**
+ * Valida que la letra de un DNI o NIE español coincida con el número mediante el algoritmo oficial de módulo 23.
+ * @param {string} dni - DNI o NIE a verificar.
+ * @returns {boolean} - true si el formato y la letra son matemáticamente correctos.
+ */
+function esLetraDniValida(dni) {
+    if (!dni) return false;
+    const limpio = dni.trim().toUpperCase();
+    const regex = /^[0-9]{8}[A-Z]$|^[XYZ][0-9]{7}[A-Z]$/;
+    if (!regex.test(limpio)) return false;
+
+    let numeroParte = limpio.substring(0, 8);
+    numeroParte = numeroParte.replace('X', '0').replace('Y', '1').replace('Z', '2');
+    const letra = limpio.charAt(8);
+    const numero = parseInt(numeroParte, 10);
+    if (isNaN(numero)) return false;
+
+    const letrasControl = 'TRWAGMYFPDXBNJZSQVHLCKE';
+    return letra === letrasControl.charAt(numero % 23);
+}
+
+/**
+ * Muestra el mensaje de error visual para el campo de DNI/NIE en el registro.
+ * @param {string} mensaje - Texto explicativo del error.
+ */
+function mostrarErrorDni(mensaje) {
+    const input = document.getElementById('reg-dni');
+    const feedback = document.getElementById('feedback-dni');
+
+    if (input) {
+        input.classList.add('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+        input.classList.remove('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+    }
+
+    if (feedback) {
+        feedback.innerHTML = `
+            <div class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>${mensaje}</span>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Limpia el mensaje de error visual y restablece el estilo estándar del campo DNI/NIE en el registro.
+ */
+function limpiarErrorDni() {
+    const input = document.getElementById('reg-dni');
+    const feedback = document.getElementById('feedback-dni');
+
+    if (input) {
+        input.classList.remove('border-red-500', 'focus:ring-red-500', 'dark:border-red-500');
+        input.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:ring-blue-600');
+    }
+
+    if (feedback) {
+        feedback.innerHTML = '';
+    }
+}
+
+/**
+ * Valida el campo DNI/NIE en el registro:
+ * - Debe ser obligatorio.
+ * - Debe tener formato DNI (8 dígitos + letra) o NIE (X/Y/Z + 7 dígitos + letra).
+ * - La letra de control debe ser matemáticamente válida según el algoritmo oficial de módulo 23.
+ * @returns {boolean} true si el documento es válido.
+ */
+function validarDniRegistro() {
+    const input = document.getElementById('reg-dni');
+    if (!input) return true;
+
+    const valor = input.value ? input.value.trim().toUpperCase() : '';
+    if (!valor) {
+        mostrarErrorDni('El DNI / NIE es obligatorio.');
+        input.setCustomValidity('El DNI / NIE es obligatorio.');
+        return false;
+    }
+
+    const regexDni = /^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$/;
+    if (!regexDni.test(valor)) {
+        mostrarErrorDni('El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
+        input.setCustomValidity('El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
+        return false;
+    }
+
+    if (!esLetraDniValida(valor)) {
+        mostrarErrorDni('La letra del DNI/NIE no es válida o no coincide con los números.');
+        input.setCustomValidity('La letra del DNI/NIE no es válida o no coincide con los números.');
+        return false;
+    }
+
+    const feedback = document.getElementById('feedback-dni');
+    if (!feedback || !feedback.querySelector('.mensaje-error-campo')) {
+        limpiarErrorDni();
+    }
+    input.setCustomValidity('');
+    return true;
 }
 
 /**
@@ -447,7 +554,13 @@ function inicializarEventosRegistro() {
 
     const inputDni = document.getElementById('reg-dni');
     if (inputDni) {
-        inputDni.addEventListener('input', actualizarInformacionTasa);
+        inputDni.addEventListener('input', () => {
+            actualizarInformacionTasa();
+            if (inputDni.value.trim().length >= 9 || inputDni.classList.contains('border-red-500')) {
+                validarDniRegistro();
+            }
+        });
+        inputDni.addEventListener('blur', validarDniRegistro);
         inputDni.addEventListener('change', actualizarInformacionTasa);
     }
 

@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AlumnoService
 {
+    private final UsuarioService usuarioService;
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
     private final ClasePracticaRepository clasePracticaRepository;
@@ -476,9 +477,16 @@ public class AlumnoService
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + alumnoId));
 
         String nuevoDni = dto.dni() != null ? dto.dni().trim().toUpperCase() : null;
-        if (nuevoDni != null && !nuevoDni.isBlank() && !nuevoDni.equalsIgnoreCase(alumno.getDni()) && this.personaRepository.existsByDniAndIdNot(nuevoDni, alumno.getId()))
+        if (nuevoDni != null && !nuevoDni.isBlank() && !nuevoDni.equalsIgnoreCase(alumno.getDni()))
         {
-            throw new ReglaNegocioException("El DNI / NIE introducido ya está registrado en el sistema.");
+            if (!this.usuarioService.esLetraDniValida(nuevoDni))
+            {
+                throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
+            }
+            if (this.personaRepository.existsByDniAndIdNot(nuevoDni, alumno.getId()))
+            {
+                throw new ReglaNegocioException("El DNI / NIE introducido ya está registrado en el sistema.");
+            }
         }
 
         String nuevoTel = dto.telefono() != null ? dto.telefono().trim() : "";

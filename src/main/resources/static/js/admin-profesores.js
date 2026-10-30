@@ -125,6 +125,27 @@
     }
 
     /**
+     * Valida que la letra de un DNI o NIE español coincida con el número mediante el algoritmo oficial de módulo 23.
+     * @param {string} dni - DNI o NIE a verificar.
+     * @returns {boolean} - true si el formato y la letra son matemáticamente correctos.
+     */
+    function esLetraDniValida(dni) {
+        if (!dni) return false;
+        const limpio = dni.trim().toUpperCase();
+        const regex = /^[0-9]{8}[A-Z]$|^[XYZ][0-9]{7}[A-Z]$/;
+        if (!regex.test(limpio)) return false;
+
+        let numeroParte = limpio.substring(0, 8);
+        numeroParte = numeroParte.replace('X', '0').replace('Y', '1').replace('Z', '2');
+        const letra = limpio.charAt(8);
+        const numero = parseInt(numeroParte, 10);
+        if (isNaN(numero)) return false;
+
+        const letrasControl = 'TRWAGMYFPDXBNJZSQVHLCKE';
+        return letra === letrasControl.charAt(numero % 23);
+    }
+
+    /**
      * Valida el formato del DNI o NIE español del profesor.
      */
     function validarDniProfesor(sufijo = '') {
@@ -141,6 +162,10 @@
         const regexDni = /^[0-9]{8}[A-Za-z]$|^[XYZxyz][0-9]{7}[A-Za-z]$/;
         if (!regexDni.test(valor)) {
             mostrarError(inputId, feedbackId, 'El formato del DNI/NIE no es válido (ej. 12345678Z o X1234567Z).');
+            return false;
+        }
+        if (!esLetraDniValida(valor)) {
+            mostrarError(inputId, feedbackId, 'La letra del DNI/NIE no es válida o no coincide con los números.');
             return false;
         }
         const feedback = document.getElementById(feedbackId);

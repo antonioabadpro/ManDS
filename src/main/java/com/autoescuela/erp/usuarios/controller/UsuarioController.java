@@ -107,6 +107,12 @@ public class UsuarioController
             return "auth/registro :: mensaje-error";
         }
 
+        if (!this.usuarioService.esLetraDniValida(limpio))
+        {
+            model.addAttribute("mensaje", "La letra del DNI/NIE no es válida o no coincide con los números.");
+            return "auth/registro :: mensaje-error";
+        }
+
         return "auth/registro :: fragmento-vacio";
     }
 
