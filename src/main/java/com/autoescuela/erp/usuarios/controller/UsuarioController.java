@@ -31,9 +31,9 @@ public class UsuarioController
         }
 
         String limpio = nombreUsuario.trim();
-        if (limpio.length() < 3 || limpio.length() > 50)
+        if (limpio.length() < 3 || limpio.length() > 30)
         {
-            model.addAttribute("mensaje", "El nombre de usuario debe tener entre 3 y 50 caracteres.");
+            model.addAttribute("mensaje", "El nombre de usuario debe tener entre 3 y 30 caracteres.");
             return "auth/registro :: mensaje-error";
         }
 

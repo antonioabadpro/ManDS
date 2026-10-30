@@ -48,7 +48,7 @@ public class EditarPerfilAdminDTO
     private String apellidos;
 
     @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(regexp = "^(\\+34|0034)?[6789]\\d{8}$", message = "El teléfono debe ser un número válido español (9 dígitos)")
+    @Pattern(regexp = "^[6789][0-9]{8}$", message = "El teléfono debe contener 9 dígitos y comenzar por 6, 7, 8 o 9")
     private String telefono;
 
     @NotBlank(message = "La dirección es obligatoria")

@@ -1,5 +1,6 @@
 package com.autoescuela.erp.usuarios.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -16,4 +17,16 @@ public record ReasignarAlumnoDTO(
     Long nuevoProfesorId
 )
 {
+    /**
+     * Valida que si se selecciona la opción de reasignar, se haya elegido un nuevo profesor de destino.
+     */
+    @AssertTrue(message = "Debes seleccionar un profesor activo disponible para reasignar al alumno.")
+    public boolean isNuevoProfesorValido()
+    {
+        if ("REASIGNAR".equalsIgnoreCase(this.opcion))
+        {
+            return this.nuevoProfesorId != null;
+        }
+        return true;
+    }
 }

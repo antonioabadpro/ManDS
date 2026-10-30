@@ -59,10 +59,14 @@ import com.autoescuela.erp.core.enums.EstadoUsuario;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.service.UsuarioService;
 
 @ExtendWith(MockitoExtension.class)
 class AutenticacionServiceTest
 {
+    @Mock
+    private UsuarioService usuarioService;
+
     @Mock
     private PersonaRepository personaRepository;
 
@@ -220,6 +224,7 @@ class AutenticacionServiceTest
         when(this.personaRepository.existsByNombreUsuario("alumno_tel_dup")).thenReturn(false);
         when(this.personaRepository.existsByCorreo("correo.libre@autoescuela.es")).thenReturn(false);
         when(this.personaRepository.existsByDni("12345678Z")).thenReturn(false);
+        when(this.usuarioService.esLetraDniValida("12345678Z")).thenReturn(true);
         when(this.personaRepository.existsByTelefono("600111222")).thenReturn(true);
 
         ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
@@ -227,6 +232,37 @@ class AutenticacionServiceTest
         );
 
         assertEquals("El teléfono ya está registrado en el sistema.", excepcion.getMessage());
+    }
+
+    @Test
+    @DisplayName("'registrarAlumno()' lanza ReglaNegocioException cuando la letra del DNI no es válida")
+    void testRegistrarAlumnoDniLetraInvalida()
+    {
+        RegistroAlumnoDTO dto = new RegistroAlumnoDTO(
+                "alumno_dni_invalido",
+                "correo.libre@autoescuela.es",
+                "password123",
+                "password123",
+                "Carlos",
+                "Gómez",
+                "12345678A",
+                LocalDate.of(2000, 1, 1),
+                "600111222",
+                "Calle Principal 1",
+                true,
+                TipoCarnet.PERMISO_B
+        );
+
+        when(this.personaRepository.existsByNombreUsuario("alumno_dni_invalido")).thenReturn(false);
+        when(this.personaRepository.existsByCorreo("correo.libre@autoescuela.es")).thenReturn(false);
+        when(this.personaRepository.existsByDni("12345678A")).thenReturn(false);
+        when(this.usuarioService.esLetraDniValida("12345678A")).thenReturn(false);
+
+        ReglaNegocioException excepcion = assertThrows(ReglaNegocioException.class, () ->
+                this.autenticacionService.registrarAlumno(dto)
+        );
+
+        assertEquals("La letra del DNI/NIE no es válida o no coincide con los números.", excepcion.getMessage());
     }
 
     @Test

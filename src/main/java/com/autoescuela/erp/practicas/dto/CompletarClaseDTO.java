@@ -1,5 +1,6 @@
 package com.autoescuela.erp.practicas.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -30,10 +31,11 @@ public record CompletarClaseDTO(
     }
 
     /**
-     * Método auxiliar para validar que el kilometraje final es mayor que el inicial.
+     * Valida que el kilometraje final sea estrictamente superior al kilometraje inicial.
      *
      * @return true si kmFin es mayor que kmInicio, false en caso contrario.
      */
+    @AssertTrue(message = "El kilometraje final debe ser estrictamente superior al inicial.")
     public boolean isKmFinMayorQueKmInicio() {
         return this.kmFin != null && this.kmInicio != null && this.kmFin > this.kmInicio;
     }

@@ -43,8 +43,24 @@ document.addEventListener('submit', (e) => {
     } else {
         // Validación obligatoria de selección de profesor en el desplegable
         if (!selectProfesor || !selectProfesor.value) {
-            alert('Debes seleccionar un profesor activo disponible.');
+            const alerta = document.getElementById('alerta-error-reasignar-alumno');
+            const texto = document.getElementById('texto-error-reasignar-alumno');
+            if (alerta && texto) {
+                texto.textContent = 'Debes seleccionar un profesor activo disponible para reasignar al alumno.';
+                alerta.classList.remove('hidden');
+            }
+            if (selectProfesor) {
+                selectProfesor.focus();
+                selectProfesor.classList.add('border-rose-500', 'focus:ring-rose-500');
+            }
             return;
+        }
+        const alerta = document.getElementById('alerta-error-reasignar-alumno');
+        if (alerta) {
+            alerta.classList.add('hidden');
+        }
+        if (selectProfesor) {
+            selectProfesor.classList.remove('border-rose-500', 'focus:ring-rose-500');
         }
         if (resumenDestino && selectProfesor.selectedOptions.length > 0) {
             resumenDestino.textContent = selectProfesor.selectedOptions[0].text;
@@ -74,6 +90,13 @@ document.addEventListener('change', (e) => {
         if (select) {
             select.disabled = (e.target.value !== 'REASIGNAR');
         }
+        const alerta = document.getElementById('alerta-error-reasignar-alumno');
+        if (alerta) alerta.classList.add('hidden');
+        if (select) select.classList.remove('border-rose-500', 'focus:ring-rose-500');
+    } else if (e.target && e.target.id === 'select-nuevo-profesor') {
+        const alerta = document.getElementById('alerta-error-reasignar-alumno');
+        if (alerta) alerta.classList.add('hidden');
+        e.target.classList.remove('border-rose-500', 'focus:ring-rose-500');
     }
 });
 

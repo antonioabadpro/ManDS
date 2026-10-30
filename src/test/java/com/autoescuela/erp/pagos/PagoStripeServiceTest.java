@@ -108,7 +108,7 @@ class PagoStripeServiceTest
         assertTrue(excepcionCarnet.getMessage().contains("obligatorios para formalizar la matrícula"));
 
         ReglaNegocioException excepcionAlumno = assertThrows(ReglaNegocioException.class, () ->
-                this.pagoStripeService.crearSesionPagoMatricula(201L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA)
+                this.pagoStripeService.crearSesionPagoMatricula(null, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA)
         );
         assertTrue(excepcionAlumno.getMessage().contains("obligatorios para formalizar la matrícula"));
     }
@@ -158,7 +158,7 @@ class PagoStripeServiceTest
         assertEquals(1, capturedParams.getLineItems().size());
         assertEquals(27000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
         assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso B", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
-        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso B (Alumno ID: 205).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso B.", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
     }
 
     @Test
@@ -186,7 +186,7 @@ class PagoStripeServiceTest
         assertEquals(1, capturedParams.getLineItems().size());
         assertEquals(54000L, capturedParams.getLineItems().get(0).getPriceData().getUnitAmount());
         assertEquals("Bono 10 Clases Prácticas (1 Clase Gratis) - Permiso C", capturedParams.getLineItems().get(0).getPriceData().getProductData().getName());
-        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso C (Alumno ID: 206).", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
+        assertEquals("Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para Permiso C.", capturedParams.getLineItems().get(0).getPriceData().getProductData().getDescription());
     }
 
     @Test

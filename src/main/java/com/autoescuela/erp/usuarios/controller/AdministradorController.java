@@ -294,9 +294,37 @@ public class AdministradorController
      * Procesa la solicitud de baja lógica de un profesor.
      */
     @PostMapping("/profesores/baja")
-    public String darBajaProfesor(@ModelAttribute BajaProfesorDTO bajaProfesorDTO, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
+    public String darBajaProfesor(
+            @Valid @ModelAttribute("bajaProfesorDTO") BajaProfesorDTO bajaProfesorDTO, BindingResult bindingResult, Model model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
     {
         boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
+
+        if (bindingResult.hasErrors())
+        {
+            String errorMsg = bindingResult.getAllErrors().getFirst().getDefaultMessage();
+            Long profesorId = bajaProfesorDTO != null ? bajaProfesorDTO.profesorId() : null;
+            if (profesorId != null)
+            {
+                ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(profesorId);
+                List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
+                        ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), profesorId)
+                        : this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId);
+
+                model.addAttribute("profesor", profesor);
+                model.addAttribute("profesoresDisponibles", profesoresDisponibles);
+            }
+            model.addAttribute("bajaProfesorDTO", bajaProfesorDTO);
+            model.addAttribute("errorBajaProfesor", errorMsg);
+            model.addAttribute("abrirModalBajaProfesor", true);
+
+            if (esPeticionHtmx)
+            {
+                return "admin/fragments/modal-baja-profesor :: modal-baja-profesor";
+            }
+            redirectAttributes.addFlashAttribute("errorBajaProfesor", errorMsg);
+            redirectAttributes.addFlashAttribute("abrirModalBajaProfesor", true);
+            return "redirect:/admin/profesores";
+        }
 
         try
         {
@@ -515,6 +543,7 @@ public class AdministradorController
 
         if (bindingResult.hasErrors())
         {
+            String errorMsg = bindingResult.getAllErrors().getFirst().getDefaultMessage();
             if (alumnoId != null)
             {
                 AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(alumnoId);
@@ -523,12 +552,15 @@ public class AdministradorController
                 model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(alumno.tipoCarnet(), alumno.profesorId()));
             }
             model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
+            model.addAttribute("errorReasignarAlumno", errorMsg);
             model.addAttribute("abrirModalReasignarAlumno", true);
             if (esPeticionHtmx)
             {
                 return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
             }
-            return "admin/alumnos";
+            redirectAttributes.addFlashAttribute("errorReasignarAlumno", errorMsg);
+            redirectAttributes.addFlashAttribute("abrirModalReasignarAlumno", true);
+            return "redirect:/admin/alumnos";
         }
 
         try

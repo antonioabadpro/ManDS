@@ -324,7 +324,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("nombreUsuario", "ab"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(content().string(containsString("El nombre de usuario debe tener entre 3 y 50 caracteres.")));
+                .andExpect(content().string(containsString("El nombre de usuario debe tener entre 3 y 30 caracteres.")));
     }
 
     @Test

@@ -52,8 +52,24 @@ document.addEventListener('submit', (e) => {
     } else {
         // Opción REASIGNAR: exige seleccionar un profesor activo en el desplegable
         if (!selectProfesor || !selectProfesor.value) {
-            alert('Debes seleccionar un profesor activo disponible para reasignar a los alumnos.');
+            const alerta = document.getElementById('alerta-error-baja-profesor');
+            const texto = document.getElementById('texto-error-baja-profesor');
+            if (alerta && texto) {
+                texto.textContent = 'Debes seleccionar un profesor activo disponible para reasignar a los alumnos.';
+                alerta.classList.remove('hidden');
+            }
+            if (selectProfesor) {
+                selectProfesor.focus();
+                selectProfesor.classList.add('border-rose-500', 'focus:ring-rose-500');
+            }
             return;
+        }
+        const alerta = document.getElementById('alerta-error-baja-profesor');
+        if (alerta) {
+            alerta.classList.add('hidden');
+        }
+        if (selectProfesor) {
+            selectProfesor.classList.remove('border-rose-500', 'focus:ring-rose-500');
         }
         if (resumenDestino && selectProfesor.selectedOptions.length > 0) {
             resumenDestino.textContent = selectProfesor.selectedOptions[0].text;

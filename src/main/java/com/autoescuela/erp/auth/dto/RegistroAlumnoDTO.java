@@ -30,7 +30,7 @@ public record RegistroAlumnoDTO(
         @Size(max = 50, message = "El correo electrónico no puede superar los 50 caracteres")
         String correo,
 
-        @NotBlank(message = "La confirmación de la contraseña es obligatoria.")
+        @NotBlank(message = "La contraseña es obligatoria")
         @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
         String password,
 
@@ -56,7 +56,7 @@ public record RegistroAlumnoDTO(
         LocalDate fechaNacimiento,
 
         @NotBlank(message = "El teléfono es obligatorio")
-        @Pattern(regexp = "^(\\+34|0034)?[6789]\\d{8}$", message = "El teléfono debe ser un número válido español (9 dígitos)")
+        @Pattern(regexp = "^[6789][0-9]{8}$", message = "El teléfono debe contener 9 dígitos y comenzar por 6, 7, 8 o 9")
         String telefono,
 
         @NotBlank(message = "La dirección de residencia es obligatoria")
