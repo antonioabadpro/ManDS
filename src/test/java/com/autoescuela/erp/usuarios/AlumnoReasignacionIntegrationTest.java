@@ -202,7 +202,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Los profesores disponibles para reasignación se ordenan de menor a mayor número de alumnos")
     void testProfesoresOrdenadosDeMenorAMayorNumeroDeAlumnos()
     {
-        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet.PERMISO_B, 100L);
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(TipoCarnet.PERMISO_B, 100L);
         assertTrue(profesores.size() > 1);
 
         for (int i = 0; i < profesores.size() - 1; i++)

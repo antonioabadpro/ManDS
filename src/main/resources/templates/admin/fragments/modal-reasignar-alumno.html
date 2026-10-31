@@ -91,7 +91,7 @@
                         <input type="radio" id="radio-opcion-reasignar" name="opcion" value="REASIGNAR" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" th:checked="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-1 text-indigo-600 focus:ring-indigo-500" />
                         <div class="flex-1 min-w-0">
                             <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Asignar a otro profesor activo</span>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet != null}" th:text="|Profesores activos habilitados para ${alumno.tipoCarnetDescripcion} (ordenados por menor número de alumnos).|">Profesores activos habilitados para el permiso.</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet != null}" th:text="|Profesores activos con vehículo asignado para ${alumno.tipoCarnetDescripcion} (ordenados por menor número de alumnos).|">Profesores activos con vehículo asignado para el permiso.</p>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet == null}">Se asignará al profesor elegido y se cancelarán sus prácticas pendientes.</p>
 
                             <div th:if="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
@@ -100,8 +100,8 @@
                                 </select>
                             </div>
                             <p th:if="${#lists.isEmpty(profesoresDisponibles)}" class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
-                                <span th:if="${alumno.tipoCarnet != null}" th:text="|No hay otros profesores activos habilitados para ${alumno.tipoCarnetDescripcion}.|">No hay otros profesores activos disponibles en plantilla.</span>
-                                <span th:if="${alumno.tipoCarnet == null}">El alumno no cuenta con una matrícula activa para consultar profesores habilitados.</span>
+                                <span th:if="${alumno.tipoCarnet != null}" th:text="|No hay otros profesores activos con vehículo asignado para ${alumno.tipoCarnetDescripcion}.|">No hay otros profesores activos con vehículo disponible en plantilla.</span>
+                                <span th:if="${alumno.tipoCarnet == null}">El alumno no cuenta con una matrícula activa para consultar profesores con vehículo.</span>
                             </p>
                         </div>
                     </label>

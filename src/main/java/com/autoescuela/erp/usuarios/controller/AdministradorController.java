@@ -279,7 +279,7 @@ public class AdministradorController
     {
         ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(id);
         List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
-                ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), id)
+                ? this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(profesor.vehiculoTipo(), id)
                 : this.profesorService.obtenerProfesoresActivosExcluyendo(id);
 
         model.addAttribute("profesor", profesor);
@@ -307,7 +307,7 @@ public class AdministradorController
             {
                 ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(profesorId);
                 List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
-                        ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), profesorId)
+                        ? this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(profesor.vehiculoTipo(), profesorId)
                         : this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId);
 
                 model.addAttribute("profesor", profesor);
@@ -362,7 +362,7 @@ public class AdministradorController
             {
                 ProfesorDetalleDTO profesor = this.profesorService.obtenerProfesorParaDetalle(profesorId);
                 List<ProfesorResumenDTO> profesoresDisponibles = profesor.vehiculoTipo() != null
-                        ? this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(profesor.vehiculoTipo(), profesorId)
+                        ? this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(profesor.vehiculoTipo(), profesorId)
                         : this.profesorService.obtenerProfesoresActivosExcluyendo(profesorId);
 
                 model.addAttribute("profesor", profesor);
@@ -521,7 +521,7 @@ public class AdministradorController
     {
         AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(id);
         int clasesPendientes = this.alumnoService.contarClasesPendientes(id);
-        List<ProfesorResumenDTO> profesoresDisponibles = this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(alumno.tipoCarnet(), alumno.profesorId());
+        List<ProfesorResumenDTO> profesoresDisponibles = this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId());
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("clasesPendientes", clasesPendientes);
@@ -549,7 +549,7 @@ public class AdministradorController
                 AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(alumnoId);
                 model.addAttribute("alumno", alumno);
                 model.addAttribute("clasesPendientes", this.alumnoService.contarClasesPendientes(alumnoId));
-                model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(alumno.tipoCarnet(), alumno.profesorId()));
+                model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId()));
             }
             model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
             model.addAttribute("errorReasignarAlumno", errorMsg);
@@ -592,22 +592,23 @@ public class AdministradorController
         }
         catch (ReglaNegocioException ex)
         {
-            if (alumnoId != null)
-            {
-                AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(alumnoId);
-                model.addAttribute("alumno", alumno);
-                model.addAttribute("clasesPendientes", this.alumnoService.contarClasesPendientes(alumnoId));
-                model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosPorCarnetExcluyendo(alumno.tipoCarnet(), alumno.profesorId()));
-            }
-            model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
-            model.addAttribute("errorReasignarAlumno", ex.getMessage());
-            model.addAttribute("abrirModalReasignarAlumno", true);
-
             if (esPeticionHtmx)
             {
+                if (alumnoId != null)
+                {
+                    AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(alumnoId);
+                    model.addAttribute("alumno", alumno);
+                    model.addAttribute("clasesPendientes", this.alumnoService.contarClasesPendientes(alumnoId));
+                    model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId()));
+                }
+                model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
+                model.addAttribute("errorReasignarAlumno", ex.getMessage());
+                model.addAttribute("abrirModalReasignarAlumno", true);
                 return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
             }
-            return "admin/alumnos";
+            redirectAttributes.addFlashAttribute("errorReasignarAlumno", ex.getMessage());
+            redirectAttributes.addFlashAttribute("abrirModalReasignarAlumno", true);
+            return "redirect:/admin/alumnos";
         }
     }
 

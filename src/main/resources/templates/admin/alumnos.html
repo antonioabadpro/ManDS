@@ -68,7 +68,7 @@
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">Expedientes de Alumnado</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Control de convocatorias DGT y saldos de prácticas</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalAlumnos != null ? totalAlumnos : #lists.size(alumnos)}">0</span> alumnos matriculados (<span th:text="|${totalActivos != null ? totalActivos : 0} activos y ${totalSinProfesor != null ? totalSinProfesor : 0} sin profesor asignado|">0 activos y 0 sin profesor asignado</span>)</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalAlumnos != null ? totalAlumnos : (alumnos != null ? #lists.size(alumnos) : 0)}">0</span> alumnos matriculados (<span th:text="|${totalActivos != null ? totalActivos : 0} activos y ${totalSinProfesor != null ? totalSinProfesor : 0} sin profesor asignado|">0 activos y 0 sin profesor asignado</span>)</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative w-full sm:w-64">

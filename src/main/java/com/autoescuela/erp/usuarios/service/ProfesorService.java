@@ -588,25 +588,25 @@ public class ProfesorService
     }
 
     /**
-     * Recupera el listado de profesores activos que cuentan con la habilitación para el tipo de carnet indicado,
+     * Recupera el listado de profesores activos que tienen un vehículo asignado con el tipo de carnet indicado,
      * excluyendo al profesor actual si procede, y ordenados de menor a mayor número de alumnos asignados
      * (con desempate alfabético por nombre completo) para favorecer el balanceo de carga de alumnos.
      *
      * @param tipoCarnet Permiso de conducción requerido conforme a la matrícula del alumno.
-     * @param profesorId Identificador del profesor a excluir (por ejemplo, el actual del alumno).
-     * @return Lista ordenada de DTOs de resumen de los profesores activos habilitados.
+     * @param profesorIdExcluido Identificador del profesor a excluir (por ejemplo, el actual del alumno).
+     * @return Lista ordenada de DTOs de resumen de los profesores activos con vehículo de dicho carnet.
      */
     @Transactional(readOnly = true)
-    public List<ProfesorResumenDTO> obtenerProfesoresActivosPorCarnetExcluyendo(TipoCarnet tipoCarnet, Long profesorId)
+    public List<ProfesorResumenDTO> obtenerProfesoresActivosConVehiculoPorCarnet(TipoCarnet tipoCarnet, Long profesorIdExcluido)
     {
         if (tipoCarnet == null)
         {
             return List.of();
         }
 
-        List<Profesor> profesores = (profesorId != null)
-                ? this.profesorRepository.findActivosPorCarnetExcluyendoIdOrderByAlumnosAsc(tipoCarnet, profesorId)
-                : this.profesorRepository.findActivosPorCarnetOrderByAlumnosAsc(tipoCarnet);
+        List<Profesor> profesores = (profesorIdExcluido != null)
+                ? this.profesorRepository.findActivosConVehiculoPorCarnetExcluyendoIdOrderByAlumnosAsc(tipoCarnet, profesorIdExcluido)
+                : this.profesorRepository.findActivosConVehiculoPorCarnetOrderByAlumnosAsc(tipoCarnet);
 
         return profesores.stream()
                 .map(this.profesorMapper::toProfesorResumenDTO)

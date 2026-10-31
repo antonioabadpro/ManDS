@@ -54,31 +54,34 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
     List<Profesor> findActivosOrderByAlumnosAsc();
 
     /**
-     * Recupera los profesores en estado ACTIVO que cuenten con el permiso de carnet especificado,
+     * Recupera los profesores en estado ACTIVO que tienen un vehículo asignado cuyo permiso coincide
+     * con el tipo de carnet especificado, ordenados ascendentemente por número de alumnos asignados
+     * (para balanceo de carga) y por nombre y apellidos en caso de empate.
+     */
+    @Query("""
+        SELECT p FROM Profesor p
+        JOIN p.vehiculo v
+        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
+          AND v.tipoPermiso = :tipoCarnet
+        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
+    """)
+    List<Profesor> findActivosConVehiculoPorCarnetOrderByAlumnosAsc(@Param("tipoCarnet") TipoCarnet tipoCarnet);
+
+    /**
+     * Recupera los profesores en estado ACTIVO que tienen un vehículo asignado cuyo permiso coincide
+     * con el tipo de carnet especificado, excluyendo a un profesor en particular por su ID,
      * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga)
      * y por nombre y apellidos en caso de empate.
      */
     @Query("""
         SELECT p FROM Profesor p
-        WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
-          AND :tipoCarnet MEMBER OF p.listaTiposCarnet
-        ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
-    """)
-    List<Profesor> findActivosPorCarnetOrderByAlumnosAsc(@Param("tipoCarnet") TipoCarnet tipoCarnet);
-
-    /**
-     * Recupera los profesores en estado ACTIVO que cuenten con el permiso de carnet especificado,
-     * excluyendo a un profesor en particular por su ID, ordenados ascendentemente por número de alumnos asignados
-     * (para balanceo de carga) y por nombre y apellidos en caso de empate.
-     */
-    @Query("""
-        SELECT p FROM Profesor p
+        JOIN p.vehiculo v
         WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
           AND p.id != :profesorId
-          AND :tipoCarnet MEMBER OF p.listaTiposCarnet
+          AND v.tipoPermiso = :tipoCarnet
         ORDER BY SIZE(p.listaAlumnos) ASC, p.nombre ASC, p.apellidos ASC
     """)
-    List<Profesor> findActivosPorCarnetExcluyendoIdOrderByAlumnosAsc(
+    List<Profesor> findActivosConVehiculoPorCarnetExcluyendoIdOrderByAlumnosAsc(
             @Param("tipoCarnet") TipoCarnet tipoCarnet,
             @Param("profesorId") Long profesorId);
 
@@ -91,6 +94,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * Cuenta el número de profesores en un estado determinado.
      */
     long countByEstado(EstadoUsuario estado);
+
     /**
      * Busca un profesor a partir de su Documento Nacional de Identidad o NIE.
      *
