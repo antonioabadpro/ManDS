@@ -15,6 +15,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
@@ -75,8 +76,10 @@ public class AlumnoService
                     .orElse(null);
             int clasesPendientes = this.clasePracticaRepository
                     .countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
+            boolean teoricoAprobado = this.examenRepository
+                    .existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
 
-            listaAlumnoResumen.add(this.alumnoMapper.toAlumnoResumenDTO(alumno, matriculaActiva, clasesPendientes));
+            listaAlumnoResumen.add(this.alumnoMapper.toAlumnoResumenDTO(alumno, matriculaActiva, clasesPendientes, teoricoAprobado));
         }
 
         return listaAlumnoResumen;

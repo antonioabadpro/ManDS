@@ -27,7 +27,9 @@ public record AlumnoResumenDTO(
     String modalidadDescripcion,
     Integer saldoClases,
     int clasesPendientes,
-    Integer convocatoriasRestantes
+    Integer convocatoriasRestantes,
+    boolean teoricoAprobado,
+    boolean puedeRealizarPracticas
 )
 {
 }

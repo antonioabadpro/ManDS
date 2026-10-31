@@ -83,6 +83,8 @@ class AlumnoMapperTest
         assertThat(dto.saldoClases()).isEqualTo(5);
         assertThat(dto.clasesPendientes()).isEqualTo(1);
         assertThat(dto.convocatoriasRestantes()).isEqualTo(2);
+        assertThat(dto.teoricoAprobado()).isFalse();
+        assertThat(dto.puedeRealizarPracticas()).isTrue();
     }
 
     @Test
@@ -113,6 +115,38 @@ class AlumnoMapperTest
         assertThat(dto.saldoClases()).isNull();
         assertThat(dto.clasesPendientes()).isZero();
         assertThat(dto.convocatoriasRestantes()).isNull();
+        assertThat(dto.teoricoAprobado()).isFalse();
+        assertThat(dto.puedeRealizarPracticas()).isFalse();
+    }
+
+    @Test
+    @DisplayName("toAlumnoResumenDTO calcula puedeRealizarPracticas según aprobado en TEORICO_PRACTICA")
+    void testToAlumnoResumenDTOTeoricoPractica()
+    {
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 3L);
+        alumno.setNombre("Lucía");
+        alumno.setApellidos("Gómez Ruiz");
+        alumno.setDni("11223344C");
+        alumno.setFechaNacimiento(LocalDate.now().minusYears(20));
+        alumno.setEstado(EstadoUsuario.ACTIVO);
+
+        Matricula matricula = new Matricula();
+        ReflectionTestUtils.setField(matricula, "id", 101L);
+        matricula.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        matricula.setModalidad(ModalidadMatricula.TEORICO_PRACTICA);
+        matricula.setSaldoClases(10);
+        matricula.setConvocatorias(2);
+
+        // Sin aprobar teórico
+        AlumnoResumenDTO dtoSinAprobar = this.mapper.toAlumnoResumenDTO(alumno, matricula, 0, false);
+        assertThat(dtoSinAprobar.teoricoAprobado()).isFalse();
+        assertThat(dtoSinAprobar.puedeRealizarPracticas()).isFalse();
+
+        // Con aprobado teórico
+        AlumnoResumenDTO dtoAprobado = this.mapper.toAlumnoResumenDTO(alumno, matricula, 0, true);
+        assertThat(dtoAprobado.teoricoAprobado()).isTrue();
+        assertThat(dtoAprobado.puedeRealizarPracticas()).isTrue();
     }
 
     @Test

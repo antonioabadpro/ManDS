@@ -46,7 +46,17 @@ public interface AlumnoMapper
     @Mapping(target = "saldoClases", expression = "java(matriculaActiva != null ? matriculaActiva.getSaldoClases() : null)")
     @Mapping(target = "clasesPendientes", source = "clasesPendientes")
     @Mapping(target = "convocatoriasRestantes", expression = "java(matriculaActiva != null ? matriculaActiva.getConvocatorias() : null)")
-    AlumnoResumenDTO toAlumnoResumenDTO(Alumno alumno, Matricula matriculaActiva, int clasesPendientes);
+    @Mapping(target = "teoricoAprobado", source = "teoricoAprobado")
+    @Mapping(target = "puedeRealizarPracticas", expression = "java(matriculaActiva != null && (matriculaActiva.getModalidad() == com.autoescuela.erp.core.enums.ModalidadMatricula.PRACTICA || teoricoAprobado))")
+    AlumnoResumenDTO toAlumnoResumenDTO(Alumno alumno, Matricula matriculaActiva, int clasesPendientes, boolean teoricoAprobado);
+
+    /**
+     * Sobrecarga defensiva de conveniencia sin indicación de aprobado teórico.
+     */
+    default AlumnoResumenDTO toAlumnoResumenDTO(Alumno alumno, Matricula matriculaActiva, int clasesPendientes)
+    {
+        return toAlumnoResumenDTO(alumno, matriculaActiva, clasesPendientes, false);
+    }
 
     /**
      * Reconstruye el DTO de perfil del alumno combinando los campos modificados por el usuario

@@ -151,13 +151,13 @@
                                     </div>
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
-                                    <div th:if="${a.tieneMatriculaActiva}" class="inline-flex flex-col items-center justify-center space-y-0.5">
+                                    <div th:if="${a.tieneMatriculaActiva and a.puedeRealizarPracticas}" class="inline-flex flex-col items-center justify-center space-y-0.5">
                                         <span class="font-bold text-slate-900 dark:text-white text-sm" th:text="|${a.saldoClases} clases|" th:classappend="${a.saldoClases == 0} ? 'text-amber-600 dark:text-amber-400' : ''">5 clases</span>
                                         <p th:if="${a.clasesPendientes > 0}" class="text-[10px] text-amber-600 dark:text-amber-400" th:text="|${a.clasesPendientes} pendiente${a.clasesPendientes > 1 ? 's' : ''}|">1 pendiente</p>
-                                        <p th:if="${a.clasesPendientes == 0 && a.saldoClases == 0}" class="text-[10px] text-slate-400">Saldo agotado</p>
                                         <p th:if="${a.clasesPendientes == 0 && a.saldoClases > 0}" class="text-[10px] text-emerald-600 dark:text-emerald-400">Al día</p>
+                                        <p th:if="${a.clasesPendientes == 0 && a.saldoClases == 0}" class="text-[10px] text-rose-600 dark:text-rose-400">Saldo agotado</p>
                                     </div>
-                                    <div th:if="${!a.tieneMatriculaActiva}">
+                                    <div th:if="${!a.tieneMatriculaActiva or !a.puedeRealizarPracticas}">
                                         <span class="text-xs text-slate-400">-</span>
                                     </div>
                                 </td>
