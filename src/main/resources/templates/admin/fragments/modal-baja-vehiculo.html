@@ -1,4 +1,4 @@
-﻿<th:block th:fragment="modal-baja-vehiculo">
+<th:block th:fragment="modal-baja-vehiculo">
     <!-- MODAL 1: Selección y Advertencia de Baja Lógica del Vehículo -->
     <div id="modal-baja-vehiculo" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-baja-vehiculo" th:classappend="${abrirModalBajaVehiculo} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
         <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-baja-vehiculo"></div>
@@ -41,7 +41,7 @@
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Permiso requerido:</span>
-                        <span th:text="${vehiculo.tipoDescripcion}" class="font-semibold" th:classappend="${vehiculo.tipoPermiso?.name() == 'PERMISO_B'} ? 'text-blue-600 dark:text-blue-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_A' || vehiculo.tipoPermiso?.name() == 'PERMISO_A1' || vehiculo.tipoPermiso?.name() == 'PERMISO_A2' || vehiculo.tipoPermiso?.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_B_E' || vehiculo.tipoPermiso?.name() == 'PERMISO_B1' || vehiculo.tipoPermiso?.name() == 'PERMISO_LVA'} ? 'text-indigo-600 dark:text-indigo-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_C' || vehiculo.tipoPermiso?.name() == 'PERMISO_C_E'} ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')))">Permiso B</span>
+                        <span th:text="${vehiculo.tipoDescripcion}" class="font-semibold" th:classappend="${vehiculo.tipoPermiso?.name() == 'PERMISO_A' || vehiculo.tipoPermiso?.name() == 'PERMISO_A1' || vehiculo.tipoPermiso?.name() == 'PERMISO_A2' || vehiculo.tipoPermiso?.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_B' || vehiculo.tipoPermiso?.name() == 'PERMISO_B1' || vehiculo.tipoPermiso?.name() == 'PERMISO_B_E'} ? 'text-lime-700 dark:text-lime-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_C' || vehiculo.tipoPermiso?.name() == 'PERMISO_C_E'} ? 'text-cyan-700 dark:text-cyan-400' : (${vehiculo.tipoPermiso?.name() == 'PERMISO_D' || vehiculo.tipoPermiso?.name() == 'PERMISO_D_E'} ? 'text-orange-600 dark:text-orange-400' : 'text-fuchsia-600 dark:text-fuchsia-400')))">Permiso B</span>
                     </p>
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Profesor asignado:</span>

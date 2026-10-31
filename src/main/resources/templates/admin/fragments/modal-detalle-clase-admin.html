@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -31,16 +31,16 @@
                     <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_A' || clase.tipoPermiso?.name() == 'PERMISO_A1' || clase.tipoPermiso?.name() == 'PERMISO_A2' || clase.tipoPermiso?.name() == 'PERMISO_AM'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso A2'}">
                         Permiso A2
                     </span>
-                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_B'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso B'}">
+                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_B' || clase.tipoPermiso?.name() == 'PERMISO_B1' || clase.tipoPermiso?.name() == 'PERMISO_B_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso B'}">
                         Permiso B
                     </span>
-                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_B_E' || clase.tipoPermiso?.name() == 'PERMISO_B1' || clase.tipoPermiso?.name() == 'PERMISO_LVA'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso B+E'}">
+                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_C' || clase.tipoPermiso?.name() == 'PERMISO_C_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso C'}">
                         Permiso B+E
                     </span>
-                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_C' || clase.tipoPermiso?.name() == 'PERMISO_C_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso C'}">
+                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_D' || clase.tipoPermiso?.name() == 'PERMISO_D_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso D'}">
                         Permiso C
                     </span>
-                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_D' || clase.tipoPermiso?.name() == 'PERMISO_D_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso D'}">
+                    <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_LVA'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso LVA'}">
                         Permiso D
                     </span>
                     <span th:if="${clase.tipoPermiso == null}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-medium leading-normal bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">

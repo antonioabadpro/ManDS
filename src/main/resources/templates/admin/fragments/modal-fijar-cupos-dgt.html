@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -44,17 +44,17 @@
                                     <!-- Motos y ciclomotores (AM, A1, A2, A) -> Púrpura -->
                                     <span th:if="${carnet.name() == 'PERMISO_A' || carnet.name() == 'PERMISO_A1' || carnet.name() == 'PERMISO_A2' || carnet.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${carnet.descripcion}">Permiso A2</span>
 
-                                    <!-- Turismos (B) -> Azul -->
-                                    <span th:if="${carnet.name() == 'PERMISO_B'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${carnet.descripcion}">Permiso B</span>
+                                    <!-- Turismos y derivados (B, B1, B+E) -> Lima -->
+                                    <span th:if="${carnet.name() == 'PERMISO_B' || carnet.name() == 'PERMISO_B1' || carnet.name() == 'PERMISO_B_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${carnet.descripcion}">Permiso B</span>
 
-                                    <!-- Remolques y especiales (B+E, B1, LVA) -> Índigo -->
-                                    <span th:if="${carnet.name() == 'PERMISO_B_E' || carnet.name() == 'PERMISO_B1' || carnet.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${carnet.descripcion}">Permiso B+E</span>
+                                    <!-- Camiones (C, C+E) -> Cian -->
+                                    <span th:if="${carnet.name() == 'PERMISO_C' || carnet.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${carnet.descripcion}">Permiso C</span>
 
-                                    <!-- Camiones (C, C+E) -> Ámbar -->
-                                    <span th:if="${carnet.name() == 'PERMISO_C' || carnet.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${carnet.descripcion}">Permiso C</span>
+                                    <!-- Autobuses (D, D+E) -> Naranja -->
+                                    <span th:if="${carnet.name() == 'PERMISO_D' || carnet.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${carnet.descripcion}">Permiso D</span>
 
-                                    <!-- Autobuses (D, D+E) -> Esmeralda -->
-                                    <span th:if="${carnet.name() == 'PERMISO_D' || carnet.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${carnet.descripcion}">Permiso D</span>
+                                    <!-- Vehículos agrícolas (LVA) -> Fucsia -->
+                                    <span th:if="${carnet.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${carnet.descripcion}">Permiso LVA</span>
                                 </div>
 
                                 <!-- Columna Cupo Teórico (Centrado exactamente respecto a su encabezado) -->

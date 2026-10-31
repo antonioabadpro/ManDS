@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -31,16 +31,16 @@
                     <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_A' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_A1' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_A2' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_AM'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso A2'}">
                         Permiso A2
                     </span>
-                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B' || solicitud.matricula == null}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso B'}">
+                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || solicitud.matricula == null}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso B'}">
                         Permiso B
                     </span>
-                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso B+E'}">
+                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_C' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso C'}">
                         Permiso B+E
                     </span>
-                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_C' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso C'}">
+                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_D' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso D'}">
                         Permiso C
                     </span>
-                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_D' || solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso D'}">
+                    <span th:if="${solicitud.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: 'Permiso LVA'}">
                         Permiso D
                     </span>
 

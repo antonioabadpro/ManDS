@@ -1,4 +1,4 @@
-﻿<th:block th:fragment="modal-baja-alumno">
+<th:block th:fragment="modal-baja-alumno">
     <!-- MODAL 1: Selección y Advertencia de Baja Lógica del Alumno -->
     <div id="modal-baja-alumno" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-baja-alumno" th:classappend="${abrirModalBajaAlumno} ? 'flex' : 'hidden'" class="fixed inset-0 z-50 items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
         <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-baja-alumno"></div>
@@ -41,7 +41,7 @@
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
                     <p>
                         <span class="font-medium text-slate-700 dark:text-slate-300">Permiso matriculado:</span>
-                        <span th:if="${alumno.tipoCarnet != null}" th:text="${alumno.tipoCarnetDescripcion}" class="font-semibold" th:classappend="${alumno.tipoCarnet.name() == 'PERMISO_B'} ? 'text-blue-600 dark:text-blue-400' : (${alumno.tipoCarnet.name() == 'PERMISO_A' || alumno.tipoCarnet.name() == 'PERMISO_A1' || alumno.tipoCarnet.name() == 'PERMISO_A2' || alumno.tipoCarnet.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${alumno.tipoCarnet.name() == 'PERMISO_B_E' || alumno.tipoCarnet.name() == 'PERMISO_B1' || alumno.tipoCarnet.name() == 'PERMISO_LVA'} ? 'text-indigo-600 dark:text-indigo-400' : (${alumno.tipoCarnet.name() == 'PERMISO_C' || alumno.tipoCarnet.name() == 'PERMISO_C_E'} ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')))">Permiso B - Automóviles</span>
+                        <span th:if="${alumno.tipoCarnet != null}" th:text="${alumno.tipoCarnetDescripcion}" class="font-semibold" th:classappend="${alumno.tipoCarnet.name() == 'PERMISO_A' || alumno.tipoCarnet.name() == 'PERMISO_A1' || alumno.tipoCarnet.name() == 'PERMISO_A2' || alumno.tipoCarnet.name() == 'PERMISO_AM'} ? 'text-purple-600 dark:text-purple-400' : (${alumno.tipoCarnet.name() == 'PERMISO_B' || alumno.tipoCarnet.name() == 'PERMISO_B1' || alumno.tipoCarnet.name() == 'PERMISO_B_E'} ? 'text-lime-700 dark:text-lime-400' : (${alumno.tipoCarnet.name() == 'PERMISO_C' || alumno.tipoCarnet.name() == 'PERMISO_C_E'} ? 'text-cyan-700 dark:text-cyan-400' : (${alumno.tipoCarnet.name() == 'PERMISO_D' || alumno.tipoCarnet.name() == 'PERMISO_D_E'} ? 'text-orange-600 dark:text-orange-400' : 'text-fuchsia-600 dark:text-fuchsia-400')))">Permiso B - Automóviles</span>
                         <span th:if="${alumno.tipoCarnet == null}" class="text-amber-600 dark:text-amber-400 font-semibold">Sin matrícula activa</span>
                     </p>
                     <p>

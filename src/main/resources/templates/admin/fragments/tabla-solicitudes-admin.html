@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 
 <body>
@@ -41,10 +41,10 @@
                     <!-- 3. Tipo Permiso -->
                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                         <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_A' || s.matricula?.permisoCarnet?.name() == 'PERMISO_A1' || s.matricula?.permisoCarnet?.name() == 'PERMISO_A2' || s.matricula?.permisoCarnet?.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso A2</span>
-                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_B' || s.matricula == null}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion ?: 'Permiso B'}">Permiso B</span>
-                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || s.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || s.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso B+E</span>
-                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_C' || s.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso C</span>
-                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_D' || s.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso D</span>
+                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_B' || s.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || s.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || s.matricula == null}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion ?: 'Permiso B'}">Permiso B</span>
+                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_C' || s.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso C</span>
+                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_D' || s.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso D</span>
+                        <span th:if="${s.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${s.matricula?.permisoCarnet?.descripcion}">Permiso LVA</span>
                     </td>
 
                     <!-- 4. Tipo Examen -->
