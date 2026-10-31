@@ -337,6 +337,55 @@ public class ExamenController
         return "redirect:/admin/examenes";
     }
 
+    /**
+     * Muestra el panel de consulta y calificación de exámenes teóricos oficiales DGT por parte del Administrador.
+     */
+    @GetMapping("/admin/calificaciones")
+    public String mostrarCalificacionesAdmin(Model model)
+    {
+        List<Examen> examenesTeoricos = this.examenService.obtenerExamenesTeoricos();
+        model.addAttribute("examenes", examenesTeoricos);
+        model.addAttribute("calificarExamenDTO", new CalificarExamenDTO());
+
+        return "admin/calificaciones";
+    }
+
+    /**
+     * Asienta la calificación oficial de un examen teórico DGT por parte del Administrador.
+     */
+    @PostMapping("/admin/calificaciones/calificar")
+    public String calificarExamenTeoricoAdmin(
+            @Valid @ModelAttribute("calificarExamenDTO") CalificarExamenDTO dto,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes)
+    {
+        if (bindingResult.hasErrors())
+        {
+            redirectAttributes.addFlashAttribute("error", "Debes especificar si el resultado es Apto o No Apto.");
+            return "redirect:/admin/calificaciones";
+        }
+
+        try
+        {
+            Optional<Examen> examenOptional = this.examenService.buscarExamenPorId(dto.examenId());
+            if (examenOptional.isPresent() && examenOptional.get().getTipo() != TipoExamen.TEORICO)
+            {
+                redirectAttributes.addFlashAttribute("error", "Solo los exámenes teóricos pueden ser calificados desde este panel de administración.");
+                return "redirect:/admin/calificaciones";
+            }
+
+            this.examenService.calificarExamenOficial(dto);
+            redirectAttributes.addFlashAttribute("mensajeExito", "Calificación registrada con éxito. Resultado: "
+                    + (Boolean.TRUE.equals(dto.esApto()) ? "APTO" : "NO APTO") + ".");
+        }
+        catch (ReglaNegocioException ex)
+        {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+
+        return "redirect:/admin/calificaciones";
+    }
+
     // =========================================================================
     // 2. ENDPOINTS DE PROFESOR (/profesor/examenes)
     // =========================================================================
@@ -353,7 +402,7 @@ public class ExamenController
             return "redirect:/login";
         }
 
-        List<Examen> misExamenes = this.examenService.obtenerExamenesPorProfesor(profesor);
+        List<Examen> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         model.addAttribute("profesor", profesor);
         model.addAttribute("examenes", misExamenes);
         model.addAttribute("calificarExamenDTO", new CalificarExamenDTO());
@@ -380,7 +429,7 @@ public class ExamenController
         }
 
         Examen examen = examenOptional.get();
-        List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
+        List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
 
         model.addAttribute("examen", examen);
         model.addAttribute("alumnosCitados", examenes.size());
@@ -405,6 +454,13 @@ public class ExamenController
 
         try
         {
+            Optional<Examen> examenOptional = this.examenService.buscarExamenPorId(dto.examenId());
+            if (examenOptional.isPresent() && examenOptional.get().getTipo() != TipoExamen.PRACTICO)
+            {
+                redirectAttributes.addFlashAttribute("error", "Los profesores solo pueden calificar exámenes prácticos.");
+                return "redirect:/profesor/examenes";
+            }
+
             this.examenService.calificarExamenOficial(dto);
             redirectAttributes.addFlashAttribute("mensajeExito", "Calificación registrada con éxito. Resultado: "
                     + (Boolean.TRUE.equals(dto.esApto()) ? "APTO" : "NO APTO") + ".");

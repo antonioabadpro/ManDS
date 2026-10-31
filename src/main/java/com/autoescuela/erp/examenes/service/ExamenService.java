@@ -92,16 +92,25 @@ public class ExamenService
     }
 
     /**
-     * Recupera los exámenes asociados a los alumnos de un profesor ordenados descendentemente (de más reciente a más antiguo).
+     * Recupera todos los exámenes teóricos oficiales DGT ordenados descendentemente por fecha y hora.
      */
     @Transactional(readOnly = true)
-    public List<Examen> obtenerExamenesPorProfesor(Profesor profesor)
+    public List<Examen> obtenerExamenesTeoricos()
+    {
+        return this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.TEORICO);
+    }
+
+    /**
+     * Recupera los exámenes prácticos asociados a los alumnos de un profesor ordenados descendentemente por fecha y hora.
+     */
+    @Transactional(readOnly = true)
+    public List<Examen> obtenerExamenesPracticosPorProfesor(Profesor profesor)
     {
         if (profesor == null)
         {
             return List.of();
         }
-        return this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+        return this.examenRepository.findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(profesor, TipoExamen.PRACTICO);
     }
 
     /**

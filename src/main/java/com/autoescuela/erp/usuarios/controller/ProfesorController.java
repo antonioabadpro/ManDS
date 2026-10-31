@@ -99,7 +99,7 @@ public class ProfesorController
         Vehiculo vehiculo = profesor.getVehiculo();
 
         // Contar el número de exámenes pendientes de calificación del profesor
-        List<Examen> misExamenes = this.examenService.obtenerExamenesPorProfesor(profesor);
+        List<Examen> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         long pendientesCalificar = 0;
         for (Examen examen : misExamenes)
         {

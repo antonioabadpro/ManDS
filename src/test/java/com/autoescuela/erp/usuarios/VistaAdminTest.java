@@ -484,4 +484,58 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/admin/perfil"))
                 .andExpect(flash().attributeExists("mensajeExito"));
     }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/calificaciones renderiza correctamente el panel de exámenes teóricos")
+    void testCalificacionesAdminRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/calificaciones"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/calificaciones"))
+                .andExpect(model().attributeExists("examenes"))
+                .andExpect(model().attributeExists("calificarExamenDTO"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/calificaciones/calificar con APTO en examen teórico asienta la nota y envía felicitación")
+    void testCalificarExamenTeoricoAptoAdmin() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/calificaciones/calificar")
+                .with(csrf())
+                .param("examenId", "15")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/calificaciones"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/calificaciones/calificar con NO APTO en examen teórico deduce convocatoria")
+    void testCalificarExamenTeoricoNoAptoAdmin() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/calificaciones/calificar")
+                .with(csrf())
+                .param("examenId", "15")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/calificaciones"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/calificaciones/calificar rechaza calificar exámenes prácticos desde el panel de administración")
+    void testCalificarExamenPracticoPorAdminEsRechazado() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/calificaciones/calificar")
+                .with(csrf())
+                .param("examenId", "3")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/calificaciones"))
+                .andExpect(flash().attribute("error", "Solo los exámenes teóricos pueden ser calificados desde este panel de administración."));
+    }
 }

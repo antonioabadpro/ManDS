@@ -16,6 +16,18 @@ public interface ExamenRepository extends JpaRepository<Examen, Long>
     List<Examen> findByAlumnoProfesorOrderByFechaHoraDesc(Profesor profesor);
 
     /**
+     * Recupera todos los exámenes oficiales del tipo especificado para los alumnos del profesor indicado.
+     * @return Devuelve la lista de exámenes filtrados por tipo para el profesor.
+     */
+    List<Examen> findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(Profesor profesor, TipoExamen tipo);
+
+    /**
+     * Recupera todos los exámenes oficiales del tipo especificado a nivel global ordenados por fecha y hora descendente.
+     * @return Devuelve la lista de exámenes oficiales del tipo indicado.
+     */
+    List<Examen> findByTipoOrderByFechaHoraDesc(TipoExamen tipo);
+
+    /**
      * Recupera todos los exámenes asociados a las solicitudes de examen del profesor indicado por parametro.
      * @return Devuelve la lista de exámenes asociados a las solicitudes de examen del profesor.
      */

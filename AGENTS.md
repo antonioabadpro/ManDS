@@ -75,7 +75,7 @@
 - **Cancelación Asimétrica:** Cancelación por profesor (`canceladaPorProfesor = true`) bloquea el tramo de 45 min en ambos calendarios. Cancelación por alumno lo libera a `LIBRE`.
 
 ## 3.5. Circuito y Gestión de Solicitudes de Examen (DGT)
-- **Roles y Atributos:** Control exclusivo de Admin (fijar fechas, cupos, aceptar/rechazar); profesores solo consultan y califican actas. Registra `fechaHora` (`LocalDateTime`) y `tipo` (`TipoExamen`). En solicitudes `TEORICO`, `profesor` es obligatoriamente `null`; `comentarioJustificacion` es exclusivo de Admin para motivar rechazos.
+- **Roles y Atributos:** Control exclusivo de Admin (fijar fechas, cupos, aceptar/rechazar). Calificación segregada: Admin califica exclusivamente exámenes teóricos en `/admin/calificaciones`; profesores consultan y califican actas de exámenes prácticos en `/profesor/examenes`. En solicitudes `TEORICO`, `profesor` es obligatoriamente `null`; `comentarioJustificacion` es exclusivo de Admin para motivar rechazos.
 - **FIFO y 2 Fechas Mensuales:** Cola gestionada estrictamente por antigüedad (`ORDER BY fecha_hora ASC`). Admin fija 2 fechas oficiales/mes (fecha 2 >= fecha 1, días hábiles no festivos/vacacionales) y cupos independientes por carnet y tipo; fijación inmutable con doble confirmación.
 - **Resolución y Cupos:** Rechazo exige justificación obligatoria y email. Aceptación valida cupo máximo por carnet/tipo, despacha citación por email y bloquea la jornada completa del vehículo.
 - **Incompatibilidad y Clases Previas:** Prohibido tener clases `PENDIENTE` posteriores a la fecha de examen (se permiten previas). Obligatorio tener clases `RECIBIDA` antes de ser citado o examinarse de prueba práctica DGT.

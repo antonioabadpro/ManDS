@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convocatorias y Calificaciones DGT - ManDS</title>
+    <title>Calificaciones Prácticas DGT - ManDS</title>
 
     <meta name="_csrf" th:content="${_csrf?.token}">
     <meta name="_csrf_header" th:content="${_csrf?.headerName}">
@@ -64,8 +64,8 @@
                         <span class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold">Consulta la nota del examen en la DGT</span>
                     </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-                        El Administrador es el encargado de aceptar/rechazar solicitudes de examen.
-                        Como profesor, puedes <strong>consultar las fechas de examen asignadas y establecer la nota del examen en la aplicación</strong>.
+                        El Administrador es el encargado de aceptar/rechazar solicitudes y calificar los exámenes teóricos.
+                        Como profesor, puedes <strong>consultar las fechas de examen asignadas y establecer la nota del examen práctico en la aplicación</strong>.
                     </p>
                 </div>
                 <!-- Enlace externo Sede Electrónica DGT -->
@@ -81,8 +81,8 @@
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Fechas de Exámenes Oficiales Asignadas</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Alumnos citados a pruebas oficiales en tu vehículo asignado</p>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Fechas de Exámenes Prácticos Asignadas</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Alumnos citados a pruebas prácticas oficiales en tu vehículo asignado</p>
                     </div>
                     <div class="w-full sm:w-64 relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
@@ -156,7 +156,7 @@
 
                             <tr th:if="${#lists.isEmpty(examenes)}">
                                 <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500 italic">
-                                    <p class="text-xs font-medium">No constan exámenes oficiales asignados en tu vehículo para este mes.</p>
+                                    <p class="text-xs font-medium">No constan exámenes prácticos oficiales asignados en tu vehículo.</p>
                                 </td>
                             </tr>
                         </tbody>

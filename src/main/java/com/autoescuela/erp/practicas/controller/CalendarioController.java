@@ -241,7 +241,7 @@ public class CalendarioController
                 }
             }
 
-            List<Examen> examenesDgt = this.examenService.obtenerExamenesPorProfesor(profesor);
+            List<Examen> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
             for (Examen ex : examenesDgt)
             {
                 Map<String, Object> props = new HashMap<>();
@@ -378,7 +378,7 @@ public class CalendarioController
             ));
         }
 
-        List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
+        List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         for (Examen examen : examenes)
         {
             Map<String, Object> props = new HashMap<>();
@@ -515,7 +515,7 @@ public class CalendarioController
             return this.devolverErrorCancelacion("No se puede cancelar una jornada en festivo nacional o periodo vacacional.", hxRequest, model, redirectAttributes);
         }
 
-        List<Examen> examenesDgt = this.examenService.obtenerExamenesPorProfesor(profesor);
+        List<Examen> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         for (Examen examen : examenesDgt)
         {
             if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
@@ -625,7 +625,7 @@ public class CalendarioController
         }
         else
         {
-            List<Examen> examenes = this.examenService.obtenerExamenesPorProfesor(profesor);
+            List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
             for (Examen examen : examenes)
             {
                 if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
