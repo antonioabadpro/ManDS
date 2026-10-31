@@ -10,8 +10,10 @@ import org.mapstruct.factory.Mappers;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -95,6 +97,52 @@ class ProfesorMapperTest
                 LocalDate.now().minusYears(3), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
         );
         assertThat(dtoVariosAnios.antiguedadTexto()).isEqualTo("3 años");
+    }
+
+    @Test
+    @DisplayName("toProfesorResumenDTO mapea correctamente el tipo de permiso y descripción del vehículo asignado")
+    void testToProfesorResumenDTOConVehiculo()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Carlos");
+        profesor.setApellidos("Gómez");
+        profesor.setFechaContratacion(LocalDate.of(2024, 1, 15));
+        profesor.setTurno(TipoTurno.MATINAL);
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMarca("SEAT");
+        vehiculo.setModelo("Ibiza");
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        profesor.setVehiculo(vehiculo);
+
+        ProfesorResumenDTO dto = this.mapper.toProfesorResumenDTO(profesor);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.nombreCompleto()).isEqualTo("Carlos Gómez");
+        assertThat(dto.vehiculoMatricula()).isEqualTo("1234-LMN");
+        assertThat(dto.vehiculoModelo()).isEqualTo("SEAT Ibiza");
+        assertThat(dto.vehiculoTipo()).isEqualTo(TipoCarnet.PERMISO_B);
+        assertThat(dto.vehiculoTipoDescripcion()).isEqualTo("Permiso B");
+    }
+
+    @Test
+    @DisplayName("toProfesorResumenDTO asigna campos nulos de vehículo cuando el profesor no tiene vehículo asignado")
+    void testToProfesorResumenDTOSinVehiculo()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setNombre("Ana");
+        profesor.setApellidos("López");
+
+        ProfesorResumenDTO dto = this.mapper.toProfesorResumenDTO(profesor);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.vehiculoId()).isNull();
+        assertThat(dto.vehiculoMatricula()).isNull();
+        assertThat(dto.vehiculoModelo()).isNull();
+        assertThat(dto.vehiculoTipo()).isNull();
+        assertThat(dto.vehiculoTipoDescripcion()).isNull();
+        assertThat(dto.vehiculoDescripcion()).isEqualTo("Sin vehículo asignado");
     }
 }
 

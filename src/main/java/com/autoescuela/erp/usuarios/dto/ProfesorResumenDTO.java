@@ -26,6 +26,8 @@ public record ProfesorResumenDTO(
     Long vehiculoId,
     String vehiculoMatricula,
     String vehiculoModelo,
+    TipoCarnet vehiculoTipo,
+    String vehiculoTipoDescripcion,
     String vehiculoDescripcion,
     List<TipoCarnet> permisos,
     int totalAlumnos,
