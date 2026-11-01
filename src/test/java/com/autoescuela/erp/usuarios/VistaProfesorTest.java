@@ -354,7 +354,7 @@ class VistaProfesorTest extends BaseIntegrationTest
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
         assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso del práctico.");
-        assertEquals(3, matricula.getConvocatoriasGastadas(), "Debe computarse 3 convocatorias gastadas en la matrícula.");
+        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
     }
 
     @Test

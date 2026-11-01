@@ -21,6 +21,7 @@ import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
 import com.autoescuela.erp.examenes.model.CupoExamen;
@@ -603,5 +604,69 @@ class ExamenServiceTest
         assertNotNull(resultado.getExamen());
         assertEquals(f1Nov, resultado.getExamen().getFechaHora());
         verify(this.emailService).enviarNotificacionAlumno(eq("david.ruiz@example.com"), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Calificar examen oficial antes de su fecha y hora lanza ReglaNegocioException")
+    void testCalificarExamenAntesDeFechaHoraLanzaExcepcion()
+    {
+        Long examenId = 50L;
+        Examen examen = new Examen();
+        examen.setFechaHora(LocalDateTime.now().plusHours(2));
+        examen.setTipo(TipoExamen.PRACTICO);
+        examen.setDuracion(35);
+
+        when(this.examenRepository.findById(examenId)).thenReturn(Optional.of(examen));
+
+        CalificarExamenDTO dto = new CalificarExamenDTO(examenId, true);
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
+                this.examenService.calificarExamenOficial(dto));
+
+        assertTrue(ex.getMessage().contains("antes de su fecha y hora de finalización"));
+    }
+
+    @Test
+    @DisplayName("Calificar examen oficial ya evaluado lanza ReglaNegocioException")
+    void testCalificarExamenYaCalificadoLanzaExcepcion()
+    {
+        Long examenId = 51L;
+        Examen examen = new Examen();
+        examen.setFechaHora(LocalDateTime.now().minusHours(2));
+        examen.setEsApto(true);
+        examen.setTipo(TipoExamen.TEORICO);
+        examen.setDuracion(30);
+
+        when(this.examenRepository.findById(examenId)).thenReturn(Optional.of(examen));
+
+        CalificarExamenDTO dto = new CalificarExamenDTO(examenId, false);
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
+                this.examenService.calificarExamenOficial(dto));
+
+        assertTrue(ex.getMessage().contains("ya ha sido calificado previamente"));
+    }
+
+    @Test
+    @DisplayName("Calificar examen oficial tras su finalización registra la nota con éxito")
+    void testCalificarExamenOficialExito()
+    {
+        Long examenId = 52L;
+        Examen examen = new Examen();
+        examen.setFechaHora(LocalDateTime.now().minusMinutes(45));
+        examen.setTipo(TipoExamen.TEORICO);
+        examen.setAlumno(this.alumnoEjemplo);
+        examen.setDuracion(30);
+
+        when(this.examenRepository.findById(examenId)).thenReturn(Optional.of(examen));
+        when(this.examenRepository.save(any(Examen.class))).thenAnswer(i -> i.getArgument(0));
+
+        CalificarExamenDTO dto = new CalificarExamenDTO(examenId, true);
+
+        Examen resultado = this.examenService.calificarExamenOficial(dto);
+
+        assertNotNull(resultado);
+        assertTrue(resultado.getEsApto());
+        verify(this.examenRepository).save(examen);
     }
 }

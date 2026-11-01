@@ -522,11 +522,13 @@ public class AdministradorController
         AlumnoDetalleDTO alumno = this.alumnoService.obtenerAlumnoParaDetalle(id);
         int clasesPendientes = this.alumnoService.contarClasesPendientes(id);
         List<ProfesorResumenDTO> profesoresDisponibles = this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId());
+        boolean puedeTenerProfesor = this.alumnoService.puedeTenerProfesorAsignado(id);
 
         model.addAttribute("alumno", alumno);
         model.addAttribute("clasesPendientes", clasesPendientes);
         model.addAttribute("profesoresDisponibles", profesoresDisponibles);
-        model.addAttribute("reasignarAlumnoDTO", new ReasignarAlumnoDTO(id, alumno.profesorId() != null ? "REASIGNAR" : "REASIGNAR", null));
+        model.addAttribute("puedeTenerProfesor", puedeTenerProfesor);
+        model.addAttribute("reasignarAlumnoDTO", new ReasignarAlumnoDTO(id, alumno.profesorId() != null ? "REASIGNAR" : (puedeTenerProfesor ? "REASIGNAR" : "SIN_PROFESOR"), null));
         model.addAttribute("abrirModalReasignarAlumno", true);
 
         return "admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno";
@@ -550,6 +552,7 @@ public class AdministradorController
                 model.addAttribute("alumno", alumno);
                 model.addAttribute("clasesPendientes", this.alumnoService.contarClasesPendientes(alumnoId));
                 model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId()));
+                model.addAttribute("puedeTenerProfesor", this.alumnoService.puedeTenerProfesorAsignado(alumnoId));
             }
             model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
             model.addAttribute("errorReasignarAlumno", errorMsg);
@@ -600,6 +603,7 @@ public class AdministradorController
                     model.addAttribute("alumno", alumno);
                     model.addAttribute("clasesPendientes", this.alumnoService.contarClasesPendientes(alumnoId));
                     model.addAttribute("profesoresDisponibles", this.profesorService.obtenerProfesoresActivosConVehiculoPorCarnet(alumno.tipoCarnet(), alumno.profesorId()));
+                    model.addAttribute("puedeTenerProfesor", this.alumnoService.puedeTenerProfesorAsignado(alumnoId));
                 }
                 model.addAttribute("reasignarAlumnoDTO", reasignarAlumnoDTO);
                 model.addAttribute("errorReasignarAlumno", ex.getMessage());

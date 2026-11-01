@@ -28,6 +28,7 @@ import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
@@ -471,5 +472,46 @@ class ClasePracticaServiceTest
         assertThatThrownBy(() -> this.clasePracticaService.obtenerClaseParaDetalleAdmin(id))
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("No se ha encontrado la clase práctica solicitada");
+    }
+
+    @Test
+    @DisplayName("completarClasePractica lanza ReglaNegocioException si la clase no ha alcanzado la hora de finalización")
+    void testCompletarClasePracticaAntesDeFinLanzaExcepcion()
+    {
+        Long id = 10L;
+        ClasePractica clase = new ClasePractica();
+        clase.setFechaHora(LocalDateTime.now().plusHours(2));
+        clase.setDuracion(45);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+
+        when(this.clasePracticaRepository.findById(id)).thenReturn(Optional.of(clase));
+
+        CompletarClaseDTO dto = new CompletarClaseDTO(id, 1000L, 1030L, "Sesión de aparcamiento");
+
+        assertThatThrownBy(() -> this.clasePracticaService.completarClasePractica(dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("antes de su fecha y hora de finalización");
+    }
+
+    @Test
+    @DisplayName("completarClasePractica completa la clase si ya ha alcanzado la hora de finalización")
+    void testCompletarClasePracticaTrasFinExito()
+    {
+        Long id = 10L;
+        ClasePractica clase = new ClasePractica();
+        clase.setFechaHora(LocalDateTime.now().minusMinutes(60));
+        clase.setDuracion(45);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+
+        when(this.clasePracticaRepository.findById(id)).thenReturn(Optional.of(clase));
+        when(this.clasePracticaRepository.save(any(ClasePractica.class))).thenAnswer(i -> i.getArgument(0));
+
+        CompletarClaseDTO dto = new CompletarClaseDTO(id, 1000L, 1030L, "Sesión en autovía");
+
+        ClasePractica resultado = this.clasePracticaService.completarClasePractica(dto);
+
+        assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.RECIBIDA);
+        assertThat(resultado.getKmInicio()).isEqualTo(1000L);
+        assertThat(resultado.getKmFin()).isEqualTo(1030L);
     }
 }

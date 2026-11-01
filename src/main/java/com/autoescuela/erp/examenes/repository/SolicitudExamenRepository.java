@@ -48,9 +48,9 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
     boolean existsByAlumnoAndEstado(Alumno alumno, EstadoSolicitud estado);
 
     /**
-     * Comprueba si el alumno tiene una solicitud aceptada con fecha de examen posterior a la actual.
+     * Comprueba si el alumno tiene una solicitud aceptada con fecha de examen posterior a la actual o examen pendiente de calificación.
      */
-    @Query("SELECT COUNT(s) > 0 FROM SolicitudExamen s WHERE s.alumno = :alumno AND s.estado = :estado AND s.examen.fechaHora > :fechaActual")
+    @Query("SELECT COUNT(s) > 0 FROM SolicitudExamen s WHERE s.alumno = :alumno AND s.estado = :estado AND (s.examen.fechaHora > :fechaActual OR s.examen.esApto IS NULL)")
     boolean existeSolicitudAceptadaConExamenPendiente(@Param("alumno") Alumno alumno, @Param("estado") EstadoSolicitud estado, @Param("fechaActual") LocalDateTime fechaActual);
 
     /**

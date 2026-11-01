@@ -398,7 +398,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/practicas/detalle/{id} renderiza el modal informativo con los datos de la clase")
     void testModalDetalleClaseAdminRenderizado() throws Exception
     {
-        this.mockMvc.perform(get("/admin/practicas/detalle/204"))
+        this.mockMvc.perform(get("/admin/practicas/detalle/25"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-detalle-clase-admin :: modal-detalle-clase-admin"))
                 .andExpect(model().attributeExists("clase"))

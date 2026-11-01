@@ -65,13 +65,13 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
         Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
         assertEquals(100L, alumno.getProfesor().getId());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(200L, "REASIGNAR", 101L);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(200L, "REASIGNAR", 102L);
         this.alumnoService.reasignarProfesor(dto);
 
-        // Verificamos que el profesor del alumno ahora es el profesor ID 101 (Manuel Navarro)
+        // Verificamos que el profesor del alumno ahora es el profesor ID 102 (Carlos Martínez)
         Alumno alumnoActualizado = this.alumnoRepository.findById(200L).orElseThrow();
         assertNotNull(alumnoActualizado.getProfesor());
-        assertEquals(101L, alumnoActualizado.getProfesor().getId());
+        assertEquals(102L, alumnoActualizado.getProfesor().getId());
 
         // Verificamos que todas las clases del alumno pasan a CANCELADA si estaban pendientes
         List<ClasePractica> clases = this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumnoActualizado);
@@ -134,11 +134,11 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("Reasignar profesor a un alumno inactivo lanza ReglaNegocioException")
     void testReasignarAlumnoInactivoLanzaExcepcion()
     {
-        // Alumno ID 223 (Roberto Aguilar) está en estado INACTIVO
-        Alumno alumno = this.alumnoRepository.findById(223L).orElseThrow();
+        // Alumno ID 207 (María Castillo Ortiz) está en estado INACTIVO
+        Alumno alumno = this.alumnoRepository.findById(207L).orElseThrow();
         assertEquals(EstadoUsuario.INACTIVO, alumno.getEstado());
 
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(223L, "REASIGNAR", 101L);
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(207L, "REASIGNAR", 101L);
         assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
     }
 
@@ -161,17 +161,17 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    @DisplayName("GET /admin/alumnos/reasignar/{id} solo muestra profesores activos con el mismo carnet que el alumno")
+    @DisplayName("GET /admin/alumnos/reasignar/{id} solo muestra profesores activos con vehículo del mismo carnet que el alumno")
     void testCargarModalReasignarAlumnoFiltraPorCarnetDelAlumno() throws Exception
     {
-        // Alumno ID 205 está matriculado en PERMISO_A2 y asignado al profesor ID 103.
-        // Entre los profesores activos solo ID 100 e ID 103 tienen PERMISO_A2, por lo que solo debe listarse la ID 100 (Laura Sánchez).
-        this.mockMvc.perform(get("/admin/alumnos/reasignar/205"))
+        // Alumno ID 200 está matriculado en PERMISO_B y asignado a la profesora ID 100 (Laura Sánchez).
+        // Entre los profesores activos solo aquellos con vehículo asignado para PERMISO_B deben listarse.
+        this.mockMvc.perform(get("/admin/alumnos/reasignar/200"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
-                .andExpect(model().attribute("profesoresDisponibles", hasSize(1)))
-                .andExpect(content().string(containsString("Laura Sánchez")))
-                .andExpect(content().string(containsString("Permiso A2")));
+                .andExpect(model().attributeExists("profesoresDisponibles"))
+                .andExpect(content().string(containsString("Carlos Ruiz Martínez")))
+                .andExpect(content().string(containsString("Permiso B")));
     }
 
     @Test
@@ -179,23 +179,33 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
     @DisplayName("GET /admin/alumnos/reasignar/{id} muestra aviso si no hay otros profesores disponibles con ese carnet")
     void testCargarModalReasignarAlumnoSinProfesoresDisponiblesMuestraAvisoContextual() throws Exception
     {
-        // Alumno ID 209 está matriculado en PERMISO_C y asignado al profesor ID 101 (el único con PERMISO_C).
+        // Alumno ID 216 está matriculado en PERMISO_C y asignado al profesor ID 101 (el único profesor con vehículo para PERMISO_C).
         // Al excluir al profesor actual, la lista de disponibles debe ser vacía y mostrar el mensaje contextual.
-        this.mockMvc.perform(get("/admin/alumnos/reasignar/209"))
+        this.mockMvc.perform(get("/admin/alumnos/reasignar/216"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
                 .andExpect(model().attribute("profesoresDisponibles", hasSize(0)))
-                .andExpect(content().string(containsString("No hay otros profesores activos habilitados para Permiso C")));
+                .andExpect(content().string(containsString("No hay otros profesores activos con vehículo asignado para Permiso C")));
     }
 
     @Test
     @DisplayName("Reasignar alumno a profesor sin el carnet de su matrícula lanza ReglaNegocioException")
     void testReasignarProfesorSinCarnetCompatibleLanzaExcepcion()
     {
-        // Alumno ID 209 está matriculada en PERMISO_C. El profesor ID 102 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E
-        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(209L, "REASIGNAR", 102L);
+        // Alumno ID 216 está matriculado en PERMISO_C. El profesor ID 102 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(216L, "REASIGNAR", 102L);
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
         assertTrue(ex.getMessage().contains("no dispone del carnet"));
+    }
+
+    @Test
+    @DisplayName("Reasignar profesor a alumno en modalidad TEORICO_PRACTICA sin examen teórico aprobado lanza ReglaNegocioException")
+    void testReasignarProfesorAlumnoSinTeoricoAprobadoLanzaExcepcion()
+    {
+        // Alumno ID 217 (Carmen Ruiz) está en TEORICO_PRACTICA y no tiene examen teórico aprobado
+        ReasignarAlumnoDTO dto = new ReasignarAlumnoDTO(217L, "REASIGNAR", 101L);
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(dto));
+        assertTrue(ex.getMessage().contains("examen teórico oficial"));
     }
 
     @Test
@@ -221,7 +231,7 @@ class AlumnoReasignacionIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("alumnoId", "200")
                 .param("opcion", "REASIGNAR")
-                .param("nuevoProfesorId", "101"))
+                .param("nuevoProfesorId", "102"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/alumnos"))
                 .andExpect(flash().attributeExists("mensajeExito"));

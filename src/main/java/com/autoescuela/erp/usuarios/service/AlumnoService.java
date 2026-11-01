@@ -14,6 +14,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
@@ -107,6 +108,37 @@ public class AlumnoService
                 .orElse(null);
 
         return this.alumnoMapper.toAlumnoDetalleDTO(alumno, matriculaActiva);
+    }
+
+    /**
+     * Comprueba si un alumno cumple las condiciones para que se le asigne un profesor de prácticas
+     * (requiere matrícula activa y, en modalidad TEORICO_PRACTICA, haber aprobado el examen teórico).
+     *
+     * @param alumnoId Identificador del alumno.
+     * @return true si puede tener profesor asignado, false en caso contrario.
+     */
+    @Transactional(readOnly = true)
+    public boolean puedeTenerProfesorAsignado(Long alumnoId)
+    {
+        if (alumnoId == null)
+        {
+            return false;
+        }
+        Alumno alumno = this.alumnoRepository.findById(alumnoId).orElse(null);
+        if (alumno == null)
+        {
+            return false;
+        }
+        Matricula matriculaActiva = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        if (matriculaActiva == null)
+        {
+            return false;
+        }
+        if (matriculaActiva.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+        {
+            return this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+        }
+        return true;
     }
 
     /**
@@ -245,7 +277,22 @@ public class AlumnoService
                     .findByAlumnoAndEstaActivaTrue(alumno)
                     .orElse(null);
 
-            if (matriculaActiva != null && matriculaActiva.getPermisoCarnet() != null)
+            if (matriculaActiva == null)
+            {
+                throw new ReglaNegocioException("El alumno no dispone de una matrícula activa para asignarle profesor.");
+            }
+
+            if (matriculaActiva.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
+            {
+                boolean teoricoAprobado = this.examenRepository
+                        .existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+                if (!teoricoAprobado)
+                {
+                    throw new ReglaNegocioException("No se puede asignar un profesor a un alumno en modalidad teórico-práctica hasta que haya aprobado el examen teórico oficial.");
+                }
+            }
+
+            if (matriculaActiva.getPermisoCarnet() != null)
             {
                 TipoCarnet permisoRequerido = matriculaActiva.getPermisoCarnet();
                 if (nuevoProfesor.getListaTiposCarnet() == null || !nuevoProfesor.getListaTiposCarnet().contains(permisoRequerido))

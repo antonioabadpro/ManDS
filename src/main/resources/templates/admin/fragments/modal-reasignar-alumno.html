@@ -87,19 +87,22 @@
                     </label>
 
                     <!-- Opción 1: Reasignar a un profesor activo -->
-                    <label class="flex items-start space-x-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition">
-                        <input type="radio" id="radio-opcion-reasignar" name="opcion" value="REASIGNAR" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" th:checked="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-1 text-indigo-600 focus:ring-indigo-500" />
+                    <label class="flex items-start space-x-2.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition" th:classappend="${!puedeTenerProfesor || #lists.isEmpty(profesoresDisponibles)} ? 'opacity-60 cursor-not-allowed' : ''">
+                        <input type="radio" id="radio-opcion-reasignar" name="opcion" value="REASIGNAR" th:disabled="${!puedeTenerProfesor || #lists.isEmpty(profesoresDisponibles)}" th:checked="${puedeTenerProfesor && !#lists.isEmpty(profesoresDisponibles)}" class="mt-1 text-indigo-600 focus:ring-indigo-500" />
                         <div class="flex-1 min-w-0">
                             <span class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Asignar a otro profesor activo</span>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet != null}" th:text="|Profesores activos con vehículo asignado para ${alumno.tipoCarnetDescripcion} (ordenados por menor número de alumnos).|">Profesores activos con vehículo asignado para el permiso.</p>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" th:if="${alumno.tipoCarnet == null}">Se asignará al profesor elegido y se cancelarán sus prácticas pendientes.</p>
 
-                            <div th:if="${!#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
-                                <select id="select-nuevo-profesor" name="nuevoProfesorId" th:disabled="${#lists.isEmpty(profesoresDisponibles)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500">
+                            <div th:if="${puedeTenerProfesor && !#lists.isEmpty(profesoresDisponibles)}" class="mt-2">
+                                <select id="select-nuevo-profesor" name="nuevoProfesorId" th:disabled="${!puedeTenerProfesor || #lists.isEmpty(profesoresDisponibles)}" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500">
                                     <option th:each="pDispo : ${profesoresDisponibles}" th:value="${pDispo.id}" th:text="|${pDispo.nombreCompleto} (Turno ${pDispo.turno?.name() == 'MATINAL' ? 'Matinal' : 'Tarde'} · ${pDispo.totalAlumnos} ${pDispo.totalAlumnos == 1 ? 'alumno' : 'alumnos'})|"></option>
                                 </select>
                             </div>
-                            <p th:if="${#lists.isEmpty(profesoresDisponibles)}" class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                            <p th:if="${!puedeTenerProfesor}" class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
+                                El alumno se encuentra en modalidad teórico-práctica y debe aprobar previamente el examen teórico oficial de la DGT para que sea posible asignarle un profesor de prácticas.
+                            </p>
+                            <p th:if="${puedeTenerProfesor && #lists.isEmpty(profesoresDisponibles)}" class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">
                                 <span th:if="${alumno.tipoCarnet != null}" th:text="|No hay otros profesores activos con vehículo asignado para ${alumno.tipoCarnetDescripcion}.|">No hay otros profesores activos con vehículo disponible en plantilla.</span>
                                 <span th:if="${alumno.tipoCarnet == null}">El alumno no cuenta con una matrícula activa para consultar profesores con vehículo.</span>
                             </p>
@@ -122,7 +125,7 @@
                     <button type="button" data-modal-close="modal-reasignar-alumno" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                         Cancelar
                     </button>
-                    <button type="submit" id="btn-paso-siguiente-reasignar" class="inline-flex items-center space-x-1.5 px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/20 transition cursor-pointer">
+                    <button th:if="${puedeTenerProfesor || alumno.profesorId != null}" type="submit" id="btn-paso-siguiente-reasignar" class="inline-flex items-center space-x-1.5 px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-500/20 transition cursor-pointer">
                         <span>Reasignar Profesor</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

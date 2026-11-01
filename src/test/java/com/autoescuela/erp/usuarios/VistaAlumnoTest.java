@@ -352,7 +352,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/dashboard responde correctamente cuando el alumno ha agotado convocatorias")
     void testDashboardConvocatoriasAgotadas() throws Exception
     {
@@ -365,7 +365,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/pagos responde correctamente para alumno con convocatorias agotadas")
     void testPagosConvocatoriasAgotadas() throws Exception
     {
@@ -375,7 +375,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("POST /alumno/pagos/comprar-clases bloquea la compra si el alumno tiene convocatorias agotadas")
     void testComprarClasesConvocatoriasAgotadasBloqueado() throws Exception
     {
@@ -400,7 +400,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/estadisticas para alumno con matrícula renovada computa 500 € en cuota de matrícula")
     void testEstadisticasAlumnoMatriculaRenovadaComputa500Euros() throws Exception
     {
@@ -412,7 +412,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/estadisticas con petición HTMX devuelve el fragmento contenedorEstadisticas y 500 € de matrícula")
     void testEstadisticasFragmentoHtmx() throws Exception
     {
@@ -527,7 +527,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("POST /matricula/renovar inicia sesión de pago en Stripe para renovar matrícula con convocatorias agotadas")
     void testRenovarMatriculaExito() throws Exception
     {
@@ -583,7 +583,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/alumno/dashboard"));
     }
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/tests redirige a dashboard para alumno con convocatorias agotadas")
     void testSeccionTestsTeoricosBloqueadaPorConvocatoriasAgotadas() throws Exception
     {
@@ -594,7 +594,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno8", roles = "ALUMNO")
+    @WithMockUser(username = "alumno7", roles = "ALUMNO")
     @DisplayName("GET /alumno/calendario redirige a dashboard para alumno con convocatorias agotadas")
     void testCalendarioBloqueadoPorConvocatoriasAgotadas() throws Exception
     {

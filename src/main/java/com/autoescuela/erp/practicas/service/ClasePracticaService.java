@@ -355,6 +355,12 @@ public class ClasePracticaService
         ClasePractica clase = this.clasePracticaRepository.findById(dto.claseId())
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró la clase práctica solicitada."));
 
+        int duracion = clase.getDuracion() != null ? clase.getDuracion() : 45;
+        if (clase.getFechaHora() != null && LocalDateTime.now().isBefore(clase.getFechaHora().plusMinutes(duracion)))
+        {
+            throw new ReglaNegocioException("No es posible marcar como recibida una clase práctica antes de su fecha y hora de finalización.");
+        }
+
         if (dto.kmFin() != null && dto.kmInicio() != null && dto.kmFin() <= dto.kmInicio())
         {
             throw new ReglaNegocioException("El kilometraje final debe ser estrictamente superior al kilometraje inicial.");

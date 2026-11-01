@@ -12,13 +12,13 @@
 | **Arquitectura** | Monolito Modular MVC | Estructurado por funcionalidades (**Package by Features**) para maximizar cohesión y minimizar acoplamiento |
 | **Backend** | Java 21 + Spring Boot 4.1.x (4.1.1 GA) | Spring Data JPA, Spring Security, Lombok, MapStruct |
 | **Frontend** | HTML-over-the-wire | Thymeleaf + HTMX + JS ES6+ (interactividad reactiva sin SPA) |
-| **Frontend (UI & Estilos)** | CSS3 + UI Kits Tailwind | Flowbite / DaisyUI / Preline UI |
+| **Frontend (UI & Estilos)** | Tailwind CSS + CSS3 |
 | **Base de Datos** | PostgreSQL (Supabase) | Base de datos relacional en la nube |
 | **Servidor Web** | Apache Tomcat | Embebido en Spring Boot |
 | **Despliegue** | Render + UptimeRobot | Plan gratuito Render (750h/mes) con pings de mantenimiento HTTP |
 | **Contenedores** | Docker | Pruebas de correo (Mailpit) y entorno local |
 | **Pasarela de Pago** | Stripe API | Webhooks, Checkout Sessions y Payment Intents |
-| **Calendario** | FullCalendar v6 (JS) | Integración con vistas dinámicas mediante HTMX |
+| **Calendario** | SSR + HTMX | Aplica las reglas de negocio y construye la estructura HTML completa de la cuadrícula antes de enviársela al navegador |
 | **Email** | Spring Mail (JavaMailSender) | Notificaciones transaccionales automáticas por SMTP |
 
 ---

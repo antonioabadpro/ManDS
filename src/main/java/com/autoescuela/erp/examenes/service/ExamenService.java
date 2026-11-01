@@ -283,6 +283,12 @@ public class ExamenService
             throw new ReglaNegocioException("Este examen ya ha sido calificado previamente y no puede modificarse.");
         }
 
+        int duracion = examen.getDuracion() != null ? examen.getDuracion() : (examen.getTipo() == TipoExamen.PRACTICO ? 35 : 30);
+        if (examen.getFechaHora() != null && LocalDateTime.now().isBefore(examen.getFechaHora().plusMinutes(duracion)))
+        {
+            throw new ReglaNegocioException("No es posible calificar un examen oficial antes de su fecha y hora de finalización.");
+        }
+
         examen.setEsApto(dto.esApto());
         Examen examenGuardado = this.examenRepository.save(examen);
 
@@ -299,6 +305,8 @@ public class ExamenService
                 convocatoriasGastadas = matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0;
                 convocatoriasGastadas++;
                 matricula.setConvocatoriasGastadas(convocatoriasGastadas);
+                int convocatoriasRestantes = Math.max(0, 2 - convocatoriasGastadas);
+                matricula.setConvocatorias(convocatoriasRestantes);
                 this.matriculaRepository.save(matricula);
                 if (matricula.getPermisoCarnet() != null)
                 {

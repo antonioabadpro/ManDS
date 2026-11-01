@@ -145,12 +145,15 @@
                                 </td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <th:block th:if="${ex.esApto == null}">
-                                        <button type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-alumno-dni=${ex.alumno?.dni}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}, data-tipo-examen=${ex.tipo.name()}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/25 hover:shadow-md hover:shadow-blue-600/35 transition-all duration-150 cursor-pointer">
+                                        <button th:if="${!T(java.time.LocalDateTime).now().isBefore(ex.fechaHora.plusMinutes(ex.duracion))}" type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-alumno-dni=${ex.alumno?.dni}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}, data-tipo-examen=${ex.tipo.name()}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/25 hover:shadow-md hover:shadow-blue-600/35 transition-all duration-150 cursor-pointer">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                             <span>Calificar</span>
                                         </button>
+                                        <span th:if="${T(java.time.LocalDateTime).now().isBefore(ex.fechaHora.plusMinutes(ex.duracion))}" class="text-xs text-slate-400 dark:text-slate-500 font-medium italic">
+                                            Pendiente de celebración
+                                        </span>
                                     </th:block>
                                     <span th:if="${ex.esApto != null}" class="text-xs text-slate-400 dark:text-slate-500 font-medium italic">
                                         Evaluado

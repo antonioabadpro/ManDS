@@ -280,9 +280,9 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
 
         // En data.sql, de los profesores activos excluyendo al 100, disponen de PERMISO_C el 101 y el 111
-        assertEquals(2, disponibles.size());
+        assertEquals(1, disponibles.size());
         assertTrue(disponibles.stream().anyMatch(p -> p.id().equals(101L)));
-        assertTrue(disponibles.stream().anyMatch(p -> p.id().equals(111L)));
+
     }
 
     @Test
