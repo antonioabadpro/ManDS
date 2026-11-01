@@ -51,9 +51,9 @@
 ## 3.2. Matrícula, Tarifas y Convocatorias de Examen
 - **Límite y Modalidades:** 1 carnet activo por alumno. Modalidades: `TEORICO_PRACTICA` y `PRACTICA`. Tipos: *Nueva Matriculación* y *Renovación de Matrícula*.
 - **Tarifario Oficial:** Matrícula (incluye 2 convocatorias DGT): 250 € (estándar: B, A2, etc.) / 450 € (pesados: C, D). Clase suelta: 30 € / 60 €. Bonos (10, 15, 20 clases): 270 € / 400 € / 500 € (estándar) y 540 € / 800 € / 1.000 € (pesados). Renovación tras agotar convocatorias.
-- **Vinculación Alumno-Profesor:** Un alumno solo tiene profesor asignado si tiene matrícula activa; sin ella, `profesor` es obligatoriamente `null`.
+- **Vinculación Alumno-Profesor:** Un alumno solo tiene profesor asignado si tiene matrícula activa y, en modalidad `TEORICO_PRACTICA`, ha aprobado previamente el examen teórico; en caso contrario, `profesor` es obligatoriamente `null`.
 - **Convocatorias y Suspensos:** 2 convocatorias por matrícula. Con `convocatorias <= 0` o 2 suspensos, se bloquea compra de saldo, acceso a Tests Teóricos y reservas de clases hasta abonar Renovación en Stripe.
-- **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) con fecha previa para comprar clases, reservar en calendario o solicitar examen práctico DGT.
+- **Secuencia en TEORICO_PRACTICA:** Exige examen teórico aprobado (`esApto = true`) con fecha previa para asignar profesor, comprar clases, reservar en calendario o solicitar examen práctico DGT.
 - **Cierre por Práctico APTO:** Inactiva matrícula (`estaActiva = false`), desvincula profesor (`alumno.setProfesor(null)`), cancela reservas futuras y habilita nuevo permiso.
 - **Inmutabilidad y Calificación:** Examen calificado (`esApto != null`) es inmutable. Calificación exige modal en 2 pasos y envía email al alumno (felicitación en `APTO` o deducción de convocatoria y restantes en `NO APTO`).
 

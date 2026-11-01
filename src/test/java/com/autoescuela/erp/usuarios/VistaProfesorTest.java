@@ -324,8 +324,8 @@ class VistaProfesorTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "profesor1", roles = "PROFESOR")
-    @DisplayName("POST /profesor/examenes/calificar con APTO en examen teórico mantiene la matrícula activa y conserva al profesor")
-    void testCalificarExamenTeoricoAptoMantieneMatriculaYProfesor() throws Exception
+    @DisplayName("POST /profesor/examenes/calificar rechaza la calificación de examen teórico por parte del profesor")
+    void testCalificarExamenTeoricoPorProfesorEsRechazado() throws Exception
     {
         this.mockMvc.perform(post("/profesor/examenes/calificar")
                 .with(csrf())
@@ -333,34 +333,7 @@ class VistaProfesorTest extends BaseIntegrationTest
                 .param("esApto", "true"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profesor/examenes"))
-                .andExpect(flash().attributeExists("mensajeExito"));
-
-        Alumno alumno = this.alumnoRepository.findById(217L).orElseThrow();
-        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras aprobar el examen teórico.");
-
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElseThrow();
-        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras aprobar la fase teórica.");
-    }
-
-    @Test
-    @WithMockUser(username = "profesor1", roles = "PROFESOR")
-    @DisplayName("POST /profesor/examenes/calificar con NO APTO en examen teórico deduce 1 convocatoria, mantiene matrícula activa y profesor")
-    void testCalificarExamenTeoricoNoAptoDeduceConvocatoriaYEnviaEmail() throws Exception
-    {
-        this.mockMvc.perform(post("/profesor/examenes/calificar")
-                .with(csrf())
-                .param("examenId", "15")
-                .param("esApto", "false"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profesor/examenes"))
-                .andExpect(flash().attributeExists("mensajeExito"));
-
-        Alumno alumno = this.alumnoRepository.findById(217L).orElseThrow();
-        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras suspender el examen teórico.");
-
-        Matricula matricula = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElseThrow();
-        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso.");
-        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
+                .andExpect(flash().attribute("error", "Los profesores solo pueden calificar exámenes prácticos."));
     }
 
     @Test
@@ -381,7 +354,7 @@ class VistaProfesorTest extends BaseIntegrationTest
 
         Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
         assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso del práctico.");
-        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
+        assertEquals(3, matricula.getConvocatoriasGastadas(), "Debe computarse 3 convocatorias gastadas en la matrícula.");
     }
 
     @Test
@@ -391,7 +364,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/profesor/examenes/calificar")
                 .with(csrf())
-                .param("examenId", "1")
+                .param("examenId", "6")
                 .param("esApto", "false"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profesor/examenes"))

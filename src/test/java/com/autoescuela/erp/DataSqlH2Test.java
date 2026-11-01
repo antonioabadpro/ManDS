@@ -29,17 +29,17 @@ class DataSqlH2Test extends BaseIntegrationTest
         Integer fechasExamen = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM fecha_examen", Integer.class);
         Integer cuposExamen = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cupo_examen", Integer.class);
 
-        assertEquals(19, vehiculos, "Debe haber 19 vehículos");
-        assertEquals(35, personas, "Debe haber 35 personas registradas");
+        assertEquals(34, vehiculos, "Debe haber 34 vehículos");
+        assertEquals(84, personas, "Debe haber 84 personas registradas");
         assertEquals(1, admins, "Debe haber 1 administrador");
-        assertEquals(6, profesores, "Debe haber 6 profesores");
-        assertEquals(12, permisos, "Debe haber 12 permisos asignados a profesores");
-        assertEquals(28, alumnos, "Debe haber 28 alumnos");
-        assertEquals(9, incidencias, "Debe haber 9 incidencias registradas");
-        assertEquals(29, matriculas, "Debe haber 29 matrículas");
-        assertEquals(248, clases, "Debe haber 248 clases prácticas");
+        assertEquals(30, profesores, "Debe haber 30 profesores");
+        assertEquals(81, permisos, "Debe haber 81 permisos asignados a profesores");
+        assertEquals(53, alumnos, "Debe haber 53 alumnos");
+        assertEquals(10, incidencias, "Debe haber 10 incidencias registradas");
+        assertEquals(55, matriculas, "Debe haber 55 matrículas");
+        assertEquals(169, clases, "Debe haber 169 clases prácticas");
         assertEquals(50, solicitudes, "Debe haber 50 solicitudes de examen");
-        assertEquals(38, examenes, "Debe haber 38 exámenes registrados");
+        assertEquals(39, examenes, "Debe haber 39 exámenes registrados");
         assertEquals(2, fechasExamen, "Debe haber 2 registros de fechas de examen fijadas");
         assertEquals(15, cuposExamen, "Debe haber 15 registros de cupos de examen fijados");
     }

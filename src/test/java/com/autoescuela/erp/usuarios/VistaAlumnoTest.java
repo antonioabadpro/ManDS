@@ -159,10 +159,10 @@ class VistaAlumnoTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "alumno2", roles = "ALUMNO")
-    @DisplayName("GET /alumno/clases/23/cancelar-modal devuelve el fragmento modal de doble confirmación")
+    @DisplayName("GET /alumno/clases/49/cancelar-modal devuelve el fragmento modal de doble confirmación")
     void testModalConfirmarCancelarClase() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/clases/23/cancelar-modal"))
+        this.mockMvc.perform(get("/alumno/clases/49/cancelar-modal"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-confirmar-cancelar-clase :: modalConfirmarCancelarClase"))
                 .andExpect(model().attributeExists("clase"));
@@ -176,7 +176,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/alumno/clases/cancelar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("claseId", "23"))
+                .param("claseId", "49"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Trigger", "actualizarCalendario"));
     }
@@ -487,7 +487,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @WithMockUser(username = "alumno21", roles = "ALUMNO")
     @DisplayName("GET /alumno/dashboard para alumno sin matrícula activa renderiza vista del dashboard")
     void testDashboardAlumnoSinMatriculaActivaRenderizaBloque() throws Exception
     {
@@ -499,7 +499,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @WithMockUser(username = "alumno21", roles = "ALUMNO")
     @DisplayName("POST /matricula/nueva inicia sesión de pago en Stripe para alumno sin matrícula activa")
     void testMatricularNuevoCarnetExito() throws Exception
     {
@@ -564,7 +564,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno2", roles = "ALUMNO")
+    @WithMockUser(username = "alumno3", roles = "ALUMNO")
     @DisplayName("GET /alumno/tests redirige a dashboard para alumno con modalidad PRACTICA")
     void testSeccionTestsTeoricosBloqueadaParaSoloPractica() throws Exception
     {
@@ -574,7 +574,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @WithMockUser(username = "alumno21", roles = "ALUMNO")
     @DisplayName("GET /alumno/tests redirige a dashboard para alumno sin matrícula activa")
     void testSeccionTestsTeoricosBloqueadaParaSinMatricula() throws Exception
     {
@@ -583,7 +583,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/alumno/dashboard"));
     }
     @Test
-    @WithMockUser(username = "alumno16", roles = "ALUMNO")
+    @WithMockUser(username = "alumno8", roles = "ALUMNO")
     @DisplayName("GET /alumno/tests redirige a dashboard para alumno con convocatorias agotadas")
     void testSeccionTestsTeoricosBloqueadaPorConvocatoriasAgotadas() throws Exception
     {

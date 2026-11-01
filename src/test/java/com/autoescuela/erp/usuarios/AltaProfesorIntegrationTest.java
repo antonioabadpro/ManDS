@@ -156,7 +156,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
     void testAltaProfesorDniDuplicado() throws Exception
     {
         // DNI ya registrado para el Profesor Laura Sánchez (id = 2) en data.sql
-        String dniExistente = "23456789B";
+        String dniExistente = "23456789D";
 
         this.mockMvc.perform(post("/admin/profesores/alta")
                 .with(csrf())
@@ -419,7 +419,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
-                .param("dni", "23456789B")
+                .param("dni", "23456789D")
                 .param("fechaNacimiento", "1985-04-12")
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
@@ -442,7 +442,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
-                .param("dni", "23456789B")
+                .param("dni", "23456789D")
                 .param("fechaNacimiento", "1985-04-12")
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
@@ -465,7 +465,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
-                .param("dni", "23456789B")
+                .param("dni", "23456789D")
                 .param("fechaNacimiento", "1985-04-12")
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
@@ -489,7 +489,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
-                .param("dni", "23456789B")
+                .param("dni", "23456789D")
                 .param("fechaNacimiento", "1985-04-12")
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")

@@ -182,7 +182,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("confirmPassword", "claveSecreta123")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez")
-                .param("dni", "45678901D") // DNI de alumno1 en data.sql
+                .param("dni", "45678901G") // DNI de alumno1 en data.sql
                 .param("fechaNacimiento", "2000-01-01")
                 .param("telefono", "622334455")
                 .param("direccion", "Avenida Sol 1")
@@ -368,7 +368,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
-                .param("dni", "45678901D"))
+                .param("dni", "45678901G"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
                 .andExpect(model().attribute("mensaje", "El DNI/NIE ya está registrado en el sistema."))

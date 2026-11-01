@@ -74,7 +74,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         List<Alumno> alumnosPrevios = this.alumnoRepository.findByProfesor(profesorOriginal);
         assertTrue(alumnosPrevios.size() > 0);
 
-        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 101L);
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 102L);
         Profesor profesorBaja = this.profesorService.darBajaProfesor(dto);
 
         // Verificaciones del profesor dado de baja
@@ -96,8 +96,8 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
             }
         }
 
-        // Verificaciones de alumnos reasignados al nuevo profesor (ID: 101)
-        Profesor profesorDestino = this.profesorRepository.findById(101L).orElseThrow();
+        // Verificaciones de alumnos reasignados al nuevo profesor (ID: 102)
+        Profesor profesorDestino = this.profesorRepository.findById(102L).orElseThrow();
         for (Alumno alumno : alumnosPrevios)
         {
             Alumno alumnoActualizado = this.alumnoRepository.findById(alumno.getId()).orElseThrow();
@@ -151,7 +151,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
 
         // Intento de modificación
         EditarProfesorDTO dtoMod = new EditarProfesorDTO(
-                100L, "Laura", "Sánchez Romero", "23456789B",
+                100L, "Laura", "Sánchez Romero", "23456789D",
                 "600222333", "laura.profesor@autoescuela.es",
                 java.time.LocalDate.of(1988, 9, 23), "Calle Test",
                 java.time.LocalDate.now(),
@@ -224,7 +224,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
                 .with(csrf())
                 .param("profesorId", "100")
                 .param("opcionAlumnos", "REASIGNAR")
-                .param("nuevoProfesorId", "101"))
+                .param("nuevoProfesorId", "102"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/profesores"))
                 .andExpect(flash().attributeExists("mensajeExito"));
@@ -279,9 +279,10 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         @SuppressWarnings("unchecked")
         List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
 
-        // En data.sql, de los profesores activos excluyendo al 100 (101, 102, 103, 104), únicamente el 101 tiene PERMISO_C
-        assertEquals(1, disponibles.size());
-        assertEquals(101L, disponibles.get(0).id());
+        // En data.sql, de los profesores activos excluyendo al 100, disponen de PERMISO_C el 101 y el 111
+        assertEquals(2, disponibles.size());
+        assertTrue(disponibles.stream().anyMatch(p -> p.id().equals(101L)));
+        assertTrue(disponibles.stream().anyMatch(p -> p.id().equals(111L)));
     }
 
     @Test
@@ -398,7 +399,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
                 .param("id", "100")
                 .param("nombre", "Laura")
                 .param("apellidos", "Sánchez Romero")
-                .param("dni", "23456789B")
+                .param("dni", "23456789D")
                 .param("fechaNacimiento", "1985-04-12")
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
