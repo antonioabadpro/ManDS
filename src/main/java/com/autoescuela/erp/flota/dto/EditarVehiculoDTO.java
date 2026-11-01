@@ -123,8 +123,9 @@ public record EditarVehiculoDTO(
     }
 
     /**
-     * Valida que la fecha de la última revisión no sea excesivamente lejana en el tiempo (menos de 4 años desde la fecha actual)
-     * ni sea una fecha futura posterior al día de hoy.
+     * Valida que la fecha de la última revisión no sea excesivamente lejana en el tiempo (menos de 4 años desde la fecha actual).
+     * Valida que la fecha de la última revisión no sea posterior a la fecha actual.
+     * En la modificación de vehículos, la fecha de última revisión está automatizada a partir de la próxima revisión previa.
      * @return true si la fecha de última revisión es válida, false en caso contrario.
      */
     @AssertTrue(message = "La fecha de la última revisión no puede ser anterior a hace 4 años ni posterior a hoy.")

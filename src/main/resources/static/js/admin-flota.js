@@ -70,23 +70,28 @@
         const hace4Anios = new Date(hoy.getFullYear() - 4, hoy.getMonth(), hoy.getDate());
         const en10Anios = new Date(hoy.getFullYear() + 10, hoy.getMonth(), hoy.getDate());
 
-        // Última ITV: máximo hoy (fecha pasada), mínimo hace 4 años
+        // Última ITV: en alta máximo hoy (fecha pasada), mínimo hace 4 años.
+        // En edición, al estar automatizada con la próxima revisión previa, no se restringe a hoy.
         if (inputUltima) {
             inputUltima.setAttribute('min', formatFecha(hace4Anios));
-            let maxUltima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-            if (inputProxima && inputProxima.value.trim()) {
-                const partesProxima = inputProxima.value.trim().split('-');
-                if (partesProxima.length === 3) {
-                    const fProx = new Date(parseInt(partesProxima[0], 10), parseInt(partesProxima[1], 10) - 1, parseInt(partesProxima[2], 10));
-                    if (!isNaN(fProx.getTime())) {
-                        const diaAntes = new Date(fProx.getFullYear(), fProx.getMonth(), fProx.getDate() - 1);
-                        if (diaAntes < maxUltima) {
-                            maxUltima = diaAntes;
+            if (sufijo !== '-editar') {
+                let maxUltima = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+                if (inputProxima && inputProxima.value.trim()) {
+                    const partesProxima = inputProxima.value.trim().split('-');
+                    if (partesProxima.length === 3) {
+                        const fProx = new Date(parseInt(partesProxima[0], 10), parseInt(partesProxima[1], 10) - 1, parseInt(partesProxima[2], 10));
+                        if (!isNaN(fProx.getTime())) {
+                            const diaAntes = new Date(fProx.getFullYear(), fProx.getMonth(), fProx.getDate() - 1);
+                            if (diaAntes < maxUltima) {
+                                maxUltima = diaAntes;
+                            }
                         }
                     }
                 }
+                inputUltima.setAttribute('max', formatFecha(maxUltima));
+            } else {
+                inputUltima.removeAttribute('max');
             }
-            inputUltima.setAttribute('max', formatFecha(maxUltima));
         }
 
         // Próxima ITV: mínimo hoy (fecha futura), máximo 10 años
@@ -99,7 +104,9 @@
                     const fUlt = new Date(parseInt(partesUltima[0], 10), parseInt(partesUltima[1], 10) - 1, parseInt(partesUltima[2], 10));
                     if (!isNaN(fUlt.getTime())) {
                         const diaDespues = new Date(fUlt.getFullYear(), fUlt.getMonth(), fUlt.getDate() + 1);
-                        minProxima = diaDespues;
+                        if (diaDespues > minProxima) {
+                            minProxima = diaDespues;
+                        }
                     }
                 }
             }
@@ -286,9 +293,34 @@
     }
 
     /**
+     * Sincroniza automáticamente la fecha de última revisión cuando el Admin modifica la próxima revisión.
+     * La última revisión adopta el valor que tenía la próxima revisión antes de ser modificada.
+     * Si se restablece el valor original, la última revisión recupera su valor original.
+     */
+    function sincronizarFechaRevisionAutomaticaEdicion() {
+        const inputProxima = document.getElementById('vehiculo-fecha-proxima-editar');
+        const inputUltima = document.getElementById('vehiculo-fecha-ultima-editar');
+        if (!inputProxima || !inputUltima) return;
+
+        const fechaProximaOriginal = inputProxima.getAttribute('data-fecha-proxima-original') || '';
+        const fechaUltimaOriginal = inputProxima.getAttribute('data-fecha-ultima-original') || '';
+        const valorActualProxima = inputProxima.value ? inputProxima.value.trim() : '';
+
+        if (fechaProximaOriginal && valorActualProxima && valorActualProxima !== fechaProximaOriginal) {
+            inputUltima.value = fechaProximaOriginal;
+        } else if (valorActualProxima === fechaProximaOriginal) {
+            inputUltima.value = fechaUltimaOriginal;
+        }
+    }
+
+    /**
      * Valida las fechas de revisión técnica (última y próxima ITV) de forma cruzada.
      */
     function validarFechasRevisionVehiculo(sufijo = '') {
+        if (sufijo === '-editar') {
+            sincronizarFechaRevisionAutomaticaEdicion();
+        }
+
         const inputUltima = document.getElementById(`vehiculo-fecha-ultima${sufijo}`);
         const inputProxima = document.getElementById(`vehiculo-fecha-proxima${sufijo}`);
         const feedbackProximaId = `feedback-fecha-proxima${sufijo}`;
@@ -317,7 +349,7 @@
                 if (isNaN(fechaUltima.getTime())) {
                     mostrarError(`vehiculo-fecha-ultima${sufijo}`, feedbackUltimaId, 'Introduce una fecha de última revisión válida.');
                     esUltimaValida = false;
-                } else if (fechaUltima > hoySinHora) {
+                } else if (sufijo !== '-editar' && fechaUltima > hoySinHora) {
                     mostrarError(`vehiculo-fecha-ultima${sufijo}`, feedbackUltimaId, 'La fecha de la última revisión no puede ser posterior a hoy.');
                     esUltimaValida = false;
                 } else if (fechaUltima < hace4Anios) {
@@ -481,6 +513,7 @@
 
     function manejarChangeFechasAlta() { validarFechasRevisionVehiculo(''); }
     function manejarChangeFechasEdicion() { validarFechasRevisionVehiculo('-editar'); }
+    function manejarInputFechaProximaEdicion() { validarFechasRevisionVehiculo('-editar'); }
 
     function manejarSubmitFormAltaVehiculo(evento) {
         if (!validarFormularioVehiculo('form-alta-vehiculo', '')) {
@@ -694,6 +727,7 @@
         const inputProxima = document.getElementById('vehiculo-fecha-proxima-editar');
         if (inputProxima) {
             inputProxima.addEventListener('change', manejarChangeFechasEdicion);
+            inputProxima.addEventListener('input', manejarInputFechaProximaEdicion);
             inputProxima.addEventListener('blur', manejarChangeFechasEdicion);
         }
 

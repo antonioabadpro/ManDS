@@ -480,6 +480,71 @@ class FlotaServiceTest
     }
 
     @Test
+    @DisplayName("modificarVehiculo actualiza automáticamente fechaUltimaRevision al valor previo de próxima revisión al reprogramar")
+    void testModificarVehiculoActualizaFechaUltimaRevisionAutomaticamenteAlCambiarProxima()
+    {
+        LocalDate fechaUltimaOriginal = LocalDate.now().minusMonths(12);
+        LocalDate fechaProximaOriginal = LocalDate.now().minusMonths(1);
+        LocalDate fechaProximaNueva = LocalDate.now().plusMonths(12);
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(null);
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        vehiculo.setFechaUltimaRevision(fechaUltimaOriginal);
+        vehiculo.setFechaProximaRevision(fechaProximaOriginal);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 45000L, 95, 2021,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                fechaProximaOriginal, fechaProximaNueva
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.save(vehiculo)).thenReturn(vehiculo);
+
+        Vehiculo resultado = this.flotaService.modificarVehiculo(dto);
+
+        assertThat(resultado.getFechaUltimaRevision()).isEqualTo(fechaProximaOriginal);
+        assertThat(resultado.getFechaProximaRevision()).isEqualTo(fechaProximaNueva);
+        verify(this.vehiculoRepository).save(vehiculo);
+    }
+
+    @Test
+    @DisplayName("modificarVehiculo preserva la fechaUltimaRevision intacta cuando la fecha de próxima revisión no cambia")
+    void testModificarVehiculoConservaFechaUltimaRevisionSiProximaRevisionNoCambia()
+    {
+        LocalDate fechaUltimaOriginal = LocalDate.now().minusMonths(6);
+        LocalDate fechaProximaOriginal = LocalDate.now().plusMonths(6);
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setMatricula("1234-LMN");
+        vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
+        vehiculo.setProfesor(null);
+        vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        vehiculo.setColor("Blanco");
+        vehiculo.setFechaUltimaRevision(fechaUltimaOriginal);
+        vehiculo.setFechaProximaRevision(fechaProximaOriginal);
+
+        EditarVehiculoDTO dto = new EditarVehiculoDTO(
+                1L, "1234-LMN", "SEAT", "Ibiza", "Rojo", 48000L, 95, 2021,
+                TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
+                fechaUltimaOriginal, fechaProximaOriginal
+        );
+
+        when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
+        when(this.vehiculoRepository.save(vehiculo)).thenReturn(vehiculo);
+
+        Vehiculo resultado = this.flotaService.modificarVehiculo(dto);
+
+        assertThat(resultado.getColor()).isEqualTo("Rojo");
+        assertThat(resultado.getFechaUltimaRevision()).isEqualTo(fechaUltimaOriginal);
+        assertThat(resultado.getFechaProximaRevision()).isEqualTo(fechaProximaOriginal);
+        verify(this.vehiculoRepository).save(vehiculo);
+    }
+
+    @Test
     @DisplayName("modificarVehiculo lanza ReglaNegocioException si tiene profesor e intenta modificar el permiso")
     void testModificarVehiculoConProfesorErrorCambiarPermiso()
     {

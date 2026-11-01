@@ -16,7 +16,7 @@
 
 ## 1.2. Memoria Viva y Registro de Decisiones
 - **Separación de Responsabilidades:** `AGENTS.md` contiene **exclusivamente reglas activas**. El historial cronológico inmutable reside en [`docs/REGISTRO_DECISIONES.md`](file:///c:/Users/anton/Desktop/Programaci%C3%B3n/ManDS/docs/REGISTRO_DECISIONES.md); prohibido acumular tablas históricas aquí.
-- **Triggers de Memoria (*"recuerda"*, *"anota"*, *"apunta"*):** Si es regla activa de negocio/técnica/UI, añadirla a `AGENTS.md` (máx. 2-3 líneas atómicas). Si es decisión o hito completado (ADR), anexar fila a `docs/REGISTRO_DECISIONES.md` (fecha DD/MM/YYYY, resumen y justificación).
+- **Triggers de Memoria (*"recuerda"*, *"anota"*, *"apunta"*):** Aunque el usuario NO lo indique expresamente los ficheros `AGENTS.md` y `docs/REGISTRO_DECISIONES.md` siempre deben actualizarse automáticamente. Si es regla activa de negocio/técnica/UI, añadirla a `AGENTS.md` (máx. 2-3 líneas atómicas). Si es decisión o hito completado (ADR), anexar fila a `docs/REGISTRO_DECISIONES.md` (fecha DD/MM/YYYY, resumen y justificación).
 
 ## 1.3. Dudas y Seguridad
 - **Cero Suposiciones Unilaterales:** Ante dudas de negocio o técnicas, plantear alternativas con pros y contras antes de codificar.

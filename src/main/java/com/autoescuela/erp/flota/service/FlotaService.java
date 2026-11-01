@@ -316,7 +316,15 @@ public class FlotaService
         vehiculo.setAnio(dto.anio());
         vehiculo.setTipoCombustible(dto.tipoCombustible());
         vehiculo.setCajaCambios(dto.cajaCambios());
-        vehiculo.setFechaUltimaRevision(dto.fechaUltimaRevision());
+
+        if (vehiculo.getFechaProximaRevision() != null && !vehiculo.getFechaProximaRevision().equals(dto.fechaProximaRevision()))
+        {
+            vehiculo.setFechaUltimaRevision(vehiculo.getFechaProximaRevision());
+        }
+        else if (vehiculo.getFechaProximaRevision() == null)
+        {
+            vehiculo.setFechaUltimaRevision(dto.fechaUltimaRevision());
+        }
         vehiculo.setFechaProximaRevision(dto.fechaProximaRevision());
 
         return this.vehiculoRepository.save(vehiculo);
