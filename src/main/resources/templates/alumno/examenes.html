@@ -171,7 +171,7 @@
                                     <span th:if="${s.examen == null and s.estado.name() == 'RECHAZADA'}" class="text-slate-400">-</span>
                                 </td>
                                 <td class="py-3.5 px-4 text-center max-w-[280px]">
-                                    <p th:if="${s.estado.name() == 'RECHAZADA'}" class="truncate text-rose-600 dark:text-rose-400 font-medium" th:title="${s.comentarioJustificacion}" th:text="${s.comentarioJustificacion} ?: 'Sin motivo especificado'"></p>
+                                    <p th:if="${s.estado.name() == 'RECHAZADA'}" class="text-rose-600 dark:text-rose-400 font-medium text-xs leading-relaxed whitespace-normal break-words" th:title="${s.comentarioJustificacion}" th:text="${s.comentarioJustificacion} ?: 'Sin motivo especificado'"></p>
                                     <span th:unless="${s.estado.name() == 'RECHAZADA'}" class="text-slate-400">-</span>
                                 </td>
                             </tr>
