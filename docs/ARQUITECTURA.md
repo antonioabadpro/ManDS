@@ -10,16 +10,16 @@
 | :--- | :--- | :--- |
 | **IDE** | Visual Studio Code | Entorno de desarrollo principal |
 | **Arquitectura** | Monolito Modular MVC | Estructurado por funcionalidades (**Package by Features**) para maximizar cohesión y minimizar acoplamiento |
-| **Backend** | Java 21 + Spring Boot 4.1.x (4.1.1 GA) | Spring Data JPA, Spring Security, Lombok, MapStruct |
+| **Backend** | Java 21 + Spring Boot 4.1.x (4.1.2 GA) | Spring Data JPA, Spring Security, Lombok, MapStruct |
 | **Frontend** | HTML-over-the-wire | Thymeleaf + HTMX + JS ES6+ (interactividad reactiva sin SPA) |
-| **Frontend (UI & Estilos)** | Tailwind CSS + CSS3 |
+| **Frontend (UI & Estilos)** | Tailwind CSS (JIT CDN) | Enfoque *utility-first* responsivo (*mobile-first*) con configuración corporativa centralizada (`tailwind-config.js`). Estilos mínimos en `styles.css` exclusivos para escalado tipográfico base. |
 | **Base de Datos** | PostgreSQL (Supabase) | Base de datos relacional en la nube |
 | **Servidor Web** | Apache Tomcat | Embebido en Spring Boot |
 | **Despliegue** | Render + UptimeRobot | Plan gratuito Render (750h/mes) con pings de mantenimiento HTTP |
-| **Contenedores** | Docker | Pruebas de correo (Mailpit) y entorno local |
+| **Contenedores** | Docker (Docker Compose) | Entorno local de desarrollo y pruebas (PostgreSQL 16 y servidor simulado de correos Mailpit). |
 | **Pasarela de Pago** | Stripe API | Webhooks, Checkout Sessions y Payment Intents |
-| **Calendario** | SSR + HTMX | Aplica las reglas de negocio y construye la estructura HTML completa de la cuadrícula antes de enviársela al navegador |
-| **Email** | Spring Mail (JavaMailSender) | Notificaciones transaccionales automáticas por SMTP |
+| **Calendario** | SSR + Thymeleaf + HTMX | Cuadrícula semanal laboral nativa renderizada en servidor. Navegación e interactividad asíncrona con HTMX y JS nativo (sin librerías cliente pesadas como FullCalendar). |
+| **Email** | Spring Mail (JavaMailSender) | Notificaciones transaccionales automáticas por protocolo SMTP: entorno local con **Mailpit** (Docker) y entorno de producción con servicio SMTP en la nube (**Brevo / Sendinblue**). |
 
 ---
 
@@ -38,7 +38,7 @@ src/
 │   │   ├── flota/          <-- Vehículos e incidencias mecánicas (Vehiculo, IncidenciaVehiculo)
 │   │   ├── academico/      <-- Matrículas y expedientes de alumnos (Matricula)
 │   │   ├── pagos/          <-- Pasarela Stripe desacoplada (StripeWebhookController, PagoStripeService)
-│   │   ├── practicas/      <-- Clases prácticas y FullCalendar (ClasePractica, Calendario)
+│   │   ├── practicas/      <-- Clases prácticas y cuadrícula semanal nativa (ClasePractica, Calendario)
 │   │   ├── examenes/       <-- Solicitudes, cupos y notas DGT (SolicitudExamen, Examen)
 │   │   └── estadisticas/   <-- Analítica y métricas de rendimiento
 │   │
@@ -86,6 +86,6 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 
 ### 4.3. Alumno (Área Personal y Formación)
 - **Matrícula y Finanzas:** Matriculación en 1 carnet activo, adquisición de clases sueltas y bonos (10, 15, 20) mediante Stripe Checkout.
-- **Reserva de Prácticas:** FullCalendar interactivo para agendar clases con su profesor asignado según su capacidad de reserva disponible.
+- **Reserva de Prácticas:** Cuadrícula semanal nativa interactiva (SSR + HTMX) para agendar clases con su profesor asignado según su capacidad de reserva disponible.
 - **Expediente Académico:** Histórico de clases realizadas (kilometraje, observaciones), convocatorias consumidas y estado de expediente.
 - **Pruebas DGT:** Solicitud formal de convocatoria de examen teórico o práctico.

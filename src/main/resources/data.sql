@@ -9,7 +9,7 @@
 -- Ordenación estricta de identidades (persona):
 --   * Administrador (id = 1)
 --   * Profesores    (id = 100 .. 129) [Rango: 100 .. 199]
---   * Alumnos       (id = 200 .. 252) [Rango: 200 .. 299]
+--   * Alumnos       (id = 200 .. 267) [Rango: 200 .. 299]
 --   * Rango libre   (id = 2 .. 99)
 --
 -- Flota completa de 12 permisos reconocidos por la DGT (mínimo 2 vehículos por permiso):
@@ -100,7 +100,7 @@ INSERT INTO vehiculo (id, matricula, marca, modelo, color, km, cv, anio, tipo_co
 VALUES (34, '6633-NRT', 'Iveco', 'Eurocargo 120E', 'Blanco Ártico', 210000, 220, 2018, 'DIESEL', 'MANUAL', '2025-09-20', '2028-09-20', 'INACTIVO', 'PERMISO_C');
 
 -- ------------------------------------------------------------------------------
--- 2. USUARIOS BASE (persona) - 84 Personas (1 Admin, 30 Profesores, 53 Alumnos)
+-- 2. USUARIOS BASE (persona) - 99 Personas (1 Admin, 30 Profesores, 68 Alumnos)
 -- ------------------------------------------------------------------------------
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (1, 'Antonio Abad', 'Hernández Gálvez', '09123456T', '1985-04-12', 'admin', 'admin@autoescuela.es', '$2a$10$umISk5UJjoOGrFmQXaaANernpH1OxhBA/NHx.TpkKBCNfau0s4uUi', '600111222', 'Calle Gran Vía 28, Madrid', 'ACTIVO');
@@ -270,6 +270,36 @@ INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuari
 VALUES (251, 'Tomás', 'Herrera Gil', '51234524T', '1999-06-18', 'alumno52', 'tomas.alumno@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '606666777', 'Calle Hortaleza 80, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (252, 'Marina', 'Lozano Santos', '51234525R', '2002-10-10', 'alumno53', 'marina.alumno@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '606777888', 'Calle Chueca 14, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (253, 'Marcos', 'Prieto Ramos', '51234526A', '2001-04-12', 'alumno54', 'marcos.prieto@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607111222', 'Calle Serrano 150, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (254, 'Irene', 'Garrido Peña', '51234527B', '2002-08-23', 'alumno55', 'irene.garrido@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607222333', 'Calle Velázquez 90, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (255, 'Adrián', 'Cabrera Soler', '51234528C', '2000-12-05', 'alumno56', 'adrian.cabrera@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607333444', 'Calle Claudio Coello 75, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (256, 'Paula', 'Castillo Mora', '51234529D', '2003-02-18', 'alumno57', 'paula.castillo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607444555', 'Calle Lagasca 40, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (257, 'Hugo', 'Pardo Rivas', '51234530E', '2001-09-30', 'alumno58', 'hugo.pardo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607555666', 'Calle Goya 60, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (258, 'Elena', 'Bermejo Cruz', '51234531F', '2002-06-14', 'alumno59', 'elena.bermejo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607666777', 'Calle Hermosilla 30, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (259, 'Diego', 'Santos León', '51234532G', '2000-03-25', 'alumno60', 'diego.santos@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607777888', 'Calle Ayala 85, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (260, 'Sara', 'Marín Esteban', '51234533H', '2003-11-11', 'alumno61', 'sara.marin@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607888999', 'Calle Jorge Juan 50, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (261, 'Álvaro', 'Fuentes Moya', '51234534J', '1999-07-08', 'alumno62', 'alvaro.fuentes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607999000', 'Calle O Donnell 20, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (262, 'Marta', 'Herrero Solís', '51234535K', '2002-01-27', 'alumno63', 'marta.herrero@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608111222', 'Calle Narváez 35, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (263, 'Javier', 'Paredes Cano', '51234536L', '2001-10-09', 'alumno64', 'javier.paredes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608222333', 'Calle Ibiza 18, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (264, 'Lucía', 'Giménez Vidal', '51234537M', '2003-05-16', 'alumno65', 'lucia.gimenez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608333444', 'Calle Menorca 12, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (265, 'Manuel', 'Reyes Cortés', '51234538N', '2000-08-03', 'alumno66', 'manuel.reyes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608444555', 'Calle Sainz de Baranda 44, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (266, 'Alba', 'Méndez Gallego', '51234539P', '2002-03-21', 'alumno67', 'alba.mendez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608555666', 'Calle Doctor Esquerdo 70, Madrid', 'ACTIVO');
+INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
+VALUES (267, 'Daniel', 'Lara Montero', '51234540Q', '2001-12-19', 'alumno68', 'daniel.lara@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608666777', 'Calle O Donnell 45, Madrid', 'ACTIVO');
 
 -- ------------------------------------------------------------------------------
 -- 3. ESPECIALIZACIONES DE USUARIO (administrador, profesor, profesor_permisos, alumno)
@@ -408,7 +438,7 @@ INSERT INTO profesor_permisos (profesor_id, tipo_carnet) VALUES (129, 'PERMISO_D
 INSERT INTO profesor_permisos (profesor_id, tipo_carnet) VALUES (129, 'PERMISO_D_E');
 INSERT INTO profesor_permisos (profesor_id, tipo_carnet) VALUES (129, 'PERMISO_LVA');
 
--- 3.3 Alumnos (200..252)
+-- 3.3 Alumnos (200..267)
 -- Vinculación estricta: un alumno SOLO tiene profesor si dispone de matrícula activa compatible.
 -- Alumnos sin profesor asignado (expulsados o graduados con todos los exámenes aprobados)
 INSERT INTO alumno (id, profesor_id) VALUES (207, NULL);
@@ -494,8 +524,25 @@ INSERT INTO alumno (id, profesor_id) VALUES (250, NULL);
 INSERT INTO alumno (id, profesor_id) VALUES (251, NULL);
 INSERT INTO alumno (id, profesor_id) VALUES (252, 113);
 
+-- Alumnos en formación Teórico-Práctica sin profesor asignado (pendientes de examen, sin solicitud o con teórico aprobado)
+INSERT INTO alumno (id, profesor_id) VALUES (253, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (254, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (255, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (256, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (257, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (258, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (259, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (260, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (261, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (262, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (263, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (264, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (265, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (266, NULL);
+INSERT INTO alumno (id, profesor_id) VALUES (267, NULL);
+
 -- ------------------------------------------------------------------------------
--- 4. MATRÍCULAS (matricula) - 55 Matrículas (id = 1 .. 55)
+-- 4. MATRÍCULAS (matricula) - 69 Matrículas (id = 1 .. 69)
 -- ------------------------------------------------------------------------------
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (1, 200, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-06-01', 3, 2, 0, 250, TRUE);
@@ -538,7 +585,7 @@ VALUES (19, 217, 'PERMISO_C', 'TEORICO_PRACTICA', 'NUEVA', '2026-08-05', 0, 1, 1
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (20, 218, 'PERMISO_D', 'PRACTICA', 'NUEVA', '2026-08-10', 2, 2, 0, 450, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (21, 220, 'PERMISO_B_E', 'PRACTICA', 'NUEVA', '2026-09-18', 0, 1, 1, 250, FALSE);
+VALUES (21, 253, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-05', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (22, 221, 'PERMISO_D', 'PRACTICA', 'NUEVA', '2026-08-01', 2, 2, 0, 450, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
@@ -550,7 +597,7 @@ VALUES (25, 224, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-01', 0, 2, 0
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (26, 225, 'PERMISO_AM', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-02', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (27, 220, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-05-15', 0, 1, 1, 250, FALSE);
+VALUES (27, 220, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-05-15', 0, 0, 2, 250, FALSE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (28, 226, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-08-15', 2, 0, 2, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
@@ -607,6 +654,34 @@ INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_mat
 VALUES (54, 251, 'PERMISO_LVA', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-02', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (55, 252, 'PERMISO_LVA', 'PRACTICA', 'NUEVA', '2026-09-15', 2, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (56, 254, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-06', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (57, 255, 'PERMISO_A2', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-07', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (58, 256, 'PERMISO_C', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-08', 0, 2, 0, 450, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (59, 257, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-09', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (60, 258, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-10', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (61, 259, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-11', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (62, 260, 'PERMISO_A2', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-12', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (63, 261, 'PERMISO_D', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-13', 0, 2, 0, 450, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (64, 262, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-14', 0, 2, 0, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (65, 263, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-01', 0, 1, 1, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (66, 264, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-02', 0, 1, 1, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (67, 265, 'PERMISO_A2', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-03', 0, 1, 1, 250, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (68, 266, 'PERMISO_C', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-04', 0, 1, 1, 450, TRUE);
+INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
+VALUES (69, 267, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-05', 0, 1, 1, 250, TRUE);
 
 -- ------------------------------------------------------------------------------
 -- 5. INCIDENCIAS MECÁNICAS (incidencia_vehiculo) - 10 Incidencias
@@ -975,7 +1050,7 @@ INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio,
 VALUES (169, '2026-10-19 11:45:00', 45, 'Calle Fernando VI 19', 43782, 43805, 'Recorridos oficiales previos a examen DGT.', 'RECIBIDA', FALSE, FALSE, 219, 100);
 
 -- ------------------------------------------------------------------------------
--- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 50 Solicitudes
+-- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 64 Solicitudes
 -- ------------------------------------------------------------------------------
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (1, '2026-08-10 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 200, NULL, 1);
@@ -994,11 +1069,11 @@ VALUES (7, '2026-07-15 10:00:00', 'ACEPTADA', 'PRACTICO', NULL, 207, 102, 8);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (8, '2026-08-10 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 201, NULL, 2);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (9, '2026-10-18 09:45:00', 'PENDIENTE', 'PRACTICO', NULL, 201, 100, 2);
+VALUES (9, '2026-10-18 09:45:00', 'ACEPTADA', 'PRACTICO', NULL, 201, 100, 2);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (10, '2026-10-19 12:00:00', 'PENDIENTE', 'PRACTICO', NULL, 205, 103, 6);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (11, '2026-10-20 16:30:00', 'PENDIENTE', 'PRACTICO', NULL, 204, 100, 5);
+VALUES (11, '2026-10-20 16:30:00', 'ACEPTADA', 'PRACTICO', NULL, 204, 100, 5);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (12, '2026-10-15 17:15:00', 'ACEPTADA', 'PRACTICO', NULL, 219, 100, 30);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
@@ -1014,7 +1089,7 @@ VALUES (17, '2026-10-10 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 217, NULL, 19);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (18, '2026-06-10 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 220, NULL, 27);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (19, '2026-10-14 11:00:00', 'ACEPTADA', 'PRACTICO', NULL, 220, 106, 21);
+VALUES (19, '2026-10-14 11:00:00', 'ACEPTADA', 'PRACTICO', NULL, 220, 106, 27);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (20, '2026-08-28 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 205, NULL, 6);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
@@ -1077,9 +1152,42 @@ INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justifica
 VALUES (49, '2026-10-21 16:00:00', 'PENDIENTE', 'PRACTICO', NULL, 209, 102, 11);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (50, '2026-10-13 12:00:00', 'RECHAZADA', 'PRACTICO', 'No cumple con las destrezas minimas en maniobras de estacionamiento y circulacion urbana.', 204, 100, 5);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (51, '2026-10-20 09:30:00', 'ACEPTADA', 'TEORICO', NULL, 253, NULL, 21);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (52, '2026-10-20 10:15:00', 'ACEPTADA', 'TEORICO', NULL, 254, NULL, 56);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (53, '2026-10-21 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 255, NULL, 57);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (54, '2026-10-21 11:30:00', 'ACEPTADA', 'TEORICO', NULL, 256, NULL, 58);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (55, '2026-10-22 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 257, NULL, 59);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (56, '2026-09-15 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 263, NULL, 65);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (57, '2026-09-15 09:30:00', 'ACEPTADA', 'TEORICO', NULL, 264, NULL, 66);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (58, '2026-09-16 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 265, NULL, 67);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (59, '2026-10-05 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 266, NULL, 68);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (60, '2026-10-05 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 267, NULL, 69);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (61, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
+VALUES (61, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (62, CURRENT_DATE - INTERVAL '2' DAY + TIME '11:00:00', 'ACEPTADA', 'TEORICO', NULL, 259, NULL, 61);
+VALUES (62, '2026-10-24 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 259, NULL, 61);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (63, CURRENT_DATE - INTERVAL '4' DAY + TIME '09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
+VALUES (63, '2026-10-21 09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (64, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
+VALUES (64, '2026-10-22 10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
 
 -- ------------------------------------------------------------------------------
--- 8. EXÁMENES DGT (examen) - 39 Exámenes (Días laborables no festivos)
+-- 8. EXÁMENES DGT (examen) - 53 Exámenes (Días laborables no festivos)
+-- 8. EXÁMENES DGT (examen) - 55 Exámenes (Días laborables no festivos)
 -- ------------------------------------------------------------------------------
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (1, TRUE, '2026-08-20 09:00:00', 30, 'TEORICO', 200, 1);
@@ -1143,22 +1251,68 @@ INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitu
 VALUES (36, FALSE, '2026-10-02 11:15:00', 25, 'PRACTICO', 215, 43);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (3, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '10:00:00', 35, 'PRACTICO', 200, 2);
+VALUES (3, NULL, '2026-10-29 09:30:00', 35, 'PRACTICO', 200, 2);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (10, NULL, CURRENT_DATE + INTERVAL '10' DAY + TIME '16:00:00', 45, 'PRACTICO', 209, 28);
+VALUES (10, NULL, '2026-10-29 15:45:00', 45, 'PRACTICO', 209, 28);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (11, NULL, CURRENT_DATE + INTERVAL '20' DAY + TIME '11:00:00', 40, 'PRACTICO', 212, 29);
+VALUES (11, NULL, '2026-10-29 16:30:00', 40, 'PRACTICO', 212, 29);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (12, NULL, CURRENT_DATE + INTERVAL '20' DAY + TIME '17:00:00', 30, 'PRACTICO', 210, 23);
+VALUES (12, NULL, '2026-10-29 17:15:00', 30, 'PRACTICO', 210, 23);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (13, NULL, CURRENT_DATE + INTERVAL '23' DAY + TIME '12:00:00', 35, 'PRACTICO', 213, 25);
+VALUES (13, NULL, '2026-10-29 18:00:00', 35, 'PRACTICO', 213, 25);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (15, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:30:00', 30, 'TEORICO', 217, 17);
+VALUES (15, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 217, 17);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (37, FALSE, '2026-09-02 09:00:00', 30, 'TEORICO', 226, 44);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (38, TRUE, '2026-09-16 10:00:00', 30, 'TEORICO', 226, 45);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (39, TRUE, '2026-10-22 10:00:00', 35, 'PRACTICO', 219, 12);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (40, TRUE, '2026-09-24 08:30:00', 30, 'TEORICO', 263, 56);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (41, TRUE, '2026-09-24 09:15:00', 30, 'TEORICO', 264, 57);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (42, TRUE, '2026-09-24 10:00:00', 30, 'TEORICO', 265, 58);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (43, TRUE, '2026-10-15 08:30:00', 30, 'TEORICO', 266, 59);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (44, TRUE, '2026-10-15 09:15:00', 30, 'TEORICO', 267, 60);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (45, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:00:00', 30, 'TEORICO', 253, 51);
+VALUES (45, NULL, '2026-10-29 09:00:00', 30, 'TEORICO', 253, 51);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (46, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:45:00', 30, 'TEORICO', 254, 52);
+VALUES (46, NULL, '2026-10-29 09:45:00', 30, 'TEORICO', 254, 52);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (47, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '10:30:00', 30, 'TEORICO', 255, 53);
+VALUES (47, NULL, '2026-10-29 10:30:00', 30, 'TEORICO', 255, 53);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (48, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '11:15:00', 30, 'TEORICO', 256, 54);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (49, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '12:00:00', 30, 'TEORICO', 257, 55);
+VALUES (49, NULL, CURRENT_DATE + INTERVAL '4' DAY + TIME '12:00:00', 30, 'TEORICO', 257, 55);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (50, NULL, CURRENT_DATE + INTERVAL '5' DAY + TIME '09:00:00', 30, 'TEORICO', 258, 61);
+VALUES (50, NULL, CURRENT_DATE + INTERVAL '5' DAY + TIME '12:45:00', 30, 'TEORICO', 258, 61);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (51, NULL, CURRENT_DATE + INTERVAL '12' DAY + TIME '10:00:00', 30, 'TEORICO', 259, 62);
+VALUES (51, NULL, '2026-10-29 13:30:00', 30, 'TEORICO', 259, 62);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (52, NULL, CURRENT_DATE + INTERVAL '6' DAY + TIME '10:15:00', 35, 'PRACTICO', 206, 63);
+VALUES (52, NULL, '2026-10-29 10:15:00', 35, 'PRACTICO', 206, 63);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (53, NULL, CURRENT_DATE + INTERVAL '13' DAY + TIME '11:00:00', 35, 'PRACTICO', 214, 64);
+VALUES (53, NULL, '2026-10-29 11:00:00', 35, 'PRACTICO', 214, 64);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (54, NULL, '2026-10-29 11:45:00', 35, 'PRACTICO', 201, 9);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (55, NULL, '2026-10-29 12:30:00', 35, 'PRACTICO', 204, 11);
 
 -- ------------------------------------------------------------------------------
 -- 8.2. CONVOCATORIAS OFICIALES DGT DEL MES (fecha_examen)

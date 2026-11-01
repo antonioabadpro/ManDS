@@ -35,6 +35,11 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     List<ClasePractica> findByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);
 
     /**
+     * Recupera todas las clases prácticas en un determinado estado ordenadas cronológicamente por fecha/hora ascendente.
+     */
+    List<ClasePractica> findByEstadoClaseOrderByFechaHoraAsc(EstadoClase estadoClase);
+
+    /**
      * Contabiliza las clases de un profesor en un determinado estado (RECIBIDA, PENDIENTE, CANCELADA).
      */
     int countByProfesorAndEstadoClase(Profesor profesor, EstadoClase estadoClase);

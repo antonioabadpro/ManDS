@@ -30,16 +30,16 @@ class DataSqlH2Test extends BaseIntegrationTest
         Integer cuposExamen = this.jdbcTemplate.queryForObject("SELECT COUNT(*) FROM cupo_examen", Integer.class);
 
         assertEquals(34, vehiculos, "Debe haber 34 vehículos");
-        assertEquals(84, personas, "Debe haber 84 personas registradas");
+        assertEquals(99, personas, "Debe haber 99 personas registradas");
         assertEquals(1, admins, "Debe haber 1 administrador");
         assertEquals(30, profesores, "Debe haber 30 profesores");
         assertEquals(81, permisos, "Debe haber 81 permisos asignados a profesores");
-        assertEquals(53, alumnos, "Debe haber 53 alumnos");
+        assertEquals(68, alumnos, "Debe haber 68 alumnos");
         assertEquals(10, incidencias, "Debe haber 10 incidencias registradas");
-        assertEquals(55, matriculas, "Debe haber 55 matrículas");
+        assertEquals(69, matriculas, "Debe haber 69 matrículas");
         assertEquals(169, clases, "Debe haber 169 clases prácticas");
-        assertEquals(50, solicitudes, "Debe haber 50 solicitudes de examen");
-        assertEquals(39, examenes, "Debe haber 39 exámenes registrados");
+        assertEquals(64, solicitudes, "Debe haber 64 solicitudes de examen");
+        assertEquals(55, examenes, "Debe haber 55 exámenes registrados");
         assertEquals(2, fechasExamen, "Debe haber 2 registros de fechas de examen fijadas");
         assertEquals(15, cuposExamen, "Debe haber 15 registros de cupos de examen fijados");
     }
