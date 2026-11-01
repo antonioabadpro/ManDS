@@ -266,4 +266,34 @@ class PagoStripeServiceTest
         assertEquals("205", capturedParams.getMetadata().get("alumnoId"));
         assertNull(capturedParams.getMetadata().get("dniAlumno"));
     }
+
+    @Test
+    @DisplayName("obtenerSesionStripe retorna Session cuando el ID es válido")
+    void testObtenerSesionStripeExitoso() throws StripeException
+    {
+        Session sessionMock = new Session();
+        sessionMock.setId("cs_test_existente");
+
+        when(this.stripeClient.v1().checkout().sessions().retrieve("cs_test_existente"))
+                .thenReturn(sessionMock);
+
+        Session resultado = this.pagoStripeService.obtenerSesionStripe("cs_test_existente");
+
+        assertNotNull(resultado);
+        assertEquals("cs_test_existente", resultado.getId());
+    }
+
+    @Test
+    @DisplayName("obtenerSesionStripe retorna null si el ID es nulo, en blanco o lanza StripeException")
+    void testObtenerSesionStripeErrores() throws StripeException
+    {
+        assertNull(this.pagoStripeService.obtenerSesionStripe(null));
+        assertNull(this.pagoStripeService.obtenerSesionStripe("   "));
+
+        ApiException apiException = new ApiException("Not found", "req_404", "resource_missing", 404, null);
+        when(this.stripeClient.v1().checkout().sessions().retrieve("cs_test_inexistente"))
+                .thenThrow(apiException);
+
+        assertNull(this.pagoStripeService.obtenerSesionStripe("cs_test_inexistente"));
+    }
 }

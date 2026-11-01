@@ -44,7 +44,7 @@
 ## 3.1. Autenticación, Registro y Estados de Usuario
 - **Roles y Acceso:** Roles estrictos `ADMIN`, `PROFESOR`, `ALUMNO`. Login indistinto por nombre de usuario (`username`) o correo (`email`) con contraseña.
 - **Tokens Efímeros:** Alta de profesor exclusiva de Admin con `TokenVerificacion` de 60 min. Tokens de recuperación de contraseña expiran a los 15 min (`TokenVerificacionService`).
-- **Ciclo de Alumno:** Registro público en BD como `INACTIVO`. Pasa a `ACTIVO` y formaliza matrícula tras confirmar pago en Stripe Checkout; purga automática de huérfanos en cancelación/abandono.
+- **Ciclo de Alumno:** Registro público en BD como `INACTIVO`. Pasa a `ACTIVO` y formaliza matrícula tras confirmar pago en Stripe Checkout; purga automática de huérfanos en `POST /registro`, cancelación, expiración de sesión y reintento en validaciones HTMX.
 - **Trazabilidad Lógica:** Borrado lógico (*soft delete* a `INACTIVO`) en profesores y alumnos, preservando histórico de clases, exámenes y pagos.
 - **URLs Limpias y Flash Attributes:** Prohibidos query params en login/auth. Notificaciones exclusivas vía Flash Attributes normalizados (`errorLogin`, `logoutExitoso`, `sesionExpirada`, `registroExitoso`, `cuentaActivada`, `tokenInvalido`, `mensajeEnviado`, `mensajeExito`). Acceso autenticado a `/` o `/login` cierra sesión automáticamente.
 

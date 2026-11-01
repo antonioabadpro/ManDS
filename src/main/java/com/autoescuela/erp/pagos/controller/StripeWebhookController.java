@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.autoescuela.erp.academico.service.AcademicoService;
+import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -32,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StripeWebhookController
 {
     private final AcademicoService academicoService;
+    private final AuthenticationService autenticacionService;
 
     @Value("${stripe.webhook.secret:whsec_placeholder}")
     private String webhookSecret;
@@ -180,10 +182,54 @@ public class StripeWebhookController
                     }; break;
                 }
             }; break;
-            case "checkout.session.payment_failed": // El pago ha fallado
+            case "checkout.session.expired": // La sesión de Checkout ha expirado (abandono o cancelación)
             {
-                log.warn("Evento de pago fallido recibido en webhook: checkout.session.payment_failed");
-                respuesta = ResponseEntity.ok("Evento de pago fallido registrado");
+                log.info("Evento de Stripe recibido: checkout.session.expired");
+                EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
+                Session session = null;
+                try
+                {
+                    if (deserializer.getObject().isPresent())
+                    {
+                        session = (Session) deserializer.getObject().get();
+                    }
+                    else
+                    {
+                        session = (Session) deserializer.deserializeUnsafe();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.warn("Aviso al deserializar el objeto Session de Stripe en checkout.session.expired: {}", ex.getMessage());
+                    try
+                    {
+                        session = (Session) deserializer.deserializeUnsafe();
+                    }
+                    catch (Exception ignored)
+                    {
+                        // Se maneja con session == null a continuación
+                    }
+                }
+
+                if (session != null && session.getMetadata() != null)
+                {
+                    String tipoOperacion = session.getMetadata().get("tipoOperacion");
+                    String alumnoIdStr = session.getMetadata().get("alumnoId");
+                    if ("MATRICULA".equals(tipoOperacion) && alumnoIdStr != null && !alumnoIdStr.isBlank())
+                    {
+                        try
+                        {
+                            Long alumnoId = Long.valueOf(alumnoIdStr);
+                            this.autenticacionService.eliminarAlumnoInactivoPorId(alumnoId);
+                            log.info("Sesión de Stripe expirada: Alumno huérfano inactivo con ID {} purgado satisfactoriamente.", alumnoId);
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            log.error("ID de alumno no válido en metadata de sesión expirada de Stripe: {}", alumnoIdStr, e);
+                        }
+                    }
+                }
+                respuesta = ResponseEntity.ok("Evento de sesión de checkout expirada procesado correctamente");
             }; break;
             default: // Para cualquier otro tipo de evento desconocido, registramos el evento pero no realizamos acción inmediata
             {

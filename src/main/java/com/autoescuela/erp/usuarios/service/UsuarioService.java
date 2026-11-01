@@ -2,16 +2,20 @@ package com.autoescuela.erp.usuarios.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.mapper.UsuarioMapper;
 import com.autoescuela.erp.usuarios.model.Administrador;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Persona;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,45 +27,75 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioService
 {
+    private final AlumnoRepository alumnoRepository;
     private final PersonaRepository personaRepository;
     private final UsuarioMapper usuarioMapper;
 
     /**
+     * Comprueba si un alumno está en estado INACTIVO y carece de matrículas formalizadas
+     * (registro abandonado o con pago pendiente/fallido).
+     */
+    private boolean esAlumnoInactivoSinMatricula(Alumno alumno)
+    {
+        return alumno != null && alumno.getEstado() == EstadoUsuario.INACTIVO && (alumno.getHistorialMatriculas() == null || alumno.getHistorialMatriculas().isEmpty());
+    }
+
+    /**
      * Comprueba si un nombre de usuario ya está registrado en el sistema.
+     * Si pertenece a un alumno huérfano en estado INACTIVO sin matrículas, lo purga
+     * para permitir completar el registro sin bloqueos tempranos en HTMX.
      *
      * @param nombreUsuario Nombre de usuario a comprobar.
      * @return true si ya existe, false en caso contrario.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeNombreUsuario(String nombreUsuario)
     {
         if (nombreUsuario == null || nombreUsuario.isBlank())
         {
             return false;
         }
-        return this.personaRepository.existsByNombreUsuario(nombreUsuario.trim());
+        String limpio = nombreUsuario.trim();
+        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByNombreUsuario(limpio);
+        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        {
+            this.alumnoRepository.delete(alumnoOpt.get());
+            this.alumnoRepository.flush();
+            return false;
+        }
+        return this.personaRepository.existsByNombreUsuario(limpio);
     }
 
     /**
      * Comprueba si una dirección de correo electrónico ya está registrada en el sistema.
+     * Si pertenece a un alumno huérfano en estado INACTIVO sin matrículas, lo purga
+     * para permitir completar el registro sin bloqueos tempranos en HTMX.
      *
      * @param correo Correo electrónico a comprobar.
      * @return true si ya existe, false en caso contrario.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeCorreo(String correo)
     {
         if (correo == null || correo.isBlank())
         {
             return false;
         }
-        return this.personaRepository.existsByCorreo(correo.trim().toLowerCase());
+        String limpio = correo.trim().toLowerCase();
+        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByCorreo(limpio);
+        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        {
+            this.alumnoRepository.delete(alumnoOpt.get());
+            this.alumnoRepository.flush();
+            return false;
+        }
+        return this.personaRepository.existsByCorreo(limpio);
     }
 
     /**
      * Comprueba si un correo ya está registrado por otro usuario (distinto ID).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeCorreoOtroUsuario(String correo, Long id)
     {
         if (correo == null || correo.isBlank())
@@ -70,31 +104,41 @@ public class UsuarioService
         }
         if (id == null)
         {
-            return existeCorreo(correo);
+            return this.existeCorreo(correo);
         }
         return this.personaRepository.existsByCorreoAndIdNot(correo.trim().toLowerCase(), id);
     }
 
     /**
      * Comprueba si un DNI/NIE ya está registrado en el sistema.
+     * Si pertenece a un alumno huérfano en estado INACTIVO sin matrículas, lo purga
+     * para permitir completar el registro sin bloqueos tempranos en HTMX.
      *
      * @param dni DNI/NIE a comprobar.
      * @return true si ya existe, false en caso contrario.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeDni(String dni)
     {
         if (dni == null || dni.isBlank())
         {
             return false;
         }
-        return this.personaRepository.existsByDni(dni.trim().toUpperCase());
+        String limpio = dni.trim().toUpperCase();
+        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByDni(limpio);
+        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        {
+            this.alumnoRepository.delete(alumnoOpt.get());
+            this.alumnoRepository.flush();
+            return false;
+        }
+        return this.personaRepository.existsByDni(limpio);
     }
 
     /**
      * Comprueba si un DNI ya está registrado por otro usuario (distinto ID).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeDniOtroUsuario(String dni, Long id)
     {
         if (dni == null || dni.isBlank())
@@ -103,7 +147,7 @@ public class UsuarioService
         }
         if (id == null)
         {
-            return existeDni(dni);
+            return this.existeDni(dni);
         }
         return this.personaRepository.existsByDniAndIdNot(dni.trim().toUpperCase(), id);
     }
@@ -147,24 +191,34 @@ public class UsuarioService
 
     /**
      * Comprueba si un número de teléfono ya está registrado en el sistema.
+     * Si pertenece a un alumno huérfano en estado INACTIVO sin matrículas, lo purga
+     * para permitir completar el registro sin bloqueos tempranos en HTMX.
      *
      * @param telefono Número de teléfono a comprobar.
      * @return true si ya existe, false en caso contrario.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeTelefono(String telefono)
     {
         if (telefono == null || telefono.isBlank())
         {
             return false;
         }
-        return this.personaRepository.existsByTelefono(telefono.trim());
+        String limpio = telefono.trim();
+        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByTelefono(limpio);
+        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        {
+            this.alumnoRepository.delete(alumnoOpt.get());
+            this.alumnoRepository.flush();
+            return false;
+        }
+        return this.personaRepository.existsByTelefono(limpio);
     }
 
     /**
      * Comprueba si un teléfono ya está registrado por otro usuario (distinto ID).
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public boolean existeTelefonoOtroUsuario(String telefono, Long id)
     {
         if (telefono == null || telefono.isBlank())
@@ -173,7 +227,7 @@ public class UsuarioService
         }
         if (id == null)
         {
-            return existeTelefono(telefono);
+            return this.existeTelefono(telefono);
         }
         return this.personaRepository.existsByTelefonoAndIdNot(telefono.trim(), id);
     }

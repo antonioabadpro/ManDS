@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -35,6 +36,23 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
      * @return Optional con el Alumno encontrado o vacío si no existe.
      */
     Optional<Alumno> findByCorreo(String correo);
+
+    /**
+     * Busca un alumno a partir de su número de teléfono.
+     *
+     * @param telefono Número de teléfono del alumno.
+     * @return Optional con el Alumno encontrado o vacío si no existe.
+     */
+    Optional<Alumno> findByTelefono(String telefono);
+
+    /**
+     * Recupera todos los alumnos huérfanos registrados en estado INACTIVO
+     * que carecen de matrículas asociadas en su historial formativo.
+     *
+     * @return Lista de alumnos inactivos sin matrículas.
+     */
+    @Query("SELECT a FROM Alumno a WHERE a.estado = com.autoescuela.erp.core.enums.EstadoUsuario.INACTIVO AND a.historialMatriculas IS EMPTY")
+    List<Alumno> findAlumnosInactivosSinMatricula();
 
     /**
      * Recupera todos los alumnos asignados a un profesor determinado.

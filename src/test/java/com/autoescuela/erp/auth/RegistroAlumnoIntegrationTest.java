@@ -404,7 +404,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(post("/usuario/validar-dni")
                 .with(csrf())
-                .param("dni", "99887766K"))
+                .param("dni", "12345678A"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
                 .andExpect(model().attribute("mensaje", "La letra del DNI/NIE no es válida o no coincide con los números."))
@@ -503,5 +503,49 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
 
         assertTrue(this.alumnoRepository.findByDni("11223344B").isEmpty(), "El alumno inactivo debe haberse purgado de la BD tras cancelar");
     }
-}
 
+    @Test
+    @DisplayName("POST /registro purga automáticamente registros huérfanos previos en estado INACTIVO sin matrícula")
+    void testNuevoRegistroPurgaAlumnosInactivosHuerfanosPrevios() throws Exception
+    {
+        // 1. Simulamos un registro huérfano abandonado en estado INACTIVO previo
+        Alumno huerfano = new Alumno();
+        huerfano.setNombre("Joaquin");
+        huerfano.setApellidos("Hernandez");
+        huerfano.setDni("87654321X");
+        huerfano.setNombreUsuario("joaquin_abandonado");
+        huerfano.setCorreo("joaquin.abandonado@autoescuela.es");
+        huerfano.setTelefono("655201200");
+        huerfano.setDireccion("Calle Paz 32");
+        huerfano.setFechaNacimiento(LocalDate.of(1990, 1, 1));
+        huerfano.setEstado(EstadoUsuario.INACTIVO);
+        huerfano.actualizarPassword(this.passwordEncoder.encode("clave123"));
+        this.alumnoRepository.saveAndFlush(huerfano);
+
+        assertTrue(this.alumnoRepository.findByDni("87654321X").isPresent(), "El alumno huérfano previo debe existir inicialmente");
+
+        // 2. Un nuevo alumno realiza POST /registro
+        this.mockMvc.perform(post("/registro")
+                .with(csrf())
+                .param("nombreUsuario", "nuevo_alumno_activo")
+                .param("correo", "nuevo.activo@autoescuela.es")
+                .param("password", "claveSecreta123")
+                .param("confirmPassword", "claveSecreta123")
+                .param("nombre", "Laura")
+                .param("apellidos", "Molina")
+                .param("dni", "12345678Z")
+                .param("fechaNacimiento", "2000-01-01")
+                .param("telefono", "677889900")
+                .param("direccion", "Calle Sol 1")
+                .param("tipoCarnet", "PERMISO_B")
+                .param("modalidad", "TEORICO_PRACTICA")
+                .param("terminos", "true"))
+                .andExpect(status().is3xxRedirection());
+
+        // 3. Verificamos que el alumno huérfano previo inactivo fue purgado de la base de datos
+        assertTrue(this.alumnoRepository.findByDni("87654321X").isEmpty(),
+                "El alumno huérfano inactivo sin matrícula debe haber sido purgado automáticamente durante el nuevo registro");
+        assertTrue(this.alumnoRepository.findByDni("12345678Z").isPresent(),
+                "El nuevo alumno registrado debe existir en estado INACTIVO pendiente de pago");
+    }
+}

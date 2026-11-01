@@ -75,11 +75,20 @@ public class AuthenticationController
      * Si el usuario ya está autenticado, se le redirige a la página principal.
      */
     @GetMapping("/registro")
-    public String registro(Model model, Authentication authentication)
+    public String registro(Model model, Authentication authentication, HttpSession sesion)
     {
         if (this.autenticacionService.estaAutenticado(authentication))
         {
             return "redirect:/";
+        }
+        Long alumnoPendienteId = (Long) sesion.getAttribute("alumnoId");
+        if (alumnoPendienteId != null)
+        {
+            this.autenticacionService.eliminarAlumnoInactivoPorId(alumnoPendienteId);
+            sesion.removeAttribute("alumnoId");
+            sesion.removeAttribute("tipoCarnet");
+            sesion.removeAttribute("modalidad");
+            sesion.removeAttribute("importeTotal");
         }
         if (!model.containsAttribute("registroDTO"))
         {
@@ -111,10 +120,12 @@ public class AuthenticationController
             return "auth/registro";
         }
 
+        Long idAlumno = null;
         try
         {
             // Registramos al alumno en la BD con estado INACTIVO (pendiente de confirmación de pago en Stripe)
             Alumno alumno = this.autenticacionService.registrarAlumno(registroDTO);
+            idAlumno = alumno.getId();
 
             // Almacenamos el ID autonumérico y datos de matrícula en sesión para enriquecer la experiencia tras el retorno sin exponer datos sensibles (DNI)
             sesion.setAttribute("alumnoId", alumno.getId());
@@ -133,6 +144,14 @@ public class AuthenticationController
         }
         catch (ReglaNegocioException ex)
         {
+            if (idAlumno != null)
+            {
+                this.autenticacionService.eliminarAlumnoInactivoPorId(idAlumno);
+                sesion.removeAttribute("alumnoId");
+                sesion.removeAttribute("tipoCarnet");
+                sesion.removeAttribute("modalidad");
+                sesion.removeAttribute("importeTotal");
+            }
             model.addAttribute("error", ex.getMessage());
             return "auth/registro";
         }

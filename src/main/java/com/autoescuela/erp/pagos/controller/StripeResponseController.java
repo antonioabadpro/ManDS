@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.auth.service.AuthenticationService;
+import com.autoescuela.erp.pagos.service.PagoStripeService;
+import com.stripe.model.checkout.Session;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -32,6 +34,7 @@ public class StripeResponseController
 {
     private final AcademicoService academicoService;
     private final AuthenticationService autenticacionService;
+    private final PagoStripeService pagoStripeService;
 
     /**
      * Muestra la interfaz de pasarela de pago para el abono de la tasa de matrícula.
@@ -99,6 +102,33 @@ public class StripeResponseController
         String tipoCarnetStr = (String) sesion.getAttribute("tipoCarnet");
         String modalidadStr = (String) sesion.getAttribute("modalidad");
         Float importeTotal = (Float) sesion.getAttribute("importeTotal");
+
+        // Si la sesión HTTP perdió los atributos (ej. navegación cross-site en dispositivos móviles), recuperamos desde Stripe
+        if (alumnoId == null && sessionId != null && !sessionId.isBlank())
+        {
+            Session stripeSession = this.pagoStripeService.obtenerSesionStripe(sessionId);
+            if (stripeSession != null && stripeSession.getMetadata() != null)
+            {
+                String alumnoIdMeta = stripeSession.getMetadata().get("alumnoId");
+                if (alumnoIdMeta != null && !alumnoIdMeta.isBlank())
+                {
+                    try
+                    {
+                        alumnoId = Long.valueOf(alumnoIdMeta);
+                        tipoCarnetStr = stripeSession.getMetadata().get("tipoCarnet");
+                        modalidadStr = stripeSession.getMetadata().get("modalidad");
+                        if (stripeSession.getAmountTotal() != null)
+                        {
+                            importeTotal = stripeSession.getAmountTotal() / 100.0f;
+                        }
+                    }
+                    catch (NumberFormatException ex)
+                    {
+                        log.error("Identificador de alumno inválido en metadata de Stripe: {}", alumnoIdMeta, ex);
+                    }
+                }
+            }
+        }
 
         ModalidadMatricula modalidad = null;
         if (modalidadStr != null && !modalidadStr.isBlank())

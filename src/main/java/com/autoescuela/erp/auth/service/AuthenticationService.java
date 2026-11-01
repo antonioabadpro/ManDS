@@ -1,5 +1,6 @@
 package com.autoescuela.erp.auth.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -149,22 +150,13 @@ public class AuthenticationService
     }
 
     /**
-     * Registra a un nuevo alumno en el sistema a partir del formulario público.
-     * Valida reglas de negocio de unicidad (nombre de usuario, correo y DNI),
-     * comprueba la coincidencia de contraseñas, codifica la credencial mediante BCrypt
-     * y persiste la entidad Alumno con estado ACTIVO.
-     *
-     * @param dto DTO que contiene los datos del formulario de registro.
-     * @return Entidad Alumno persistida.
-     * @throws ReglaNegocioException Si alguna validación de negocio falla.
-    /**
      * Valida la coherencia y unicidad de los datos de registro de un alumno antes de iniciar el pago.
      * Comprueba la coincidencia de contraseñas y la no existencia de nombre de usuario, correo, DNI o teléfono.
      *
      * @param dto DTO con los datos del formulario de registro.
      * @throws ReglaNegocioException Si alguna validación de negocio falla.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public void validarDatosRegistro(RegistroAlumnoDTO dto)
     {
         if (dto == null)
@@ -184,7 +176,7 @@ public class AuthenticationService
         String telefonoLimpio = dto.telefono() != null ? dto.telefono().trim() : "";
 
         // Si existe un registro abandonado previo (INACTIVO y sin matrículas), lo purgamos para permitir el reintento
-        this.purgarAlumnoInactivoSiExiste(dniLimpio, correoLimpio, nombreUsuarioLimpio);
+        this.purgarAlumnoInactivoSiExiste(dniLimpio, correoLimpio, nombreUsuarioLimpio, telefonoLimpio);
 
         // Validaciones de unicidad en el repositorio global de personas
         if (this.personaRepository.existsByNombreUsuario(nombreUsuarioLimpio))
@@ -216,40 +208,94 @@ public class AuthenticationService
     /**
      * Purga entidades Alumno huérfanas en estado INACTIVO sin matrículas formalizadas
      * para permitir que el usuario vuelva a registrarse con los mismos datos tras un abandono de pago.
+     * Si el alumno cuenta con matrículas históricas (por ejemplo, alumnos dados de baja o expulsados),
+     * se preserva de forma estricta y no se elimina bajo ninguna circunstancia.
+     *
+     * @param dni DNI o NIE a comprobar.
+     * @param correo Correo electrónico a comprobar.
+     * @param nombreUsuario Nombre de usuario a comprobar.
+     * @param telefono Teléfono a comprobar.
      */
-    private void purgarAlumnoInactivoSiExiste(String dni, String correo, String nombreUsuario)
+    @Transactional
+    public void purgarAlumnoInactivoSiExiste(String dni, String correo, String nombreUsuario, String telefono)
     {
         if (dni != null && !dni.isBlank())
         {
             Optional<Alumno> porDni = this.alumnoRepository.findByDni(dni);
-            if (porDni.isPresent() && esAlumnoInactivoSinMatricula(porDni.get()))
+            if (porDni.isPresent() && this.esAlumnoInactivoSinMatricula(porDni.get()))
             {
                 this.alumnoRepository.delete(porDni.get());
                 this.alumnoRepository.flush();
-                return;
             }
         }
 
         if (correo != null && !correo.isBlank())
         {
             Optional<Alumno> porCorreo = this.alumnoRepository.findByCorreo(correo);
-            if (porCorreo.isPresent() && esAlumnoInactivoSinMatricula(porCorreo.get()))
+            if (porCorreo.isPresent() && this.esAlumnoInactivoSinMatricula(porCorreo.get()))
             {
                 this.alumnoRepository.delete(porCorreo.get());
                 this.alumnoRepository.flush();
-                return;
             }
         }
 
         if (nombreUsuario != null && !nombreUsuario.isBlank())
         {
             Optional<Alumno> porUsername = this.alumnoRepository.findByNombreUsuario(nombreUsuario);
-            if (porUsername.isPresent() && esAlumnoInactivoSinMatricula(porUsername.get()))
+            if (porUsername.isPresent() && this.esAlumnoInactivoSinMatricula(porUsername.get()))
             {
                 this.alumnoRepository.delete(porUsername.get());
                 this.alumnoRepository.flush();
             }
         }
+
+        if (telefono != null && !telefono.isBlank())
+        {
+            Optional<Alumno> porTelefono = this.alumnoRepository.findByTelefono(telefono);
+            if (porTelefono.isPresent() && this.esAlumnoInactivoSinMatricula(porTelefono.get()))
+            {
+                this.alumnoRepository.delete(porTelefono.get());
+                this.alumnoRepository.flush();
+            }
+        }
+    }
+
+    /**
+     * Purga de forma automática todos los alumnos huérfanos registrados en estado INACTIVO
+     * que carezcan de matrículas formalizadas en el sistema (registros abandonados o cancelados).
+     * Libera de inmediato sus DNI, correos, nombres de usuario y teléfonos en la base de datos.
+     *
+     * @return Número de alumnos huérfanos inactivos eliminados.
+     */
+    @Transactional
+    public int purgarAlumnosInactivosHuerfanos()
+    {
+        List<Alumno> huerfanos = this.alumnoRepository.findAlumnosInactivosSinMatricula();
+        if (huerfanos == null || huerfanos.isEmpty())
+        {
+            return 0;
+        }
+
+        int totalPurgados = 0;
+        for (Alumno alumno : huerfanos)
+        {
+            if (this.esAlumnoInactivoSinMatricula(alumno))
+            {
+                Long alumnoId = alumno.getId();
+                String dni = alumno.getDni();
+                this.alumnoRepository.delete(alumno);
+                totalPurgados++;
+                log.info("Alumno huérfano inactivo purgado satisfactoriamente. ID: {}, DNI: {}", alumnoId, dni);
+            }
+        }
+
+        if (totalPurgados > 0)
+        {
+            this.alumnoRepository.flush();
+            log.info("Purga de alumnos huérfanos inactivos finalizada. Total registros eliminados: {}", totalPurgados);
+        }
+
+        return totalPurgados;
     }
 
     /**
@@ -262,7 +308,8 @@ public class AuthenticationService
 
     /**
      * Registra a un nuevo alumno en el sistema a partir del formulario público.
-     * Valida reglas de negocio de unicidad (nombre de usuario, correo y DNI),
+     * Purga previamente cualquier registro huérfano inactivo que haya quedado abandonado,
+     * valida reglas de negocio de unicidad (nombre de usuario, correo y DNI),
      * comprueba la coincidencia de contraseñas, codifica la credencial mediante BCrypt
      * y persiste la entidad Alumno con estado INACTIVO hasta que se confirme el pago en Stripe.
      *
@@ -273,6 +320,7 @@ public class AuthenticationService
     @Transactional
     public Alumno registrarAlumno(RegistroAlumnoDTO dto)
     {
+        this.purgarAlumnosInactivosHuerfanos();
         this.validarDatosRegistro(dto);
 
         String nombreUsuarioLimpio = dto.nombreUsuario().trim();
@@ -302,7 +350,7 @@ public class AuthenticationService
     /**
      * Elimina a un alumno en estado INACTIVO y sin matrículas de la base de datos tras una cancelación voluntaria en Stripe.
      *
-     * @param dni DNI del alumno a eliminar.
+     * @param id ID del alumno a eliminar.
      */
     @Transactional
     public void eliminarAlumnoInactivoPorId(Long id)
@@ -313,7 +361,7 @@ public class AuthenticationService
         }
 
         this.alumnoRepository.findById(id).ifPresent(alumno -> {
-            if (esAlumnoInactivoSinMatricula(alumno))
+            if (this.esAlumnoInactivoSinMatricula(alumno))
             {
                 this.alumnoRepository.delete(alumno);
                 this.alumnoRepository.flush();
@@ -332,7 +380,7 @@ public class AuthenticationService
 
         String dniLimpio = dni.trim().toUpperCase();
         this.alumnoRepository.findByDni(dniLimpio).ifPresent(alumno -> {
-            if (esAlumnoInactivoSinMatricula(alumno))
+            if (this.esAlumnoInactivoSinMatricula(alumno))
             {
                 this.alumnoRepository.delete(alumno);
                 this.alumnoRepository.flush();

@@ -291,18 +291,24 @@ class StripeWebhookControllerTest
     }
 
     @Test
-    @DisplayName("POST /pagos/webhook maneja checkout.session.payment_failed sin lanzar excepciones")
-    void testWebhookPaymentFailed() throws Exception
+    @DisplayName("POST /pagos/webhook procesa checkout.session.expired purgando al alumno huérfano inactivo")
+    void testWebhookCheckoutSessionExpired() throws Exception
     {
         String payload = String.format("""
         {
-          "id": "evt_test_failed_1",
+          "id": "evt_test_expired_1",
           "object": "event",
           "api_version": "%s",
-          "type": "checkout.session.payment_failed",
+          "type": "checkout.session.expired",
           "data": {
             "object": {
-              "id": "cs_test_session_failed"
+              "id": "cs_test_session_expired",
+              "object": "checkout.session",
+              "metadata": {
+                "tipoOperacion": "MATRICULA",
+                "tipoCarnet": "PERMISO_B",
+                "alumnoId": "205"
+              }
             }
           }
         }
@@ -315,6 +321,8 @@ class StripeWebhookControllerTest
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Evento de pago fallido registrado")));
+                .andExpect(content().string(containsString("Evento de sesión de checkout expirada procesado correctamente")));
+
+        verify(this.autenticacionService).eliminarAlumnoInactivoPorId(205L);
     }
 }

@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
@@ -26,6 +27,55 @@ public class PagoStripeService
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
+
+    /**
+     * Determina la URL base efectiva para las redirecciones de retorno de Stripe.
+     * Si la invocación se produce dentro de una solicitud HTTP activa, resuelve dinámicamente
+     * el esquema, host y puerto exactos desde los que el cliente accede (ej. IP en red local
+     * o dominio de despliegue) respetando cabeceras de proxy inverso (X-Forwarded-*).
+     * Si no existe contexto web activo (como en pruebas unitarias), aplica el valor de configuración app_base_url.
+     *
+     * @return URL base canónica sin barra final.
+     */
+    private String obtenerBaseUrlEfectiva()
+    {
+        try
+        {
+            String urlContexto = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+            if (urlContexto != null && !urlContexto.isBlank())
+            {
+                return urlContexto;
+            }
+        }
+        catch (Exception ex)
+        {
+            log.debug("No se pudo resolver la URL base desde el contexto HTTP actual: {}", ex.getMessage());
+        }
+        return this.appBaseUrl;
+    }
+
+    /**
+     * Recupera una sesión de pago de Stripe por su identificador.
+     *
+     * @param sessionId Identificador de la sesión devuelto por Stripe.
+     * @return Sesión de Stripe o null si ocurre algún error o no existe.
+     */
+    public Session obtenerSesionStripe(String sessionId)
+    {
+        if (sessionId == null || sessionId.isBlank())
+        {
+            return null;
+        }
+        try
+        {
+            return this.stripeClient.v1().checkout().sessions().retrieve(sessionId);
+        }
+        catch (StripeException e)
+        {
+            log.error("Error al recuperar la sesión de Stripe con ID {}: {}", sessionId, e.getMessage());
+            return null;
+        }
+    }
 
     /**
      * Crea una sesión de pago en Stripe.
@@ -89,18 +139,20 @@ public class PagoStripeService
             descripcionConceptoMatricula = "Incluye tramitación de matrícula, 2 convocatorias oficiales a examen práctico y seguro escolar.";
         }
 
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
         // Creamos la sesión de pago en Stripe con los parámetros necesarios
         SessionCreateParams parametros = SessionCreateParams.builder()
                 .setLocale(SessionCreateParams.Locale.ES)
                 .setMode(SessionCreateParams.Mode.PAYMENT) // Modo de pago único
-                .setSuccessUrl(this.appBaseUrl + "/pagos/checkout/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(this.appBaseUrl + "/pagos/checkout/cancel")
+                .setSuccessUrl(baseUrl + "/pagos/checkout/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/checkout/cancel")
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD) // Solo permito pagos con tarjeta para evitar los pagos asíncronos de Bizum y PayPal o transferencias
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
                                 .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
+                                         SessionCreateParams.LineItem.PriceData.builder()
                                                 .setCurrency("EUR")
                                                 .setUnitAmount(tasaDgtCents)
                                                 .setProductData(
@@ -160,11 +212,13 @@ public class PagoStripeService
         double tasaDgt = tasaDgtCents / 100.0;
         double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
 
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
         SessionCreateParams parametros = SessionCreateParams.builder()
                 .setLocale(SessionCreateParams.Locale.ES)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(this.appBaseUrl + "/pagos/renovacion/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(this.appBaseUrl + "/pagos/renovacion/cancel")
+                .setSuccessUrl(baseUrl + "/pagos/renovacion/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/renovacion/cancel")
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
@@ -279,12 +333,14 @@ public class PagoStripeService
             descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + ".";
         }
 
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
         // Creamos la sesión de pago en Stripe Checkout
         SessionCreateParams parametros = SessionCreateParams.builder()
                 .setLocale(SessionCreateParams.Locale.ES)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(this.appBaseUrl + "/pagos/clases/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(this.appBaseUrl + "/pagos/clases/cancel")
+                .setSuccessUrl(baseUrl + "/pagos/clases/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/clases/cancel")
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD) // Solo permito pagos con tarjeta para evitar los pagos asíncronos de Bizum y PayPal o transferencias
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
