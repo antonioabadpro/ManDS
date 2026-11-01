@@ -1173,44 +1173,39 @@ VALUES (59, '2026-10-05 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 266, NULL, 68);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (60, '2026-10-05 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 267, NULL, 69);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (61, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
-VALUES (61, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
+VALUES (61, '2026-10-23 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (62, CURRENT_DATE - INTERVAL '2' DAY + TIME '11:00:00', 'ACEPTADA', 'TEORICO', NULL, 259, NULL, 61);
 VALUES (62, '2026-10-24 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 259, NULL, 61);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (63, CURRENT_DATE - INTERVAL '4' DAY + TIME '09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
 VALUES (63, '2026-10-21 09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (64, CURRENT_DATE - INTERVAL '3' DAY + TIME '10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
 VALUES (64, '2026-10-22 10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
 
 -- ------------------------------------------------------------------------------
--- 8. EXÁMENES DGT (examen) - 53 Exámenes (Días laborables no festivos)
 -- 8. EXÁMENES DGT (examen) - 55 Exámenes (Días laborables no festivos)
 -- ------------------------------------------------------------------------------
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (1, TRUE, '2026-08-20 09:00:00', 30, 'TEORICO', 200, 1);
+VALUES (1, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 200, 1);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (2, TRUE, '2026-06-05 10:00:00', 30, 'TEORICO', 208, 3);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (7, TRUE, '2026-08-20 10:00:00', 30, 'TEORICO', 201, 8);
+VALUES (7, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 201, 8);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (8, TRUE, '2026-09-10 10:00:00', 30, 'TEORICO', 205, 20);
+VALUES (8, TRUE, '2026-09-10 08:30:00', 30, 'TEORICO', 205, 20);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (14, TRUE, '2026-09-02 10:00:00', 30, 'TEORICO', 214, 16);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (16, TRUE, '2026-06-18 10:00:00', 30, 'TEORICO', 220, 18);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (18, TRUE, '2026-08-20 12:00:00', 30, 'TEORICO', 204, 21);
+VALUES (18, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 204, 21);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (19, TRUE, '2026-07-20 10:00:00', 30, 'TEORICO', 210, 22);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (20, TRUE, '2026-07-23 11:00:00', 30, 'TEORICO', 213, 24);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (21, TRUE, '2026-08-20 12:00:00', 30, 'TEORICO', 219, 26);
+VALUES (21, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 219, 26);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (22, TRUE, '2026-08-27 10:00:00', 30, 'TEORICO', 222, 27);
+VALUES (22, TRUE, '2026-08-27 08:30:00', 30, 'TEORICO', 222, 27);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (23, FALSE, '2026-07-02 09:00:00', 30, 'TEORICO', 206, 30);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
@@ -1218,7 +1213,7 @@ VALUES (24, FALSE, '2026-07-16 10:00:00', 30, 'TEORICO', 206, 31);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (25, FALSE, '2026-07-30 09:00:00', 30, 'TEORICO', 206, 32);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (26, TRUE, '2026-08-20 10:00:00', 30, 'TEORICO', 206, 33);
+VALUES (26, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 206, 33);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (29, FALSE, '2026-05-08 09:00:00', 30, 'TEORICO', 215, 36);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
@@ -1230,9 +1225,9 @@ VALUES (32, TRUE, '2026-06-26 10:00:00', 30, 'TEORICO', 215, 39);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (6, FALSE, '2026-08-25 09:30:00', 25, 'PRACTICO', 208, 4);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (9, TRUE, '2026-09-24 10:15:00', 35, 'PRACTICO', 208, 5);
+VALUES (9, TRUE, '2026-09-24 08:30:00', 35, 'PRACTICO', 208, 5);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (17, TRUE, '2026-10-23 11:00:00', 35, 'PRACTICO', 220, 19);
+VALUES (17, TRUE, '2026-10-29 08:30:00', 35, 'PRACTICO', 220, 19);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (4, FALSE, '2026-06-30 16:30:00', 25, 'PRACTICO', 207, 6);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
@@ -1248,91 +1243,84 @@ VALUES (34, FALSE, '2026-08-21 11:00:00', 25, 'PRACTICO', 215, 41);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (35, FALSE, '2026-09-11 10:30:00', 25, 'PRACTICO', 215, 42);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (36, FALSE, '2026-10-02 11:15:00', 25, 'PRACTICO', 215, 43);
+VALUES (36, FALSE, '2026-10-15 08:30:00', 25, 'PRACTICO', 215, 43);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (3, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '10:00:00', 35, 'PRACTICO', 200, 2);
-VALUES (3, NULL, '2026-10-29 09:30:00', 35, 'PRACTICO', 200, 2);
+VALUES (3, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 200, 2);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (10, NULL, CURRENT_DATE + INTERVAL '10' DAY + TIME '16:00:00', 45, 'PRACTICO', 209, 28);
-VALUES (10, NULL, '2026-10-29 15:45:00', 45, 'PRACTICO', 209, 28);
+VALUES (10, NULL, '2026-10-29 08:30:00', 45, 'PRACTICO', 209, 28);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (11, NULL, CURRENT_DATE + INTERVAL '20' DAY + TIME '11:00:00', 40, 'PRACTICO', 212, 29);
-VALUES (11, NULL, '2026-10-29 16:30:00', 40, 'PRACTICO', 212, 29);
+VALUES (11, NULL, '2026-10-29 08:30:00', 40, 'PRACTICO', 212, 29);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (12, NULL, CURRENT_DATE + INTERVAL '20' DAY + TIME '17:00:00', 30, 'PRACTICO', 210, 23);
-VALUES (12, NULL, '2026-10-29 17:15:00', 30, 'PRACTICO', 210, 23);
+VALUES (12, NULL, '2026-10-29 08:30:00', 30, 'PRACTICO', 210, 23);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (13, NULL, CURRENT_DATE + INTERVAL '23' DAY + TIME '12:00:00', 35, 'PRACTICO', 213, 25);
-VALUES (13, NULL, '2026-10-29 18:00:00', 35, 'PRACTICO', 213, 25);
+VALUES (13, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 213, 25);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (15, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:30:00', 30, 'TEORICO', 217, 17);
 VALUES (15, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 217, 17);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (37, FALSE, '2026-09-02 09:00:00', 30, 'TEORICO', 226, 44);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (38, TRUE, '2026-09-16 10:00:00', 30, 'TEORICO', 226, 45);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (39, TRUE, '2026-10-22 10:00:00', 35, 'PRACTICO', 219, 12);
+VALUES (39, TRUE, '2026-10-29 08:30:00', 35, 'PRACTICO', 219, 12);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (40, TRUE, '2026-09-24 08:30:00', 30, 'TEORICO', 263, 56);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (41, TRUE, '2026-09-24 09:15:00', 30, 'TEORICO', 264, 57);
+VALUES (41, TRUE, '2026-09-24 08:30:00', 30, 'TEORICO', 264, 57);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (42, TRUE, '2026-09-24 10:00:00', 30, 'TEORICO', 265, 58);
+VALUES (42, TRUE, '2026-09-24 08:30:00', 30, 'TEORICO', 265, 58);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (43, TRUE, '2026-10-15 08:30:00', 30, 'TEORICO', 266, 59);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (44, TRUE, '2026-10-15 09:15:00', 30, 'TEORICO', 267, 60);
+VALUES (44, TRUE, '2026-10-15 08:30:00', 30, 'TEORICO', 267, 60);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (45, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:00:00', 30, 'TEORICO', 253, 51);
-VALUES (45, NULL, '2026-10-29 09:00:00', 30, 'TEORICO', 253, 51);
+VALUES (45, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 253, 51);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (46, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '09:45:00', 30, 'TEORICO', 254, 52);
-VALUES (46, NULL, '2026-10-29 09:45:00', 30, 'TEORICO', 254, 52);
+VALUES (46, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 254, 52);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (47, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '10:30:00', 30, 'TEORICO', 255, 53);
-VALUES (47, NULL, '2026-10-29 10:30:00', 30, 'TEORICO', 255, 53);
+VALUES (47, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 255, 53);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (48, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '11:15:00', 30, 'TEORICO', 256, 54);
+VALUES (48, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 256, 54);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (49, NULL, CURRENT_DATE - INTERVAL '1' DAY + TIME '12:00:00', 30, 'TEORICO', 257, 55);
-VALUES (49, NULL, CURRENT_DATE + INTERVAL '4' DAY + TIME '12:00:00', 30, 'TEORICO', 257, 55);
+VALUES (49, NULL, '2026-11-12 08:30:00', 30, 'TEORICO', 257, 55);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (50, NULL, CURRENT_DATE + INTERVAL '5' DAY + TIME '09:00:00', 30, 'TEORICO', 258, 61);
-VALUES (50, NULL, CURRENT_DATE + INTERVAL '5' DAY + TIME '12:45:00', 30, 'TEORICO', 258, 61);
+VALUES (50, NULL, '2026-11-12 08:30:00', 30, 'TEORICO', 258, 61);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (51, NULL, CURRENT_DATE + INTERVAL '12' DAY + TIME '10:00:00', 30, 'TEORICO', 259, 62);
-VALUES (51, NULL, '2026-10-29 13:30:00', 30, 'TEORICO', 259, 62);
+VALUES (51, NULL, '2026-11-26 08:30:00', 30, 'TEORICO', 259, 62);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (52, NULL, CURRENT_DATE + INTERVAL '6' DAY + TIME '10:15:00', 35, 'PRACTICO', 206, 63);
-VALUES (52, NULL, '2026-10-29 10:15:00', 35, 'PRACTICO', 206, 63);
+VALUES (52, NULL, '2026-11-12 08:30:00', 35, 'PRACTICO', 206, 63);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (53, NULL, CURRENT_DATE + INTERVAL '13' DAY + TIME '11:00:00', 35, 'PRACTICO', 214, 64);
-VALUES (53, NULL, '2026-10-29 11:00:00', 35, 'PRACTICO', 214, 64);
+VALUES (53, NULL, '2026-11-26 08:30:00', 35, 'PRACTICO', 214, 64);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (54, NULL, '2026-10-29 11:45:00', 35, 'PRACTICO', 201, 9);
+VALUES (54, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 201, 9);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (55, NULL, '2026-10-29 12:30:00', 35, 'PRACTICO', 204, 11);
+VALUES (55, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 204, 11);
 
 -- ------------------------------------------------------------------------------
--- 8.2. CONVOCATORIAS OFICIALES DGT DEL MES (fecha_examen)
+-- 8.2. CONVOCATORIAS OFICIALES DGT DEL MES (fecha_examen) - 4 Meses
 -- ------------------------------------------------------------------------------
 INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
 VALUES (1, '2026-10-01', '2026-10-15 08:30:00', '2026-10-29 08:30:00');
 INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
 VALUES (2, '2026-09-01', '2026-09-10 08:30:00', '2026-09-24 08:30:00');
+INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
+VALUES (3, '2026-11-01', '2026-11-12 08:30:00', '2026-11-26 08:30:00');
+INSERT INTO fecha_examen (id, mes, fecha_hora_1, fecha_hora_2)
+VALUES (4, '2026-08-01', '2026-08-20 08:30:00', '2026-08-27 08:30:00');
 
 -- ------------------------------------------------------------------------------
--- 8.3. CUPOS DE EXAMEN POR TIPO DE CARNET (cupo_examen) - 15 Registros
+-- 8.3. CUPOS DE EXAMEN POR TIPO DE CARNET (cupo_examen) - 32 Registros (8 permisos x 4 meses)
 -- ------------------------------------------------------------------------------
-INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (1, '2026-10-01', 'PERMISO_B', 5, 4);
+-- Octubre 2026 (Cupo práctico de Permiso B dimensionado para cubrir los 9 alumnos examinados el 29/10/2026)
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (1, '2026-10-01', 'PERMISO_B', 5, 10);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (2, '2026-10-01', 'PERMISO_A2', 4, 3);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (3, '2026-10-01', 'PERMISO_A', 3, 3);
-INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (4, '2026-10-01', 'PERMISO_C', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (4, '2026-10-01', 'PERMISO_C', 3, 2);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (5, '2026-10-01', 'PERMISO_D', 2, 2);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (6, '2026-10-01', 'PERMISO_B_E', 2, 2);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (7, '2026-10-01', 'PERMISO_AM', 3, 3);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (8, '2026-10-01', 'PERMISO_A1', 3, 3);
+
+-- Septiembre 2026
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (9, '2026-09-01', 'PERMISO_B', 5, 4);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (10, '2026-09-01', 'PERMISO_A2', 4, 3);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (11, '2026-09-01', 'PERMISO_A', 3, 3);
@@ -1340,6 +1328,27 @@ INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VAL
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (13, '2026-09-01', 'PERMISO_D', 2, 2);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (14, '2026-09-01', 'PERMISO_B_E', 2, 2);
 INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (15, '2026-09-01', 'PERMISO_AM', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (16, '2026-09-01', 'PERMISO_A1', 3, 3);
+
+-- Noviembre 2026
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (17, '2026-11-01', 'PERMISO_B', 5, 4);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (18, '2026-11-01', 'PERMISO_A2', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (19, '2026-11-01', 'PERMISO_A', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (20, '2026-11-01', 'PERMISO_C', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (21, '2026-11-01', 'PERMISO_D', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (22, '2026-11-01', 'PERMISO_B_E', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (23, '2026-11-01', 'PERMISO_AM', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (24, '2026-11-01', 'PERMISO_A1', 3, 3);
+
+-- Agosto 2026 (Cupo teórico de Permiso B dimensionado para cubrir los 5 alumnos examinados el 20/08/2026)
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (25, '2026-08-01', 'PERMISO_B', 6, 4);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (26, '2026-08-01', 'PERMISO_A2', 4, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (27, '2026-08-01', 'PERMISO_A', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (28, '2026-08-01', 'PERMISO_C', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (29, '2026-08-01', 'PERMISO_D', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (30, '2026-08-01', 'PERMISO_B_E', 2, 2);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (31, '2026-08-01', 'PERMISO_AM', 3, 3);
+INSERT INTO cupo_examen (id, mes, tipo_permiso, cupo_teorico, cupo_practico) VALUES (32, '2026-08-01', 'PERMISO_A1', 3, 3);
 
 -- ------------------------------------------------------------------------------
 -- 9. REAJUSTE DE SECUENCIAS DE IDENTIDAD (H2)
