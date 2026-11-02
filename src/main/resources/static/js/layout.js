@@ -1,5 +1,5 @@
 /**
- * layout.js - JavaScript transversal para la interfaz general de ManDS ERP
+ * layout.js - JavaScript transversal para la interfaz general de ManDS
  *
  * =====================================================================================
  * Este archivo centraliza toda la interactividad común de la aplicación, compartida

@@ -1,5 +1,5 @@
 /**
- * recuperar-password.js - Recuperación y Restablecimiento Seguro de Contraseña para ManDS ERP
+ * recuperar-password.js - Recuperación y Restablecimiento Seguro de Contraseña para ManDS
  *
  * =====================================================================================
  * 1. CIRCUITO DE RECUPERACIÓN:

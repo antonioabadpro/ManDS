@@ -11,10 +11,10 @@
     </parent>
 
     <groupId>com.autoescuela</groupId>
-    <artifactId>erp</artifactId>
+    <artifactId>mands</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>erp</name>
-    <description>Sistema ERP para autoescuelas</description>
+    <name>mands</name>
+    <description>Sistema de Gestión Integral para Autoescuelas</description>
     <url/>
     <licenses>
         <license/>

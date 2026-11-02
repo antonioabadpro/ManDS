@@ -1,5 +1,5 @@
 /**
- * activar-cuenta.js - Asistente de Activación de Cuenta de Profesor para ManDS ERP
+ * activar-cuenta.js - Asistente de Activación de Cuenta de Profesor para ManDS
  *
  * =====================================================================================
  * 1. FLUJO DE SEGURIDAD PARA PROFESORES:

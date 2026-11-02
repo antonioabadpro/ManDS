@@ -1,5 +1,5 @@
 /**
- * registro.js - Asistente de Registro Multi-Paso de Alumnos (Wizard) para ManDS ERP
+ * registro.js - Asistente de Registro Multi-Paso de Alumnos (Wizard) para ManDS
  *
  * =====================================================================================
  * 1. EXPERIENCIA DE USUARIO GUIADA (WIZARD MULTI-STEP):

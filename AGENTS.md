@@ -1,4 +1,4 @@
-# AGENTS.md - Sistema ERP para Autoescuelas (TFG)
+# AGENTS.md - Sistema de Gestión para Autoescuelas ManDS (TFG)
 > Guía maestra de arquitectura, directrices de interacción, reglas de dominio y memoria normativa para los agentes de desarrollo.
 
 ---

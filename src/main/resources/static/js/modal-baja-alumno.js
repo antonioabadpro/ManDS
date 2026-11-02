@@ -3,7 +3,7 @@
  *
  * =====================================================================================
  * 1. TRAZABILIDAD Y SOFT DELETE:
- *    - En un ERP educativo está terminantemente prohibido el borrado físico ('DELETE')
+ *    - En un sistema de gestión educativa está terminantemente prohibido el borrado físico ('DELETE')
  *      para preservar el histórico inmutable de clases, pagos y exámenes.
  *    - La baja lógica pasa al alumno a estado 'INACTIVO', desvincula su profesor y cancela
  *      todas sus reservas de clases futuras pendientes.

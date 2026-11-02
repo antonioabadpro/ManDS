@@ -1,4 +1,4 @@
-# Arquitectura y Especificación Técnica del Sistema ERP para Autoescuelas (TFG)
+# Arquitectura y Especificación Técnica del Sistema de Gestión para Autoescuelas ManDS (TFG)
 
 > Documento de referencia arquitectónica, estructura de paquetes y modelo conceptual del sistema.
 
@@ -31,7 +31,7 @@ La aplicación sigue el patrón **Package by Features** con subcapas internas (`
 src/
 ├── main/
 │   ├── java/com/autoescuela/erp/
-│   │   ├── ErpApplication.java
+│   │   ├── ManDsApplication.java
 │   │   ├── core/           <-- Infraestructura transversal (config, email, enums, excepciones, security)
 │   │   ├── auth/           <-- Autenticación, registro y recuperación (controller, dto, mapper, model, repository, service)
 │   │   ├── usuarios/       <-- Gestión de usuarios y perfiles (Persona, Administrador, Profesor, Alumno)
@@ -71,7 +71,7 @@ Los diagramas oficiales de arquitectura y modelado conceptual residen en sus arc
 
 # 4. Panorama Funcional de Roles del Sistema
 
-### 4.1. Administrador (Control Global del ERP)
+### 4.1. Administrador (Control Global del Sistema)
 - **Flota de Vehículos:** Alta, edición, seguimiento de ITV, kilometraje acumulado y revisiones mecánicas.
 - **Equipo de Profesores:** Alta con invitaciones seguras por correo, asignación vehicular exclusiva 1-a-1, gestión de bajas lógicas y reasignaciones de alumnado.
 - **Expedientes de Alumnos:** Monitorización de matrículas, estados académicos, convocatorias restantes, asignación individual de profesor y expedientes completos.

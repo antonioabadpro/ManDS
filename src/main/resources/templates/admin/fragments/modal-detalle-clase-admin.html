@@ -26,7 +26,7 @@
 
             <!-- Fila Superior de Badges: Permiso y Estado de la Clase (Perfectamente Alineados) -->
             <div class="flex items-center justify-between gap-2.5">
-                <!-- Tipo de Permiso con colores oficiales del ERP -->
+                <!-- Tipo de Permiso con colores oficiales de ManDS -->
                 <div class="flex items-center">
                     <span th:if="${clase.tipoPermiso?.name() == 'PERMISO_A' || clase.tipoPermiso?.name() == 'PERMISO_A1' || clase.tipoPermiso?.name() == 'PERMISO_A2' || clase.tipoPermiso?.name() == 'PERMISO_AM'}" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold leading-normal bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${clase.tipoPermisoDescripcion ?: 'Permiso A2'}">
                         Permiso A2

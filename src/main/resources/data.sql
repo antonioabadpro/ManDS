@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SCRIPT DE DATOS SEMILLA PARA EL SISTEMA ERP DE AUTOESCUELAS (H2 / DESARROLLO)
+-- SCRIPT DE DATOS SEMILLA PARA EL SISTEMA DE GESTIÓN DE AUTOESCUELAS (MANDS) (H2 / DESARROLLO)
 -- ==============================================================================
 -- Este script puebla todas las entidades del dominio modelando el flujo operativo
 -- real de una autoescuela oficial española (DGT), garantizando integridad referencial,

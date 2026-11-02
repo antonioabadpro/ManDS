@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import io.github.cdimascio.dotenv.Dotenv;
 
 @SpringBootApplication
-public class ErpApplication
+public class ManDsApplication
 {
 	public static void main(String[] args)
 	{
@@ -15,7 +15,7 @@ public class ErpApplication
 		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
 		// Ejecutamos la aplicación Spring Boot
-		SpringApplication.run(ErpApplication.class, args);
+		SpringApplication.run(ManDsApplication.class, args);
 	}
 
 }

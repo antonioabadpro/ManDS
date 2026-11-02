@@ -1,5 +1,5 @@
 /**
- * tailwind-config.js - Configuración centralizada de Tailwind CSS para ManDS ERP
+ * tailwind-config.js - Configuración centralizada de Tailwind CSS para ManDS
  *
  * =====================================================================================
  * 1. CONFIGURACIÓN EN TIEMPO DE EJECUCIÓN (JIT CDN):
@@ -33,7 +33,7 @@ window.tailwind.config = {
                 sans: ['Inter', 'sans-serif'],
             },
 
-            // Paleta de colores corporativos 'brand' (Azul/Slate profesional para ERP)
+            // Paleta de colores corporativos 'brand' (Azul/Slate profesional para ManDS)
             // Permite usar clases utilitarias como 'bg-brand-600', 'text-brand-500', 'border-brand-200', etc.
             colors: {
                 brand: {
