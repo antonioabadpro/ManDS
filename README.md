@@ -191,11 +191,8 @@ Levanta los contenedores en segundo plano mediante Docker Compose:
 docker compose up -d
 ```
 
-#### - Configurar variables de entorno
-Crea un archivo `.env` a partir del archivo de ejemplo con los valores predeterminados de desarrollo:
-```bash
-cp .env.example .env
-```
+#### - Variables de entorno locales
+El archivo `.env` en la raíz del proyecto (ignorado por Git por seguridad) contiene la configuración predeterminada para el entorno local con Docker (`postgres_tfg`) y Mailpit. Docker Compose cargará automáticamente estas variables al iniciar.
 
 #### - Compilar y arrancar la aplicación
 Ejecuta la aplicación utilizando el Maven Wrapper indicando el perfil de desarrollo para Docker:

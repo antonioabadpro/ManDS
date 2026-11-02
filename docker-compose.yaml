@@ -9,7 +9,7 @@ services:
 
     environment:
       # Variables de entorno para configurar la base de datos al arrancar por primera vez
-      POSTGRES_DB: ${DB_DATABASE_DOCKER:-tfg_db} # Nombre de la base de datos que creará automáticamente
+      POSTGRES_DB: ${DB_DATABASE_DOCKER} # Nombre de la base de datos que creará automáticamente
       POSTGRES_USER: ${DB_USERNAME_DOCKER} # Usuario administrador local
       POSTGRES_PASSWORD: ${DB_PASSWORD_DOCKER} # Contraseña local
       PGDATA: /var/lib/postgresql/data/pgdata # Ruta dentro del contenedor donde se guardarán los datos de la base de datos
@@ -21,10 +21,16 @@ services:
     volumes:
       - pgdata_tfg:/var/lib/postgresql/data # PERSISTENCIA: Los datos de tus tablas se guardan en un disco virtual de Docker
       # Gracias a esto, aunque apagues o reinicies el contenedor, tus alumnos, profesores y coches NO se borran.
-
-      # -------------------------------------------------------------
-      # SERVICIO 2: Mailpit (Servidor simulado de correos)
-      # -------------------------------------------------------------
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME_DOCKER} -d ${DB_DATABASE_DOCKER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mands_network
+  # -------------------------------------------------------------
+  # SERVICIO 2: Mailpit (Servidor simulado de correos)
+  # -------------------------------------------------------------
   mailpit:
     image: axllent/mailpit:latest # Descarga la herramienta Mailpit
     container_name: mailpit_tfg # El nombre que tendrá el contenedor en tu Docker Desktop
@@ -35,7 +41,45 @@ services:
 
     environment:
       MP_MAX_MESSAGES: 500 # Guarda hasta 500 correos en el historial visual
+    networks:
+      - mands_network
+
+  # -------------------------------------------------------------
+  # SERVICIO 3: Aplicación Spring Boot (ManDS)
+  # -------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mands_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      # En red Docker interna se usa el nombre del servicio como host
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_DATABASE_DOCKER}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME_DOCKER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_DOCKER}
+      - SPRING_MAIL_HOST=mailpit
+      - SPRING_MAIL_PORT=1025
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8080}
+      # Variables de Stripe y seguridad definidas en tu .env local
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    networks:
+      - mands_network
 
 # Definición del volumen de persistencia para que no se pierdan los datos de PostgreSQL
 volumes:
   pgdata_tfg:
+
+networks:
+  mands_network:
+    driver: bridge

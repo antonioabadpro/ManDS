@@ -1,0 +1,15 @@
+target/
+.git/
+.gitignore
+.agents/
+Diagramas/
+docs/
+*.md
+.vscode/
+.idea/
+*.log
+
+# Secretos y variables de entorno
+.env
+.env.*
+.env.local

@@ -45,6 +45,7 @@ target/
 !.vscode/java-formatter.xml
 *.log
 
-# Entornos y secretos
+# Secretos y variables de entorno
 .env
+.env.*
 application-local.yml
