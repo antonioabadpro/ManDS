@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
@@ -47,126 +47,19 @@
     </style>
 </head>
 
-<body class="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white antialiased overflow-x-hidden">
+<body class="min-h-screen bg-slate-950 lg:bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white antialiased overflow-x-hidden">
 
-    <div class="min-h-screen flex flex-col lg:flex-row">
+    <div class="min-h-screen flex flex-col lg:flex-row bg-slate-950 lg:bg-transparent">
 
         <!-- ================================================================= -->
-        <!-- COLUMNA IZQUIERDA: Identidad Visual, Hero & Branding (Desktop >= 1024px) -->
+        <!-- COLUMNA IZQUIERDA: Identidad Visual, Hero & Branding -->
         <!-- ================================================================= -->
-        <aside class="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-10 xl:p-14 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white overflow-hidden select-none">
-            <!-- Efectos de iluminación ambiental de fondo -->
-            <div class="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-0 right-0 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-
-            <!-- Cabecera de Marca: Logotipo + Nombre Corporativo -->
-            <header class="relative z-10 flex items-center space-x-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-1 ring-white/20">
-                    <img th:src="@{/imagenes/logo_volante.webp}" alt="Logotipo ManDS" class="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
-                </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-blue-200">ManDS</span>
-                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">ERP Autoescuelas</span>
-                    </div>
-                    <p class="text-xs text-slate-400 font-medium tracking-wide">Manager Driving School</p>
-                </div>
-            </header>
-
-            <!-- Sección Central: Hueco para Imagen / Ilustración + Propuesta de Valor -->
-            <div class="relative z-10 my-auto py-8 space-y-6">
-                <!-- Hueco contenedor para imagen personalizable o ilustración vectorial -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-4 shadow-2xl shadow-black/60 group">
-                    <div class="relative w-full h-56 xl:h-64 rounded-xl overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900 flex items-center justify-center">
-                        <!-- Intentará cargar la imagen real si existe en static/imagenes/login-hero.jpg -->
-                        <img id="login-hero-img" th:src="@{/imagenes/login-hero.jpg}" alt="ManDS Autoescuela" class="hidden w-full h-full object-cover transition duration-700 group-hover:scale-105" />
-
-                        <!-- Ilustración vectorial por defecto para garantizar funcionamiento inmediato -->
-                        <div id="hero-vector-placeholder" class="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-radial from-blue-900/30 via-slate-900 to-slate-950">
-                            <!-- Gráfico SVG Coche + Dashboard -->
-                            <div class="relative mb-3">
-                                <div class="w-20 h-20 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                                    </svg>
-                                </div>
-                                <span class="absolute -bottom-1 -right-1 flex h-4 w-4">
-                                    <!-- Indicador de estado activo con animación de pulso -->
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75">
-                                    </span>
-                                <!-- Círculo sólido para indicar estado activo -->
-                                <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 ring-2 ring-slate-900">
-                                    </span>
-                                </span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-white">Plataforma Cloud de Formación Vial</h3>
-                            <p class="text-xs text-slate-400 mt-1 max-w-xs">Control de alumnos, flota en tiempo real, sincronización de prácticas y exámenes DGT.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Métricas rápidas al pie de la imagen -->
-                    <div class="mt-4 grid grid-cols-3 gap-2 text-center pt-3 border-t border-slate-800">
-                        <div class="px-2">
-                            <span class="block text-base font-bold text-white">100%</span>
-                            <span class="block text-[11px] text-slate-400">Automatizado</span>
-                        </div>
-                        <div class="px-2 border-x border-slate-800">
-                            <span class="block text-base font-bold text-blue-400">DGT</span>
-                            <span class="block text-[11px] text-slate-400">Convocatorias</span>
-                        </div>
-                        <div class="px-2">
-                            <span class="block text-base font-bold text-emerald-400">24/7</span>
-                            <span class="block text-[11px] text-slate-400">Reservas Web</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lista de Pilares Funcionales -->
-                <div class="space-y-3 pt-2">
-                    <div class="flex items-start space-x-3 text-sm text-slate-300">
-                        <div class="p-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 mt-0.5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <p><strong class="text-white font-semibold">Reserva ágil de prácticas:</strong> Calendario interactivo con prevención de colisiones horarias.</p>
-                    </div>
-
-                    <div class="flex items-start space-x-3 text-sm text-slate-300">
-                        <div class="p-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 mt-0.5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <p><strong class="text-white font-semibold">Gestión de flota & averías:</strong> Histórico de mantenimientos, ITV y disponibilidad por profesor.</p>
-                    </div>
-
-                    <div class="flex items-start space-x-3 text-sm text-slate-300">
-                        <div class="p-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 mt-0.5">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <p><strong class="text-white font-semibold">Expediente del alumno:</strong> Control estricto de convocatorias, saldo de clases y pagos seguros.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pie de Marca Left -->
-            <footer class="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800/80">
-                <span>© 2026 ManDS - Todos los derechos reservados</span>
-                <span class="inline-flex items-center space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Sistema Operativo</span>
-                </span>
-            </footer>
-        </aside>
+        <aside th:replace="~{auth/fragments/auth-lateral :: hero-lateral(true)}"></aside>
 
         <!-- ================================================================= -->
         <!-- COLUMNA DERECHA: Formulario Reactivo (Iniciar Sesión / Registro) -->
         <!-- ================================================================= -->
-        <main class="w-full lg:w-1/2 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-12 lg:px-10 xl:px-16 min-h-screen bg-white dark:bg-slate-900 transition-colors">
+        <main id="seccion-login" class="w-full lg:w-1/2 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-12 lg:px-10 xl:px-16 min-h-screen min-h-[100dvh] bg-white dark:bg-slate-900 transition-colors">
 
             <div class="w-full max-w-md space-y-6">
 

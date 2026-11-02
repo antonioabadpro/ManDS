@@ -11,14 +11,13 @@
  *    tipo 'text' (visible en claro). Se acompaña de actualización accesible WAI-ARIA
  *    ('aria-label' y 'aria-pressed') y reemplazo dinámico del icono SVG (ojo abierto / tachado).
  *
- * 3. CONTROL DE CARGA RESILIENTE DE IMÁGENES:
- *    Escucha los eventos 'load' y 'error' de la ilustración corporativa en el hero lateral.
- *    Si la imagen carga con éxito, se muestra; si falla la conexión, se conmuta a un
- *    marcador de posición vectorial (placeholder SVG) garantizando que la UI nunca se rompa.
- *
- * 4. VALIDACIÓN PREVIA EN CLIENTE (PRE-SUBMIT):
+ * 3. VALIDACIÓN PREVIA EN CLIENTE (PRE-SUBMIT):
  *    Evita peticiones innecesarias al servidor si los campos de usuario o contraseña están
  *    vacíos, enfocando el campo erróneo y mostrando el tooltip nativo del navegador.
+ *
+ * 4. DESPLAZAMIENTO SUAVE HACIA EL FORMULARIO EN MÓVIL:
+ *    Permite al botón del panel lateral en pantallas móviles/tablets deslizar la vista
+ *    suavemente ('smooth scroll') hasta el inicio del formulario de autenticación.
  * =====================================================================================
  */
 
@@ -67,27 +66,7 @@ function togglePasswordVisibility(inputId, iconId) {
  * Registra todos los escuchadores de eventos para la página de login.
  */
 function inicializarEventosLogin() {
-    // 1. Control no intrusivo de carga de la imagen corporativa en el hero lateral
-    const heroImg = document.getElementById('login-hero-img');
-    const heroPlaceholder = document.getElementById('hero-vector-placeholder');
-
-    if (heroImg && heroPlaceholder) {
-        // Si la imagen carga correctamente, la hacemos visible y ocultamos el placeholder
-        heroImg.addEventListener('load', () => {
-            heroImg.classList.remove('hidden');
-            heroPlaceholder.classList.add('hidden');
-            heroPlaceholder.classList.remove('flex');
-        });
-
-        // Si la imagen falla (red caída o URL no disponible), mostramos el placeholder SVG
-        heroImg.addEventListener('error', () => {
-            heroImg.classList.add('hidden');
-            heroPlaceholder.classList.remove('hidden');
-            heroPlaceholder.classList.add('flex');
-        });
-    }
-
-    // 2. Botón para ver/ocultar contraseña
+    // 1. Botón para ver/ocultar contraseña
     const btnOcultarLogin = document.getElementById('btn-ocultar-password-login');
     if (btnOcultarLogin) {
         btnOcultarLogin.addEventListener('click', () => {
@@ -95,7 +74,7 @@ function inicializarEventosLogin() {
         });
     }
 
-    // 3. Validación rápida antes de enviar para no golpear innecesariamente el backend
+    // 2. Validación rápida antes de enviar para no golpear innecesariamente el backend
     // Selecciona el formulario cuyo atributo action termina en '/login'
     const formLogin = document.querySelector('form[action$="/login"]');
     if (formLogin) {
@@ -117,6 +96,18 @@ function inicializarEventosLogin() {
                 passwordInput.focus();
                 passwordInput.reportValidity();
                 return;
+            }
+        });
+    }
+
+    // 3. Desplazamiento suave hacia el formulario de login en pantallas móviles/tablets
+    const btnScrollLogin = document.getElementById('btn-scroll-login');
+    if (btnScrollLogin) {
+        btnScrollLogin.addEventListener('click', (evento) => {
+            evento.preventDefault();
+            const seccionLogin = document.getElementById('seccion-login');
+            if (seccionLogin) {
+                seccionLogin.scrollIntoView({ behavior: 'smooth' });
             }
         });
     }
