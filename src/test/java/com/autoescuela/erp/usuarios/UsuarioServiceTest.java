@@ -15,6 +15,7 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.mapper.UsuarioMapper;
 import com.autoescuela.erp.usuarios.model.Administrador;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
 
@@ -27,6 +28,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UsuarioServiceTest
 {
+    @Mock
+    private AlumnoRepository alumnoRepository;
+
     @Mock
     private PersonaRepository personaRepository;
 

@@ -438,7 +438,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("POST /profesor/calendario/cancelar-dia en jornada sin reservas bloquea las franjas de forma preventiva")
     void testCancelarClasesDiaSinReservasPreviasBloqueaJornada() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.TUESDAY);
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
                 .with(csrf())
                 .header("HX-Request", "true")
