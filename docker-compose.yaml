@@ -9,9 +9,9 @@ services:
 
     environment:
       # Variables de entorno para configurar la base de datos al arrancar por primera vez
-      POSTGRES_DB: ${DB_DATABASE_DOCKER} # Nombre de la base de datos que creará automáticamente
-      POSTGRES_USER: ${DB_USERNAME_DOCKER} # Usuario administrador local
-      POSTGRES_PASSWORD: ${DB_PASSWORD_DOCKER} # Contraseña local
+      POSTGRES_DB: ${DB_DATABASE_DOCKER:-tfg_db} # Nombre de la base de datos que creará automáticamente
+      POSTGRES_USER: ${DB_USERNAME_DOCKER:-postgres} # Usuario administrador local
+      POSTGRES_PASSWORD: ${DB_PASSWORD_DOCKER:-tfg_docker} # Contraseña local
       PGDATA: /var/lib/postgresql/data/pgdata # Ruta dentro del contenedor donde se guardarán los datos de la base de datos
 
     ports:
@@ -22,7 +22,7 @@ services:
       - pgdata_tfg:/var/lib/postgresql/data # PERSISTENCIA: Los datos de tus tablas se guardan en un disco virtual de Docker
       # Gracias a esto, aunque apagues o reinicies el contenedor, tus alumnos, profesores y coches NO se borran.
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME_DOCKER} -d ${DB_DATABASE_DOCKER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME_DOCKER:-postgres} -d ${DB_DATABASE_DOCKER:-tfg_db}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,9 +48,14 @@ services:
   # SERVICIO 3: Aplicación Spring Boot (ManDS)
   # -------------------------------------------------------------
   app:
+    image: antonioabadpro/mands:latest # Imagen de la aplicación Spring Boot (la construimos con el Dockerfile)
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+        - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     container_name: mands_app
     restart: unless-stopped
     depends_on:
@@ -63,16 +68,12 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       # En red Docker interna se usa el nombre del servicio como host
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_DATABASE_DOCKER}
-      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME_DOCKER}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_DOCKER}
-      - SPRING_MAIL_HOST=mailpit
-      - SPRING_MAIL_PORT=1025
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/${DB_DATABASE_DOCKER:-tfg_db}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME_DOCKER:-postgres}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD_DOCKER:-tfg_docker}
+      - SPRING_MAIL_HOST=${MAIL_HOST:-mailpit}
+      - SPRING_MAIL_PORT=${MAIL_PORT:-1025}
       - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8080}
-      # Variables de Stripe y seguridad definidas en tu .env local
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     networks:
       - mands_network
 

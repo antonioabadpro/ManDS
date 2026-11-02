@@ -25,6 +25,15 @@ USER appuser
 # Copiar el ejecutable generado en la fase previa
 COPY --from=build /app/target/*.jar app.jar
 
+# Argumentos de compilación opcionales para valores por defecto de Stripe
+ARG STRIPE_PUBLIC_KEY
+ARG STRIPE_SECRET_KEY
+ARG STRIPE_WEBHOOK_SECRET
+
+ENV STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY \
+    STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY \
+    STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
+
 # Exponer el puerto de Spring Boot
 EXPOSE 8080
 
