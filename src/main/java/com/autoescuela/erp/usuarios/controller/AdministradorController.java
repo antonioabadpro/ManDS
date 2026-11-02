@@ -44,7 +44,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -142,6 +144,22 @@ public class AdministradorController
                 cargarDatosDashboard(model);
             }
             model.addAttribute("errorAltaProfesor", ex.getMessage());
+            model.addAttribute("abrirModalAltaProfesor", true);
+            if (esPeticionHtmx)
+            {
+                return "admin/fragments/modal-alta-profesor :: #modal-alta-profesor";
+            }
+            return esDesdeProfesores ? "admin/profesores" : "admin/dashboard";
+        }
+        catch (Exception ex)
+        {
+            log.error("Error inesperado al dar de alta al profesor: {}", ex.getMessage(), ex);
+            cargarCatalogosAltaProfesor(model);
+            if (!esDesdeProfesores)
+            {
+                cargarDatosDashboard(model);
+            }
+            model.addAttribute("errorAltaProfesor", "Se ha producido un error inesperado al tramitar el alta del profesor: " + ex.getMessage());
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
             {

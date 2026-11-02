@@ -1,5 +1,7 @@
 package com.autoescuela.erp.core.config;
 
+import java.util.List;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -42,6 +44,9 @@ public class DatabaseIndexInitializer implements ApplicationRunner
                             "WHERE estado_clase != 'CANCELADA'"
                     );
                     log.info("Índice único parcial de PostgreSQL asegurado en clase_practica.");
+
+                    // Sincronización de secuencias IDENTITY tras la carga de data.sql
+                    sincronizarSecuenciasPostgreSQL();
                     break;
 
                 case "H2":
@@ -64,6 +69,81 @@ public class DatabaseIndexInitializer implements ApplicationRunner
         catch (Exception ex)
         {
             log.error("Error al inicializar índices de concurrencia en clase_practica: {}", ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Sincroniza las secuencias de las columnas IDENTITY en PostgreSQL tras la carga inicial de data.sql.
+     * En PostgreSQL, la inserción de registros con IDs explícitos no avanza automáticamente las secuencias
+     * asociadas (a diferencia de H2), provocando colisiones de clave primaria (ej. duplicate key en persona_pkey)
+     * al registrar nuevas entidades (como dar de alta a un profesor).
+     */
+    private void sincronizarSecuenciasPostgreSQL()
+    {
+        try
+        {
+            String sqlBloqueDinamico = """
+                DO $$
+                DECLARE
+                    r RECORD;
+                    secuencia TEXT;
+                    tiene_filas BOOLEAN;
+                    max_id BIGINT;
+                BEGIN
+                    FOR r IN (
+                        SELECT c.table_name, c.column_name
+                        FROM information_schema.columns c
+                        JOIN information_schema.tables t ON c.table_name = t.table_name AND c.table_schema = t.table_schema
+                        WHERE c.table_schema = 'public'
+                          AND t.table_type = 'BASE TABLE'
+                          AND (c.column_default LIKE 'nextval(%' OR c.is_identity = 'YES')
+                    ) LOOP
+                        secuencia := pg_get_serial_sequence(quote_ident(r.table_name), quote_ident(r.column_name));
+                        IF secuencia IS NOT NULL THEN
+                            EXECUTE format('SELECT MAX(%I) IS NOT NULL, COALESCE(MAX(%I), 1) FROM %I', r.column_name, r.column_name, r.table_name) INTO tiene_filas, max_id;
+                            PERFORM setval(secuencia, max_id, tiene_filas);
+                        END IF;
+                    END LOOP;
+                END $$;
+                """;
+            this.jdbcTemplate.execute(sqlBloqueDinamico);
+            log.info("Secuencias de PostgreSQL sincronizadas dinámicamente con éxito.");
+        }
+        catch (Exception ex)
+        {
+            log.warn("Fallo en sincronización dinámica de secuencias en PostgreSQL: {}. Aplicando sincronización estática...", ex.getMessage());
+            sincronizarSecuenciasEstaticasPostgreSQL();
+        }
+    }
+
+    private void sincronizarSecuenciasEstaticasPostgreSQL()
+    {
+        List<String> tablas = List.of(
+                "persona",
+                "vehiculo",
+                "matricula",
+                "incidencia_vehiculo",
+                "clase_practica",
+                "solicitud_examen",
+                "examen",
+                "fecha_examen",
+                "cupo_examen"
+        );
+
+        for (String tabla : tablas)
+        {
+            try
+            {
+                String sql = "SELECT setval(pg_get_serial_sequence('" + tabla + "', 'id'), "
+                        + "COALESCE((SELECT MAX(id) FROM " + tabla + "), 1), "
+                        + "(SELECT MAX(id) IS NOT NULL FROM " + tabla + "))";
+                this.jdbcTemplate.execute(sql);
+                log.info("Secuencia sincronizada en PostgreSQL para tabla: {}", tabla);
+            }
+            catch (Exception ex)
+            {
+                log.warn("No se pudo sincronizar la secuencia para la tabla {}: {}", tabla, ex.getMessage());
+            }
         }
     }
 }
