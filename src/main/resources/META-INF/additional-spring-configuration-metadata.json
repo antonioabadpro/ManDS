@@ -29,7 +29,18 @@
             "type": "java.lang.String",
             "description": "Secreto del webhook de Stripe utilizado para verificar la autenticidad de los eventos entrantes.",
             "defaultValue": "${STRIPE_WEBHOOK_SECRET}"
+        },
+        {
+            "name": "app.seed.adjust-calendar-dates",
+            "type": "java.lang.Boolean",
+            "description": "Indica si se auditan y ajustan automáticamente las fechas de exámenes y clases prácticas lectivas en el arranque.",
+            "defaultValue": true
+        },
+        {
+            "name": "app.db.sync-sequences",
+            "type": "java.lang.Boolean",
+            "description": "Indica si se sincronizan las secuencias de PostgreSQL (setval) al arrancar la aplicación.",
+            "defaultValue": true
         }
     ]
 }
-

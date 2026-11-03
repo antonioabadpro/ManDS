@@ -2,6 +2,7 @@ package com.autoescuela.erp.core.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -25,6 +26,9 @@ public class DatabaseIndexInitializer implements ApplicationRunner
 {
     private final JdbcTemplate jdbcTemplate;
 
+    @Value("${app.db.sync-sequences:true}")
+    private boolean sincronizarSecuencias;
+
     @Override
     public void run(ApplicationArguments args)
     {
@@ -46,7 +50,19 @@ public class DatabaseIndexInitializer implements ApplicationRunner
                     log.info("Índice único parcial de PostgreSQL asegurado en clase_practica.");
 
                     // Sincronización de secuencias IDENTITY tras la carga de data.sql
-                    sincronizarSecuenciasPostgreSQL();
+                    // Índices de claves foráneas para acelerar JOINs y evitar Seq Scans
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_alumno ON clase_practica (alumno_id)");
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_profesor ON clase_practica (profesor_id)");
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_vehiculo ON clase_practica (vehiculo_id)");
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno ON matricula (alumno_id)");
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_alumno ON examen (alumno_id)");
+                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_alumno ON solicitud_examen (alumno_id)");
+                    log.info("Índices de claves foráneas PostgreSQL asegurados.");
+
+                    if (this.sincronizarSecuencias)
+                    {
+                        sincronizarSecuenciasPostgreSQL();
+                    }
                     break;
 
                 case "H2":
