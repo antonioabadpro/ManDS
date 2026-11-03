@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Vehículo e Incidencias - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/profesor.js" th:src="@{/js/profesor.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-violet-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{profesor/fragments/profesor-nav :: sidebar(activeSection='vehiculo')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{profesor/fragments/profesor-nav :: topbar(tituloSeccion='Mi Vehículo e Incidencias', subtituloSeccion='Ficha técnica, revisiones periódicas y reporte de averías')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Ficha Técnica del Vehículo Asignado -->
+            <div th:if="${vehiculo != null}" class="rounded-3xl p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="7" cy="17" r="2" />
+                                <circle cx="17" cy="17" r="2" />
+                                <path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9m-4-6h15m-6 0V6" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-xl font-black text-slate-900 dark:text-white" th:text="${vehiculo.marca + ' ' + vehiculo.modelo}">SEAT Ibiza 1.0 TSI</h2>
+                                <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    DISPONIBLE
+                                </span>
+                                <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                    OCUPADO
+                                </span>
+                                <span th:if="${vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                    MANTENIMIENTO
+                                </span>
+                                <span th:if="${vehiculo.estado?.name() == 'INACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                    INACTIVO
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400" th:text="${'Color: ' + vehiculo.color + ' · ' + vehiculo.tipoPermiso?.descripcion}">Color: Blanco Nevada · Permiso B</p>
+                        </div>
+                    </div>
+
+                    <!-- Placa de Matrícula Europea y Botón Reportar Incidencia -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="inline-flex items-center border-2 border-slate-900 rounded-lg overflow-hidden bg-white shadow-sm tabular-nums font-bold tracking-widest text-slate-900 px-3 py-1">
+                            <span class="bg-blue-700 text-white text-[9px] px-1.5 py-1 -ml-3 mr-2 font-sans font-extrabold flex flex-col items-center leading-none">
+                            <span class="text-[8px] mt-0.5">E</span>
+                            </span>
+                            <span class="text-sm" th:text="${vehiculo.matricula}">1234-LMN</span>
+                        </div>
+
+                        <button type="button" data-modal-target="modal-reportar-incidencia" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md transition">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span>Reportar Avería</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cuadrícula Técnica Exhaustiva de Atributos del Servidor -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- 1. Odómetro / Km -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Kilometraje Actual</span>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.km != null ? #numbers.formatInteger(vehiculo.km, 1, 'POINT') + ' km' : '0 km'}">45.000 km</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Actualizado con cada clase práctica</p>
+                    </div>
+
+                    <!-- 2. Motor y Potencia (cv y tipoCombustible) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Potencia y Carburante</span>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.cv != null and vehiculo.cv > 0 ? vehiculo.cv + ' CV' : 'Sin motor'}">95 CV</p>
+                        <p class="text-[11px] text-violet-600 dark:text-violet-400 font-medium mt-0.5" th:text="${vehiculo.tipoCombustible?.descripcion ?: 'Combustible no especificado'}">Gasolina</p>
+                    </div>
+
+                    <!-- 3. Transmisión y Antigüedad (cajaCambios y anio) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Caja de Cambios y Año</span>
+                        <p class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1" th:text="${vehiculo.cajaCambios?.descripcion ?: 'Manual'}">Manual</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${'Año de matriculación: ' + vehiculo.anio}">Año de matriculación: 2021</p>
+                    </div>
+
+                    <!-- 4. Homologación DGT y Carrocería (tipoPermiso y color) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Permiso DGT y Acabado</span>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2" th:text="${vehiculo.tipoPermiso?.descripcion}">Permiso B</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5" th:text="${'Color de carrocería: ' + vehiculo.color}">Color: Blanco Nevada</p>
+                    </div>
+
+                    <!-- 5. Última Revisión / ITV (fechaUltimaRevision) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Última Revisión / ITV</span>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 tabular-nums whitespace-nowrap" th:text="${vehiculo.fechaUltimaRevision != null ? #temporals.format(vehiculo.fechaUltimaRevision, 'dd/MM/yyyy') : 'Sin registrar'}">10/01/2026</p>
+                        <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Inspección favorable</p>
+                    </div>
+
+                    <!-- 6. Próxima Revisión / Taller (fechaProximaRevision) -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Próxima Revisión / Taller</span>
+                        <p class="text-base font-bold text-slate-800 dark:text-slate-200 mt-2 tabular-nums whitespace-nowrap" th:text="${vehiculo.fechaProximaRevision != null ? #temporals.format(vehiculo.fechaProximaRevision, 'dd/MM/yyyy') : 'Sin programar'}">10/01/2027</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Control de mantenimiento preventivo</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Si no tiene vehículo asignado -->
+            <div th:unless="${vehiculo != null}" class="rounded-3xl p-8 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-center space-y-2">
+                <svg class="w-10 h-10 text-amber-600 dark:text-amber-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="text-lg font-bold">Sin Vehículo Asignado</h3>
+                <p class="text-xs max-w-md mx-auto">Actualmente no cuentas con un vehículo de prácticas asignado en tu perfil. Contacta con el Administrador para vincular una unidad de la flota.</p>
+            </div>
+
+            <!-- Historial de Incidencias Mecánicas -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Incidencias y Averías Reportadas</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Histórico de problemas mecánicos notificados a administración</p>
+                    </div>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" th:text="${#lists.size(incidencias) + ' registradas'}">
+                        1 registrada
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 whitespace-nowrap">Fecha y Hora</th>
+                                <th class="py-3 px-4">Descripción de la Avería</th>
+                                <th class="py-3 px-4">Vehículo</th>
+                                <th class="py-3 px-4">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="inc : ${incidencias}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                                    20/08/2026 09:30
+                                </td>
+                                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 max-w-md" th:text="${inc.descripcion}">
+                                    Ruido anómalo en pastillas de freno delanteras al frenar en pendiente.
+                                </td>
+                                <td class="py-3 px-4 tabular-nums font-semibold" th:text="${inc.vehiculo?.matricula}">
+                                    1234-LMN
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span th:if="${inc.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        PENDIENTE
+                                    </span>
+                                    <span th:if="${inc.estado?.name() == 'EN_PROCESO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                        EN PROCESO
+                                    </span>
+                                    <span th:if="${inc.estado?.name() == 'RESUELTA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        RESUELTA
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(incidencias)}">
+                                <td colspan="4" class="py-8 text-center text-slate-400">
+                                    <p class="text-xs font-medium">No constan incidencias mecánicas reportadas sobre este vehículo.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- CONTENEDOR DINÁMICO HTMX: Modal Reportar Avería Mecánica -->
+    <!-- --------------------------------------------------------------------- -->
+    <div id="contenedor-modal-reportar-incidencia">
+        <div th:replace="~{profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia}"></div>
+    </div>
+
+</body>
+
+</html>

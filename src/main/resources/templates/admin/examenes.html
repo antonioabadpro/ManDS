@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convocatorias y Solicitudes DGT - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <!-- Estilos globales y Tailwind CSS (Compilado para producción) -->
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <script src="../../static/js/admin-examenes.js" th:src="@{/js/admin-examenes.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{admin/fragments/admin-nav :: sidebar(activeSection='examenes')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Convocatorias y Solicitudes DGT', subtituloSeccion='Gestión exclusiva de exámenes oficiales, cola FIFO y control de cupos')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash de Éxito / Error -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Convocatorias y Solicitudes DGT</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gestión exclusiva de exámenes oficiales, cola FIFO y control de cupos</p>
+            </div>
+
+            <!-- 1. JORNADAS OFICIALES DGT Y CUPOS DEL MES (Selector de Mes / Navegación Flexible Asíncrona) -->
+            <div id="contenedor-jornadas-dgt" th:replace="~{admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt}"></div>
+
+            <!-- 2. FILTROS Y TABLA DE SOLICITUDES DE EXAMEN DGT -->
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Buscador y Cola de Solicitudes DGT</h2>
+                        <p class="text-xs text-slate-500">Muestra por defecto todas las solicitudes en estado pendiente. Aplica filtros para explorar el histórico oficial.</p>
+                    </div>
+                    <span id="contador-solicitudes" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400" th:text="${'Total: ' + totalSolicitudes + ' solicitudes'}">
+                        Total: 5 solicitudes
+                    </span>
+                </div>
+
+                <!-- Barra de Búsqueda y Filtros Transversales -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                    <!-- Búsqueda en Tiempo Real Multicampo -->
+                    <div class="lg:col-span-2">
+                        <label for="filtro-busqueda" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Buscar Solicitud</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" id="filtro-busqueda" name="terminoBusqueda" data-table-search="tabla-solicitudes" placeholder="Alumno, profesor, DNI, permiso..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Permiso -->
+                    <div>
+                        <label for="filtro-tipo-carnet" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Permiso</label>
+                        <select id="filtro-tipo-carnet" name="tipoPermiso" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                            <option value="">Todos los permisos</option>
+                            <option th:each="c : ${tiposCarnet}" th:value="${c.name()}" th:text="${c.descripcion}">Permiso B</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Tipo de Examen -->
+                    <div>
+                        <label for="filtro-tipo-examen" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tipo Examen</label>
+                        <select id="filtro-tipo-examen" name="tipoExamen" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                            <option value="">Todos</option>
+                            <option value="TEORICO">TEÓRICO</option>
+                            <option value="PRACTICO">PRÁCTICO</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Estado (Por defecto: PENDIENTE) -->
+                    <div>
+                        <label for="filtro-estado" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Estado Solicitud</label>
+                        <select id="filtro-estado" name="estado" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white">
+                            <option value="PENDIENTE" selected>PENDIENTE</option>
+                            <option value="ACEPTADA">ACEPTADA</option>
+                            <option value="RECHAZADA">RECHAZADA</option>
+                            <option value="">Todos los estados</option>
+                        </select>
+                    </div>
+
+                    <!-- Botón Buscar Solicitudes en la misma línea (igual que en practicas.html) -->
+                    <div class="flex items-end">
+                        <button type="button" id="btn-buscar-solicitudes" hx-get="/admin/examenes/buscar" hx-include="#filtro-busqueda, #filtro-tipo-carnet, #filtro-tipo-examen, #filtro-estado" hx-target="#contenedor-tabla-solicitudes" hx-swap="innerHTML" hx-disabled-elt="this" hx-indicator="#indicador-buscar-solicitudes" class="w-full h-[38px] px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-xs shadow-sm transition inline-flex items-center justify-center space-x-2 cursor-pointer">
+                            <span id="indicador-buscar-solicitudes" class="inline-flex items-center space-x-2">
+                                <span class="htmx-indicator-none inline-flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <span>Buscar</span>
+                            </span>
+                            <svg class="w-4 h-4 animate-spin htmx-indicator" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span class="htmx-indicator">Buscando...</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor de la Tabla de Solicitudes -->
+            <div id="contenedor-tabla-solicitudes" class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div th:replace="~{admin/fragments/tabla-solicitudes-admin :: tablaSolicitudesFragment}"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Contenedor Dinámico para el Modal de Edición de Solicitud (HTMX) -->
+    <div id="contenedor-modal-editar-solicitud"></div>
+
+    <!-- Contenedor Dinámico para el Modal Informativo de Detalle de Solicitud (HTMX) -->
+    <div id="contenedor-modal-detalle-solicitud"></div>
+
+</body>
+
+</html>

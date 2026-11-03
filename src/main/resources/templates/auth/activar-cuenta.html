@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManDS - Activación de Cuenta de Profesor</title>
+
+    <!-- Meta etiquetas CSRF para peticiones HTMX/AJAX -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Estilos globales y Tailwind CSS (Compilado para producción) -->
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <!-- HTMX y configuración personalizada -->
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <style>
+        /* Animación suave para transiciones de estados */
+        .fade-in {
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 selection:bg-blue-600 selection:text-white antialiased overflow-x-hidden">
+
+    <div class="min-h-screen flex flex-col lg:flex-row">
+
+        <!-- ================================================================= -->
+        <!-- COLUMNA IZQUIERDA: Identidad Visual, Hero & Seguridad (Desktop >= 1024px) -->
+        <!-- ================================================================= -->
+        <aside th:replace="~{auth/fragments/auth-lateral :: hero-lateral(false)}"></aside>
+
+        <!-- ================================================================= -->
+        <!-- COLUMNA DERECHA: Formulario Reactivo de Activación de Cuenta -->
+        <!-- ================================================================= -->
+        <main class="w-full lg:w-1/2 flex flex-col justify-center items-center px-4 py-8 sm:px-8 md:px-12 lg:px-10 xl:px-16 min-h-screen bg-white dark:bg-slate-900 transition-colors">
+
+            <div class="w-full max-w-md space-y-6">
+
+                <!-- Logotipo Móvil (Visible solo en pantallas pequeñas < 1024px) -->
+                <div class="lg:hidden flex items-center justify-center space-x-3 pb-2">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30">
+                        <img th:src="@{/imagenes/logo_volante.webp}" alt="Logotipo ManDS" class="w-7 h-7 object-contain" />
+                    </div>
+                    <div class="text-left">
+                        <span class="text-xl font-extrabold text-slate-900 dark:text-white">ManDS</span>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Manager Driving School</p>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- BLOQUE DE ALERTAS DE FEEDBACK (Error de validación / Negocio) -->
+                <!-- ========================================================= -->
+                <div th:if="${mensajeError}" class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 dark:bg-red-950/40 dark:border-red-900/60 dark:text-red-300 flex items-start space-x-3 text-sm shadow-sm fade-in" role="alert">
+                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <p class="font-semibold">Error al procesar la activación</p>
+                        <p class="text-xs mt-0.5 text-red-600 dark:text-red-300" th:text="${mensajeError}">Ha ocurrido un error en la activación.</p>
+                    </div>
+                </div>
+
+                <!-- ========================================================= -->
+                <!-- FORMULARIO DE ACTIVACIÓN DE CUENTA DE PROFESOR -->
+                <!-- ========================================================= -->
+                <section id="panel-activacion" class="space-y-6 fade-in">
+                    <div class="text-center sm:text-left">
+                        <!-- Píldora de estado de verificación del token -->
+                        <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[11px] font-semibold border border-blue-200 dark:border-blue-800/60 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Token de verificación comprobado</span>
+                        </div>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Activa tu Cuenta de Profesor</h1>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Configura tu nombre de usuario y una contraseña segura para acceder a ManDS Autoescuela.</p>
+                    </div>
+
+                    <form th:action="@{/activar-cuenta}" method="post" th:object="${activarDTO}" id="form-activacion" class="space-y-4" novalidate>
+                        <!-- Campo Oculto con el Token de Verificación -->
+                        <input type="hidden" name="token" id="activar-token" th:value="${token ?: (activarDTO != null ? activarDTO.token : '')}">
+
+                        <!-- Campo 1: Nombre de Usuario -->
+                        <div>
+                            <label for="nombreUsuario" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                Nombre de Usuario deseado <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                    </svg>
+                                </div>
+                                <input type="text" id="nombreUsuario" name="nombreUsuario" autocomplete="username" required minlength="3" maxlength="30" th:value="*{nombreUsuario}" placeholder="ej. laura.sanchez" class="block w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+                            </div>
+                            <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">Entre 3 y 30 caracteres (letras, números, puntos y guiones).</span>
+                        </div>
+
+                        <!-- Campo 2: Nueva Contraseña -->
+                        <div>
+                            <label for="password" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                Nueva Contraseña <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </div>
+                                <input type="password" id="password" name="password" autocomplete="new-password" required minlength="6" placeholder="••••••" class="block w-full pl-10 pr-11 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+
+                                <!-- Botón Toggle Visibilidad -->
+                                <button id="btn-toggle-password" type="button" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none cursor-pointer" aria-label="Alternar visibilidad de contraseña">
+                                    <svg id="eye-icon-password" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Indicadores Dinámicos de Requisitos de Seguridad -->
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                            <span class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Requisitos de seguridad:</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs">
+                                <div id="req-length" class="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" stroke-width="2" fill="none" />
+                                        <circle cx="12" cy="12" r="2" fill="currentColor" />
+                                    </svg>
+                                    <span>6+ caracteres</span>
+                                </div>
+                                <div id="req-number" class="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" stroke-width="2" fill="none" />
+                                        <circle cx="12" cy="12" r="2" fill="currentColor" />
+                                    </svg>
+                                    <span>1 número (recomendado)</span>
+                                </div>
+                                <div id="req-upper" class="flex items-center space-x-1.5 text-slate-400 dark:text-slate-500 transition-colors">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" stroke-width="2" fill="none" />
+                                        <circle cx="12" cy="12" r="2" fill="currentColor" />
+                                    </svg>
+                                    <span>1 mayúscula (recomendada)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campo 3: Confirmar Contraseña -->
+                        <div>
+                            <label for="confirmPassword" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                                Confirmar Contraseña <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required minlength="6" placeholder="••••••" class="block w-full pl-10 pr-11 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition" />
+
+                                <!-- Botón Toggle Visibilidad -->
+                                <button id="btn-toggle-confirm" type="button" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none cursor-pointer" aria-label="Alternar visibilidad de confirmación">
+                                    <svg id="eye-icon-confirm" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botón Submit -->
+                        <button type="submit" class="w-full mt-2 py-3 px-4 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 shadow-md shadow-blue-500/25 transition duration-200 flex items-center justify-center space-x-2 group cursor-pointer">
+                            <span>Activar Cuenta y Acceder</span>
+                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <!-- Cancelar y volver al Login -->
+                    <div class="text-center pt-2">
+                        <a th:href="@{/login}" class="inline-flex items-center justify-center space-x-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition group">
+                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            <span>Cancelar y volver al inicio de sesión</span>
+                        </a>
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script de Activación de Cuenta -->
+    <script src="../../static/js/activar-cuenta.js" th:src="@{/js/activar-cuenta.js}" defer></script>
+
+</body>
+
+</html>

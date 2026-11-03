@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO: Feedback OOB tras acción exitosa por HTMX                      -->
+    <!-- ========================================================================= -->
+    <div th:fragment="feedbackExito">
+        <!-- Actualización Out-Of-Band del contenedor de alertas superior -->
+        <div id="contenedor-alertas" hx-swap-oob="true">
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

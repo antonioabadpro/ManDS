@@ -5,51 +5,126 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+
+import com.autoescuela.erp.core.security.FlashAuthenticationFailureHandler;
+import com.autoescuela.erp.core.security.FlashInvalidSessionStrategy;
+import com.autoescuela.erp.core.security.FlashLogoutSuccessHandler;
+import com.autoescuela.erp.core.security.FlashSessionInformationExpiredStrategy;
+import com.autoescuela.erp.core.security.HtmxAuthenticationEntryPoint;
+import com.autoescuela.erp.core.security.RedireccionPorRolSuccessHandler;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class ConfiguracionSeguridad
 {
+    private final RedireccionPorRolSuccessHandler redireccionPorRolSuccessHandler;
+    private final HtmxAuthenticationEntryPoint htmxAuthenticationEntryPoint;
+    private final FlashAuthenticationFailureHandler flashAuthenticationFailureHandler;
+    private final FlashLogoutSuccessHandler flashLogoutSuccessHandler;
+    private final FlashSessionInformationExpiredStrategy flashSessionInformationExpiredStrategy;
+    private final FlashInvalidSessionStrategy flashInvalidSessionStrategy;
+
     @Bean
     public PasswordEncoder passwordEncoder()
     {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Publicador de eventos de sesión HTTP obligatorio para que Spring Security
+     * controle con precisión la concurrencia de sesiones (1 sesión activa por usuario).
+     */
     @Bean
-    public SecurityFilterChain cadenaFiltroSeguridad(HttpSecurity http) throws Exception
+    public HttpSessionEventPublisher httpSessionEventPublisher()
+    {
+        return new HttpSessionEventPublisher();
+    }
+
+    /**
+     * Registro centralizado de sesiones activas administrado por Spring.
+     * Mantiene en memoria las sesiones por usuario y reacciona a eventos de destrucción de sesión.
+     */
+    @Bean
+    public SessionRegistry sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         http.authorizeHttpRequests(auth -> auth
                 // Recursos estáticos públicos
                 .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
 
-                // Rutas públicas (Login, registro, recuperación)
-                .requestMatchers("/", "/login", "/registro", "/recuperar-password").permitAll()
+                // Rutas públicas (Login, registro, recuperación de contraseña, activación de cuenta, validaciones reactivas de usuario)
+                .requestMatchers("/", "/login", "/login/", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**", "/usuario/validar-**").permitAll()
+
+                // Pasarela y Webhook de Stripe (acceso público a checkout previo al alta y webhook firmado)
+                .requestMatchers("/pagos/**").permitAll()
+
+                // Consola H2 para desarrollo y pruebas locales
+                .requestMatchers("/h2-console/**").permitAll()
 
                 // Rutas protegidas por Roles
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/profesor/**").hasRole("PROFESOR")
-                .requestMatchers("/alumno/**").hasRole("ALUMNO")
+                .requestMatchers("/alumno/**", "/matricula/**").hasRole("ALUMNO")
 
                 // Cualquier otra petición requiere autenticación
                 .anyRequest().authenticated())
+
+                // Configuración de CSRF: habilitado globalmente, excluyendo consola H2 y Webhook de Stripe
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/h2-console/**", "/pagos/webhook", "/pagos/webhook/**"))
+
+                // Cabeceras de seguridad
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin()))
+
+                // Manejo de excepciones con soporte específico para peticiones HTMX
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(this.htmxAuthenticationEntryPoint))
+
+                // Formulario de login con soporte dual (username o correo) y redirección dinámica por rol
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/dashboard", true)
-                        .failureUrl("/login?error=true")
+                        .successHandler(this.redireccionPorRolSuccessHandler)
+
+                        .failureHandler(this.flashAuthenticationFailureHandler)
                         .permitAll())
+
+                // Cierre de sesión seguro con invalidación total de estado
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
+
+                        .logoutSuccessHandler(this.flashLogoutSuccessHandler)
                         .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
-                        .permitAll());
+                        .permitAll())
+
+                // Gestión de sesiones: prevención de fijación de sesión y limitación estricta a 1 sesión por usuario
+                .sessionManagement(session -> session
+                        .sessionFixation(fixation -> fixation.migrateSession())
+                        .invalidSessionStrategy(this.flashInvalidSessionStrategy)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                        .sessionRegistry(sessionRegistry())
+
+                        .expiredSessionStrategy(this.flashSessionInformationExpiredStrategy));
+
         return http.build();
     }
-
 }

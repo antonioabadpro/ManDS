@@ -1,0 +1,413 @@
+package com.autoescuela.erp.pagos.service;
+
+import java.util.Locale;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.stripe.StripeClient;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PagoStripeService
+{
+    private final StripeClient stripeClient;
+
+    @Value("${app_base_url:http://localhost:8080}")
+    private String appBaseUrl;
+
+    @Value("${stripe.secret.key:sk_test_placeholder}")
+    private String stripeSecretKey;
+
+    /**
+     * Determina si el servicio está operando en modo simulado (Mock).
+     * Se activa automáticamente cuando no se ha inyectado una clave secreta de Stripe válida
+     * (es nula, está en blanco, contiene 'placeholder' o no comienza por 'sk_').
+     *
+     * @return true si opera en modo simulado; false si dispone de credenciales activas.
+     */
+    public boolean esModoSimulado()
+    {
+        return this.stripeSecretKey == null
+                || this.stripeSecretKey.isBlank()
+                || this.stripeSecretKey.contains("placeholder")
+                || !this.stripeSecretKey.startsWith("sk_");
+    }
+
+    /**
+     * Determina la URL base efectiva para las redirecciones de retorno de Stripe.
+     * Si la invocación se produce dentro de una solicitud HTTP activa, resuelve dinámicamente
+     * el esquema, host y puerto exactos desde los que el cliente accede (ej. IP en red local
+     * o dominio de despliegue) respetando cabeceras de proxy inverso (X-Forwarded-*).
+     * Si no existe contexto web activo (como en pruebas unitarias), aplica el valor de configuración app_base_url.
+     *
+     * @return URL base canónica sin barra final.
+     */
+    private String obtenerBaseUrlEfectiva()
+    {
+        try
+        {
+            String urlContexto = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+            if (urlContexto != null && !urlContexto.isBlank())
+            {
+                return urlContexto;
+            }
+        }
+        catch (Exception ex)
+        {
+            log.debug("No se pudo resolver la URL base desde el contexto HTTP actual: {}", ex.getMessage());
+        }
+        return this.appBaseUrl;
+    }
+
+    /**
+     * Recupera una sesión de pago de Stripe por su identificador.
+     *
+     * @param sessionId Identificador de la sesión devuelto por Stripe.
+     * @return Sesión de Stripe o null si ocurre algún error o no existe.
+     */
+    public Session obtenerSesionStripe(String sessionId)
+    {
+        if (sessionId == null || sessionId.isBlank() || sessionId.startsWith("sim_"))
+        {
+            return null;
+        }
+        try
+        {
+            return this.stripeClient.v1().checkout().sessions().retrieve(sessionId);
+        }
+        catch (StripeException e)
+        {
+            log.error("Error al recuperar la sesión de Stripe con ID {}: {}", sessionId, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Crea una sesión de pago en Stripe.
+     * @param parametros Parámetros para la creación de la sesión de pago.
+     * @param importeTotalCents Importe total en céntimos.
+     * @return DTO con la información de la sesión de pago.
+     */
+    private SesionPagoDTO crearSesionPago(SessionCreateParams parametros, long importeTotalCents)
+    {
+        try
+        {
+            Session session = this.stripeClient.v1().checkout().sessions().create(parametros);
+            log.info("Sesión de Stripe creada satisfactoriamente. ID: {}", session.getId());
+            return new SesionPagoDTO(session.getId(), session.getUrl(), importeTotalCents, "EUR");
+        }
+        catch (StripeException e)
+        {
+            log.error("Error al crear la sesión de pago en Stripe: {}", e.getMessage(), e);
+            throw new ReglaNegocioException("No se pudo crear la sesión de pago. Por favor, inténtelo de nuevo más tarde.");
+        }
+    }
+
+    /**
+     * Crea una sesión de pago para la matrícula de un alumno según el tipo de carnet, la modalidad y su ID de alumno.
+     * En ambas modalidades incluye tasas oficiales DGT y apertura de expediente.
+     * En modalidad TEORICO_PRACTICA incluye además credenciales de acceso a la plataforma oficial de tests de examen.
+     * Preserva la privacidad del alumno utilizando el ID de expediente sin exponer el DNI en pantalla ni en sesión.
+     *
+     * @param alumnoId Identificador numérico del alumno.
+     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
+     * @param modalidad Modalidad de matrícula (TEORICO_PRACTICA o PRACTICA).
+     * @return DTO con la información de la sesión de pago.
+     */
+    public SesionPagoDTO crearSesionPagoMatricula(Long alumnoId, TipoCarnet tipoCarnet, ModalidadMatricula modalidad)
+    {
+        if (tipoCarnet == null || alumnoId == null)
+        {
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para formalizar la matrícula.");
+        }
+
+        ModalidadMatricula modalidadEfectiva = modalidad != null ? modalidad : ModalidadMatricula.TEORICO_PRACTICA;
+
+        boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
+        long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
+
+        long tasaDgtCents = 9405L; // Tasa oficial DGT fijada en 94,05 €
+        long cuotaAutoescuelaCents = importeTotalCents - tasaDgtCents;
+
+        double tasaDgt = tasaDgtCents / 100.0;
+        double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
+
+        String nombreConceptoMatricula = "Matrícula Autoescuela - " + tipoCarnet.getDescripcion();
+        String descripcionConceptoMatricula;
+
+        if (modalidadEfectiva == ModalidadMatricula.TEORICO_PRACTICA)
+        {
+            descripcionConceptoMatricula = "Incluye tramitación de matrícula, 2 convocatorias oficiales a examen, credenciales de acceso a la plataforma de tests y seguro escolar.";
+        }
+        else
+        {
+            descripcionConceptoMatricula = "Incluye tramitación de matrícula, 2 convocatorias oficiales a examen práctico y seguro escolar.";
+        }
+
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_matricula_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/checkout/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para matrícula de alumno ID {}: {}", alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, importeTotalCents, "EUR");
+        }
+
+        // Creamos la sesión de pago en Stripe con los parámetros necesarios
+        SessionCreateParams parametros = SessionCreateParams.builder()
+                .setLocale(SessionCreateParams.Locale.ES)
+                .setMode(SessionCreateParams.Mode.PAYMENT) // Modo de pago único
+                .setSuccessUrl(baseUrl + "/pagos/checkout/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/checkout/cancel")
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD) // Solo permito pagos con tarjeta para evitar los pagos asíncronos de Bizum y PayPal o transferencias
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                         SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(tasaDgtCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Tasa Oficial DGT y Apertura de Expediente")
+                                                                .setDescription("Tramitación y gestión de apertura de expediente ante la Jefatura Provincial de Tráfico.")
+                                                                .build())
+                                                .build())
+                                .build())
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(cuotaAutoescuelaCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName(nombreConceptoMatricula)
+                                                                .setDescription(descripcionConceptoMatricula)
+                                                                .build())
+                                                .build())
+                                .build())
+                // Metadata que Stripe devolverá en los webhooks para identificar y conciliar la operación
+                .putMetadata("tipoOperacion", "MATRICULA")
+                .putMetadata("tipoCarnet", tipoCarnet.name())
+                .putMetadata("modalidad", modalidadEfectiva.name())
+                .putMetadata("alumnoId", alumnoId.toString())
+                .putMetadata("tasaDgt", String.format(Locale.US, "%.2f", tasaDgt))
+                .putMetadata("cuotaAutoescuela", String.format(Locale.US, "%.2f", cuotaAutoescuela))
+                .build();
+
+        return this.crearSesionPago(parametros, importeTotalCents);
+    }
+
+    /**
+     * Crea una sesión de pago para la renovación de matrícula de un alumno según el tipo de carnet y su ID de alumno.
+     * Aplica las tarifas oficiales: 450 € para vehículos pesados (C y D) y 250 € para el resto.
+     * @param alumnoId Identificador numérico del alumno.
+     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
+     * @return DTO con URL de la pasarela y Session ID generado por Stripe.
+     */
+    public SesionPagoDTO crearSesionPagoRenovacionMatricula(Long alumnoId, TipoCarnet tipoCarnet)
+    {
+        if (tipoCarnet == null || alumnoId == null)
+        {
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para renovar la matrícula.");
+        }
+
+        // Tarifas oficiales: Permisos C y D (450€), resto (250€)
+        boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
+        long importeTotalCents = esVehiculoPesado ? 45000L : 25000L; // Convertir a céntimos
+
+        long tasaDgtCents = 9405L; // Tasa oficial DGT fijada en 94,05 €
+        long cuotaAutoescuelaCents = importeTotalCents - tasaDgtCents;
+
+        double tasaDgt = tasaDgtCents / 100.0;
+        double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
+
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_renovacion_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/renovacion/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para renovación de matrícula de alumno ID {}: {}", alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, importeTotalCents, "EUR");
+        }
+
+        SessionCreateParams parametros = SessionCreateParams.builder()
+                .setLocale(SessionCreateParams.Locale.ES)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(baseUrl + "/pagos/renovacion/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/renovacion/cancel")
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(tasaDgtCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Tasa Oficial DGT y Renovación de Expediente")
+                                                                .setDescription("Tramitación y gestión de 2 nuevas convocatorias oficiales ante la Jefatura Provincial de Tráfico.")
+                                                                .build())
+                                                .build())
+                                .build())
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(cuotaAutoescuelaCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Renovación Matrícula Autoescuela - " + tipoCarnet.getDescripcion())
+                                                                .setDescription("Renovación de matrícula con 2 convocatorias oficiales a examen y seguro escolar.")
+                                                                .build())
+                                                .build())
+                                .build())
+                .putMetadata("tipoOperacion", "RENOVACION_MATRICULA")
+                .putMetadata("tipoCarnet", tipoCarnet.name())
+                .putMetadata("modalidad", ModalidadMatricula.TEORICO_PRACTICA.name())
+                .putMetadata("alumnoId", alumnoId.toString())
+                .putMetadata("tasaDgt", String.format(Locale.US, "%.2f", tasaDgt))
+                .putMetadata("cuotaAutoescuela", String.format(Locale.US, "%.2f", cuotaAutoescuela))
+                .build();
+
+        return this.crearSesionPago(parametros, importeTotalCents);
+    }
+
+    /**
+     * Crea una sesión de pago para las clases prácticas de un alumno según el tipo de carnet y su ID de alumno.
+     * @param alumnoId Identificador numérico del alumno.
+     * @param tipoCarnet Tipo de carnet del alumno (permiso de conducir).
+     * @param numeroClases Número de clases prácticas.
+     * @param esOferta Indica si se trata de una oferta especial.
+     * @return DTO con la información de la sesión de pago.
+     */
+    public SesionPagoDTO crearSesionPagoClasesPracticas(Long alumnoId, TipoCarnet tipoCarnet, int numeroClases, boolean esOferta)
+    {
+        long precioTotalCents = 0L;
+
+        if (tipoCarnet == null || alumnoId == null)
+        {
+            throw new ReglaNegocioException("El ID del alumno y el tipo de carnet son obligatorios para la compra de clases prácticas.");
+        }
+        if (numeroClases <= 0)
+        {
+            throw new ReglaNegocioException("El número de clases prácticas debe ser un valor positivo.");
+        }
+
+        // Tarifas oficiales: Permisos C y D (vehículos pesados), resto (vehículos estándar)
+        boolean esVehiculoPesado = tipoCarnet.name().startsWith("PERMISO_C") || tipoCarnet.name().startsWith("PERMISO_D");
+
+        if (esOferta) // Bono de formación intensiva con descuento
+        {
+            switch (numeroClases)
+            {
+                case 10:
+                    {
+                        precioTotalCents = esVehiculoPesado ? 54000L : 27000L; // 540 € (pesado) vs 270 € (estándar)
+                    }; break;
+                case 15:
+                    {
+                        precioTotalCents = esVehiculoPesado ? 80000L : 40000L; // 800 € (pesado) vs 400 € (estándar)
+                    }; break;
+                case 20:
+                    {
+                        precioTotalCents = esVehiculoPesado ? 100000L : 50000L; // 1000 € (pesado) vs 500 € (estándar)
+                    }; break;
+                default:
+                    throw new ReglaNegocioException("El número de clases no es válido para una oferta.");
+            }
+        }
+        else // Clases sueltas a tarifa estándar
+        {
+            long precioPorClaseCents = esVehiculoPesado ? 6000L : 3000L; // 60 € (pesado) vs 30 € (estándar)
+            precioTotalCents = precioPorClaseCents * numeroClases;
+        }
+
+        double precioTotal = precioTotalCents / 100.0;
+
+        String nombreProducto;
+        String descripcionProducto;
+
+        if (esOferta)
+        {
+            if (numeroClases == 10)
+            {
+                nombreProducto = "Bono 10 Clases Prácticas (1 Clase Gratis) - " + tipoCarnet.getDescripcion();
+                descripcionProducto = "Pack de 10 clases prácticas oficiales de 45 min con 1 clase gratis de regalo incluida para " + tipoCarnet.getDescripcion() + ".";
+            }
+            else
+            {
+                nombreProducto = "Bono " + numeroClases + " Clases Prácticas - " + tipoCarnet.getDescripcion();
+                descripcionProducto = "Pack de formación intensiva (" + numeroClases + " clases) con tarifa bonificada para " + tipoCarnet.getDescripcion() + ".";
+            }
+        }
+        else
+        {
+            nombreProducto = numeroClases + (numeroClases == 1 ? " Clase Práctica - " : " Clases Prácticas - ") + tipoCarnet.getDescripcion();
+            descripcionProducto = "Sesión(es) oficial(es) de conducción de 45 minutos para " + tipoCarnet.getDescripcion() + ".";
+        }
+
+        String baseUrl = this.obtenerBaseUrlEfectiva();
+
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_clases_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/clases/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para compra de {} clases de alumno ID {}: {}", numeroClases, alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, precioTotalCents, "EUR");
+        }
+
+        // Creamos la sesión de pago en Stripe Checkout
+        SessionCreateParams parametros = SessionCreateParams.builder()
+                .setLocale(SessionCreateParams.Locale.ES)
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(baseUrl + "/pagos/clases/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "/pagos/clases/cancel")
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD) // Solo permito pagos con tarjeta para evitar los pagos asíncronos de Bizum y PayPal o transferencias
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("EUR")
+                                                .setUnitAmount(precioTotalCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName(nombreProducto)
+                                                                .setDescription(descripcionProducto)
+                                                                .build())
+                                                .build())
+                                .build())
+                // Metadata devuelta en webhooks para reconciliación y abono
+                .putMetadata("tipoOperacion", "CLASES_PRACTICAS")
+                .putMetadata("tipoCarnet", tipoCarnet.name())
+                .putMetadata("alumnoId", alumnoId.toString())
+                .putMetadata("numeroClases", String.valueOf(numeroClases))
+                .putMetadata("esOferta", String.valueOf(esOferta))
+                .putMetadata("importeTotal", String.format(Locale.US, "%.2f", precioTotal))
+                .build();
+
+        return this.crearSesionPago(parametros, precioTotalCents);
+    }
+
+}

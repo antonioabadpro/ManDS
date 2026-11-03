@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - ManDS</title>
+
+    <!-- Meta etiquetas CSRF -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <!-- Estilos globales y Tailwind CSS (Compilado para producción) -->
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <script src="../../static/js/admin-perfil.js" th:src="@{/js/admin-perfil.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <!-- Backdrop desenfocado para móviles -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <!-- Menú lateral común -->
+    <aside th:replace="~{admin/fragments/admin-nav :: sidebar(activeSection='perfil')}"></aside>
+
+    <!-- Contenedor Principal -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <!-- Cabecera Superior -->
+        <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Mi Perfil', subtituloSeccion='Gestión de datos personales y seguridad')}"></header>
+
+        <!-- Contenido de Mi Perfil -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto w-full">
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Mi Perfil</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gestión de datos personales y seguridad</p>
+            </div>
+
+            <!-- Migas de pan (Breadcrumbs) -->
+            <nav class="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
+                <a th:href="@{/admin/dashboard}" class="hover:text-blue-600 dark:hover:text-blue-400 transition">Inicio</a>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+                <span class="font-medium text-slate-800 dark:text-slate-200">Mi Perfil</span>
+            </nav>
+
+            <!-- Mensajes Flash de Feedback -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${mensajeExito}">Tus datos personales se han actualizado correctamente.</p>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${error}">Ha ocurrido un error al actualizar los datos.</p>
+            </div>
+
+            <!-- Banner de Cabecera del Usuario -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+                <!-- Avatar Circular Grande -->
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-3xl flex items-center justify-center shadow-md ring-4 ring-blue-500/20 shrink-0" th:text="${#strings.substring(perfilDTO?.nombre != null ? perfilDTO.nombre : 'A', 0, 1).toUpperCase()}">
+                    A
+                </div>
+                <div class="space-y-1.5 flex-1 min-w-0">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white truncate" th:text="${(perfilDTO?.nombre ?: '') + ' ' + (perfilDTO?.apellidos ?: '')}">
+                        </h2>
+                        <span class="inline-flex self-center sm:self-auto items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            ADMINISTRADOR
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">
+                        Usuario: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.nombreUsuario} ?: 'admin'"></span> ·
+                        Correo: <span class="font-semibold text-slate-700 dark:text-slate-300" th:text="${perfilDTO?.correo} ?: 'admin@autoescuela.es'"></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contenedor en Cuadrícula: Datos Personales y Seguridad -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Columna Izquierda (2/3): Formulario de Datos Personales -->
+                <section class="lg:col-span-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>Información Personal</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Actualiza tus datos de contacto y localización personal.</p>
+                    </div>
+
+                    <form id="form-perfil-admin" th:action="@{/admin/perfil}" th:object="${perfilDTO}" method="post" class="space-y-4">
+                        <input type="hidden" th:field="*{id}" />
+
+                        <!-- Fila 2: DNI / NIE (Editable y Obligatorio) y Fecha de Nacimiento (Rango 18 a 100 años) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="dni" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">DNI / NIE <span class="text-rose-500">*</span></label>
+                                <input type="text" id="dni" th:field="*{dni}" required maxlength="9" placeholder="12345678Z" hx-post="/usuario/validar-dni" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-dni" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition uppercase tabular-nums" th:classappend="${#fields.hasErrors('dni')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-dni">
+                                    <div th:if="${#fields.hasErrors('dni')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{dni}">Error en DNI</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="fechaNacimiento" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Nacimiento <span class="text-rose-500">*</span></label>
+                                <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('fechaNacimiento')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-fechaNacimiento">
+                                    <div th:if="${#fields.hasErrors('fechaNacimiento')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{fechaNacimiento}">Error en Fecha de Nacimiento</span>
+                                    </div>
+                                    <div th:if="${#fields.hasErrors('mayorDeEdad')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{mayorDeEdad}">Debes ser mayor de edad</span>
+                                    </div>
+                                    <div th:if="${#fields.hasErrors('edadRazonable')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{edadRazonable}">La fecha de nacimiento no puede ser anterior a hace 100 años</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila 3: Nombre y Apellidos -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="nombre" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre <span class="text-rose-500">*</span></label>
+                                <input type="text" id="nombre" th:field="*{nombre}" required maxlength="50" placeholder="Carlos" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('nombre')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-nombre">
+                                    <div th:if="${#fields.hasErrors('nombre')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{nombre}">Error en Nombre</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="apellidos" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Apellidos <span class="text-rose-500">*</span></label>
+                                <input type="text" id="apellidos" th:field="*{apellidos}" required maxlength="100" placeholder="García Moreno" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('apellidos')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-apellidos">
+                                    <div th:if="${#fields.hasErrors('apellidos')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{apellidos}">Error en Apellidos</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila 4: Teléfono Móvil y Dirección de Residencia -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="telefono" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Teléfono Móvil <span class="text-rose-500">*</span></label>
+                                <input type="tel" id="telefono" th:field="*{telefono}" required maxlength="9" placeholder="600111222" hx-post="/usuario/validar-telefono" hx-include="[name='id']" hx-trigger="blur, change delay:300ms" hx-target="#feedback-telefono" hx-swap="innerHTML" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('telefono')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-telefono">
+                                    <div th:if="${#fields.hasErrors('telefono')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{telefono}">Error en Teléfono</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="direccion" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Dirección de Residencia <span class="text-rose-500">*</span></label>
+                                <input type="text" id="direccion" th:field="*{direccion}" required maxlength="200" placeholder="Calle Ejemplo 123, 1ºA" class="block w-full px-3.5 py-2.5 text-sm rounded-xl border bg-white dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition" th:classappend="${#fields.hasErrors('direccion')} ? 'border-red-500 focus:ring-red-500 dark:border-red-500' : 'border-slate-300 dark:border-slate-700 focus:ring-blue-600'" />
+                                <div id="feedback-direccion">
+                                    <div th:if="${#fields.hasErrors('direccion')}" class="mensaje-error-campo flex items-center space-x-1.5 text-xs text-red-600 dark:text-red-400 mt-1.5 font-medium fade-in">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span th:errors="*{direccion}">Error en Dirección</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón Guardar Cambios -->
+                        <div class="pt-3 flex justify-end">
+                            <button type="submit" id="btn-guardar-perfil-admin" class="inline-flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-500/25 transition duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Guardar Cambios</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Columna Derecha (1/3): Tarjeta de Seguridad y Cambio de Contraseña -->
+                <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 shadow-sm space-y-5 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Seguridad y Acceso</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Gestión de credenciales y contraseña segura.</p>
+                        </div>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            Por directiva de seguridad, para modificar tu contraseña se enviará un enlace de un solo uso con un token criptográfico efímero a tu correo registrado:
+                        </p>
+
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80">
+                            <p class="text-[11px] text-slate-400 font-medium">Correo electrónico de recepción</p>
+                            <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate mt-0.5" th:text="${perfilDTO?.correo} ?: 'admin@autoescuela.es'">
+                                admin@autoescuela.es
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Formulario POST a /recuperar-password para cambio de contraseña -->
+                    <form th:action="@{/recuperar-password}" method="post" class="pt-2">
+                        <input type="hidden" name="correo" th:value="${perfilDTO?.correo}">
+                        <button type="submit" class="w-full inline-flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-semibold text-xs sm:text-sm text-slate-800 dark:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 group shadow-sm">
+                            <svg class="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            <span>Cambiar Contraseña</span>
+                        </button>
+                    </form>
+                </section>
+
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

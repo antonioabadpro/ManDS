@@ -1,0 +1,76 @@
+/* ==========================================================================
+   ManDS - Estilos Globales, Tipografía Inter y Escalado Tipográfico Responsivo
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tipografía Corporativa 'Inter' - Auto-hospedada (WOFF2)
+   -------------------------------------------------------------------------- */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('../fonts/inter-latin-300-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/inter-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('../fonts/inter-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/inter-latin-600-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/inter-latin-700-normal.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('../fonts/inter-latin-800-normal.woff2') format('woff2');
+}
+
+/* --------------------------------------------------------------------------
+   2. Escalado Progresivo por Breakpoints en Raíz (html)
+   - Móviles y Tablets (< 1280px): 100% (16px base) para garantizar 0 desbordamientos.
+   - Escritorio 1080p (>= 1280px - xl): 105% (~16.8px) para optimizar proporciones.
+   - Pantallas Grandes y 2K (>= 1536px - 2xl): 110% (17.6px) para máxima legibilidad.
+   -------------------------------------------------------------------------- */
+html {
+    font-size: 100%;
+}
+
+@media (min-width: 1280px) {
+    html {
+        font-size: 105%;
+    }
+}
+
+@media (min-width: 1536px) {
+    html {
+        font-size: 110%;
+    }
+}

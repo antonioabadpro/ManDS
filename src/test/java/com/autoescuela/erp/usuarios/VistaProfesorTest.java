@@ -1,0 +1,493 @@
+package com.autoescuela.erp.usuarios;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithMockUser;
+
+import com.autoescuela.erp.BaseIntegrationTest;
+import com.autoescuela.erp.academico.model.Matricula;
+import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+/**
+ * Pruebas de integración visual y controladores para el Rol Profesor.
+ * Valida la resolución de plantillas, fragmentos HTMX y flujos de reporte heredando de BaseIntegrationTest.
+ */
+class VistaProfesorTest extends BaseIntegrationTest
+{
+    @Autowired
+    private AlumnoRepository alumnoRepository;
+
+    @Autowired
+    private MatriculaRepository matriculaRepository;
+
+    @Autowired
+    private ClasePracticaRepository clasePracticaRepository;
+
+    @Autowired
+    private ProfesorRepository profesorRepository;
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/dashboard renderiza correctamente el panel del profesor")
+    void testDashboardRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/dashboard"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario renderiza la vista interactiva de calendario con cuadrícula semanal SSR")
+    void testCalendarioRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/calendario"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/calendario"))
+                .andExpect(model().attributeExists("calendarioSemanal"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cuadricula devuelve el fragmento HTMX de la cuadrícula semanal")
+    void testCuadriculaCalendarioHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/calendario/cuadricula"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/cuadricula-calendario :: cuadriculaSemanal"))
+                .andExpect(model().attributeExists("calendarioSemanal"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/eventos devuelve JSON con eventos para FullCalendar")
+    void testEventosCalendarioApi() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/calendario/eventos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/alumnos renderiza correctamente el listado de alumnos asignados")
+    void testAlumnosRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/alumnos"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/alumnos"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/alumnos/detalle/{id} con HTMX devuelve el fragmento del modal de detalle de alumno")
+    void testModalDetalleAlumnoHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/alumnos/detalle/200")
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-detalle-alumno :: modal-detalle-alumno"))
+                .andExpect(model().attributeExists("alumno"))
+                .andExpect(model().attribute("abrirModalDetalleAlumno", true));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/alumnos/detalle/{id} con alumno no asignado devuelve 422 Unprocessable Content")
+    void testModalDetalleAlumnoAjenoLanzaExcepcion() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/alumnos/detalle/205")
+                .header("HX-Request", "true"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(view().name("error/error-negocio"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/examenes renderiza la vista de convocatorias DGT")
+    void testExamenesRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/examenes"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/examenes"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/vehiculo renderiza la ficha técnica del vehículo asignado e incidencias")
+    void testVehiculoRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/vehiculo"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/vehiculo"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/estadisticas renderiza métricas del profesor")
+    void testEstadisticasRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/estadisticas"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/estadisticas"))
+                .andExpect(model().attributeExists("profesor", "estadisticas"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/perfil renderiza los datos de perfil del profesor")
+    void testPerfilRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/perfil"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/perfil"))
+                .andExpect(model().attributeExists("perfilDTO"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/perfil actualiza los datos personales y redirige con mensaje flash")
+    void testActualizarPerfilExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/perfil")
+                .with(csrf())
+                .param("id", "100")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("telefono", "611223344")
+                .param("direccion", "Avenida Siempre Viva 123")
+                .param("fechaNacimiento", "1990-05-15"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/perfil"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/clases/completar registra la ficha técnica y redirige al calendario")
+    void testCompletarClasePracticaExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/clases/completar")
+                .with(csrf())
+                .param("claseId", "2")
+                .param("kmInicio", "45000")
+                .param("kmFin", "45040")
+                .param("observaciones", "Práctica de estacionamiento en línea realizada con éxito."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/calendario"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/vehiculo/incidencia registra una avería mecánica correctamente")
+    void testReportarIncidenciaExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
+                .with(csrf())
+                .param("vehiculoId", "1")
+                .param("descripcion", "Ruido al accionar el pedal del embrague en frío."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/vehiculo"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/vehiculo/incidencia con HTMX devuelve cabecera HX-Redirect a /profesor/vehiculo y flash attribute")
+    void testReportarIncidenciaHtmxExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("vehiculoId", "1")
+                .param("descripcion", "Fallo intermitente en el sensor de presión de neumáticos."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Redirect", "/profesor/vehiculo"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/vehiculo/incidencia con HTMX y error de validación devuelve fragmento modal")
+    void testReportarIncidenciaHtmxErrorValidacion() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("vehiculoId", "1")
+                .param("descripcion", "Corto"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-reportar-incidencia :: modal-reportar-incidencia"))
+                .andExpect(model().attributeExists("errorReportarIncidencia"))
+                .andExpect(model().attribute("abrirModalReportarIncidencia", true));
+    }
+
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/clases/{id}/modal devuelve el fragmento Thymeleaf con datos de la clase para HTMX")
+    void testModalClasePracticaHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/clases/1/modal")
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-ficha-clase :: modalFichaClase"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/examenes/{id}/modal devuelve el fragmento Thymeleaf con detalles de la jornada DGT para HTMX")
+    void testModalExamenDgtHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/profesor/examenes/1/modal")
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-detalle-examen :: modalDetalleExamen"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/clases/completar con HTMX devuelve 200, cabecera HX-Trigger y fragmento de feedback")
+    void testCompletarClasePracticaHtmxExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/clases/completar")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("claseId", "2")
+                .param("kmInicio", "45000")
+                .param("kmFin", "45040")
+                .param("observaciones", "Práctica completada con éxito vía HTMX."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/clases/cancelar con HTMX devuelve 200, cabecera HX-Trigger y fragmento de feedback")
+    void testCancelarClasePracticaHtmxExito() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/clases/cancelar")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("claseId", "3")
+                .param("motivo", "Indisposición temporal del profesor"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con APTO en examen práctico cierra la matrícula y desvincula al profesor")
+    void testCalificarExamenPracticoAptoCierraMatriculaYDesvinculaProfesor() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "3")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
+        assertNull(alumno.getProfesor(), "El profesor debe quedar desvinculado tras aprobar el examen práctico.");
+
+        Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
+        assertFalse(matricula.getEstaActiva(), "La matrícula debe finalizar (estaActiva = false) tras aprobar el práctico.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar rechaza la calificación de examen teórico por parte del profesor")
+    void testCalificarExamenTeoricoPorProfesorEsRechazado() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "15")
+                .param("esApto", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attribute("error", "Los profesores solo pueden calificar exámenes prácticos."));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar con NO APTO en examen práctico deduce 1 convocatoria, mantiene matrícula activa y profesor")
+    void testCalificarExamenPracticoNoAptoDeduceConvocatoriaYEnviaEmail() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "3")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        Alumno alumno = this.alumnoRepository.findById(200L).orElseThrow();
+        assertNotNull(alumno.getProfesor(), "El profesor debe mantenerse asignado tras suspender el examen práctico.");
+
+        Matricula matricula = this.matriculaRepository.findById(1L).orElseThrow();
+        assertTrue(matricula.getEstaActiva(), "La matrícula debe continuar activa tras el primer suspenso del práctico.");
+        assertEquals(1, matricula.getConvocatoriasGastadas(), "Debe computarse 1 convocatoria gastada en la matrícula.");
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/examenes/calificar rechaza la modificación de un examen ya calificado previamente")
+    void testCalificarExamenYaCalificadoRechazaModificacion() throws Exception
+    {
+        this.mockMvc.perform(post("/profesor/examenes/calificar")
+                .with(csrf())
+                .param("examenId", "6")
+                .param("esApto", "false"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/examenes"))
+                .andExpect(flash().attribute("error", "Este examen ya ha sido calificado previamente y no puede modificarse."));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/modal devuelve el fragmento del modal de cancelación masiva")
+    void testModalCancelarDiaHtmx() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal")
+                .param("fecha", fecha.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: modalCancelarDia"))
+                .andExpect(model().attributeExists("calendarioSemanal"))
+                .andExpect(model().attributeExists("fechaSeleccionada"))
+                .andExpect(model().attributeExists("clasesPendientes"))
+                .andExpect(model().attributeExists("hoy"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases devuelve el sub-fragmento con las clases a cancelar")
+    void testCalcularClasesCancelarDiaHtmx() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
+                .param("fecha", fecha.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: vistaPreviaClases"))
+                .andExpect(model().attributeExists("fechaSeleccionada"))
+                .andExpect(model().attributeExists("clasesPendientes"))
+                .andExpect(model().attribute("noCancelable", false));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases en fin de semana marca noCancelable = true")
+    void testCalcularClasesFinDeSemanaNoCancelable() throws Exception
+    {
+        LocalDate sabado = LocalDate.now().plusWeeks(1).with(DayOfWeek.SATURDAY);
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
+                .param("fecha", sabado.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/fragments/modal-cancelar-dia :: vistaPreviaClases"))
+                .andExpect(model().attribute("noCancelable", true))
+                .andExpect(model().attributeExists("motivoNoCancelable"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia con HTMX cancela las clases de la jornada y emite HX-Trigger")
+    void testCancelarClasesDiaHtmxExito() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Avería mecánica imprevista en el vehículo de prácticas."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia en jornada sin reservas bloquea las franjas de forma preventiva")
+    void testCancelarClasesDiaSinReservasPreviasBloqueaJornada() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.TUESDAY);
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Cita médica programada con antelación."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"))
+                .andExpect(view().name("profesor/fragments/alerta-feedback :: feedbackExito"))
+                .andExpect(model().attributeExists("mensajeExito"));
+
+        var clases = this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(
+                this.profesorRepository.findByNombreUsuario("profesor1").orElseThrow(),
+                fecha.atStartOfDay(),
+                fecha.atTime(23, 59, 59)
+        );
+
+        assertFalse(clases.isEmpty(), "Deben haberse generado franjas bloqueadas para la jornada.");
+        assertEquals(9, clases.size(), "Deben generarse exactamente las 9 franjas del turno.");
+        for (var c : clases)
+        {
+            assertTrue(c.getIsCanceladaPorProfesor(), "Cada franja debe estar cancelada por el profesor.");
+            assertNull(c.getAlumno(), "Las franjas preventivas no deben tener alumno asignado.");
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/calendario/cancelar-dia en fecha ya cancelada devuelve error impidiendo duplicados")
+    void testCancelarClasesDiaYaCanceladaDevuelveError() throws Exception
+    {
+        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.FRIDAY);
+
+        // Primera cancelación preventiva exitosa
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Asunto personal programado."))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Trigger", "actualizarCalendario"));
+
+        // Segundo intento sobre la misma jornada ya cancelada
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+                .with(csrf())
+                .header("HX-Request", "true")
+                .param("fecha", fecha.toString())
+                .param("motivo", "Intento de cancelación redundante."))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("error"))
+                .andExpect(model().attribute("error", "Esta jornada ya ha sido cancelada previamente por el profesor."));
+    }
+}

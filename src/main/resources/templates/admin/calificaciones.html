@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calificaciones Teóricas DGT - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <script src="../../static/js/admin-calificaciones.js" th:src="@{/js/admin-calificaciones.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{admin/fragments/admin-nav :: sidebar(activeSection='calificaciones')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Calificaciones Teóricas DGT', subtituloSeccion='Consulta de citaciones oficiales y registro de resultados de pruebas teóricas')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Banner Informativo -->
+            <div class="rounded-2xl p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-200 dark:border-indigo-900/60 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-indigo-700 dark:text-indigo-300 font-semibold">Consulta y Registro Oficial de Actas Teóricas DGT</span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                        Como Administrador, asientas los resultados oficiales de los <strong>exámenes teóricos DGT</strong> recibidos de la Jefatura.
+                        Los exámenes prácticos de circulación son calificados por el profesor asignado a cada vehículo.
+                    </p>
+                </div>
+                <!-- Enlace externo Sede Electrónica DGT -->
+                <a href="https://sedeclave.dgt.gob.es/WEB_NOTP_CONSULTA/consultaNota.faces" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 transition transform active:scale-95 shrink-0">
+                    <span>Sede Oficial DGT</span>
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Listado de Exámenes Teóricos -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Actas de Exámenes Teóricos Oficiales</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Alumnos citados a pruebas teóricas oficiales ante la DGT</p>
+                    </div>
+                    <div class="w-full sm:w-64 relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" data-table-search="tabla-examenes-teoricos" placeholder="Buscar por alumno o DNI..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table id="tabla-examenes-teoricos" class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Fecha y Hora</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Alumno</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Permiso</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Tipo Examen</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Duración</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Resultado Oficial</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="ex : ${examenes}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                                    25/09/2026 09:00
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span class="font-bold text-slate-800 dark:text-slate-200" th:text="${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}">Jose López</span>
+                                    <span class="block text-[11px] text-slate-400" th:text="${'DNI: ' + ex.alumno?.dni}">DNI: 45678901D</span>
+                                </td>
+                                <td th:with="tipoPermiso=${ex.solicitudExamen?.matricula?.permisoCarnet?.name()}" th:object="${ex.solicitudExamen?.matricula?.permisoCarnet}" class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span th:if="${tipoPermiso == 'PERMISO_A' || tipoPermiso == 'PERMISO_A1' || tipoPermiso == 'PERMISO_A2' || tipoPermiso == 'PERMISO_AM'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400" th:text="*{descripcion}">Permiso A2</span>
+                                    <span th:if="${tipoPermiso == 'PERMISO_B' || tipoPermiso == 'PERMISO_B1' || tipoPermiso == 'PERMISO_B_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400" th:text="*{descripcion}">Permiso B</span>
+                                    <span th:if="${tipoPermiso == 'PERMISO_C' || tipoPermiso == 'PERMISO_C_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400" th:text="*{descripcion}">Permiso C</span>
+                                    <span th:if="${tipoPermiso == 'PERMISO_D' || tipoPermiso == 'PERMISO_D_E'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400" th:text="*{descripcion}">Permiso D</span>
+                                    <span th:if="${tipoPermiso == 'PERMISO_LVA'}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400" th:text="*{descripcion}">Permiso LVA</span>
+                                    <span th:if="${tipoPermiso == null}" class="text-xs text-slate-400 italic">-</span>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                                        TEÓRICO
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-center font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap" th:text="${ex.duracion + ' min'}">
+                                    30 min
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span th:if="${ex.esApto == true}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        APTO
+                                    </span>
+                                    <span th:if="${ex.esApto == false}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                        NO APTO
+                                    </span>
+                                    <span th:if="${ex.esApto == null}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        PENDIENTE
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <th:block th:if="${ex.esApto == null}">
+                                        <button th:if="${!T(java.time.LocalDateTime).now().isBefore(ex.fechaHora.plusMinutes(ex.duracion))}" type="button" data-calificar-examen th:attr="data-calificar-examen=${ex.id}, data-alumno-nombre=${ex.alumno?.nombre + ' ' + ex.alumno?.apellidos}, data-alumno-dni=${ex.alumno?.dni}, data-fecha-hora=${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}, data-tipo-examen=${ex.tipo.name()}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/25 hover:shadow-md hover:shadow-blue-600/35 transition-all duration-150 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            <span>Calificar</span>
+                                        </button>
+                                        <span th:if="${T(java.time.LocalDateTime).now().isBefore(ex.fechaHora.plusMinutes(ex.duracion))}" class="text-xs text-slate-400 dark:text-slate-500 font-medium italic">
+                                            Pendiente de celebración
+                                        </span>
+                                    </th:block>
+                                    <span th:if="${ex.esApto != null}" class="text-xs text-slate-400 dark:text-slate-500 font-medium italic">
+                                        Evaluado
+                                    </span>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(examenes)}">
+                                <td colspan="7" class="py-12 text-center text-slate-400 dark:text-slate-500 italic">
+                                    <p class="text-xs font-medium">No constan exámenes teóricos oficiales registrados en el sistema.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- MODAL 1: Seleccionar Calificación Teórica DGT -->
+    <!-- --------------------------------------------------------------------- -->
+    <div id="modal-calificar-examen" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-calificar-examen"></div>
+
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Registrar Calificación Teórica DGT</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Selecciona el resultado oficial del examen teórico</p>
+                </div>
+                <button type="button" data-modal-close="modal-calificar-examen" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Alumno convocado</span>
+                    <p id="calificar-examen-alumno" class="font-bold text-slate-900 dark:text-white text-base"></p>
+                    <p id="calificar-examen-detalles" class="text-slate-500 dark:text-slate-400 text-xs"></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2.5">
+                        Resultado Oficial de la Prueba Teórica <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center justify-center p-3.5 rounded-2xl border-2 border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/20 has-[:checked]:ring-2 has-[:checked]:ring-emerald-500/30 cursor-pointer transition">
+                            <input type="radio" name="modalEsApto" value="true" class="sr-only" />
+                            <svg class="w-4 h-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="text-xs font-bold uppercase tracking-wider">APTO</span>
+                        </label>
+                        <label class="flex items-center justify-center p-3.5 rounded-2xl border-2 border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:border-rose-500/50 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-500/20 has-[:checked]:ring-2 has-[:checked]:ring-rose-500/30 cursor-pointer transition">
+                            <input type="radio" name="modalEsApto" value="false" class="sr-only" />
+                            <svg class="w-4 h-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span class="text-xs font-bold uppercase tracking-wider">NO APTO</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="error-seleccion-calificacion" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium"></div>
+
+                <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" data-modal-close="modal-calificar-examen" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btn-continuar-calificacion" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition transform active:scale-95 cursor-pointer">
+                        Registrar Calificación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- MODAL 2A: Confirmación de Calificación APTO (Acción Irreversible) -->
+    <!-- --------------------------------------------------------------------- -->
+    <div id="modal-confirmar-apto" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-confirmar-apto"></div>
+
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10">
+            <!-- Cabecera Esmeralda -->
+            <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Confirmar Calificación: APTO</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Verifica los datos antes de consolidar el acta oficial</p>
+                </div>
+            </div>
+
+            <!-- Alerta de Irreversibilidad -->
+            <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start space-x-2.5 text-amber-800 dark:text-amber-200 text-xs">
+                <svg class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="leading-relaxed">
+                    <strong>¡Atención! Acción irreversible:</strong> Esta calificación teórica quedará asentada permanentemente en el expediente del alumno ante la DGT y no podrá modificarse.
+                </div>
+            </div>
+
+            <!-- Expediente Afectado -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1 text-xs">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Expediente del Alumno</span>
+                <p id="confirmar-apto-alumno" class="font-bold text-slate-900 dark:text-white text-sm"></p>
+                <p id="confirmar-apto-detalles" class="text-slate-500 dark:text-slate-400 text-xs"></p>
+            </div>
+
+            <!-- Desglose de Consecuencias de Negocio -->
+            <div class="space-y-2">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Consecuencias normativas de esta acción:</span>
+
+                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El resultado oficial quedará registrado como <strong>APTO</strong> en la prueba teórica oficial ante la DGT.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El alumno <strong>queda habilitado para comprar saldo de clases prácticas</strong> y realizar reservas en el calendario.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>Se mantendrá o habilitará la vinculación pedagógica con su profesor asignado para iniciar la fase práctica en vehículo.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-emerald-500 font-bold mt-0.5">✓</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> de felicitación al alumno por superar el examen teórico.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Formulario POST -->
+            <form th:action="@{/admin/calificaciones/calificar}" method="post" class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <input type="hidden" name="examenId" id="confirmar-apto-examen-id" value="" />
+                <input type="hidden" name="esApto" value="true" />
+
+                <button type="button" data-modal-volver="modal-confirmar-apto" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    Volver y Modificar
+                </button>
+                <button type="submit" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition transform active:scale-95 cursor-pointer">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Confirmar y Asentar APTO</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- MODAL 2B: Confirmación de Calificación NO APTO (Acción Irreversible) -->
+    <!-- --------------------------------------------------------------------- -->
+    <div id="modal-confirmar-no-apto" role="dialog" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-confirmar-no-apto"></div>
+
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 my-auto z-10">
+            <!-- Cabecera Rosa/Rojo -->
+            <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Confirmar Calificación: NO APTO</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Verifica los datos antes de consolidar el acta oficial</p>
+                </div>
+            </div>
+
+            <!-- Alerta de Irreversibilidad -->
+            <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start space-x-2.5 text-amber-800 dark:text-amber-200 text-xs">
+                <svg class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="leading-relaxed">
+                    <strong>¡Atención! Acción irreversible:</strong> Esta calificación teórica quedará asentada permanentemente en el expediente del alumno ante la DGT y no podrá modificarse.
+                </div>
+            </div>
+
+            <!-- Expediente Afectado -->
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1 text-xs">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Expediente del Alumno</span>
+                <p id="confirmar-no-apto-alumno" class="font-bold text-slate-900 dark:text-white text-sm"></p>
+                <p id="confirmar-no-apto-detalles" class="text-slate-500 dark:text-slate-400 text-xs"></p>
+            </div>
+
+            <!-- Desglose de Consecuencias de Negocio -->
+            <div class="space-y-2">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Consecuencias normativas de esta acción:</span>
+
+                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2 leading-relaxed">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span>Se computará y <strong>deducirá 1 convocatoria de examen</strong> en la matrícula del alumno.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span><strong>Acceso a prácticas bloqueado:</strong> El alumno no podrá realizar clases prácticas de conducción hasta aprobar la prueba teórica oficial ante la DGT.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span><strong>Control de 2 convocatorias:</strong> Si acumula 2 suspensos oficiales se requerirá abonar la Renovación de Matrícula en Stripe antes de solicitar una nueva fecha.</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-rose-500 font-bold mt-0.5">✕</span>
+                        <span>El sistema enviará una <strong>notificación oficial por correo electrónico</strong> comunicando el resultado oficial y pautas de preparación.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Formulario POST -->
+            <form th:action="@{/admin/calificaciones/calificar}" method="post" class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <input type="hidden" name="examenId" id="confirmar-no-apto-examen-id" value="" />
+                <input type="hidden" name="esApto" value="false" />
+
+                <button type="button" data-modal-volver="modal-confirmar-no-apto" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    Volver y Modificar
+                </button>
+                <button type="submit" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition transform active:scale-95 cursor-pointer">
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Confirmar y Asentar NO APTO</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

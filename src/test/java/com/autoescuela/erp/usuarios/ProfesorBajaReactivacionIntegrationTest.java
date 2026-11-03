@@ -1,0 +1,416 @@
+package com.autoescuela.erp.usuarios;
+
+import java.util.List;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MvcResult;
+import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.flota.model.Vehiculo;
+import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
+import com.autoescuela.erp.usuarios.dto.ProfesorResumenDTO;
+import com.autoescuela.erp.usuarios.model.Alumno;
+import com.autoescuela.erp.usuarios.model.Profesor;
+import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
+import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
+import com.autoescuela.erp.usuarios.service.ProfesorService;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import com.autoescuela.erp.BaseIntegrationTest;
+
+/**
+ * Pruebas de integración para la baja lógica y reactivación de profesores.
+ */
+class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
+{
+    @Autowired
+    private ProfesorService profesorService;
+
+    @Autowired
+    private ProfesorRepository profesorRepository;
+
+    @Autowired
+    private AlumnoRepository alumnoRepository;
+
+    @Autowired
+    private VehiculoRepository vehiculoRepository;
+
+    @Autowired
+    private ClasePracticaRepository clasePracticaRepository;
+
+    @Test
+    @DisplayName("Baja lógica con reasignación de alumnos libera el vehículo, cancela clases pendientes y reasigna los alumnos")
+    void testBajaProfesorConReasignacionAlumnosExito()
+    {
+        // Profesor 1 (Laura Sánchez, ID: 100) tiene vehículo 1 ('1234-LMN'), 6 alumnos y clases pendientes
+        Profesor profesorOriginal = this.profesorRepository.findById(100L).orElseThrow();
+        assertEquals(EstadoUsuario.ACTIVO, profesorOriginal.getEstado());
+        assertEquals(1L, profesorOriginal.getVehiculo().getId());
+
+        List<Alumno> alumnosPrevios = this.alumnoRepository.findByProfesor(profesorOriginal);
+        assertTrue(alumnosPrevios.size() > 0);
+
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 102L);
+        Profesor profesorBaja = this.profesorService.darBajaProfesor(dto);
+
+        // Verificaciones del profesor dado de baja
+        assertEquals(EstadoUsuario.INACTIVO, profesorBaja.getEstado());
+        assertNull(profesorBaja.getVehiculo());
+
+        // Verificaciones del vehículo liberado
+        Vehiculo vehiculoLiberado = this.vehiculoRepository.findById(1L).orElseThrow();
+        assertEquals(EstadoVehiculo.DISPONIBLE, vehiculoLiberado.getEstado());
+        assertNull(vehiculoLiberado.getProfesor());
+
+        // Verificaciones de clases pendientes canceladas
+        List<ClasePractica> clasesProfesor = this.clasePracticaRepository.findByProfesorIdOrderByFechaHoraAsc(100L);
+        for (ClasePractica clase : clasesProfesor)
+        {
+            if (clase.getEstadoClase() != EstadoClase.RECIBIDA)
+            {
+                assertEquals(EstadoClase.CANCELADA, clase.getEstadoClase());
+            }
+        }
+
+        // Verificaciones de alumnos reasignados al nuevo profesor (ID: 102)
+        Profesor profesorDestino = this.profesorRepository.findById(102L).orElseThrow();
+        for (Alumno alumno : alumnosPrevios)
+        {
+            Alumno alumnoActualizado = this.alumnoRepository.findById(alumno.getId()).orElseThrow();
+            assertEquals(profesorDestino.getId(), alumnoActualizado.getProfesor().getId());
+        }
+    }
+
+    @Test
+    @DisplayName("Baja lógica con opción SIN_PROFESOR desvincula a los alumnos")
+    void testBajaProfesorSinProfesorParaAlumnosExito()
+    {
+        Profesor profesorOriginal = this.profesorRepository.findById(100L).orElseThrow();
+        List<Alumno> alumnosPrevios = this.alumnoRepository.findByProfesor(profesorOriginal);
+
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "SIN_PROFESOR", null);
+        Profesor profesorBaja = this.profesorService.darBajaProfesor(dto);
+
+        assertEquals(EstadoUsuario.INACTIVO, profesorBaja.getEstado());
+        assertNull(profesorBaja.getVehiculo());
+
+        for (Alumno alumno : alumnosPrevios)
+        {
+            Alumno alumnoActualizado = this.alumnoRepository.findById(alumno.getId()).orElseThrow();
+            assertNull(alumnoActualizado.getProfesor());
+        }
+    }
+
+    @Test
+    @DisplayName("Reactivar profesor inactivo lo pasa a ACTIVO y garantiza vehiculo = null")
+    void testReactivarProfesorInactivoExito()
+    {
+        // Primero damos de baja al profesor 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
+        Profesor profesorInactivo = this.profesorRepository.findById(100L).orElseThrow();
+        assertEquals(EstadoUsuario.INACTIVO, profesorInactivo.getEstado());
+
+        // Reactivación
+        Profesor profesorReactivado = this.profesorService.reactivarProfesor(100L);
+        assertEquals(EstadoUsuario.ACTIVO, profesorReactivado.getEstado());
+        assertNull(profesorReactivado.getVehiculo());
+    }
+
+    @Test
+    @DisplayName("Intentar editar a un profesor inactivo lanza ReglaNegocioException")
+    void testEditarProfesorInactivoFalla()
+    {
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
+
+        // Intento de consulta para edición
+        assertThrows(ReglaNegocioException.class, () -> this.profesorService.obtenerProfesorParaEdicion(100L));
+
+        // Intento de modificación
+        EditarProfesorDTO dtoMod = new EditarProfesorDTO(
+                100L, "Laura", "Sánchez Romero", "23456789D",
+                "600222333", "laura.profesor@autoescuela.es",
+                java.time.LocalDate.of(1988, 9, 23), "Calle Test",
+                java.time.LocalDate.now(),
+                com.autoescuela.erp.core.enums.TipoTurno.MATINAL, null,
+                List.of(com.autoescuela.erp.core.enums.TipoCarnet.PERMISO_B)
+        );
+        assertThrows(ReglaNegocioException.class, () -> this.profesorService.modificarProfesor(dtoMod));
+    }
+
+    @Test
+    @DisplayName("Intentar reactivar a un profesor ya activo lanza ReglaNegocioException")
+    void testReactivarProfesorActivoFalla()
+    {
+        assertThrows(ReglaNegocioException.class, () -> this.profesorService.reactivarProfesor(100L));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/baja/{id} renderiza modal HTMX con datos del profesor y lista de profesores")
+    void testCargarModalBajaProfesorHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores/baja/100"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
+                .andExpect(model().attributeExists("profesor"))
+                .andExpect(model().attributeExists("profesoresDisponibles"))
+                .andExpect(content().string(containsString("Baja Lógica del Profesor")))
+                .andExpect(content().string(containsString("Laura Sánchez Romero")))
+                .andExpect(content().string(containsString("1234-LMN")))
+                .andExpect(content().string(containsString("id=\"modal-baja-profesor\"")))
+                .andExpect(content().string(containsString("id=\"modal-confirmar-baja-profesor\"")))
+                .andExpect(content().string(containsString("Confirmar Baja Definitiva")))
+                .andExpect(content().string(containsString("id=\"form-baja-profesor\"")))
+                .andExpect(content().string(containsString("id=\"btn-volver-modal-baja\"")));
+    }
+
+    @Test
+    @DisplayName("Los profesores disponibles para reasignación en baja lógica se ordenan de menor a mayor número de alumnos")
+    void testProfesoresParaBajaOrdenadosDeMenorAMayorNumeroDeAlumnos()
+    {
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerProfesoresActivosExcluyendo(100L);
+        assertTrue(profesores.size() > 1);
+
+        for (int i = 0; i < profesores.size() - 1; i++)
+        {
+            assertTrue(profesores.get(i).totalAlumnos() <= profesores.get(i + 1).totalAlumnos(),
+                    "El profesor en la posición " + i + " tiene más alumnos que el siguiente");
+        }
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/reactivar/{id} renderiza modal HTMX advirtiendo alta sin vehículo")
+    void testCargarModalReactivarProfesorHtmx() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores/reactivar/100"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
+                .andExpect(model().attributeExists("profesor"))
+                .andExpect(content().string(containsString("Reactivar Profesor")))
+                .andExpect(content().string(containsString("sin ningún vehículo asignado")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/baja redirige con éxito y mensaje flash")
+    void testPostBajaProfesorRedireccionExito() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/baja")
+                .with(csrf())
+                .param("profesorId", "100")
+                .param("opcionAlumnos", "REASIGNAR")
+                .param("nuevoProfesorId", "102"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/profesores"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/reactivar/{id} con HTMX responde cabecera HX-Redirect")
+    void testPostReactivarProfesorHtmx() throws Exception
+    {
+        // Dejamos inactivo previamente al profesor 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
+
+        this.mockMvc.perform(post("/admin/profesores/reactivar/100")
+                .with(csrf())
+                .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("HX-Redirect", "/admin/profesores"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/oculta botón editar y papelera en inactivos, mostrando botón de reactivar")
+    void testRenderizadoCondicionalBotonesSegunEstado() throws Exception
+    {
+        // Dejamos inactivo al profesor 100
+        this.profesorService.darBajaProfesor(new BajaProfesorDTO(100L, "SIN_PROFESOR", null));
+
+        this.mockMvc.perform(get("/admin/profesores"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("INACTIVO")))
+                .andExpect(content().string(containsString("Reactivar profesor (Dar de alta sin vehículo)")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/baja/{id} solo muestra profesores que disponen del permiso del vehículo asignado")
+    void testModalBajaProfesorFiltraPorPermisoVehiculo() throws Exception
+    {
+        // Asignamos al profesor 100 un vehículo de PERMISO_C (vehículo 11 en data.sql)
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
+        vehiculoC.setProfesor(profesor);
+        profesor.setVehiculo(vehiculoC);
+        this.profesorRepository.save(profesor);
+
+        MvcResult result = this.mockMvc.perform(get("/admin/profesores/baja/100"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("profesoresDisponibles"))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<ProfesorResumenDTO> disponibles = (List<ProfesorResumenDTO>) result.getModelAndView().getModel().get("profesoresDisponibles");
+
+        // En data.sql, de los profesores activos excluyendo al 100, disponen de PERMISO_C el 101 y el 111
+        assertEquals(1, disponibles.size());
+        assertTrue(disponibles.stream().anyMatch(p -> p.id().equals(101L)));
+
+    }
+
+    @Test
+    @DisplayName("Baja lógica con reasignación a un profesor que no tiene el permiso del vehículo lanza ReglaNegocioException")
+    void testBajaProfesorReasignacionSinPermisoFalla()
+    {
+        // Asignamos al profesor 100 un vehículo de PERMISO_C
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        Vehiculo vehiculoC = this.vehiculoRepository.findById(11L).orElseThrow();
+        vehiculoC.setProfesor(profesor);
+        profesor.setVehiculo(vehiculoC);
+        this.profesorRepository.save(profesor);
+
+        // Profesor 102 (Carlos Martínez) solo tiene PERMISO_B y PERMISO_B_E, NO tiene PERMISO_C
+        BajaProfesorDTO dto = new BajaProfesorDTO(100L, "REASIGNAR", 102L);
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () -> this.profesorService.darBajaProfesor(dto));
+        assertTrue(ex.getMessage().contains("no dispone del carnet"));
+    }
+
+    @Test
+    @DisplayName("Modificar profesor intentando alterar fechaContratacion lanza ReglaNegocioException")
+    void testModificarProfesorAlterandoFechaContratacionFalla()
+    {
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        EditarProfesorDTO dtoMod = new EditarProfesorDTO(
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion().plusDays(5),
+                profesor.getTurno(), null,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException ex = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoMod));
+        assertEquals("La fecha de contratación no puede ser modificada.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Modificar profesor con la misma fechaContratacion y vehículo actualiza con éxito los demás campos")
+    void testModificarProfesorConFechaContratacionInmutableExito()
+    {
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        EditarProfesorDTO dtoMod = new EditarProfesorDTO(
+                100L, "Laura Modificada", profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), "Calle Inmutable 42",
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), profesor.getVehiculo().getId(),
+                profesor.getListaTiposCarnet()
+        );
+
+        Profesor modificado = this.profesorService.modificarProfesor(dtoMod);
+        assertEquals("Laura Modificada", modificado.getNombre());
+        assertEquals("Calle Inmutable 42", modificado.getDireccion());
+        assertEquals(profesor.getFechaContratacion(), modificado.getFechaContratacion());
+        assertEquals(profesor.getVehiculo().getId(), modificado.getVehiculo().getId());
+    }
+
+    @Test
+    @DisplayName("Modificar profesor con clases pendientes intentando desvincular o cambiar vehículo lanza ReglaNegocioException")
+    void testModificarProfesorConClasesPendientesCambiandoVehiculoFalla()
+    {
+        Profesor profesor = this.profesorRepository.findById(100L).orElseThrow();
+        assertTrue(this.profesorService.tieneClasesPracticasPendientes(100L));
+
+        // Intento 1: Desvincular vehículo a null teniendo clases pendientes
+        EditarProfesorDTO dtoDesvincular = new EditarProfesorDTO(
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), null,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException exDesvincular = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoDesvincular));
+        assertTrue(exDesvincular.getMessage().contains("clases prácticas pendientes"));
+
+        // Intento 2: Cambiar a otro vehículo teniendo clases pendientes
+        EditarProfesorDTO dtoCambiar = new EditarProfesorDTO(
+                100L, profesor.getNombre(), profesor.getApellidos(), profesor.getDni(),
+                profesor.getTelefono(), profesor.getCorreo(),
+                profesor.getFechaNacimiento(), profesor.getDireccion(),
+                profesor.getFechaContratacion(),
+                profesor.getTurno(), 6L,
+                profesor.getListaTiposCarnet()
+        );
+
+        ReglaNegocioException exCambiar = assertThrows(ReglaNegocioException.class,
+                () -> this.profesorService.modificarProfesor(dtoCambiar));
+        assertTrue(exCambiar.getMessage().contains("clases prácticas pendientes"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/editar/{id} puebla tieneClasesPendientes a true y bloquea visualmente el vehículo")
+    void testGetModalEditarProfesorConClasesPendientes() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores/editar/100"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("tieneClasesPendientes", true))
+                .andExpect(content().string(containsString("No se puede modificar ni desvincular el vehículo porque el profesor tiene clases prácticas pendientes.")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar intentando cambiar vehículo con clases pendientes retorna error en el modelo")
+    void testPostEditarProfesorCambiandoVehiculoConClasesPendientesFalla() throws Exception
+    {
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                .with(csrf())
+                .param("id", "100")
+                .param("nombre", "Laura")
+                .param("apellidos", "Sánchez Romero")
+                .param("dni", "23456789D")
+                .param("fechaNacimiento", "1985-04-12")
+                .param("correo", "laura.profesora@autoescuela.es")
+                .param("telefono", "622334455")
+                .param("direccion", "Calle Gran Vía 45, Madrid")
+                .param("fechaContratacion", "2022-01-15")
+                .param("turno", "MATINAL")
+                .param("vehiculoId", "6")
+                .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("errorEditarProfesor"))
+                .andExpect(model().attribute("errorEditarProfesor", containsString("clases prácticas pendientes")))
+                .andExpect(model().attribute("tieneClasesPendientes", true));
+    }
+}

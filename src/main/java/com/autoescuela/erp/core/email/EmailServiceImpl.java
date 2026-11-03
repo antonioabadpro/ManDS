@@ -1,0 +1,564 @@
+package com.autoescuela.erp.core.email;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Implementación del servicio de envío de correos electrónicos transaccionales.
+ * Emplea {@link JavaMailSender} para despachar mensajes en formato HTML con estilos integrados.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class EmailServiceImpl implements EmailService
+{
+    private final JavaMailSender mailSender;
+
+    @Value("${app.mail.from:${MAIL_FROM:mands.notifications@gmail.com}}")
+    private String correoRemitente;
+
+    @Value("${app_base_url:http://localhost:8080}")
+    private String appBaseUrl;
+
+    /**
+     * Envía un correo de recuperación de contraseña.
+     *
+     * @param correoDestinatario Dirección de correo del destinatario.
+     * @param nombreDestinatario Nombre del destinatario.
+     * @param enlaceRecuperacion Enlace para recuperar la contraseña.
+     * @param duracionTokenMinutos Duración del token en minutos.
+     */
+    @Override
+    public void enviarCorreoRecuperacion(String correoDestinatario, String nombreDestinatario, String enlaceRecuperacion, String duracionTokenMinutos)
+    {
+        try
+        {
+            Boolean multipart = true; // Permite adjuntar archivos en el correo
+
+            // Creamos el mensaje MIME con soporte para HTML y codificación UTF-8
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - Recuperación de contraseña");
+
+            // Construimos el cuerpo del mensaje en formato HTML
+            String cuerpoHtml = construirHtmlRecuperacion(nombreDestinatario, enlaceRecuperacion, duracionTokenMinutos);
+            helper.setText(cuerpoHtml, true);
+
+            this.mailSender.send(mensaje);
+            log.info("Correo de recuperación enviado con éxito a {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar el correo de recuperación a {}: {}", correoDestinatario, ex.getMessage());
+            // No propagamos la excepción técnica para no romper la experiencia de usuario y preservar la seguridad
+        }
+    }
+
+    /**
+     * Envía un correo de invitación a un nuevo profesor para que active su cuenta.
+     *
+     * @param correoDestinatario Dirección de correo del profesor.
+     * @param nombreDestinatario Nombre del profesor.
+     * @param enlaceActivacion Enlace para activar la cuenta del profesor.
+     * @param duracionTokenMinutos Duración del token en minutos.
+     */
+    @Override
+    public void enviarInvitacionProfesor(String correoDestinatario, String nombreDestinatario, String enlaceActivacion, String duracionTokenMinutos)
+    {
+        try
+        {
+            Boolean multipart = true;
+
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - Bienvenida y activación de cuenta de Profesor");
+
+            // Construimos el cuerpo del mensaje en formato HTML
+            String cuerpoHtml = construirHtmlInvitacionProfesor(nombreDestinatario, enlaceActivacion, duracionTokenMinutos);
+            helper.setText(cuerpoHtml, true);
+
+            this.mailSender.send(mensaje);
+            log.info("Correo de invitación de profesor enviado con éxito a {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar la invitación de profesor a {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Envía un correo electrónico de notificación o comunicación directa a un alumno tutelado.
+     *
+     * @param correoDestinatario Dirección de correo del alumno.
+     * @param asunto Asunto del correo electrónico.
+     * @param mensaje Cuerpo del mensaje en texto plano o aviso del profesor.
+     */
+    @Override
+    public void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje)
+    {
+        try
+        {
+            MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - " + asunto);
+            helper.setText(mensaje, false);
+
+            this.mailSender.send(mimeMessage);
+            log.info("Notificación enviada con éxito al alumno {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar notificación a {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Envía un correo electrónico de notificación o comunicación directa a un profesor.
+     *
+     * @param correoDestinatario Dirección de correo del profesor.
+     * @param asunto Asunto del correo electrónico.
+     * @param mensaje Cuerpo del mensaje en texto plano o aviso informativo.
+     */
+    @Override
+    public void enviarNotificacionProfesor(String correoDestinatario, String asunto, String mensaje)
+    {
+        try
+        {
+            MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - " + asunto);
+            helper.setText(mensaje, false);
+
+            this.mailSender.send(mimeMessage);
+            log.info("Notificación enviada con éxito al profesor {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar notificación al profesor {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Envía un correo electrónico de bienvenida y confirmación de matrícula tras un pago exitoso en Stripe.
+     *
+     * @param correoDestinatario Dirección de correo del alumno.
+     * @param nombreDestinatario Nombre de pila del alumno.
+     * @param descripcionCarnet Descripción legible del carnet matriculado.
+     * @param importeAbonado Importe abonado de la matrícula en euros.
+     */
+    @Override
+    public void enviarBienvenidaAlumno(String correoDestinatario, String nombreDestinatario, String descripcionCarnet, float importeAbonado)
+    {
+        try
+        {
+            Boolean multipart = true;
+
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - ¡Bienvenido/a a la autoescuela!");
+
+            String enlaceLogin = this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "login" : this.appBaseUrl + "/login";
+            String cuerpoHtml = construirHtmlBienvenidaAlumno(nombreDestinatario, descripcionCarnet, importeAbonado, enlaceLogin);
+            helper.setText(cuerpoHtml, true);
+
+            this.mailSender.send(mensaje);
+            log.info("Correo de bienvenida y confirmación de matrícula enviado con éxito a {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar el correo de bienvenida a {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+
+    /**
+     * Genera la plantilla HTML responsive con branding corporativo ManDS para el restablecimiento de contraseña.
+     * @param nombreDestinatario Nombre del destinatario para personalizar el saludo.
+     * @param enlace Enlace de recuperación de contraseña con token.
+     * @param duracionTokenMinutos Duración del token en minutos.
+     * @return Cadena HTML lista para ser enviada como cuerpo del correo.
+     */
+    private String construirHtmlRecuperacion(String nombreDestinatario, String enlace, String duracionTokenMinutos)
+    {
+        String nombreMostrado = Objects.requireNonNullElse(nombreDestinatario, "Usuario");
+
+        String contenidoHTML = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Recuperación de Contraseña</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+                    .contenedor { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+                    .cabecera { background: linear-gradient(135deg, #0f172a 0%%, #1e3a8a 100%%); padding: 32px 24px; text-align: center; }
+                    .logo-titulo { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+                    .subtitulo-marca { color: #93c5fd; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                    .contenido { padding: 36px 32px; }
+                    .saludo { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+                    .texto { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 24px; }
+                    .boton-contenedor { text-align: center; margin: 32px 0; }
+                    .boton { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+                    .alerta-seguridad { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 13px; color: #1e40af; }
+                    .enlace-alternativo { word-break: break-all; font-size: 12px; color: #64748b; background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+                    .pie { background-color: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <div class="contenedor">
+                    <div class="cabecera">
+                        <h1 class="logo-titulo">ManDS</h1>
+                        <div class="subtitulo-marca">Manager Driving School</div>
+                    </div>
+                    <div class="contenido">
+                        <h2 class="saludo">Hola, %1$s:</h2>
+                        <p class="texto">
+                            Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en la autoescuela.
+                            Para crear una nueva clave, pulsa en el botón que verás a continuación:
+                        </p>
+                        <div class="boton-contenedor">
+                            <a href="%2$s" class="boton" target="_blank">Restablecer mi contraseña</a>
+                        </div>
+                        <div class="alerta-seguridad">
+                            <strong>Importante:</strong> Este enlace caducará en <strong>%3$s minutos</strong> y solo se puede utilizar una única vez por motivos de seguridad.
+                        </div>
+                        <p class="texto" style="font-size: 13px; color: #64748b; margin-bottom: 8px;">
+                            Si no has solicitado este cambio, puedes ignorar este correo de forma segura. Tu contraseña actual no se modificará.
+                        </p>
+                        <div class="enlace-alternativo">
+                            Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                            <a href="%2$s" style="color: #2563eb;">%2$s</a>
+                        </div>
+                    </div>
+                    <div class="pie">
+                        © 2026 ManDS Autoescuela ERP. Todos los derechos reservados.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """;
+
+        return contenidoHTML.formatted(nombreMostrado, enlace, duracionTokenMinutos);
+    }
+
+    /**
+     * Genera la plantilla HTML responsive para la invitación y activación de cuenta de nuevo profesor.
+     * @param nombreDestinatario Nombre del destinatario.
+     * @param enlace Enlace de activación.
+     * @param duracionTokenMinutos Duración del token en minutos.
+     * @return Cadena con el contenido HTML.
+     */
+    private String construirHtmlInvitacionProfesor(String nombreDestinatario, String enlace, String duracionTokenMinutos)
+    {
+        String nombreMostrado = Objects.requireNonNullElse(nombreDestinatario, "Profesor");
+
+        String contenidoHTML = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Activación de Cuenta de Profesor</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+                    .contenedor { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+                    .cabecera { background: linear-gradient(135deg, #0f172a 0%%, #1e3a8a 100%%); padding: 32px 24px; text-align: center; }
+                    .logo-titulo { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+                    .subtitulo-marca { color: #93c5fd; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                    .contenido { padding: 36px 32px; }
+                    .saludo { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+                    .texto { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 24px; }
+                    .boton-contenedor { text-align: center; margin: 32px 0; }
+                    .boton { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+                    .alerta-seguridad { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 13px; color: #1e40af; }
+                    .enlace-alternativo { word-break: break-all; font-size: 12px; color: #64748b; background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+                    .pie { background-color: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <div class="contenedor">
+                    <div class="cabecera">
+                        <h1 class="logo-titulo">ManDS</h1>
+                        <div class="subtitulo-marca">Manager Driving School</div>
+                    </div>
+                    <div class="contenido">
+                        <h2 class="saludo">¡Hola, %1$s!</h2>
+                        <p class="texto">
+                            Te damos la bienvenida a la aplicación de gestión <strong>ManDS</strong>.
+                            La administración ha tramitado tu alta en la plataforma. Para poder acceder a tu panel de profesor,
+                            gestionar tus clases prácticas y consultar tus alumnos, pulsa en el botón inferior para configurar
+                            tu <strong>nombre de usuario</strong> y tu <strong>contraseña</strong> para acceder a la aplicación:
+                        </p>
+                        <div class="boton-contenedor">
+                            <a href="%2$s" class="boton" target="_blank">Activar cuenta y crear credenciales</a>
+                        </div>
+                        <div class="alerta-seguridad">
+                            <strong>Importante:</strong> Este enlace caducará en <strong>%3$s minutos</strong> y solo se puede utilizar una única vez por motivos de seguridad.
+                        </div>
+                        <p class="texto" style="font-size: 13px; color: #64748b; margin-bottom: 8px;">
+                            Si no reconoces este registro o ha sido un error, por favor contacta con el administrador de la autoescuela.
+                        </p>
+                        <div class="enlace-alternativo">
+                            Si tienes problemas con el botón, copia y pega este enlace en tu navegador:<br>
+                            <a href="%2$s" style="color: #2563eb;">%2$s</a>
+                        </div>
+                    </div>
+                    <div class="pie">
+                        © 2026 ManDS Autoescuela ERP. Todos los derechos reservados.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """;
+
+        return contenidoHTML.formatted(nombreMostrado, enlace, duracionTokenMinutos);
+    }
+
+    /**
+     * Genera la plantilla HTML responsive para la bienvenida y confirmación de matrícula de un nuevo alumno.
+     * @param nombreDestinatario Nombre del alumno.
+     * @param descripcionCarnet Descripción del carnet.
+     * @param importeAbonado Importe del pago en euros.
+     * @param enlaceLogin Enlace directo a la pantalla de login.
+     * @return Cadena con el contenido HTML formateado.
+     */
+    private String construirHtmlBienvenidaAlumno(String nombreDestinatario, String descripcionCarnet, float importeAbonado, String enlaceLogin)
+    {
+        String nombreMostrado = Objects.requireNonNullElse(nombreDestinatario, "Alumno/a");
+        String carnetMostrado = Objects.requireNonNullElse(descripcionCarnet, "Permiso de Conducir");
+        String importeFormateado = String.format(java.util.Locale.GERMAN, "%.2f", importeAbonado);
+
+        String contenidoHTML = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>¡Bienvenido a ManDS!</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+                    .contenedor { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+                    .cabecera { background: linear-gradient(135deg, #0f172a 0%%, #1e3a8a 100%%); padding: 32px 24px; text-align: center; }
+                    .logo-titulo { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+                    .subtitulo-marca { color: #93c5fd; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                    .contenido { padding: 36px 32px; }
+                    .saludo { font-size: 22px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+                    .texto { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+                    .tarjeta-resumen { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0; }
+                    .fila-resumen { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+                    .fila-resumen:last-child { margin-bottom: 0; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-weight: 700; color: #0f172a; }
+                    .etiqueta { color: #64748b; }
+                    .valor { font-weight: 600; color: #1e293b; }
+                    .badge-activo { background-color: #dcfce7; color: #15803d; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+                    .boton-contenedor { text-align: center; margin: 32px 0 24px 0; }
+                    .boton { display: inline-block; background-color: #2563eb; color: #ffffff !important; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(37,99,235,0.35); }
+                    .alerta-info { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 13px; color: #1e40af; line-height: 1.5; }
+                    .pie { background-color: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <div class="contenedor">
+                    <div class="cabecera">
+                        <h1 class="logo-titulo">ManDS</h1>
+                        <div class="subtitulo-marca">Manager Driving School</div>
+                    </div>
+                    <div class="contenido">
+                        <h2 class="saludo">¡Hola, %1$s!</h2>
+                        <p class="texto">
+                            ¡Te damos la bienvenida a <strong>ManDS Autoescuela</strong>! Tu pago se ha procesado correctamente y tu matrícula oficial ha sido formalizada. Tu cuenta de alumno ya está 100%% activa.
+                        </p>
+                        <div class="tarjeta-resumen">
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Permiso Matriculado:</span>
+                                <span class="valor">%2$s</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Estado de la Cuenta:</span>
+                                <span class="badge-activo">ACTIVA</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Convocatorias examen:</span>
+                                <span class="valor">2 oficiales</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Total abonado:</span>
+                                <span class="valor">%3$s €</span>
+                            </div>
+                        </div>
+                        <div class="boton-contenedor">
+                            <a href="%4$s" class="boton" target="_blank">Acceder a mi Portal de Alumno</a>
+                        </div>
+                        <div class="alerta-info">
+                            <strong>¿Cómo acceder?</strong> Puedes iniciar sesión con el <strong>nombre de usuario</strong> o el <strong>correo electrónico</strong> junto con la contraseña que configuraste durante el registro.
+                        </div>
+                    </div>
+                    <div class="pie">
+                        © 2026 ManDS Autoescuela ERP. Todos los derechos reservados.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """;
+
+        return contenidoHTML.formatted(nombreMostrado, carnetMostrado, importeFormateado, enlaceLogin);
+    }
+
+    /**
+     * Envía un correo electrónico de notificación al Administrador cuando un profesor reporta una incidencia o avería mecánica.
+     *
+     * @param correoDestinatario Dirección de correo del Administrador.
+     * @param nombreAdmin Nombre de pila del Administrador.
+     * @param nombreProfesor Nombre completo del profesor emisor.
+     * @param vehiculoInfo Marca y modelo del vehículo afectado.
+     * @param matricula Matrícula del vehículo afectado.
+     * @param descripcionIncidencia Descripción o anomalía detallada.
+     * @param urlIncidencias Enlace directo al Panel de Incidencias de Flota.
+     */
+    @Override
+    public void enviarNotificacionIncidenciaAdmin(String correoDestinatario, String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcionIncidencia, String urlIncidencias)
+    {
+        try
+        {
+            Boolean multipart = true;
+
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente);
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - Nueva Incidencia Reportada en Vehículo " + matricula);
+
+            String enlaceDefinitivo = (urlIncidencias != null && !urlIncidencias.isBlank())
+                    ? urlIncidencias
+                    : (this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "admin/incidencias" : this.appBaseUrl + "/admin/incidencias");
+
+            String cuerpoHtml = this.construirHtmlIncidenciaAdmin(nombreAdmin, nombreProfesor, vehiculoInfo, matricula, descripcionIncidencia, enlaceDefinitivo);
+            helper.setText(cuerpoHtml, true);
+
+            this.mailSender.send(mensaje);
+            log.info("Notificación de avería mecánica enviada con éxito al Administrador {}", correoDestinatario);
+        }
+        catch (MessagingException | MailException ex)
+        {
+            log.error("Error al enviar la notificación de avería al Administrador {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Genera la plantilla HTML responsive con branding corporativo ManDS para avisar al Administrador de una incidencia de flota.
+     */
+    private String construirHtmlIncidenciaAdmin(String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcion, String enlaceIncidencias)
+    {
+        String nombreMostrado = Objects.requireNonNullElse(nombreAdmin, "Administrador");
+        String profesorMostrado = Objects.requireNonNullElse(nombreProfesor, "Profesor");
+        String vehiculoMostrado = Objects.requireNonNullElse(vehiculoInfo, "Vehículo de la flota");
+        String matriculaMostrada = Objects.requireNonNullElse(matricula, "-");
+        String descripcionMostrada = Objects.requireNonNullElse(descripcion, "Sin descripción facilitada.");
+
+        String contenidoHTML = """
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Nueva Incidencia Mecánica Reportada</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; color: #1e293b; }
+                    .contenedor { max-width: 580px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+                    .cabecera { background: linear-gradient(135deg, #0f172a 0%%, #1e3a8a 100%%); padding: 32px 24px; text-align: center; }
+                    .logo-titulo { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+                    .subtitulo-marca { color: #93c5fd; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+                    .contenido { padding: 36px 32px; }
+                    .saludo { font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px; }
+                    .texto { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 20px; }
+                    .tarjeta-resumen { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0; }
+                    .fila-resumen { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+                    .fila-descripcion { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1; font-size: 13px; }
+                    .etiqueta { color: #64748b; font-weight: 500; }
+                    .valor { font-weight: 600; color: #1e293b; }
+                    .valor-matricula { font-family: monospace; font-weight: 700; background-color: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+                    .caja-descripcion { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-top: 8px; color: #334155; font-style: italic; }
+                    .boton-contenedor { text-align: center; margin: 32px 0 24px 0; }
+                    .boton { display: inline-block; background-color: #d97706; color: #ffffff !important; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 12px; box-shadow: 0 4px 14px rgba(217,119,6,0.35); }
+                    .alerta-info { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px; margin: 24px 0; font-size: 13px; color: #1e40af; line-height: 1.5; }
+                    .enlace-alternativo { word-break: break-all; font-size: 12px; color: #64748b; background-color: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-top: 20px; }
+                    .pie { background-color: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <div class="contenedor">
+                    <div class="cabecera">
+                        <h1 class="logo-titulo">ManDS</h1>
+                        <div class="subtitulo-marca">Manager Driving School</div>
+                    </div>
+                    <div class="contenido">
+                        <h2 class="saludo">Hola, %1$s:</h2>
+                        <p class="texto">
+                            Te informamos de que el profesor <strong>%2$s</strong> en el vehículo <strong>%3$s</strong> (matrícula <strong>%4$s</strong>), ha reportado una incidencia técnica.
+                        </p>
+                        <div class="tarjeta-resumen">
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Profesor emisor:</span>
+                                <span class="valor">%2$s</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Vehículo afectado:</span>
+                                <span class="valor">%3$s</span>
+                            </div>
+                            <div class="fila-resumen">
+                                <span class="etiqueta">Matrícula:</span>
+                                <span class="valor-matricula">%4$s</span>
+                            </div>
+                            <div class="fila-descripcion">
+                                <span class="etiqueta">Descripción de la avería:</span>
+                                <div class="caja-descripcion">"%5$s"</div>
+                            </div>
+                        </div>
+                        <div class="boton-contenedor">
+                            <a href="%6$s" class="boton" target="_blank">Consultar en Panel de Incidencias</a>
+                        </div>
+                        <div class="alerta-info">
+                            Consúltala en el Panel de Incidencias de Flota iniciando sesión en ManDS. Al pulsar en el enlace superior accederás directamente tras autenticarte.
+                        </div>
+                        <div class="enlace-alternativo">
+                            Enlace directo al panel de incidencias:<br>
+                            <a href="%6$s" style="color: #2563eb;">%6$s</a>
+                        </div>
+                    </div>
+                    <div class="pie">
+                        © 2026 ManDS Autoescuela ERP. Todos los derechos reservados.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """;
+
+        return contenidoHTML.formatted(nombreMostrado, profesorMostrado, vehiculoMostrado, matriculaMostrada, descripcionMostrada, enlaceIncidencias);
+    }
+}

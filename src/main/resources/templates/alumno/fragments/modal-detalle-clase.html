@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO: Modal Accesible con Detalles de Clase Práctica (CU-035)        -->
+    <!-- ========================================================================= -->
+    <div th:fragment="modalDetalleClase" id="modal-detalle-clase" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity cursor-pointer" data-modal-close="modal-detalle-clase"></div>
+
+        <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto z-10 animate-fade-in">
+            <!-- Cabecera del Modal -->
+            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Ficha de Clase Práctica</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Detalles de la sesión de formación e información del profesor</p>
+                </div>
+                <button type="button" data-modal-close="modal-detalle-clase" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Cerrar ventana">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Contenido del Modal -->
+            <div class="p-6 space-y-5">
+
+                <!-- 1. Apartado con los Datos del Profesor -->
+                <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Datos del Profesor</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Profesor:</span>
+                            <span class="font-bold text-slate-900 dark:text-white" th:text="${clase.profesor != null ? clase.profesor.nombre + ' ' + clase.profesor.apellidos : 'Profesor no asignado'}">Nombre Profesor</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">DNI:</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-300" th:text="${clase.profesor != null && clase.profesor.dni != null ? clase.profesor.dni : 'No disponible'}">12345678Z</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Teléfono:</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-300" th:text="${clase.profesor != null && clase.profesor.telefono != null ? clase.profesor.telefono : 'No disponible'}">600000000</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Correo Electrónico:</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-300 truncate block" th:text="${clase.profesor != null && clase.profesor.correo != null ? clase.profesor.correo : 'No disponible'}">profesor@autoescuela.es</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Apartado Independiente con los Detalles de la Clase Reservada -->
+                <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Detalles de la Clase</span>
+                        <span th:text="${clase.estadoClase}" th:class="${clase.estadoClase.name() == 'RECIBIDA' ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' :
+                                     (clase.estadoClase.name() == 'CANCELADA' ? 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+                                     'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20')}">
+                            PENDIENTE
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Fecha y Hora:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Duración:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.duracion != null ? clase.duracion + ' min' : '45 min'}">45 min</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Vehículo:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.profesor?.vehiculo != null ? clase.profesor.vehiculo.marca + ' ' + clase.profesor.vehiculo.modelo + ' (' + clase.profesor.vehiculo.matricula + ')' : 'No asignado'}">Vehículo</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Punto de Recogida:</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.puntoRecogida != null ? clase.puntoRecogida : 'Punto habitual'}">Punto de Recogida</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Caso: Clase CANCELADA (Solo Motivo de Cancelación, sin Odómetro ni Observaciones) -->
+                <div th:if="${clase.estadoClase.name() == 'CANCELADA'}" class="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-800/60 space-y-3">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Reporte de Cancelación</p>
+                    <div class="space-y-1.5">
+                        <span class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">Motivo de la cancelación:</span>
+                        <p class="mt-1.5 p-3 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 italic text-xs leading-relaxed border border-slate-100 dark:border-slate-700" th:text="${clase.motivoCancelacion}">Cancelada sin motivo especificado.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Caso: Clase RECIBIDA (Reporte del Profesor con Odómetro y Observaciones en itálica) -->
+                <div th:if="${clase.estadoClase.name() == 'RECIBIDA'}" class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/60 space-y-3">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Reporte del Profesor</p>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">Km Inicio</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-xs" th:text="${clase.kmInicio} ?: 0">0</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-emerald-100 dark:border-slate-700">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">Km Fin</span>
+                            <span class="font-bold text-slate-900 dark:text-white text-xs" th:text="${clase.kmFin} ?: 0">0</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-700">
+                            <span class="text-[10px] text-emerald-800 dark:text-emerald-300 block mb-0.5">Recorrido</span>
+                            <span class="font-bold text-emerald-900 dark:text-emerald-200 text-xs" th:text="${(clase.kmFin ?: 0) - (clase.kmInicio ?: 0)} + ' km'">0 km</span>
+                        </div>
+                    </div>
+                    <!-- Observaciones Pedagógicas -->
+                    <div class="pt-2">
+                        <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Observaciones del profesor:</span>
+                        <p class="mt-1.5 p-3 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 italic text-[11px] leading-relaxed border border-slate-100 dark:border-slate-700" th:text="${clase.observaciones} ?: 'Sin observaciones registradas.'"></p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Acciones y Cancelación -->
+            <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" data-modal-close="modal-detalle-clase" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                    Cerrar
+                </button>
+
+                <!-- Botón Cancelar Clase (Abre modal de doble confirmación si es futura) -->
+                <button th:if="${clase.estadoClase.name() == 'PENDIENTE' and clase.fechaHora != null and clase.fechaHora.isAfter(#temporals.createNow())}" type="button" th:attr="hx-get=@{/alumno/clases/{id}/cancelar-modal(id=${clase.id})}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:bg-rose-800 shadow-sm shadow-rose-600/20 transition cursor-pointer flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Cancelar Reserva</span>
+                </button>
+
+                <!-- Aviso si la clase PENDIENTE ya ha comenzado (No cancelable tras inicio) -->
+                <span th:if="${clase.estadoClase.name() == 'PENDIENTE' and clase.fechaHora != null and !clase.fechaHora.isAfter(#temporals.createNow())}" class="px-3 py-1 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 flex items-center space-x-1.5" title="La clase ya ha comenzado y no puede cancelarse según la normativa">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Clase en curso / iniciada</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

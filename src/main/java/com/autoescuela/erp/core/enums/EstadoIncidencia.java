@@ -2,7 +2,7 @@ package com.autoescuela.erp.core.enums;
 
 public enum EstadoIncidencia
 {
-    Pendiente,
-    EnProceso,
-    Resuelta
+    PENDIENTE,
+    EN_PROCESO,
+    RESUELTA
 }

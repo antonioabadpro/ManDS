@@ -1,6 +1,72 @@
 package com.autoescuela.erp.usuarios.repository;
 
-public class PersonaRepository
-{
+import java.util.List;
+import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.autoescuela.erp.usuarios.model.Administrador;
+import com.autoescuela.erp.usuarios.model.Persona;
+
+public interface PersonaRepository extends JpaRepository<Persona, Long>
+{
+    /**
+     * Recupera todos los administradores del sistema en estado activo.
+     * Permite notificar novedades críticas de flota y averías mecánicas.
+     *
+     * @return Lista de administradores activos.
+     */
+    @Query("SELECT a FROM Administrador a WHERE a.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO")
+    List<Administrador> findAdministradoresActivos();
+    /**
+     * Busca una persona por su nombre de usuario o por su correo electrónico.
+     * Permite la autenticación dual.
+     * @param nombreUsuario Nombre de usuario de la persona.
+     * @param correo Correo electrónico de la persona.
+     * @return Un Optional con la Persona encontrada o vacío si no existe.
+     */
+    Optional<Persona> findByNombreUsuarioOrCorreo(String nombreUsuario, String correo);
+
+    /**
+     * Busca una persona por su dirección de correo electrónico.
+     * @param correo Dirección de correo electrónico.
+     * @return Optional con la persona encontrada o vacío si no existe.
+     */
+    Optional<Persona> findByCorreo(String correo);
+
+    /**
+     * Comprueba si ya existe un usuario registrado con el nombre de usuario indicado.
+     */
+    boolean existsByNombreUsuario(String nombreUsuario);
+
+    /**
+     * Comprueba si ya existe un usuario registrado con el correo electrónico indicado.
+     */
+    boolean existsByCorreo(String correo);
+
+    /**
+     * Comprueba si ya existe un usuario registrado con el DNI indicado.
+     */
+    boolean existsByDni(String dni);
+
+    /**
+     * Comprueba si ya existe un usuario registrado con el teléfono indicado.
+     */
+    boolean existsByTelefono(String telefono);
+
+    /**
+     * Comprueba si ya existe otro usuario registrado con el teléfono indicado (distinto ID).
+     */
+    boolean existsByTelefonoAndIdNot(String telefono, Long id);
+
+    /**
+     * Comprueba si ya existe otro usuario registrado con el DNI indicado (distinto ID).
+     */
+    boolean existsByDniAndIdNot(String dni, Long id);
+
+    /**
+     * Comprueba si ya existe otro usuario registrado con el correo electrónico indicado (distinto ID).
+     */
+    boolean existsByCorreoAndIdNot(String correo, Long id);
 }

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Profesores - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <!-- Estilos globales y Tailwind CSS (Compilado para producción) -->
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/admin.js" th:src="@{/js/admin.js}" defer></script>
+    <script src="../../static/js/admin-profesores.js" th:src="@{/js/admin-profesores.js}" defer></script>
+    <script src="../../static/js/modal-baja-profesor.js" th:src="@{/js/modal-baja-profesor.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{admin/fragments/admin-nav :: sidebar(activeSection='profesores')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Gestión de Profesores', subtituloSeccion='Profesorado, asignación 1-a-1 de vehículos y turnos')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash de Feedback -->
+            <div th:if="${mensajeError}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${mensajeError}">Ha ocurrido un error.</p>
+            </div>
+            <div th:if="${errorBajaProfesor}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${errorBajaProfesor}">Ha ocurrido un error.</p>
+            </div>
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center space-x-3 shadow-sm transition">
+                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm font-semibold" th:text="${mensajeExito}">Operación completada con éxito.</p>
+            </div>
+
+            <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
+            <div class="lg:hidden space-y-1">
+                <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Gestión de Profesores</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Profesorado, asignación 1-a-1 de vehículos y turnos</p>
+            </div>
+
+            <!-- Cabecera de Página con Acciones Principales -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Profesorado</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalProfesores != null ? totalProfesores : #lists.size(profesores)}">0</span> profesores en plantilla (<span th:text="|${totalMatinal != null ? totalMatinal : 0} Turno Matinal y ${totalTarde != null ? totalTarde : 0} Tarde|">0 Turno Matinal y 0 Tarde</span>)</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" data-table-search="tabla-profesores" placeholder="Buscar profesor..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <button type="button" data-modal-target="modal-alta-profesor" class="inline-flex items-center space-x-2 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm shadow-blue-500/20 transition duration-200 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 group cursor-pointer">
+                        <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>Nuevo Profesor</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla Responsiva de Profesores -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table id="tabla-profesores" class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr class="text-center">
+                                <th class="py-3 px-4">Profesor</th>
+                                <th class="py-3 px-4">Turno</th>
+                                <th class="py-3 px-4">Vehículo Asignado</th>
+                                <th class="py-3 px-4 whitespace-nowrap">Alumnos</th>
+                                <th class="py-3 px-4">Estado</th>
+                                <th class="py-3 px-4 whitespace-nowrap">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <!-- Fila de Estado Vacío -->
+                            <tr th:if="${#lists.isEmpty(profesores)}">
+                                <td colspan="6" class="py-8 text-center text-slate-400 text-xs">
+                                    No hay profesores registrados actualmente en el sistema.
+                                </td>
+                            </tr>
+
+                            <!-- Iteración dinámica de profesores desde la base de datos -->
+                            <tr th:each="p : ${profesores}" th:attr="data-permisos=${#strings.listJoin(p.permisos.![descripcion], ' ')}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 text-left">
+                                    <div class="inline-flex items-center space-x-3 text-left">
+                                        <div class="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center shrink-0" th:text="${p.iniciales}">
+                                            LS
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-900 dark:text-white" th:text="${p.nombreCompleto}">Laura Sánchez Romero</p>
+                                            <!-- Metadatos accesibles e indexables para búsqueda rápida por DNI o Permiso -->
+                                            <span class="sr-only" th:text="|DNI: ${p.dni} ${p.correo} ${p.telefono} ${#strings.listJoin(p.permisos.![descripcion], ' ')}|"></span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex justify-center">
+                                        <span th:if="${p.turno?.name() == 'MATINAL'}" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">MATINAL</span>
+                                        <span th:if="${p.turno?.name() == 'TARDE'}" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">TARDE</span>
+                                    </div>
+                                </td>
+
+                                <td class="py-3 px-4 text-center">
+                                    <div th:if="${p.vehiculoMatricula != null}" class="inline-flex flex-col items-center justify-center">
+                                        <div class="flex items-center justify-center space-x-1.5 font-medium text-slate-900 dark:text-white">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            <span th:text="${p.vehiculoModelo}"></span>
+                                        </div>
+                                        <span th:if="${p.vehiculoTipo?.name() == 'PERMISO_A' || p.vehiculoTipo?.name() == 'PERMISO_A1' || p.vehiculoTipo?.name() == 'PERMISO_A2' || p.vehiculoTipo?.name() == 'PERMISO_AM'}" class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400" th:text="${p.vehiculoTipoDescripcion}">Permiso A2</span>
+                                        <span th:if="${p.vehiculoTipo?.name() == 'PERMISO_B' || p.vehiculoTipo?.name() == 'PERMISO_B1' || p.vehiculoTipo?.name() == 'PERMISO_B_E'}" class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400" th:text="${p.vehiculoTipoDescripcion}">Permiso B</span>
+                                        <span th:if="${p.vehiculoTipo?.name() == 'PERMISO_C' || p.vehiculoTipo?.name() == 'PERMISO_C_E'}" class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400" th:text="${p.vehiculoTipoDescripcion}">Permiso C</span>
+                                        <span th:if="${p.vehiculoTipo?.name() == 'PERMISO_D' || p.vehiculoTipo?.name() == 'PERMISO_D_E'}" class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400" th:text="${p.vehiculoTipoDescripcion}">Permiso D</span>
+                                        <span th:if="${p.vehiculoTipo?.name() == 'PERMISO_LVA'}" class="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400" th:text="${p.vehiculoTipoDescripcion}">Permiso LVA</span>
+                                    </div>
+                                    <div th:if="${p.vehiculoMatricula == null}" class="inline-flex flex-col items-center justify-center">
+                                        <div class="flex items-center justify-center space-x-1.5 font-medium text-slate-400 dark:text-slate-500">
+                                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                            <span>Sin vehículo asignado</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Disponible para asignación</p>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex flex-col items-center justify-center">
+                                        <span class="font-medium text-slate-900 dark:text-white" th:text="${p.totalAlumnos == 1} ? '1 alumno' : |${p.totalAlumnos} alumnos|">2 alumnos</span>
+                                        <span th:if="${p.totalClasesPendientes > 0}" class="text-[10px] font-semibold text-amber-600 dark:text-amber-400" th:text="|(${p.totalClasesPendientes} ${p.totalClasesPendientes == 1 ? 'clase pendiente' : 'clases pendientes'})|">(3 clases pendientes)</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex justify-center">
+                                        <span th:if="${p.estado?.name() == 'ACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACTIVO</span>
+                                        <span th:if="${p.estado?.name() != 'ACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400">INACTIVO</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-center space-x-1 whitespace-nowrap">
+                                        <!-- Botón Ver Detalles (Icono Ojo) a la izquierda del lápiz de edición -->
+                                        <button type="button" th:attr="hx-get=@{/admin/profesores/detalle/{id}(id=${p.id})}" hx-target="#contenedor-modal-detalle-profesor" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Ver ficha completa del profesor">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                        </button>
+                                        <!-- Botón Editar (Lápiz) - Solo disponible para profesores en estado ACTIVO -->
+                                        <button th:if="${p.estado?.name() == 'ACTIVO'}" type="button" th:attr="hx-get=@{/admin/profesores/editar/{id}(id=${p.id})}" hx-target="#contenedor-modal-editar-profesor" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Editar profesor y vehículo">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <!-- Botón Baja (Papelera) - Solo disponible para profesores en estado ACTIVO -->
+                                        <button th:if="${p.estado?.name() == 'ACTIVO'}" type="button" th:attr="hx-get=@{/admin/profesores/baja/{id}(id=${p.id})}" hx-target="#contenedor-modal-baja-profesor" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Baja lógica">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                        <!-- Botón Reactivar / Dar de Alta - Solo disponible para profesores en estado INACTIVO -->
+                                        <button th:if="${p.estado?.name() != 'ACTIVO'}" type="button" th:attr="hx-get=@{/admin/profesores/reactivar/{id}(id=${p.id})}" hx-target="#contenedor-modal-reactivar-profesor" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition cursor-pointer" title="Reactivar profesor (Dar de alta sin vehículo)">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Alta de Nuevo Profesor (Fragmento Reutilizable) -->
+    <div id="contenedor-modal-alta-profesor">
+        <div th:replace="~{admin/fragments/modal-alta-profesor :: modal-alta-profesor}"></div>
+    </div>
+
+    <!-- Modal: Visualizar Ficha Detallada del Profesor (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-detalle-profesor"></div>
+
+    <!-- Modal: Editar Profesor y Asignación de Vehículo (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-editar-profesor"></div>
+
+    <!-- Modal: Baja Lógica de Profesor (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-baja-profesor"></div>
+
+    <!-- Modal: Reactivar Profesor (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-reactivar-profesor"></div>
+
+</body>
+
+</html>

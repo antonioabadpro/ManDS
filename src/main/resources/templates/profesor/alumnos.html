@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Alumnos - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/profesor.js" th:src="@{/js/profesor.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-violet-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{profesor/fragments/profesor-nav :: sidebar(activeSection='alumnos')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{profesor/fragments/profesor-nav :: topbar(tituloSeccion='Mis Alumnos Tutelados', subtituloSeccion='Seguimiento pedagógico, expedientes y saldos de prácticas')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Mensajes Flash -->
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+            </div>
+
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+            </div>
+
+            <!-- Cabecera y Barra de Búsqueda -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Alumnado Asignado</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Consulta de expedientes, evolución técnica y contacto directo</p>
+                </div>
+                <div class="w-full sm:w-72 relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" data-table-search="tabla-mis-alumnos" placeholder="Buscar por nombre, DNI..." class="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                </div>
+            </div>
+
+            <!-- Tabla de Alumnos Tutelados -->
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table id="tabla-mis-alumnos" class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Alumno</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Permiso</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Saldo Prácticas</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Clases Recibidas</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Convocatorias DGT</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Estado Matrícula</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="f : ${fichasAlumnos}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                <td class="py-3 px-4 text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 font-bold flex items-center justify-center shrink-0" th:text="${f.iniciales != null ? f.iniciales : #strings.substring(f.alumno.nombre, 0, 1).toUpperCase()}">
+                                            JL
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-900 dark:text-white" th:text="${f.alumno.nombre + ' ' + f.alumno.apellidos}">Jose López Martínez</p>
+                                            <span class="sr-only" th:text="|DNI: ${f.alumno.dni} ${f.alumno.correo}|"></span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_A' || f.matricula?.permisoCarnet?.name() == 'PERMISO_A1' || f.matricula?.permisoCarnet?.name() == 'PERMISO_A2' || f.matricula?.permisoCarnet?.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${f.permiso}">Permiso A2</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_B' || f.matricula?.permisoCarnet?.name() == 'PERMISO_B1' || f.matricula?.permisoCarnet?.name() == 'PERMISO_B_E' || f.matricula == null}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${f.permiso}">Permiso B</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_C' || f.matricula?.permisoCarnet?.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${f.permiso}">Permiso C</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_D' || f.matricula?.permisoCarnet?.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${f.permiso}">Permiso D</span>
+                                    <span th:if="${f.matricula?.permisoCarnet?.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${f.permiso}">Permiso LVA</span>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border" th:classappend="${f.saldoClases > 0} ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'" th:text="${f.saldoClases + (f.saldoClases == 1 ? ' disponible' : ' disponibles')}">
+                                        5 disponibles
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap" th:text="${f.clasesRecibidas + (f.clasesRecibidas == 1 ? ' clase' : ' clases')}">
+                                    1 clase
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300" th:text="${f.convocatoriasGastadas + ' / 2 gastadas'}">0 / 2 gastadas</span>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span th:if="${f.matricula != null && f.matricula.estaActiva}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        Activa
+                                    </span>
+                                    <span th:unless="${f.matricula != null && f.matricula.estaActiva}" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                        Inactiva
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <!-- Botón Ver Detalles del Alumno (SVG Ojo) -->
+                                    <button type="button" th:attr="hx-get=@{/profesor/alumnos/detalle/{id}(id=${f.alumno.id})}" hx-target="#contenedor-modal-detalle-alumno" hx-swap="innerHTML" class="p-1.5 text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer" title="Mostrar datos del Alumno">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(fichasAlumnos)}">
+                                <td colspan="7" class="py-8 text-center text-slate-400">
+                                    <p class="text-xs font-medium">No tienes alumnos tutelados actualmente asignados por administración.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Visualizar Ficha Detallada del Alumno (Fragmento Dinámico HTMX) -->
+    <div id="contenedor-modal-detalle-alumno"></div>
+
+</body>
+
+</html>

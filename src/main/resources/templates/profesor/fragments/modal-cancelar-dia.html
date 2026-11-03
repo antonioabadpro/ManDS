@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+    <!-- ========================================================================= -->
+    <!-- FRAGMENTO MODAL: Cancelación Masiva de Clases Prácticas por Día           -->
+    <!-- ========================================================================= -->
+    <div th:fragment="modalCancelarDia" id="modal-cancelar-dia" role="dialog" aria-modal="true" aria-labelledby="modal-cancelar-dia-titulo" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto overflow-x-hidden">
+
+        <!-- Fondo desenfocado con cierre al hacer clic (WAI-ARIA Light-dismiss) -->
+        <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity cursor-pointer" data-modal-close="modal-cancelar-dia"></div>
+
+        <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto z-10 transition-all transform animate-in fade-in zoom-in-95 duration-150">
+
+            <!-- Cabecera del Modal -->
+            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/40">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 rounded-2xl bg-rose-600 text-white shadow-sm shadow-rose-600/30 shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l4 4m0-4l-4 4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="modal-cancelar-dia-titulo" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Cancelar Clases de la Jornada</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Cancelación masiva de clases prácticas y notificación a tus alumnos</p>
+                    </div>
+                </div>
+                <button type="button" data-modal-close="modal-cancelar-dia" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Cerrar ventana">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario de Cancelación Masiva -->
+            <form id="form-cancelar-dia" hx-post="/profesor/calendario/cancelar-dia" hx-target="#contenedor-modal" hx-swap="innerHTML" hx-disabled-elt="#btn-submit-cancelar-dia" class="p-6 space-y-5">
+
+                <!-- Selector de Fecha de Lunes a Viernes -->
+                <div class="space-y-1.5">
+                    <label for="input-fecha-cancelar-dia" class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Fecha de la jornada a cancelar
+                    </label>
+                    <input type="date" id="input-fecha-cancelar-dia" name="fecha" th:value="${fechaSeleccionada}" th:attr="min=${hoy}" hx-get="/profesor/calendario/cancelar-dia/calcular-clases" hx-target="#seccion-previa-clases" hx-swap="outerHTML" hx-trigger="change" class="w-full px-3.5 py-2.5 text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 transition cursor-pointer" />
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500">Selecciona una jornada hábil de lunes a viernes (no festivo ni examen DGT).</p>
+                </div>
+
+                <!-- Sección dinámica reactiva con el estado del día y campo de motivo -->
+                <div id="seccion-previa-clases" th:replace="~{profesor/fragments/modal-cancelar-dia :: vistaPreviaClases}"></div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- SUB-FRAGMENTO: Vista Previa, Estado y Doble Confirmación (Swap HTMX)      -->
+    <!-- ========================================================================= -->
+    <div id="seccion-previa-clases" th:fragment="vistaPreviaClases" class="space-y-4">
+
+        <!-- Campo oculto con la fecha seleccionada para el formulario POST -->
+        <input type="hidden" name="fecha" th:value="${fechaSeleccionada}" />
+
+        <!-- 1. Caso: Fecha no cancelable (Fin de semana, Festivo, Vacaciones o Examen DGT) -->
+        <div th:if="${noCancelable}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 flex items-start space-x-3 text-amber-800 dark:text-amber-200 text-xs">
+            <svg class="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="space-y-1">
+                <p class="font-bold">Fecha no cancelable</p>
+                <p class="text-[11px] leading-relaxed" th:text="${motivoNoCancelable}">Esta fecha no admite cancelación de jornada.</p>
+            </div>
+        </div>
+
+        <!-- 2. Caso: Fecha válida de lunes a viernes -->
+        <div th:if="${!noCancelable}" class="space-y-4">
+
+            <!-- Encabezado contextual con fecha formateada y conteo de pendientes -->
+            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-2 text-xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                    <span class="font-bold text-slate-900 dark:text-white" th:text="${fechaFormateada}">Lunes, 5 de octubre de 2026</span>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold" th:classappend="${clasesPendientes != null and !clasesPendientes.isEmpty()} ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700'" th:text="${clasesPendientes != null ? clasesPendientes.size() + ' pendientes' : '0 pendientes'}">
+                    0 pendientes
+                </span>
+            </div>
+
+            <!-- Caso 2.A: Sin clases prácticas pendientes para cancelar (Aviso de bloqueo preventivo) -->
+            <div th:if="${clasesPendientes == null or clasesPendientes.isEmpty()}" class="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-900/50 flex items-start space-x-3 text-blue-900 dark:text-blue-200 text-xs">
+                <svg class="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="space-y-1">
+                    <p class="font-bold">Bloqueo preventivo de jornada</p>
+                    <p class="text-[11px] leading-relaxed text-blue-700 dark:text-blue-300">No hay reservas activas en esta jornada. Al cancelar el día, quedará bloqueada de forma preventiva impidiendo futuras reservas de tus alumnos.</p>
+                </div>
+            </div>
+
+            <!-- Campo de Motivo de Cancelación Masiva -->
+            <div class="space-y-1.5">
+                <label for="motivo-cancelacion-masiva" class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Motivo de la cancelación de la jornada <span class="text-rose-500">*</span>
+                </label>
+                <textarea id="motivo-cancelacion-masiva" name="motivo" rows="3" required placeholder="Indica el motivo de la cancelación de la jornada (ej. enfermedad sobrevenida, avería imprevista del vehículo, cita médica programada)... Se remitirá por correo electrónico a todos tus alumnos asignados." class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 transition resize-none"></textarea>
+            </div>
+
+            <!-- Panel de Doble Confirmación para Cancelar Jornada (inicialmente oculto) -->
+            <div id="panel-confirmacion-cancelar-dia" class="hidden p-4 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 space-y-3">
+                <div class="flex items-start space-x-2.5 text-rose-800 dark:text-rose-200 text-xs">
+                    <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="space-y-1">
+                        <p class="font-bold">¿Confirmas la cancelación definitiva de toda la jornada?</p>
+                        <p th:if="${clasesPendientes != null and !clasesPendientes.isEmpty()}" class="text-[11px] leading-relaxed">Esta operación es <strong>irreversible</strong>. Se cancelarán las <strong th:text="${clasesPendientes.size()}">X</strong> clases actuales, se imposibilitarán las futuras reservas de clases prácticas para el día seleccionado y se notificará por correo a todos tus alumnos con el motivo expuesto.</p>
+                        <p th:if="${clasesPendientes == null or clasesPendientes.isEmpty()}" class="text-[11px] leading-relaxed">Esta operación es <strong>irreversible</strong>. Se bloqueará la jornada completa para impedir futuras reservas de clases prácticas en este día y se notificará por correo a todos tus alumnos con el motivo expuesto.</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end space-x-2 pt-2 border-t border-rose-200/60 dark:border-rose-900/40">
+                    <button type="button" id="btn-cancelar-confirmacion-dia" class="px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
+                        Volver y revisar
+                    </button>
+                    <button id="btn-submit-cancelar-dia" type="submit" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-sm shadow-rose-600/20 transition cursor-pointer flex items-center space-x-2 shrink-0">
+                        <span class="htmx-indicator-none flex items-center space-x-1.5">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        <span>Sí, Confirmar Cancelación Definitiva</span>
+                        </span>
+                        <span class="htmx-indicator items-center space-x-2">
+                            <svg class="w-4 h-4 animate-spin text-white shrink-0" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span>Cancelando y notificando...</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Botones de Acción Iniciales -->
+        <div id="contenedor-botones-cancelar-dia" class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
+            <button type="button" data-modal-close="modal-cancelar-dia" class="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer text-center">
+                Volver
+            </button>
+            <button th:if="${!noCancelable}" type="button" id="btn-pre-cancelar-dia" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs shadow-sm shadow-rose-600/20 transition cursor-pointer flex items-center justify-center space-x-2 shrink-0">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Cancelar Jornada</span>
+            </button>
+            <button th:if="${noCancelable}" type="button" disabled class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 opacity-50 cursor-not-allowed text-white font-bold text-xs shrink-0">
+                Cancelar Jornada
+            </button>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

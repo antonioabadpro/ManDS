@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Calificaciones DGT - ManDS</title>
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Favicon de la aplicación -->
+    <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
+
+    <!-- Prevención de FOUC para Tema Oscuro (Carga síncrona prioritaria) -->
+    <script src="../../static/js/tema-inicial.js" th:src="@{/js/tema-inicial.js}"></script>
+
+    <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
+
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
+    <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
+
+    <script src="../../static/js/layout.js" th:src="@{/js/layout.js}" defer></script>
+    <script src="../../static/js/alumno.js" th:src="@{/js/alumno.js}" defer></script>
+</head>
+
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-indigo-600 selection:text-white flex flex-col lg:flex-row overflow-x-hidden">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside th:replace="~{alumno/fragments/alumno-nav :: sidebar(activeSection='notas')}"></aside>
+
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 min-h-screen">
+
+        <header th:replace="~{alumno/fragments/alumno-nav :: topbar(tituloSeccion='Mis Calificaciones DGT', subtituloSeccion='Historial de resultados oficiales y consulta de notas')}"></header>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+            <!-- Banner Oficial de la Sede Electrónica DGT -->
+            <div class="rounded-3xl p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-indigo-950/40 border border-blue-200 dark:border-indigo-900/60 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                            Sede Electrónica DGT
+                        </span>
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">Informe de Faltas Detallado</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Consulta de Calificaciones Oficiales</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                        Puedes acceder a la plataforma oficial de la Dirección General de Tráfico para consultar el informe pormenorizado de faltas leves, deficientes o eliminatorias de tu prueba práctica o teórica.
+                    </p>
+                </div>
+
+                <a href="https://sedeclave.dgt.gob.es/WEB_NOTP_CONSULTA/consultaNota.faces" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 transition transform active:scale-95 shrink-0">
+                    <span>Ir a Sede Oficial DGT</span>
+                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Resumen de Métricas de Exámenes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Exámenes Realizados</span>
+                        <p class="text-2xl font-black text-slate-900 dark:text-white" th:text="${totalExamenes ?: 0}">0</p>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Exámenes Aprobados (Aptos)</span>
+                        <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400" th:text="${examenesAprobados ?: 0}">0</p>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Exámenes Suspensos (No Aptos)</span>
+                        <p class="text-2xl font-black text-rose-600 dark:text-rose-400" th:text="${examenesSuspensos ?: 0}">0</p>
+                    </div>
+                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Convocatorias</span>
+                        <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                            <span th:text="${matricula?.convocatorias ?: 0}">2</span> restantes
+                        </p>
+                    </div>
+                    <span class="text-xs text-slate-400">Gastadas: <strong th:text="${matricula?.convocatoriasGastadas ?: 0}">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Listado Detallado de Exámenes Realizados -->
+            <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Acta Oficial de Exámenes</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Registro histórico de pruebas oficiales presentadas ante la DGT</p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Fecha y Hora</th>
+                                <th class="py-3 px-4 text-center">Tipo de Prueba</th>
+                                <th class="py-3 px-4 text-center">Duración</th>
+                                <th class="py-3 px-4 text-center">Calificación Oficial</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr th:each="ex : ${examenes}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                <td class="py-3.5 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(ex.fechaHora, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span th:if="${ex.tipo.name() == 'TEORICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">
+                                        TEÓRICO
+                                    </span>
+                                    <span th:if="${ex.tipo.name() == 'PRACTICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                                        PRÁCTICO
+                                    </span>
+                                    <span th:if="${ex.tipo.name() != 'TEORICO' and ex.tipo.name() != 'PRACTICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20" th:text="${ex.tipo}">
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-center font-medium text-slate-600 dark:text-slate-300" th:text="${ex.duracion} + ' min'">30 min</td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span th:if="${ex.esApto == true}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        APTO
+                                    </span>
+                                    <span th:if="${ex.esApto == false}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                        NO APTO
+                                    </span>
+                                    <span th:if="${ex.esApto == null}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                        PENDIENTE
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${examenes == null or #lists.isEmpty(examenes)}">
+                                <td colspan="4" class="py-12 text-center text-slate-400 dark:text-slate-500 italic">
+                                    No tienes exámenes oficiales registrados en tu expediente.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+
+</html>
