@@ -2,9 +2,15 @@ package com.autoescuela.erp.usuarios.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.autoescuela.erp.core.config.CacheConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +21,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
@@ -64,21 +71,36 @@ public class AlumnoService
      *
      * @return Lista inmutable de AlumnoResumenDTO.
      */
+    @Cacheable(value = CacheConfig.CACHE_ALUMNOS)
     @Transactional(readOnly = true)
     public List<AlumnoResumenDTO> obtenerTodosLosAlumnos()
     {
         List<Alumno> listaAlumnos = this.alumnoRepository.findAllByOrderByNombreAscApellidosAsc();
-        List<AlumnoResumenDTO> listaAlumnoResumen = new ArrayList<>();
+
+        Map<Long, Integer> mapaClasesPendientes = this.clasePracticaRepository
+                .countClasesPorAlumnoAndEstado(EstadoClase.PENDIENTE)
+                .stream()
+                .collect(Collectors.toMap(
+                        fila -> (Long) fila[0],
+                        fila -> ((Number) fila[1]).intValue()
+                ));
+
+        Set<Long> alumnosConTeoricoAprobado = this.examenRepository
+                .findAlumnoIdsConExamenAprobado(TipoExamen.TEORICO);
+
+        List<AlumnoResumenDTO> listaAlumnoResumen = new ArrayList<>(listaAlumnos.size());
 
         for (Alumno alumno : listaAlumnos)
         {
-            Matricula matriculaActiva = this.matriculaRepository
-                    .findByAlumnoAndEstaActivaTrue(alumno)
-                    .orElse(null);
-            int clasesPendientes = this.clasePracticaRepository
-                    .countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE);
-            boolean teoricoAprobado = this.examenRepository
-                    .existsByAlumnoAndTipoAndEsAptoTrue(alumno, TipoExamen.TEORICO);
+            Matricula matriculaActiva = alumno.getHistorialMatriculas() != null
+                    ? alumno.getHistorialMatriculas().stream()
+                            .filter(m -> Boolean.TRUE.equals(m.getEstaActiva()))
+                            .findFirst()
+                            .orElse(null)
+                    : null;
+
+            int clasesPendientes = mapaClasesPendientes.getOrDefault(alumno.getId(), 0);
+            boolean teoricoAprobado = alumnosConTeoricoAprobado.contains(alumno.getId());
 
             listaAlumnoResumen.add(this.alumnoMapper.toAlumnoResumenDTO(alumno, matriculaActiva, clasesPendientes, teoricoAprobado));
         }
@@ -100,12 +122,15 @@ public class AlumnoService
         {
             throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
         }
-        Alumno alumno = this.alumnoRepository.findById(id)
+        Alumno alumno = this.alumnoRepository.findWithDetallesById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + id));
 
-        Matricula matriculaActiva = this.matriculaRepository
-                .findByAlumnoAndEstaActivaTrue(alumno)
-                .orElse(null);
+        Matricula matriculaActiva = alumno.getHistorialMatriculas() != null
+                ? alumno.getHistorialMatriculas().stream()
+                        .filter(m -> Boolean.TRUE.equals(m.getEstaActiva()))
+                        .findFirst()
+                        .orElse(null)
+                : null;
 
         return this.alumnoMapper.toAlumnoDetalleDTO(alumno, matriculaActiva);
     }
@@ -124,12 +149,19 @@ public class AlumnoService
         {
             return false;
         }
-        Alumno alumno = this.alumnoRepository.findById(alumnoId).orElse(null);
+        Alumno alumno = this.alumnoRepository.findWithDetallesById(alumnoId)
+                .or(() -> this.alumnoRepository.findById(alumnoId))
+                .orElse(null);
         if (alumno == null)
         {
             return false;
         }
-        Matricula matriculaActiva = this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
+        Matricula matriculaActiva = alumno.getHistorialMatriculas() != null && !alumno.getHistorialMatriculas().isEmpty()
+                ? alumno.getHistorialMatriculas().stream()
+                        .filter(m -> Boolean.TRUE.equals(m.getEstaActiva()))
+                        .findFirst()
+                        .orElse(null)
+                : this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno).orElse(null);
         if (matriculaActiva == null)
         {
             return false;
@@ -155,12 +187,15 @@ public class AlumnoService
         {
             throw new ReglaNegocioException("El identificador del alumno no puede ser nulo.");
         }
-        Alumno alumno = this.alumnoRepository.findById(id)
+        Alumno alumno = this.alumnoRepository.findWithDetallesById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el alumno con ID: " + id));
 
-        Matricula matriculaActiva = this.matriculaRepository
-                .findByAlumnoAndEstaActivaTrue(alumno)
-                .orElse(null);
+        Matricula matriculaActiva = alumno.getHistorialMatriculas() != null
+                ? alumno.getHistorialMatriculas().stream()
+                        .filter(m -> Boolean.TRUE.equals(m.getEstaActiva()))
+                        .findFirst()
+                        .orElse(null)
+                : null;
 
         long clasesRealizadas = this.clasePracticaRepository
                 .countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
@@ -210,6 +245,7 @@ public class AlumnoService
      * @param dto Parámetros de la solicitud (alumnoId, opcion, nuevoProfesorId).
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public void reasignarProfesor(ReasignarAlumnoDTO dto)
     {
         if (dto == null || dto.alumnoId() == null)
@@ -338,6 +374,7 @@ public class AlumnoService
      * @return Entidad Alumno actualizada en estado INACTIVO.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Alumno darBajaAlumno(Long alumnoId)
     {
         if (alumnoId == null)
@@ -490,22 +527,27 @@ public class AlumnoService
     {
         if (principal instanceof UserDetailsImpl userDetails)
         {
-            Optional<Alumno> alumnoOptional = this.alumnoRepository.findById(userDetails.getId());
-            if (alumnoOptional.isPresent())
+            if (userDetails.getRol() != Rol.ALUMNO)
             {
-                return alumnoOptional.get();
+                return null;
             }
+            return this.alumnoRepository.findById(userDetails.getId()).orElse(null);
         }
         else if (principal instanceof UserDetails user)
         {
-            Optional<Alumno> alumnoOptional = this.alumnoRepository.findByNombreUsuario(user.getUsername());
-            if (alumnoOptional.isPresent())
+            boolean tieneRolAlumno = user.getAuthorities() != null && user.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().contains("ALUMNO"));
+            if (!tieneRolAlumno)
             {
-                return alumnoOptional.get();
+                return null;
             }
+            return this.alumnoRepository.findByNombreUsuario(user.getUsername())
+                    .orElseGet(() -> this.alumnoRepository.findAll().stream()
+                            .filter(a -> a.getEstado() == EstadoUsuario.ACTIVO)
+                            .findFirst()
+                            .orElse(null));
         }
-        List<Alumno> todos = this.alumnoRepository.findAll();
-        return todos.isEmpty() ? null : todos.get(0);
+        return null;
     }
 
     /**
@@ -516,6 +558,7 @@ public class AlumnoService
      * @return Alumno actualizado y persistido.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Alumno actualizarPerfil(Long alumnoId, EditarPerfilAlumnoDTO dto)
     {
         if (alumnoId == null)

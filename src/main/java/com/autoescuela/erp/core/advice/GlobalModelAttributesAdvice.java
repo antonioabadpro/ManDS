@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoCombustible;
@@ -77,7 +78,7 @@ public class GlobalModelAttributesAdvice
         }
         else if (principal != null)
         {
-            Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
+            Alumno alumno = this.obtenerAlumnoSiAplica(principal);
             if (alumno != null)
             {
                 return alumno.getNombre() + " " + alumno.getApellidos();
@@ -109,11 +110,7 @@ public class GlobalModelAttributesAdvice
     @ModelAttribute("esTeoricoPractica")
     public boolean esTeoricoPractica(@AuthenticationPrincipal Object principal)
     {
-        if (principal == null)
-        {
-            return false;
-        }
-        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
+        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
         if (alumno == null)
         {
             return false;
@@ -129,11 +126,7 @@ public class GlobalModelAttributesAdvice
     @ModelAttribute("convocatoriasAgotadas")
     public boolean tieneConvocatoriasAgotadas(@AuthenticationPrincipal Object principal)
     {
-        if (principal == null)
-        {
-            return false;
-        }
-        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
+        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
         if (alumno == null)
         {
             return false;
@@ -148,16 +141,29 @@ public class GlobalModelAttributesAdvice
     @ModelAttribute("teoricoAprobado")
     public boolean teoricoAprobado(@AuthenticationPrincipal Object principal)
     {
-        if (principal == null)
-        {
-            return false;
-        }
-        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
+        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
         if (alumno == null)
         {
             return false;
         }
         return this.examenService.tieneTeoricoAprobado(alumno);
+    }
+
+    private Alumno obtenerAlumnoSiAplica(Object principal)
+    {
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            if (userDetails.getRol() != Rol.ALUMNO)
+            {
+                return null;
+            }
+            return this.alumnoService.obtenerAlumnoActual(principal);
+        }
+        else if (principal instanceof UserDetails)
+        {
+            return this.alumnoService.obtenerAlumnoActual(principal);
+        }
+        return null;
     }
 
     /**

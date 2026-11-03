@@ -8,11 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.config.CacheConfig;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
@@ -59,6 +62,7 @@ public class ExamenService
     /**
      * Recupera las solicitudes de examen más recientes para el resumen rápido del Dashboard de Administración.
      */
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'dashboard'")
     @Transactional(readOnly = true)
     public List<SolicitudExamen> obtenerSolicitudesExamenDashboard()
     {
@@ -94,6 +98,7 @@ public class ExamenService
     /**
      * Recupera todos los exámenes teóricos oficiales DGT ordenados descendentemente por fecha y hora.
      */
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'teoricos'")
     @Transactional(readOnly = true)
     public List<Examen> obtenerExamenesTeoricos()
     {
@@ -103,6 +108,7 @@ public class ExamenService
     /**
      * Recupera los exámenes prácticos asociados a los alumnos de un profesor ordenados descendentemente por fecha y hora.
      */
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'practicos_profesor_' + #profesor.id")
     @Transactional(readOnly = true)
     public List<Examen> obtenerExamenesPracticosPorProfesor(Profesor profesor)
     {
@@ -243,6 +249,7 @@ public class ExamenService
      * Registra una nueva solicitud de examen oficial para el alumno.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public SolicitudExamen registrarSolicitudExamen(Alumno alumno, TipoExamen tipo, LocalDateTime fechaHora, Matricula matricula)
     {
         if (alumno == null)
@@ -268,6 +275,7 @@ public class ExamenService
      * @return Examen calificado y persistido.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Examen calificarExamenOficial(CalificarExamenDTO dto)
     {
         if (dto == null || dto.examenId() == null)
@@ -452,6 +460,7 @@ public class ExamenService
      * Fija de manera irreversible las dos fechas oficiales de examen DGT de un mes concreto.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public FechaExamen fijarFechasExamen(LocalDate mes, LocalDateTime fechaHora1, LocalDateTime fechaHora2)
     {
         if (mes == null || fechaHora1 == null || fechaHora2 == null)
@@ -511,6 +520,7 @@ public class ExamenService
      * Fija de manera irreversible los cupos teóricos y prácticos por carnet para el mes especificado.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public List<CupoExamen> fijarCuposExamen(LocalDate mes, List<CupoExamenDTO> cupos)
     {
         if (mes == null)
@@ -550,6 +560,7 @@ public class ExamenService
     /**
      * Recupera las fechas oficiales de examen fijadas para un mes concreto.
      */
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'fechas_' + #mes")
     @Transactional(readOnly = true)
     public Optional<FechaExamen> obtenerFechasExamen(LocalDate mes)
     {
@@ -563,6 +574,7 @@ public class ExamenService
     /**
      * Recupera los cupos fijados para un mes concreto.
      */
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'cupos_' + #mes")
     @Transactional(readOnly = true)
     public List<CupoExamen> obtenerCuposExamen(LocalDate mes)
     {
@@ -785,6 +797,7 @@ public class ExamenService
      * Operación irreversible.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria, LocalDate mes)
     {
         if (solicitudId == null)
@@ -906,6 +919,7 @@ public class ExamenService
      * Operación irreversible.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public SolicitudExamen rechazarSolicitudExamen(Long solicitudId, String comentarioJustificacion)
     {
         if (solicitudId == null)

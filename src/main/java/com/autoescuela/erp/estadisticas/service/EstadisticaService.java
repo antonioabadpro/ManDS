@@ -3,7 +3,10 @@ package com.autoescuela.erp.estadisticas.service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import org.springframework.cache.annotation.Cacheable;
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +75,7 @@ public class EstadisticaService
      * @return DTO con los totales agregados en tiempo real.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_DASHBOARD)
     public EstadisticasAutoescuelaDTO obtenerEstadisticasDashboardAdmin()
     {
         long totalAlumnos = this.alumnoRepository.countByEstado(EstadoUsuario.ACTIVO);
@@ -98,6 +102,7 @@ public class EstadisticaService
      * @return DTO contenedor inmutable con todos los bloques de datos consolidados.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_ADMIN)
     public EstadisticasAdminDTO obtenerEstadisticasAdmin()
     {
         List<Matricula> todasMatriculas = this.matriculaRepository.findAll();
@@ -114,7 +119,7 @@ public class EstadisticaService
 
         List<ClasePractica> todasClases = this.clasePracticaRepository.findAll();
 
-        List<RendimientoProfesorResumenDTO> todosProfesores = this.calcularTarjetaRendimientoProfesores();
+        List<RendimientoProfesorResumenDTO> todosProfesores = this.calcularTarjetaRendimientoProfesores(todasClases, todosExamenes);
         List<RendimientoProfesorResumenDTO> topProfesores = new ArrayList<>(todosProfesores.subList(0, Math.min(3, todosProfesores.size()))
         );
 
@@ -382,7 +387,9 @@ public class EstadisticaService
      * Evalúa el rendimiento individual de cada profesor según clases impartidas, horas de conducción y tasa de aptos DGT.
      * Utilizado en las Estadísticas del Administrador
      */
-    private List<RendimientoProfesorResumenDTO> calcularTarjetaRendimientoProfesores()
+    private List<RendimientoProfesorResumenDTO> calcularTarjetaRendimientoProfesores(
+            List<ClasePractica> todasClases,
+            List<Examen> todosExamenes)
     {
         List<Profesor> listaProfesores = this.profesorRepository.findAll();
         List<RendimientoProfesorResumenDTO> todosProfesores = new ArrayList<>();
@@ -391,7 +398,19 @@ public class EstadisticaService
         {
             if (prof.getEstado() == EstadoUsuario.ACTIVO)
             {
-                List<ClasePractica> clasesProf = this.clasePracticaRepository.findByProfesorAndEstadoClase(prof, EstadoClase.RECIBIDA);
+                List<ClasePractica> clasesProf = new ArrayList<>();
+                if (todasClases != null)
+                {
+                    for (ClasePractica cp : todasClases)
+                    {
+                        boolean esDeProfesor = cp.getProfesor() != null &&
+                                ((prof.getId() != null && cp.getProfesor().getId() != null && Objects.equals(cp.getProfesor().getId(), prof.getId())) || cp.getProfesor().equals(prof));
+                        if (esDeProfesor && cp.getEstadoClase() == EstadoClase.RECIBIDA)
+                        {
+                            clasesProf.add(cp);
+                        }
+                    }
+                }
                 long clasesImpartidas = clasesProf.size();
                 int minutosProf = 0;
                 for (ClasePractica cp : clasesProf)
@@ -401,7 +420,19 @@ public class EstadisticaService
                 double horasConduccionProf = Math.round((minutosProf / 60.0) * 10.0) / 10.0;
                 long alumnosAsignados = prof.getListaAlumnos() != null ? prof.getListaAlumnos().size() : 0;
 
-                List<Examen> examenesProf = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(prof);
+                List<Examen> examenesProf = new ArrayList<>();
+                if (todosExamenes != null)
+                {
+                    for (Examen ex : todosExamenes)
+                    {
+                        boolean esDeAlumnoDeProf = ex.getAlumno() != null && ex.getAlumno().getProfesor() != null &&
+                                ((prof.getId() != null && ex.getAlumno().getProfesor().getId() != null && Objects.equals(ex.getAlumno().getProfesor().getId(), prof.getId())) || ex.getAlumno().getProfesor().equals(prof));
+                        if (esDeAlumnoDeProf)
+                        {
+                            examenesProf.add(ex);
+                        }
+                    }
+                }
                 long aptosProf = 0;
                 long noAptosProf = 0;
                 for (Examen ex : examenesProf)
@@ -540,6 +571,7 @@ public class EstadisticaService
      * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_ALUMNO, key = "#alumno.id")
     public EstadisticasAlumnoDTO obtenerEstadisticasAlumno(Alumno alumno)
     {
         if (alumno == null)
@@ -727,6 +759,7 @@ public class EstadisticaService
      * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_PROFESOR, key = "#profesor.id")
     public EstadisticasProfesorDTO obtenerEstadisticasProfesor(Profesor profesor)
     {
         if (profesor == null)
@@ -769,7 +802,7 @@ public class EstadisticaService
         ConvocatoriasAprobadosProfesorDTO convocatoriasDTO = this.calcularTarjetaConvocatoriasAprobadosProfesor(examenesProfesor);
 
         // Tarjeta Desglose 4: Clases prácticas previas al aprobado
-        ClasesPreviasAprobadoProfesorDTO clasesPreviasDTO = this.calcularTarjetaClasesPreviasAprobadoProfesor(examenesProfesor);
+        ClasesPreviasAprobadoProfesorDTO clasesPreviasDTO = this.calcularTarjetaClasesPreviasAprobadoProfesor(examenesProfesor, clasesProfesor);
 
         return new EstadisticasProfesorDTO(
                 examenesDTO,
@@ -948,7 +981,17 @@ public class EstadisticaService
                     }
                     alumnosAprobadosProcesados.add(claveAlumno);
 
-                    List<Examen> examenesAlumno = this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+                    List<Examen> examenesAlumno = new ArrayList<>();
+                    if (examenesProfesor != null)
+                    {
+                        for (Examen exAl : examenesProfesor)
+                        {
+                            if (exAl.getAlumno() != null && Objects.equals(exAl.getAlumno().getId(), alumno.getId()))
+                            {
+                                examenesAlumno.add(exAl);
+                            }
+                        }
+                    }
                     int convocatoriasNecesarias = 0;
 
                     if (examenesAlumno != null && !examenesAlumno.isEmpty())
@@ -1008,7 +1051,7 @@ public class EstadisticaService
      * Computa la media, el mínimo y el máximo de clases prácticas recibidas por los alumnos antes de aprobar.
      * Utilizado en las Estadísticas del Profesor
      */
-    private ClasesPreviasAprobadoProfesorDTO calcularTarjetaClasesPreviasAprobadoProfesor(List<Examen> examenesProfesor)
+    private ClasesPreviasAprobadoProfesorDTO calcularTarjetaClasesPreviasAprobadoProfesor(List<Examen> examenesProfesor, List<ClasePractica> clasesProfesor)
     {
         List<Integer> clasesPorAlumno = new ArrayList<>();
 
@@ -1033,7 +1076,17 @@ public class EstadisticaService
                     }
                     alumnosAprobadosProcesados.add(claveAlumno);
 
-                    List<ClasePractica> clasesRecibidas = this.clasePracticaRepository.findByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA);
+                    List<ClasePractica> clasesRecibidas = new ArrayList<>();
+                    if (clasesProfesor != null)
+                    {
+                        for (ClasePractica cp : clasesProfesor)
+                        {
+                            if (cp.getAlumno() != null && Objects.equals(cp.getAlumno().getId(), alumno.getId()) && cp.getEstadoClase() == EstadoClase.RECIBIDA)
+                            {
+                                clasesRecibidas.add(cp);
+                            }
+                        }
+                    }
                     int clasesAntesDeAprobar = 0;
 
                     if (clasesRecibidas != null)

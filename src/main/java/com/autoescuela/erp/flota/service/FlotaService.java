@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
@@ -30,6 +34,7 @@ public class FlotaService
     /**
      * Obtiene el listado completo de vehículos del parque móvil mapeados a su DTO de resumen.
      */
+    @Cacheable(value = CacheConfig.CACHE_FLOTA)
     @Transactional(readOnly = true)
     public List<VehiculoResumenDTO> obtenerTodosLosVehiculos()
     {
@@ -42,6 +47,7 @@ public class FlotaService
     /**
      * Obtiene los vehículos disponibles y sin profesor asignado para la creación o asignación a un profesor.
      */
+    @Cacheable(value = CacheConfig.CACHE_FLOTA, key = "'disponibles'")
     @Transactional(readOnly = true)
     public List<Vehiculo> obtenerVehiculosDisponiblesParaProfesor()
     {
@@ -71,6 +77,7 @@ public class FlotaService
     /**
      * Obtiene los vehículos principales para el resumen rápido del Dashboard de Administración.
      */
+    @Cacheable(value = CacheConfig.CACHE_FLOTA, key = "'dashboard'")
     @Transactional(readOnly = true)
     public List<Vehiculo> obtenerVehiculosDashboard()
     {
@@ -101,6 +108,7 @@ public class FlotaService
      * @throws ReglaNegocioException Si ya existe un vehículo con la misma matrícula.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Vehiculo darAltaVehiculo(AltaVehiculoDTO dto)
     {
         if (dto == null)
@@ -239,6 +247,7 @@ public class FlotaService
      * @throws ReglaNegocioException Si se vulnera alguna de las restricciones de dominio.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Vehiculo modificarVehiculo(EditarVehiculoDTO dto)
     {
         if (dto == null || dto.id() == null)
@@ -344,6 +353,7 @@ public class FlotaService
      * @throws ReglaNegocioException Si se incumple alguna restricción de dominio.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Vehiculo darBajaVehiculo(Long id)
     {
         if (id == null)
@@ -398,6 +408,7 @@ public class FlotaService
      * @return Vehículo persistido.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Vehiculo guardar(Vehiculo vehiculo)
     {
         return this.vehiculoRepository.save(vehiculo);

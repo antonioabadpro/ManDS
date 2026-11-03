@@ -1,6 +1,8 @@
 package com.autoescuela.erp.practicas.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.time.DayOfWeek;
@@ -104,7 +106,7 @@ class CalendarioServiceTest
 
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(List.of(examenDgt));
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(new ArrayList<>());
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioProfesor(profesor, lunes);
@@ -171,7 +173,7 @@ class CalendarioServiceTest
                 .thenReturn(1);
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(List.of(clasePropia, claseAjena));
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumnoActual, lunes);
@@ -226,7 +228,7 @@ class CalendarioServiceTest
                 .thenReturn(0);
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(List.of(claseCancelada));
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumnoActual, lunes);
@@ -264,7 +266,7 @@ class CalendarioServiceTest
                 .thenReturn(0);
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(new ArrayList<>());
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumno, lunesFestivo);
@@ -312,7 +314,7 @@ class CalendarioServiceTest
                 .thenReturn(0);
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(new ArrayList<>());
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumno, lunesAgosto);
@@ -354,7 +356,7 @@ class CalendarioServiceTest
 
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(List.of(claseCancelada));
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioProfesor(profesor, lunes);
@@ -389,7 +391,7 @@ class CalendarioServiceTest
 
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(List.of(claseRecibida));
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioProfesor(profesor, lunes);
@@ -451,7 +453,7 @@ class CalendarioServiceTest
                 .thenReturn(0);
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
                 .thenReturn(new ArrayList<>());
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
                 .thenReturn(List.of(clasePropiaCancelada, claseAjenaCancelada));
 
         CalendarioSemanalDTO resultado = this.calendarioService.obtenerCalendarioAlumno(alumnoActual, lunes);

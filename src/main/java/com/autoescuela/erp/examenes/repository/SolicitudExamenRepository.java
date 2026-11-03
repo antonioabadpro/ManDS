@@ -3,6 +3,7 @@ package com.autoescuela.erp.examenes.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -61,11 +62,14 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
     /**
      * Recupera las últimas 5 solicitudes de examen ordenadas por ID descendente.
      */
+    @EntityGraph(attributePaths = {"alumno", "profesor", "matricula", "examen"})
     List<SolicitudExamen> findTop5ByOrderByIdDesc();
 
     /**
-     * Recupera las solicitudes de examen en un determinado estado ordenadas cronológicamente (FIFO).
+     * Recupera las solicitudes de examen en un determinado estado ordenadas cronológicamente (FIFO),
+     * precargando todas sus relaciones para evitar consultas N+1 en las tablas de gestión.
      */
+    @EntityGraph(attributePaths = {"alumno", "profesor", "matricula", "examen"})
     List<SolicitudExamen> findByEstadoOrderByFechaHoraAsc(EstadoSolicitud estado);
 
     /**
@@ -84,6 +88,7 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
     /**
      * Búsqueda transversal de solicitudes de examen con filtros opcionales ordenadas cronológicamente por FIFO.
      */
+    @EntityGraph(attributePaths = {"alumno", "matricula", "profesor", "examen"})
     @Query("SELECT s FROM SolicitudExamen s " +
            "JOIN s.alumno a " +
            "JOIN s.matricula m " +

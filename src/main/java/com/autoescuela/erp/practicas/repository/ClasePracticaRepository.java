@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,8 +26,10 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     List<ClasePractica> findByProfesorIdOrderByFechaHoraAsc(Long profesorId);
 
     /**
-     * Recupera las clases prácticas de un profesor dentro de una ventana temporal concreta ordenadas ascendentemente (de más reciente a más antigua).
+     * Recupera las clases prácticas de un profesor dentro de una ventana temporal concreta ordenadas ascendentemente (de más reciente a más antigua),
+     * precargando la entidad del alumno para evitar consultas N+1 en cuadrículas de calendario.
      */
+    @EntityGraph(attributePaths = {"alumno"})
     List<ClasePractica> findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(Profesor profesor, LocalDateTime inicio, LocalDateTime fin);
 
     /**
@@ -60,8 +63,10 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
     List<ClasePractica> findByAlumnoOrderByFechaHoraDesc(Alumno alumno);
 
     /**
-     * Recupera las últimas 3 clases prácticas asociadas a un alumno ordenadas descendentemente por fecha/hora.
+     * Recupera las últimas 3 clases prácticas asociadas a un alumno ordenadas descendentemente por fecha/hora,
+     * precargando el profesor y su vehículo para evitar consultas N+1 en modales de expediente.
      */
+    @EntityGraph(attributePaths = {"profesor", "profesor.vehiculo"})
     List<ClasePractica> findTop3ByAlumnoOrderByFechaHoraDesc(Alumno alumno);
 
     /**
@@ -81,6 +86,20 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
      * Contabiliza las clases de un alumno en un determinado estado (RECIBIDA, PENDIENTE, CANCELADA).
      */
     int countByAlumnoAndEstadoClase(Alumno alumno, EstadoClase estadoClase);
+
+    /**
+     * Contabiliza las clases prácticas por alumno en un determinado estado agrupadas en una única consulta batch.
+     * Retorna una lista de tuplas [alumnoId, count].
+     */
+    @Query("SELECT cp.alumno.id, COUNT(cp) FROM ClasePractica cp WHERE cp.estadoClase = :estadoClase GROUP BY cp.alumno.id")
+    List<Object[]> countClasesPorAlumnoAndEstado(@Param("estadoClase") EstadoClase estadoClase);
+
+    /**
+     * Contabiliza las clases prácticas por profesor en un determinado estado agrupadas en una única consulta batch.
+     * Retorna una lista de tuplas [profesorId, count].
+     */
+    @Query("SELECT cp.profesor.id, COUNT(cp) FROM ClasePractica cp WHERE cp.estadoClase = :estadoClase AND cp.profesor IS NOT NULL GROUP BY cp.profesor.id")
+    List<Object[]> countClasesPorProfesorAndEstado(@Param("estadoClase") EstadoClase estadoClase);
 
     /**
      * Contabiliza el total de clases asociadas a un alumno.

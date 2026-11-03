@@ -3,6 +3,7 @@ package com.autoescuela.erp.usuarios.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +15,10 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 public interface ProfesorRepository extends JpaRepository<Profesor, Long>
 {
     /**
-     * Recupera todos los profesores ordenados alfabéticamente por nombre y apellidos.
+     * Recupera todos los profesores ordenados alfabéticamente por nombre y apellidos,
+     * precargando su vehículo asignado y su lista de permisos de conducción para evitar N+1.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     List<Profesor> findAllByOrderByNombreAscApellidosAsc();
 
     /**
@@ -34,6 +37,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga en sustituciones)
      * y por nombre y apellidos en caso de empate.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     @Query("""
         SELECT p FROM Profesor p
         WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
@@ -46,6 +50,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * Recupera todos los profesores en estado ACTIVO ordenados ascendentemente por número de alumnos asignados
      * y por nombre y apellidos en caso de empate.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     @Query("""
         SELECT p FROM Profesor p
         WHERE p.estado = com.autoescuela.erp.core.enums.EstadoUsuario.ACTIVO
@@ -58,6 +63,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * con el tipo de carnet especificado, ordenados ascendentemente por número de alumnos asignados
      * (para balanceo de carga) y por nombre y apellidos en caso de empate.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     @Query("""
         SELECT p FROM Profesor p
         JOIN p.vehiculo v
@@ -73,6 +79,7 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
      * ordenados ascendentemente por número de alumnos asignados (para balanceo de carga)
      * y por nombre y apellidos en caso de empate.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     @Query("""
         SELECT p FROM Profesor p
         JOIN p.vehiculo v

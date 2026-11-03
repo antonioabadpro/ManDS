@@ -3,11 +3,16 @@ package com.autoescuela.erp.usuarios.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.autoescuela.erp.core.config.CacheConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +23,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
@@ -70,6 +76,7 @@ public class ProfesorService
      * @throws ReglaNegocioException Si el DNI, correo o teléfono ya están registrados, o el vehículo está ocupado.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Profesor darAltaProfesor(AltaProfesorDTO dto, String baseUrl)
     {
         final int duracionTokenMinutos = 60; // Duración del token de activación en minutos (1 hora)
@@ -183,13 +190,35 @@ public class ProfesorService
      * Obtiene la lista completa de profesores registrados en la base de datos
      * proyectados como DTOs de resumen para visualización reactiva en tiempo real.
      */
+    @Cacheable(value = CacheConfig.CACHE_PROFESORES)
     @Transactional(readOnly = true)
     public List<ProfesorResumenDTO> obtenerTodosLosProfesores()
     {
-        return this.profesorRepository.findAllByOrderByNombreAscApellidosAsc()
+        List<Profesor> profesores = this.profesorRepository.findAllByOrderByNombreAscApellidosAsc();
+
+        Map<Long, Integer> mapaAlumnos = this.alumnoRepository.countAlumnosPorProfesor()
                 .stream()
-                .map(this.profesorMapper::toProfesorResumenDTO)
-                .toList();
+                .collect(Collectors.toMap(
+                        fila -> (Long) fila[0],
+                        fila -> ((Number) fila[1]).intValue()
+                ));
+
+        Map<Long, Integer> mapaClasesPendientes = this.clasePracticaRepository.countClasesPorProfesorAndEstado(EstadoClase.PENDIENTE)
+                .stream()
+                .collect(Collectors.toMap(
+                        fila -> (Long) fila[0],
+                        fila -> ((Number) fila[1]).intValue()
+                ));
+
+        List<ProfesorResumenDTO> listaResumen = new ArrayList<>(profesores.size());
+        for (Profesor p : profesores)
+        {
+            int totalAlumnos = mapaAlumnos.getOrDefault(p.getId(), 0);
+            int totalClases = mapaClasesPendientes.getOrDefault(p.getId(), 0);
+            listaResumen.add(this.profesorMapper.toProfesorResumenDTO(p, totalAlumnos, totalClases));
+        }
+
+        return listaResumen;
     }
 
     /**
@@ -265,6 +294,7 @@ public class ProfesorService
      * @return Entidad Profesor actualizada.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor modificarProfesor(EditarProfesorDTO dto)
     {
         if (dto == null || dto.id() == null)
@@ -411,6 +441,7 @@ public class ProfesorService
      * @return Entidad Profesor en estado INACTIVO.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor darBajaProfesor(BajaProfesorDTO dto)
     {
         if (dto == null || dto.profesorId() == null)
@@ -546,6 +577,7 @@ public class ProfesorService
      * @return Entidad Profesor reactivada en estado ACTIVO.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public Profesor reactivarProfesor(Long id)
     {
         if (id == null)
@@ -707,22 +739,27 @@ public class ProfesorService
     {
         if (principal instanceof UserDetailsImpl userDetails)
         {
-            Optional<Profesor> profesorOptional = this.profesorRepository.findById(userDetails.getId());
-            if (profesorOptional.isPresent())
+            if (userDetails.getRol() != Rol.PROFESOR)
             {
-                return profesorOptional.get();
+                return null;
             }
+            return this.profesorRepository.findById(userDetails.getId()).orElse(null);
         }
         else if (principal instanceof UserDetails user)
         {
-            Optional<Profesor> profesorOptional = this.profesorRepository.findByNombreUsuario(user.getUsername());
-            if (profesorOptional.isPresent())
+            boolean tieneRolProfesor = user.getAuthorities() != null && user.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().contains("PROFESOR"));
+            if (!tieneRolProfesor)
             {
-                return profesorOptional.get();
+                return null;
             }
+            return this.profesorRepository.findByNombreUsuario(user.getUsername())
+                    .orElseGet(() -> this.profesorRepository.findAll().stream()
+                            .filter(p -> p.getEstado() == EstadoUsuario.ACTIVO)
+                            .findFirst()
+                            .orElse(null));
         }
-        List<Profesor> todos = this.profesorRepository.findAll();
-        return todos.isEmpty() ? null : todos.get(0);
+        return null;
     }
 
     /**
@@ -733,6 +770,7 @@ public class ProfesorService
      * @return Profesor actualizado y persistido.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor actualizarPerfil(Long profesorId, EditarPerfilProfesorDTO dto)
     {
         if (profesorId == null)

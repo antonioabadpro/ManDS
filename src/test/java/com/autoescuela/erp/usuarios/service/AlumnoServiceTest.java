@@ -2,6 +2,7 @@ package com.autoescuela.erp.usuarios.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
 import com.autoescuela.erp.usuarios.dto.ReasignarAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -248,5 +250,46 @@ class AlumnoServiceTest
         matPractica.setEstaActiva(true);
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matPractica));
         assertTrue(this.alumnoService.puedeTenerProfesorAsignado(alumnoId));
+    }
+
+    @Test
+    @DisplayName("obtenerTodosLosAlumnos optimiza consultas agrupando clases pendientes y aprobados teóricos en batch")
+    void testObtenerTodosLosAlumnosOptimizado()
+    {
+        Alumno alumno1 = new Alumno();
+        ReflectionTestUtils.setField(alumno1, "id", 200L);
+        alumno1.setNombre("Carlos");
+        alumno1.setApellidos("Pérez");
+        Matricula mat1 = new Matricula();
+        mat1.setEstaActiva(true);
+        alumno1.setHistorialMatriculas(List.of(mat1));
+
+        Alumno alumno2 = new Alumno();
+        ReflectionTestUtils.setField(alumno2, "id", 201L);
+        alumno2.setNombre("Ana");
+        alumno2.setApellidos("García");
+        alumno2.setHistorialMatriculas(List.of());
+
+        when(this.alumnoRepository.findAllByOrderByNombreAscApellidosAsc()).thenReturn(List.of(alumno1, alumno2));
+        List<Object[]> listaConteo = new java.util.ArrayList<>();
+        listaConteo.add(new Object[]{200L, 3L});
+        when(this.clasePracticaRepository.countClasesPorAlumnoAndEstado(EstadoClase.PENDIENTE))
+                .thenReturn(listaConteo);
+        when(this.examenRepository.findAlumnoIdsConExamenAprobado(TipoExamen.TEORICO))
+                .thenReturn(Set.of(200L));
+
+        AlumnoResumenDTO dto1 = new AlumnoResumenDTO(200L, "Carlos", "Pérez", "Carlos Pérez", "CP", 20, "12345678Z", "carlos@test.es", EstadoUsuario.ACTIVO, null, null, null, true, TipoCarnet.PERMISO_B, "Teórico-Práctica", 3, 3, 2, true, true);
+        AlumnoResumenDTO dto2 = new AlumnoResumenDTO(201L, "Ana", "García", "Ana García", "AG", 22, "87654321A", "ana@test.es", EstadoUsuario.ACTIVO, null, null, null, false, null, null, null, 0, null, false, false);
+
+        when(this.alumnoMapper.toAlumnoResumenDTO(alumno1, mat1, 3, true)).thenReturn(dto1);
+        when(this.alumnoMapper.toAlumnoResumenDTO(alumno2, null, 0, false)).thenReturn(dto2);
+
+        List<AlumnoResumenDTO> resultado = this.alumnoService.obtenerTodosLosAlumnos();
+
+        assertEquals(2, resultado.size());
+        assertEquals("Carlos Pérez", resultado.get(0).nombreCompleto());
+        assertEquals("Ana García", resultado.get(1).nombreCompleto());
+        verify(this.clasePracticaRepository).countClasesPorAlumnoAndEstado(EstadoClase.PENDIENTE);
+        verify(this.examenRepository).findAlumnoIdsConExamenAprobado(TipoExamen.TEORICO);
     }
 }

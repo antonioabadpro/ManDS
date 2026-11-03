@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.autoescuela.erp.academico.model.Matricula;
-import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.examenes.model.Examen;
@@ -52,7 +50,6 @@ public class ProfesorController
 {
     private final ProfesorService profesorService;
     private final AlumnoService alumnoService;
-    private final AcademicoService academicoService;
     private final ExamenService examenService;
     private final ClasePracticaService clasePracticaService;
     private final ProfesorMapper profesorMapper;
@@ -141,10 +138,14 @@ public class ProfesorController
             Map<String, Object> ficha = new HashMap<>();
             ficha.put("alumno", alumno);
 
-            Optional<Matricula> matriculaOptional = this.academicoService.buscarMatriculaActiva(alumno);
-            if (matriculaOptional.isPresent())
+            Matricula matricula = (alumno.getHistorialMatriculas() != null)
+                    ? alumno.getHistorialMatriculas().stream()
+                            .filter(m -> Boolean.TRUE.equals(m.getEstaActiva()))
+                            .findFirst()
+                            .orElse(null)
+                    : null;
+            if (matricula != null)
             {
-                Matricula matricula = matriculaOptional.get();
                 ficha.put("matricula", matricula);
                 ficha.put("saldoClases", matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0);
                 ficha.put("convocatoriasGastadas", matricula.getConvocatoriasGastadas() != null ? matricula.getConvocatoriasGastadas() : 0);

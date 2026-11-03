@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
@@ -51,6 +54,7 @@ public class CalendarioService
     /**
      * Ensambla la estructura semanal completa para la agenda del profesor autenticado.
      */
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
     public CalendarioSemanalDTO obtenerCalendarioProfesor(Profesor profesor, LocalDate fechaReferencia)
     {
         LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : LocalDate.now();
@@ -63,8 +67,11 @@ public class CalendarioService
 
         Set<LocalDate> diasConExamenDgt = this.obtenerDiasConExamenDgt(profesor);
 
+        LocalDateTime inicioSemana = lunes.atStartOfDay();
+        LocalDateTime finSemana = viernes.atTime(23, 59, 59);
+
         List<ClasePractica> clases = (profesor != null)
-                ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
+                ? this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioSemana, finSemana)
                 : new ArrayList<>();
 
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clases);
@@ -105,6 +112,7 @@ public class CalendarioService
      * Ensambla la estructura semanal completa para la agenda del alumno autenticado,
      * aplicando el filtro de privacidad de datos RGPD ("Clase Práctica") y control de reservas.
      */
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'alum_' + (#alumno != null ? #alumno.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
     public CalendarioSemanalDTO obtenerCalendarioAlumno(Alumno alumno, LocalDate fechaReferencia)
     {
         LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : LocalDate.now();
@@ -136,8 +144,11 @@ public class CalendarioService
 
         Set<LocalDate> diasConExamenDgt = this.obtenerDiasConExamenDgt(profesor);
 
+        LocalDateTime inicioSemana = lunes.atStartOfDay();
+        LocalDateTime finSemana = viernes.atTime(23, 59, 59);
+
         List<ClasePractica> clasesProfesor = (profesor != null)
-                ? this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)
+                ? this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicioSemana, finSemana)
                 : new ArrayList<>();
 
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clasesProfesor);

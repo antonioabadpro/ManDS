@@ -22,6 +22,12 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
     Optional<Alumno> findByDni(String dni);
 
     /**
+     * Recupera un alumno precargando su profesor, vehículo y matrículas para modales de detalle y expediente.
+     */
+    @EntityGraph(attributePaths = {"profesor", "profesor.vehiculo", "historialMatriculas"})
+    Optional<Alumno> findWithDetallesById(Long id);
+
+    /**
      * Busca un alumno a partir de su nombre de usuario.
      *
      * @param nombreUsuario Nombre de usuario único del alumno.
@@ -57,12 +63,20 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
     /**
      * Recupera todos los alumnos asignados a un profesor determinado.
      */
+    @EntityGraph(attributePaths = {"historialMatriculas"})
     List<Alumno> findByProfesor(Profesor profesor);
 
     /**
      * Recupera todos los alumnos tutelados por el identificador del profesor.
      */
+    @EntityGraph(attributePaths = {"historialMatriculas"})
     List<Alumno> findByProfesorId(Long profesorId);
+
+    /**
+     * Contabiliza los alumnos asignados por profesor en una única consulta batch agrupada.
+     */
+    @Query("SELECT a.profesor.id, COUNT(a) FROM Alumno a WHERE a.profesor IS NOT NULL GROUP BY a.profesor.id")
+    List<Object[]> countAlumnosPorProfesor();
 
     /**
      * Cuenta el número de alumnos activos en el sistema

@@ -3,6 +3,7 @@ package com.autoescuela.erp.flota.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
@@ -38,11 +39,13 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
     /**
      * Recupera los primeros 5 vehículos ordenados por ID para el resumen del dashboard.
      */
+    @EntityGraph(attributePaths = {"profesor"})
     List<Vehiculo> findTop5ByOrderByIdAsc();
 
     /**
      * Recupera todos los vehículos ordenados por TipoCarnet para la gestión del parque móvil.
      */
+    @EntityGraph(attributePaths = {"profesor"})
     List<Vehiculo> findAllByOrderByTipoPermisoAsc();
 
     /**

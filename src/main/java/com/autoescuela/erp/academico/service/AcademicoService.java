@@ -8,7 +8,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
@@ -44,6 +46,7 @@ public class AcademicoService
      * @return La matrícula formalizada.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Matricula matricularTrasPago(Long alumnoId, String tipoCarnet_string, ModalidadMatricula modalidad, float importeTotal)
     {
         if (alumnoId == null)
@@ -129,6 +132,7 @@ public class AcademicoService
      * @throws ReglaNegocioException Si el alumno o su matrícula activa no existen.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Matricula recargarSaldoClasesTrasPago(Long idAlumno, int numeroClases, String sessionId)
     {
         if (idAlumno == null)
@@ -182,6 +186,7 @@ public class AcademicoService
      * @return Matrícula renovada.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Matricula renovarMatriculaTrasPago(Long alumnoId, String sessionId, float importeTotal)
     {
         if (alumnoId == null)

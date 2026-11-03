@@ -3,8 +3,12 @@ package com.autoescuela.erp.flota.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
@@ -50,6 +54,7 @@ public class IncidenciaVehiculoService
      * Recupera todas las incidencias de flota ordenadas por estado (PENDIENTE, EN_PROCESO, RESUELTA)
      * y de forma secundaria por fecha/hora ascendente.
      */
+    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS)
     @Transactional(readOnly = true)
     public List<IncidenciaResumenDTO> obtenerTodasLasIncidencias()
     {
@@ -98,6 +103,7 @@ public class IncidenciaVehiculoService
      * @return Entidad IncidenciaVehiculo actualizada.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public IncidenciaVehiculo gestionarIncidencia(Long id, EstadoIncidencia nuevoEstado)
     {
         if (id == null)
@@ -255,6 +261,7 @@ public class IncidenciaVehiculoService
      * @return IncidenciaVehiculo registrada en estado PENDIENTE.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
     public IncidenciaVehiculo reportarIncidencia(Profesor profesor, Vehiculo vehiculo, ReportarIncidenciaDTO dto, String baseUrl)
     {
         if (profesor == null)

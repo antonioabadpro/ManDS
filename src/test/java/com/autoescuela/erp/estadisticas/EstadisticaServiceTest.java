@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
@@ -148,14 +149,19 @@ class EstadisticaServiceTest
 
         // 4. Mock de profesores
         Profesor p1 = new Profesor();
+        ReflectionTestUtils.setField(p1, "id", 10L);
         p1.setNombre("Laura");
         p1.setApellidos("Sánchez");
         p1.setEstado(EstadoUsuario.ACTIVO);
         p1.setTurno(TipoTurno.MATINAL);
 
+        Alumno a1 = new Alumno();
+        ReflectionTestUtils.setField(a1, "id", 20L);
+        a1.setProfesor(p1);
+        ex1.setAlumno(a1);
+        cp1.setProfesor(p1);
+
         when(this.profesorRepository.findAll()).thenReturn(List.of(p1));
-        when(this.clasePracticaRepository.findByProfesorAndEstadoClase(p1, EstadoClase.RECIBIDA)).thenReturn(List.of(cp1));
-        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(p1)).thenReturn(List.of(ex1));
 
         EstadisticasAdminDTO resultado = this.estadisticaService.obtenerEstadisticasAdmin();
 
@@ -309,14 +315,14 @@ class EstadisticaServiceTest
     void testObtenerEstadisticasProfesor_ConvocatoriasYClasesPreviasDetalladas()
     {
         Profesor profesor = new Profesor();
+        ReflectionTestUtils.setField(profesor, "id", 5L);
         profesor.setNombre("Marta");
         profesor.setApellidos("Díaz");
 
-        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
-                .thenReturn(List.of());
-
         // Alumno 1: Aprobado en 1ª convocatoria con 10 clases
         Alumno a1 = new Alumno();
+        ReflectionTestUtils.setField(a1, "id", 1L);
+        a1.setProfesor(profesor);
         a1.setNombre("Alumno1");
         a1.setDni("11111111A");
         Examen exA1 = new Examen();
@@ -324,10 +330,9 @@ class EstadisticaServiceTest
         exA1.setEsApto(true);
         exA1.setFechaHora(LocalDateTime.of(2026, 10, 1, 10, 0));
 
-        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a1))
-                .thenReturn(List.of(exA1));
-
         ClasePractica cpA1 = new ClasePractica();
+        cpA1.setAlumno(a1);
+        cpA1.setProfesor(profesor);
         cpA1.setEstadoClase(EstadoClase.RECIBIDA);
         cpA1.setFechaHora(LocalDateTime.of(2026, 9, 25, 10, 0));
         List<ClasePractica> clasesA1 = new ArrayList<>();
@@ -335,11 +340,11 @@ class EstadisticaServiceTest
         {
             clasesA1.add(cpA1);
         }
-        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a1, EstadoClase.RECIBIDA))
-                .thenReturn(clasesA1);
 
         // Alumno 2: Suspenso previo + Aprobado en 2ª convocatoria con 20 clases
         Alumno a2 = new Alumno();
+        ReflectionTestUtils.setField(a2, "id", 2L);
+        a2.setProfesor(profesor);
         a2.setNombre("Alumno2");
         a2.setDni("22222222B");
         Examen exA2_1 = new Examen();
@@ -352,10 +357,9 @@ class EstadisticaServiceTest
         exA2_2.setEsApto(true);
         exA2_2.setFechaHora(LocalDateTime.of(2026, 10, 5, 10, 0));
 
-        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a2))
-                .thenReturn(List.of(exA2_2, exA2_1));
-
         ClasePractica cpA2 = new ClasePractica();
+        cpA2.setAlumno(a2);
+        cpA2.setProfesor(profesor);
         cpA2.setEstadoClase(EstadoClase.RECIBIDA);
         cpA2.setFechaHora(LocalDateTime.of(2026, 9, 20, 10, 0));
         List<ClasePractica> clasesA2 = new ArrayList<>();
@@ -363,11 +367,11 @@ class EstadisticaServiceTest
         {
             clasesA2.add(cpA2);
         }
-        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a2, EstadoClase.RECIBIDA))
-                .thenReturn(clasesA2);
 
         // Alumno 3: 2 Suspensos previos + Aprobado en 3ª convocatoria con 30 clases
         Alumno a3 = new Alumno();
+        ReflectionTestUtils.setField(a3, "id", 3L);
+        a3.setProfesor(profesor);
         a3.setNombre("Alumno3");
         a3.setDni("33333333C");
         Examen exA3_1 = new Examen();
@@ -385,10 +389,9 @@ class EstadisticaServiceTest
         exA3_3.setEsApto(true);
         exA3_3.setFechaHora(LocalDateTime.of(2026, 10, 8, 10, 0));
 
-        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(a3))
-                .thenReturn(List.of(exA3_3, exA3_2, exA3_1));
-
         ClasePractica cpA3 = new ClasePractica();
+        cpA3.setAlumno(a3);
+        cpA3.setProfesor(profesor);
         cpA3.setEstadoClase(EstadoClase.RECIBIDA);
         cpA3.setFechaHora(LocalDateTime.of(2026, 9, 30, 10, 0));
         List<ClasePractica> clasesA3 = new ArrayList<>();
@@ -396,12 +399,18 @@ class EstadisticaServiceTest
         {
             clasesA3.add(cpA3);
         }
-        when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(a3, EstadoClase.RECIBIDA))
-                .thenReturn(clasesA3);
+
+        List<ClasePractica> todasClases = new ArrayList<>();
+        todasClases.addAll(clasesA1);
+        todasClases.addAll(clasesA2);
+        todasClases.addAll(clasesA3);
+
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor))
+                .thenReturn(todasClases);
 
         // Mock de exámenes de los alumnos del profesor
         when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
-                .thenReturn(List.of(exA1, exA2_2, exA3_3));
+                .thenReturn(List.of(exA3_3, exA3_2, exA3_1, exA2_2, exA2_1, exA1));
 
         EstadisticasProfesorDTO stats = this.estadisticaService.obtenerEstadisticasProfesor(profesor);
 

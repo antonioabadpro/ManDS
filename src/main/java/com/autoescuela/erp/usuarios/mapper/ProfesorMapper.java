@@ -93,6 +93,28 @@ public interface ProfesorMapper
     @Mapping(target = "totalClasesPendientes", expression = "java(profesor.getListaClasesPracticas() != null ? (int) profesor.getListaClasesPracticas().stream().filter(c -> c.getEstadoClase() == com.autoescuela.erp.core.enums.EstadoClase.PENDIENTE).count() : 0)")
     ProfesorResumenDTO toProfesorResumenDTO(Profesor profesor);
 
+    @Mapping(target = "id", source = "profesor.id")
+    @Mapping(target = "nombre", source = "profesor.nombre")
+    @Mapping(target = "apellidos", source = "profesor.apellidos")
+    @Mapping(target = "dni", source = "profesor.dni")
+    @Mapping(target = "correo", source = "profesor.correo")
+    @Mapping(target = "telefono", source = "profesor.telefono")
+    @Mapping(target = "turno", source = "profesor.turno")
+    @Mapping(target = "estado", source = "profesor.estado")
+    @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
+    @Mapping(target = "iniciales", expression = "java(calcularIniciales(profesor))")
+    @Mapping(target = "anioContratacion", expression = "java(profesor.getFechaContratacion() != null ? profesor.getFechaContratacion().getYear() : null)")
+    @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
+    @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : null)")
+    @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : null)")
+    @Mapping(target = "vehiculoTipo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getTipoPermiso() : null)")
+    @Mapping(target = "vehiculoTipoDescripcion", expression = "java(profesor.getVehiculo() != null && profesor.getVehiculo().getTipoPermiso() != null ? profesor.getVehiculo().getTipoPermiso().getDescripcion() : null)")
+    @Mapping(target = "vehiculoDescripcion", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() + \" (\" + profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() + \")\" : \"Sin vehículo asignado\")")
+    @Mapping(target = "permisos", source = "profesor.listaTiposCarnet")
+    @Mapping(target = "totalAlumnos", source = "totalAlumnos")
+    @Mapping(target = "totalClasesPendientes", source = "totalClasesPendientes")
+    ProfesorResumenDTO toProfesorResumenDTO(Profesor profesor, int totalAlumnos, int totalClasesPendientes);
+
     /**
      * Mapea una entidad Profesor a su DTO de edición completa para el modal de administración.
      *

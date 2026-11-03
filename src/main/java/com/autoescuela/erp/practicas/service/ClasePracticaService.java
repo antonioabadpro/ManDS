@@ -6,12 +6,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.config.CacheConfig;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
@@ -62,6 +64,7 @@ public class ClasePracticaService
      * @throws ReglaNegocioException si la franja horaria ya está ocupada o colisiona concurrentemente
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public ClasePractica reservarClase(Alumno alumno, Profesor profesor, ReservaClasePracticaDTO dto)
     {
         // Barrera Preventiva de Días No Laborables (Festivos Nacionales y Periodos Vacacionales)
@@ -158,6 +161,7 @@ public class ClasePracticaService
      * @throws ReglaNegocioException si no cumple las precondiciones de estado o límite horario
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public ClasePractica cancelarClasePorAlumno(ClasePractica clase, Alumno alumno)
     {
         if (clase == null)
@@ -345,6 +349,7 @@ public class ClasePracticaService
      * @return ClasePractica actualizada en estado RECIBIDA.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public ClasePractica completarClasePractica(CompletarClaseDTO dto)
     {
         if (dto == null || dto.claseId() == null)
@@ -408,6 +413,7 @@ public class ClasePracticaService
      * @return ClasePractica cancelada.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public ClasePractica cancelarClasePorProfesor(Long claseId, String motivo)
     {
         if (claseId == null)
@@ -461,6 +467,7 @@ public class ClasePracticaService
      * @return Total de clases prácticas canceladas.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public int cancelarJornadaProfesor(Profesor profesor, LocalDate fecha, String motivo)
     {
         if (profesor == null || fecha == null)
