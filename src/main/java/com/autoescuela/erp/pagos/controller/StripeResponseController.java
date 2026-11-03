@@ -163,6 +163,7 @@ public class StripeResponseController
         }
 
         model.addAttribute("sessionId", sessionId);
+        model.addAttribute("esSimulado", sessionId != null && sessionId.startsWith("sim_"));
         return "pagos/matricula-success";
     }
 
@@ -233,6 +234,7 @@ public class StripeResponseController
         }
 
         model.addAttribute("sessionId", sessionId);
+        model.addAttribute("esSimulado", sessionId != null && sessionId.startsWith("sim_"));
         return "pagos/clases-success";
     }
 
@@ -291,6 +293,7 @@ public class StripeResponseController
         }
 
         model.addAttribute("sessionId", sessionId);
+        model.addAttribute("esSimulado", sessionId != null && sessionId.startsWith("sim_"));
         return "pagos/renovacion-success";
     }
 

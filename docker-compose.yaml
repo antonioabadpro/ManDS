@@ -1,4 +1,4 @@
-services:
+﻿services:
   # -------------------------------------------------------------
   # SERVICIO 1: Tu Base de Datos PostgreSQL Local
   # -------------------------------------------------------------
@@ -49,13 +49,13 @@ services:
   # -------------------------------------------------------------
   app:
     image: antonioabadpro/mands:latest # Imagen de la aplicación Spring Boot (la construimos con el Dockerfile)
+    env_file:
+      # Variables de entorno opcionales (si falta el archivo .env, opera en Modo Simulación)
+      - path: .env
+        required: false
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
-        - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     container_name: mands_app
     restart: unless-stopped
     depends_on:
@@ -74,6 +74,9 @@ services:
       - SPRING_MAIL_HOST=${MAIL_HOST:-mailpit}
       - SPRING_MAIL_PORT=${MAIL_PORT:-1025}
       - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8080}
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     networks:
       - mands_network
 

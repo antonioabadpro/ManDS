@@ -20,6 +20,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +49,7 @@ class PagoStripeServiceTest
         this.stripeClient = mock(StripeClient.class, RETURNS_DEEP_STUBS);
         this.pagoStripeService = new PagoStripeService(this.stripeClient);
         ReflectionTestUtils.setField(this.pagoStripeService, "appBaseUrl", "http://localhost:8080");
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_valid_test_key_123");
     }
 
     @Test
@@ -295,5 +298,83 @@ class PagoStripeServiceTest
                 .thenThrow(apiException);
 
         assertNull(this.pagoStripeService.obtenerSesionStripe("cs_test_inexistente"));
+    }
+
+    @Test
+    @DisplayName("esModoSimulado retorna true cuando la clave es placeholder, nula, en blanco o no empieza por sk_")
+    void testEsModoSimuladoCondiciones()
+    {
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_placeholder");
+        assertTrue(this.pagoStripeService.esModoSimulado());
+
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", null);
+        assertTrue(this.pagoStripeService.esModoSimulado());
+
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "   ");
+        assertTrue(this.pagoStripeService.esModoSimulado());
+
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "clave_invalida");
+        assertTrue(this.pagoStripeService.esModoSimulado());
+
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_51UEBRpCOAlcRdrqM...");
+        assertFalse(this.pagoStripeService.esModoSimulado());
+    }
+
+    @Test
+    @DisplayName("crearSesionPagoMatricula en modo simulado redirige directo a éxito sin invocar al cliente Stripe")
+    void testCrearSesionPagoMatriculaModoSimulado() throws StripeException
+    {
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_placeholder");
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(205L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA);
+
+        assertNotNull(resultado);
+        assertTrue(resultado.idSesion().startsWith("sim_matricula_"));
+        assertTrue(resultado.urlStripe().contains("/pagos/checkout/success?session_id=" + resultado.idSesion()));
+        assertEquals(25000L, resultado.importeTotal());
+
+        verify(this.stripeClient.v1().checkout().sessions(), never()).create(any(SessionCreateParams.class));
+    }
+
+    @Test
+    @DisplayName("crearSesionPagoClasesPracticas en modo simulado redirige directo a éxito")
+    void testCrearSesionPagoClasesPracticasModoSimulado() throws StripeException
+    {
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "");
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoClasesPracticas(205L, TipoCarnet.PERMISO_B, 10, true);
+
+        assertNotNull(resultado);
+        assertTrue(resultado.idSesion().startsWith("sim_clases_"));
+        assertTrue(resultado.urlStripe().contains("/pagos/clases/success?session_id=" + resultado.idSesion()));
+        assertEquals(27000L, resultado.importeTotal());
+
+        verify(this.stripeClient.v1().checkout().sessions(), never()).create(any(SessionCreateParams.class));
+    }
+
+    @Test
+    @DisplayName("crearSesionPagoRenovacionMatricula en modo simulado redirige directo a éxito")
+    void testCrearSesionPagoRenovacionMatriculaModoSimulado() throws StripeException
+    {
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_placeholder");
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoRenovacionMatricula(205L, TipoCarnet.PERMISO_B);
+
+        assertNotNull(resultado);
+        assertTrue(resultado.idSesion().startsWith("sim_renovacion_"));
+        assertTrue(resultado.urlStripe().contains("/pagos/renovacion/success?session_id=" + resultado.idSesion()));
+        assertEquals(25000L, resultado.importeTotal());
+
+        verify(this.stripeClient.v1().checkout().sessions(), never()).create(any(SessionCreateParams.class));
+    }
+
+    @Test
+    @DisplayName("obtenerSesionStripe con ID de simulación retorna null inmediatamente sin invocar API de Stripe")
+    void testObtenerSesionStripeSimulacionOmiteLlamada() throws StripeException
+    {
+        Session resultado = this.pagoStripeService.obtenerSesionStripe("sim_matricula_12345");
+
+        assertNull(resultado);
+        verify(this.stripeClient.v1().checkout().sessions(), never()).retrieve(any(String.class));
     }
 }

@@ -28,6 +28,24 @@ public class PagoStripeService
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
 
+    @Value("${stripe.secret.key:sk_test_placeholder}")
+    private String stripeSecretKey;
+
+    /**
+     * Determina si el servicio está operando en modo simulado (Mock).
+     * Se activa automáticamente cuando no se ha inyectado una clave secreta de Stripe válida
+     * (es nula, está en blanco, contiene 'placeholder' o no comienza por 'sk_').
+     *
+     * @return true si opera en modo simulado; false si dispone de credenciales activas.
+     */
+    public boolean esModoSimulado()
+    {
+        return this.stripeSecretKey == null
+                || this.stripeSecretKey.isBlank()
+                || this.stripeSecretKey.contains("placeholder")
+                || !this.stripeSecretKey.startsWith("sk_");
+    }
+
     /**
      * Determina la URL base efectiva para las redirecciones de retorno de Stripe.
      * Si la invocación se produce dentro de una solicitud HTTP activa, resuelve dinámicamente
@@ -62,7 +80,7 @@ public class PagoStripeService
      */
     public Session obtenerSesionStripe(String sessionId)
     {
-        if (sessionId == null || sessionId.isBlank())
+        if (sessionId == null || sessionId.isBlank() || sessionId.startsWith("sim_"))
         {
             return null;
         }
@@ -141,6 +159,14 @@ public class PagoStripeService
 
         String baseUrl = this.obtenerBaseUrlEfectiva();
 
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_matricula_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/checkout/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para matrícula de alumno ID {}: {}", alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, importeTotalCents, "EUR");
+        }
+
         // Creamos la sesión de pago en Stripe con los parámetros necesarios
         SessionCreateParams parametros = SessionCreateParams.builder()
                 .setLocale(SessionCreateParams.Locale.ES)
@@ -213,6 +239,14 @@ public class PagoStripeService
         double cuotaAutoescuela = cuotaAutoescuelaCents / 100.0;
 
         String baseUrl = this.obtenerBaseUrlEfectiva();
+
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_renovacion_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/renovacion/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para renovación de matrícula de alumno ID {}: {}", alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, importeTotalCents, "EUR");
+        }
 
         SessionCreateParams parametros = SessionCreateParams.builder()
                 .setLocale(SessionCreateParams.Locale.ES)
@@ -334,6 +368,14 @@ public class PagoStripeService
         }
 
         String baseUrl = this.obtenerBaseUrlEfectiva();
+
+        if (this.esModoSimulado())
+        {
+            String sessionId = "sim_clases_" + java.util.UUID.randomUUID();
+            String urlRetorno = baseUrl + "/pagos/clases/success?session_id=" + sessionId;
+            log.info("Modo simulación de pagos activo. Generando sesión simulada para compra de {} clases de alumno ID {}: {}", numeroClases, alumnoId, sessionId);
+            return new SesionPagoDTO(sessionId, urlRetorno, precioTotalCents, "EUR");
+        }
 
         // Creamos la sesión de pago en Stripe Checkout
         SessionCreateParams parametros = SessionCreateParams.builder()
