@@ -49,6 +49,7 @@
   # -------------------------------------------------------------
   app:
     image: antonioabadpro/mands:latest # Imagen de la aplicación Spring Boot (la construimos con el Dockerfile)
+    pull_policy: missing # Si la imagen NO existe localmente, la descarga directamente de Docker Hub sin intentar construirla
     env_file:
       # Variables de entorno opcionales (si falta el archivo .env, opera en Modo Simulación)
       - path: .env
