@@ -29,4 +29,4 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Parámetros de ejecución optimizados para contenedores JVM con recursos limitados (Render 512MB RAM)
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:+UseSerialGC", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:+UseSerialGC", "-XX:MaxRAMPercentage=50.0", "-XX:InitialRAMPercentage=40.0", "-XX:MaxMetaspaceSize=128m", "-XX:ReservedCodeCacheSize=48m", "-Xss512k", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
