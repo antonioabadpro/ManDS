@@ -49,3 +49,8 @@ target/
 .env
 .env.*
 application-local.yml
+
+
+# Frontend y dependencias Node
+node_modules/
+npm-debug.log*

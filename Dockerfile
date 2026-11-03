@@ -28,5 +28,5 @@ COPY --from=build /app/target/*.jar app.jar
 # Exponer el puerto de Spring Boot
 EXPOSE 8080
 
-# Parámetros de ejecución optimizados para contenedores JVM
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+# Parámetros de ejecución optimizados para contenedores JVM con recursos limitados (Render 512MB RAM)
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:+UseSerialGC", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

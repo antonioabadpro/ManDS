@@ -93,7 +93,7 @@
 
 # 4. Restricciones Técnicas y Anti-Patrones
 
-- **Stack Web:** Prohibido SPA (React, Vue, Angular) y librerías cliente pesadas de calendario (FullCalendar). Dinamismo exclusivo con Thymeleaf + HTMX + Tailwind CSS + JS ES6+ nativo.
+- **Stack Web y Despliegue de Estáticos:** Prohibido SPA (React, Vue, Angular), librerías cliente pesadas de calendario (FullCalendar) y CDNs externos en producción (Tailwind Play CDN, unpkg, Google Fonts). Tailwind se compila estáticamente con CLI a `static/css/tailwind.min.css`; HTMX y tipografía corporativa Inter (WOFF2) se auto-hospedan en local. Dinamismo exclusivo con Thymeleaf + HTMX + Tailwind CSS compilado + JS ES6+ nativo.
 - **Integridad y Seguridad:** Prohibido borrado físico en cascada (usar siempre soft delete a `INACTIVO`). Prohibidos IDs secuenciales en URLs críticas (usar UUIDs o tokens criptográficos). Transaccionalidad `@Transactional` obligatoria en compras, deducciones y reservas concurrentes.
 - **Buenas Prácticas Java Backend:** Priorizar legibilidad sobre lambdas/streams ilegibles. Uso obligatorio de `this.` para toda lectura o asignación de campos de instancia (`this.campo = valor;`, `return this.campo;`) para prevenir shadowing.
 - **Prohibición Léxica Expresa:** Terminantemente prohibido usar los términos *"profesor tutor"* o *"docente"* en textos, vistas, variables o comentarios del sistema. Prohibido mostrar al usuario o incluir en comentarios o código numeraciones o identificadores de reglas (utilizar siempre explicaciones semánticas del requisito o validación).

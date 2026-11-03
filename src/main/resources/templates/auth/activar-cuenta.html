@@ -13,18 +13,12 @@
     <!-- Favicon de la aplicación -->
     <link rel="icon" type="image/webp" th:href="@{/imagenes/favicon_volante.webp}">
 
-    <!-- Tipografía Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Estilos globales y Tailwind CSS (Play CDN con configuración unificada) -->
+    <!-- Estilos globales y Tailwind CSS (Compilado para producción) -->
     <link rel="stylesheet" href="../../static/css/styles.css" th:href="@{/css/styles.css}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../../static/js/tailwind-config.js" th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" href="../../static/css/tailwind.min.css" th:href="@{/css/tailwind.min.css}">
 
     <!-- HTMX y configuración personalizada -->
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="../../static/js/vendor/htmx.min.js" th:src="@{/js/vendor/htmx.min.js}"></script>
     <script src="../../static/js/htmx-config.js" th:src="@{/js/htmx-config.js}"></script>
 
     <style>
