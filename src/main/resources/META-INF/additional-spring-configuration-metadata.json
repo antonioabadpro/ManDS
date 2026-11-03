@@ -7,6 +7,12 @@
             "defaultValue": "${APP_BASE_URL:http://localhost:8080}"
         },
         {
+            "name": "app.mail.from",
+            "type": "java.lang.String",
+            "description": "Dirección de correo electrónico desde la que se envían los correos.",
+            "defaultValue": "${MAIL_FROM:mands.notifications@gmail.com}"
+        },
+        {
             "name": "stripe.public.key",
             "type": "java.lang.String",
             "description": "Clave pública de Stripe utilizada en el frontend para integrar elementos de pago.",

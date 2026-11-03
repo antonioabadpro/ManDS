@@ -24,7 +24,7 @@ public class EmailServiceImpl implements EmailService
 {
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:no-reply-mands@autoescuela.es}")
+    @Value("${app.mail.from:${MAIL_FROM:mands.notifications@gmail.com}}")
     private String correoRemitente;
 
     @Value("${app_base_url:http://localhost:8080}")
