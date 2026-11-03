@@ -68,7 +68,7 @@ public class ConfiguracionSeguridad
                 .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
 
                 // Rutas públicas (Login, registro, recuperación de contraseña, activación de cuenta, validaciones reactivas de usuario)
-                .requestMatchers("/", "/login", "/login/", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**", "/usuario/validar-**").permitAll()
+                .requestMatchers("/", "/login", "/login/", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**", "/usuario/validar-**", "/ping").permitAll()
 
                 // Pasarela y Webhook de Stripe (acceso público a checkout previo al alta y webhook firmado)
                 .requestMatchers("/pagos/**").permitAll()

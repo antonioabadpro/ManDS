@@ -5,6 +5,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
@@ -70,7 +72,7 @@ public class GlobalModelAttributesAdvice
      * Proporciona el nombre completo del Alumno para su portal.
      */
     @ModelAttribute("nombreAlumno")
-    public String obtenerNombreAlumno(@AuthenticationPrincipal Object principal)
+    public String obtenerNombreAlumno(@AuthenticationPrincipal Object principal, HttpServletRequest request)
     {
         if (principal instanceof UserDetailsImpl userDetails)
         {
@@ -78,7 +80,7 @@ public class GlobalModelAttributesAdvice
         }
         else if (principal != null)
         {
-            Alumno alumno = this.obtenerAlumnoSiAplica(principal);
+            Alumno alumno = this.obtenerAlumnoRequest(principal, request);
             if (alumno != null)
             {
                 return alumno.getNombre() + " " + alumno.getApellidos();
@@ -108,30 +110,30 @@ public class GlobalModelAttributesAdvice
      * Indica si el alumno conectado esta en modalidad Teórico + Práctica para el menu lateral.
      */
     @ModelAttribute("esTeoricoPractica")
-    public boolean esTeoricoPractica(@AuthenticationPrincipal Object principal)
+    public boolean esTeoricoPractica(@AuthenticationPrincipal Object principal, HttpServletRequest request)
     {
-        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
+        Alumno alumno = this.obtenerAlumnoRequest(principal, request);
         if (alumno == null)
         {
             return false;
         }
-        return this.academicoService.buscarMatriculaActiva(alumno)
-                .map(m -> m.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
-                .orElse(false);
+        Matricula matricula = this.obtenerMatriculaActivaRequest(alumno, request);
+        return matricula != null && matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA;
+
     }
 
     /**
      * Indica si el alumno ha agotado sus convocatorias de examen para alertas y restricciones.
      */
     @ModelAttribute("convocatoriasAgotadas")
-    public boolean tieneConvocatoriasAgotadas(@AuthenticationPrincipal Object principal)
+    public boolean tieneConvocatoriasAgotadas(@AuthenticationPrincipal Object principal, HttpServletRequest request)
     {
-        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
+        Alumno alumno = this.obtenerAlumnoRequest(principal, request);
         if (alumno == null)
         {
             return false;
         }
-        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        Matricula matricula = this.obtenerMatriculaActivaRequest(alumno, request);
         return matricula != null && matricula.tieneConvocatoriasAgotadas();
     }
 
@@ -139,14 +141,14 @@ public class GlobalModelAttributesAdvice
      * Indica si el alumno tiene aprobado el examen teórico.
      */
     @ModelAttribute("teoricoAprobado")
-    public boolean teoricoAprobado(@AuthenticationPrincipal Object principal)
+    public boolean teoricoAprobado(@AuthenticationPrincipal Object principal, HttpServletRequest request)
     {
-        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
+        Alumno alumno = this.obtenerAlumnoRequest(principal, request);
         if (alumno == null)
         {
             return false;
         }
-        return this.examenService.tieneTeoricoAprobado(alumno);
+        return this.obtenerTeoricoAprobadoRequest(alumno, request);
     }
 
     private Alumno obtenerAlumnoSiAplica(Object principal)
@@ -164,6 +166,73 @@ public class GlobalModelAttributesAdvice
             return this.alumnoService.obtenerAlumnoActual(principal);
         }
         return null;
+    }
+
+    private Alumno obtenerAlumnoRequest(Object principal, HttpServletRequest request)
+    {
+        if (principal == null)
+        {
+            return null;
+        }
+        if (request == null)
+        {
+            return this.obtenerAlumnoSiAplica(principal);
+        }
+        final String attr = "REQ_GLOBAL_ALUMNO";
+        Object cached = request.getAttribute(attr);
+        if (cached instanceof Alumno alumno)
+        {
+            return alumno;
+        }
+        Alumno alumno = this.obtenerAlumnoSiAplica(principal);
+        if (alumno != null)
+        {
+            request.setAttribute(attr, alumno);
+        }
+        return alumno;
+    }
+
+    private Matricula obtenerMatriculaActivaRequest(Alumno alumno, HttpServletRequest request)
+    {
+        if (alumno == null)
+        {
+            return null;
+        }
+        if (request == null)
+        {
+            return this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        }
+        final String attrChecked = "REQ_GLOBAL_MATRICULA_CHECKED";
+        final String attrMatricula = "REQ_GLOBAL_MATRICULA";
+        if (Boolean.TRUE.equals(request.getAttribute(attrChecked)))
+        {
+            return (Matricula) request.getAttribute(attrMatricula);
+        }
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
+        request.setAttribute(attrMatricula, matricula);
+        request.setAttribute(attrChecked, Boolean.TRUE);
+        return matricula;
+    }
+
+    private boolean obtenerTeoricoAprobadoRequest(Alumno alumno, HttpServletRequest request)
+    {
+        if (alumno == null)
+        {
+            return false;
+        }
+        if (request == null)
+        {
+            return this.examenService.tieneTeoricoAprobado(alumno);
+        }
+        final String attr = "REQ_GLOBAL_TEORICO_APROBADO";
+        Object cached = request.getAttribute(attr);
+        if (cached instanceof Boolean b)
+        {
+            return b;
+        }
+        boolean aprobado = this.examenService.tieneTeoricoAprobado(alumno);
+        request.setAttribute(attr, aprobado);
+        return aprobado;
     }
 
     /**
