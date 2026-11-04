@@ -53,7 +53,7 @@ public class DatabaseIndexInitializer implements ApplicationRunner
                     // Índices de claves foráneas para acelerar JOINs y evitar Seq Scans
                     this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_alumno ON clase_practica (alumno_id)");
                     this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_profesor ON clase_practica (profesor_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_vehiculo ON clase_practica (vehiculo_id)");
+
                     this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno ON matricula (alumno_id)");
                     this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_alumno ON examen (alumno_id)");
                     this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_alumno ON solicitud_examen (alumno_id)");

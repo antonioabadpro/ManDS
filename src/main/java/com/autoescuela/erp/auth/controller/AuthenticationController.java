@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
@@ -194,6 +197,16 @@ public class AuthenticationController
 
         if (esPeticionHtmx)
         {
+            FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+            if (flashMap != null)
+            {
+                flashMap.put("mensajeEnviado", true);
+                FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
+                if (flashMapManager != null)
+                {
+                    flashMapManager.saveOutputFlashMap(flashMap, request, response);
+                }
+            }
             String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
             response.setHeader("HX-Redirect", contextPath + "/recuperar-password");
             return null;

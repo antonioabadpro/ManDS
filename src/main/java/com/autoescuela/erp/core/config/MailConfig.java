@@ -40,6 +40,18 @@ public class MailConfig
     @Value("${spring.mail.properties.mail.smtp.starttls.enable:false}")
     private boolean starttls;
 
+    @Value("${app.mail.from:${MAIL_FROM:mands.notifications@gmail.com}}")
+    private String correoRemitente;
+
+    @Value("${spring.mail.properties.mail.smtp.connectiontimeout:10000}")
+    private int connectionTimeout;
+
+    @Value("${spring.mail.properties.mail.smtp.timeout:10000}")
+    private int timeout;
+
+    @Value("${spring.mail.properties.mail.smtp.writetimeout:10000}")
+    private int writeTimeout;
+
     /**
      * Crea y configura un bean de {@link JavaMailSender} para el envío de correos electrónicos.
      * @return Instancia de JavaMailSender configurada con las propiedades de conexión SMTP.
@@ -65,7 +77,21 @@ public class MailConfig
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", String.valueOf(this.esAutenticado));
+        if (this.correoRemitente != null && !this.correoRemitente.isBlank())
+        {
+            props.put("mail.smtp.from", this.correoRemitente);
+        }
         props.put("mail.smtp.starttls.enable", String.valueOf(this.starttls));
+        props.put("mail.smtp.connectiontimeout", String.valueOf(this.connectionTimeout));
+        props.put("mail.smtp.timeout", String.valueOf(this.timeout));
+        props.put("mail.smtp.writetimeout", String.valueOf(this.writeTimeout));
+
+        if (this.starttls)
+        {
+            props.put("mail.smtp.starttls.required", "true");
+            props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            props.put("mail.smtp.ssl.trust", "*");
+        }
 
         return mailSender;
     }

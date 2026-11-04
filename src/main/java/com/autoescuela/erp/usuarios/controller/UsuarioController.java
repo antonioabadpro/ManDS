@@ -1,13 +1,20 @@
 package com.autoescuela.erp.usuarios.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.autoescuela.erp.auth.service.AuthenticationService;
+import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.usuarios.model.Persona;
+import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -16,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 public class UsuarioController
 {
     private final UsuarioService usuarioService;
+    private final AuthenticationService autenticacionService;
+    private final PersonaRepository personaRepository;
 
     /**
      * Endpoint HTMX para validar de forma temprana la disponibilidad y formato del nombre de usuario.
@@ -140,5 +149,42 @@ public class UsuarioController
         }
 
         return "auth/registro :: fragmento-vacio";
+    }
+
+    /**
+     * Endpoint HTMX para solicitar el restablecimiento de contraseña desde el perfil del usuario autenticado.
+     * Genera el token de recuperación y despacha el correo transaccional de forma asíncrona,
+     * devolviendo el fragmento reactivo de confirmación sin redirigir al usuario fuera de su perfil.
+     */
+    @PostMapping("/perfil/solicitar-cambio-password")
+    public String solicitarCambioPasswordDesdePerfil(@AuthenticationPrincipal Object principal, @RequestParam(name = "correo", required = false) String correoParam, HttpServletRequest request, Model model)
+    {
+        String correo = null;
+        if (principal instanceof UserDetailsImpl userDetails)
+        {
+            correo = userDetails.getCorreo();
+        }
+        else if (principal instanceof UserDetails user)
+        {
+            Persona persona = this.personaRepository.findByNombreUsuarioOrCorreo(user.getUsername(), user.getUsername()).orElse(null);
+            if(persona != null)
+            {
+                correo = persona.getCorreo();
+            }
+        }
+
+        if ((correo == null || correo.isBlank()) && correoParam != null && !correoParam.isBlank())
+        {
+            correo = correoParam.trim();
+        }
+
+        if (correo != null && !correo.isBlank())
+        {
+            String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+            this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
+            model.addAttribute("correo", correo);
+        }
+
+        return "fragments/seguridad-perfil :: tarjeta-seguridad-confirmada";
     }
 }
