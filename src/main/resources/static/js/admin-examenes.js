@@ -1,4 +1,4 @@
-/**
+﻿/**
  * admin-examenes.js - Gestión de Fechas Oficiales DGT, Cupos y Solicitudes de Alumnos
  *
  * =====================================================================================
@@ -100,8 +100,18 @@ function inicializarExamenesAdmin() {
 
         // Confirmar y enviar el formulario de fechas al backend
         if (event.target.closest('#btn-ejecutar-fijar-fechas')) {
-            const form = document.getElementById('form-fijar-fechas-dgt');
-            if (form) form.submit();
+            const btn = event.target.closest('#btn-ejecutar-fijar-fechas');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+                const form = document.getElementById('form-fijar-fechas-dgt');
+                if (form) form.submit();
+            }
             return;
         }
 
@@ -128,8 +138,18 @@ function inicializarExamenesAdmin() {
         }
 
         if (event.target.closest('#btn-ejecutar-fijar-cupos')) {
-            const form = document.getElementById('form-fijar-cupos-dgt');
-            if (form) form.submit();
+            const btn = event.target.closest('#btn-ejecutar-fijar-cupos');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+                const form = document.getElementById('form-fijar-cupos-dgt');
+                if (form) form.submit();
+            }
             return;
         }
 

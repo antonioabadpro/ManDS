@@ -29,6 +29,7 @@
 - **JavaScript No Intrusivo (CSP):** Prohibido JS inline en Thymeleaf, sintaxis `/*[[${...}]]*/` o eventos inline (`onclick`, etc.). Todo script reside en `src/main/resources/static/js/`, cargado con `defer` y vinculado con `addEventListener`.
 - **Comunicación y Modularización JS:** Paso de datos exclusivo mediante `data-*` (`dataset`). Prohibidos scripts monolíticos: 1 archivo JS por vista bajo patrón *Named Event Handlers* (`inicializar...`).
 - **Fragments por Rol:** Todo fragment de rol reside en `templates/{admin|alumno|profesor}/fragments/`. La raíz `templates/fragments/` se reserva en exclusiva para componentes transversales compartidos.
+- **Feedback en Operaciones POST (Spinners y Anti-Doble Clic):** Toda operación POST no inmediata (Stripe, hashing BCrypt, transacciones o red) debe deshabilitar preventivamente el botón (`disabled:opacity-60 disabled:cursor-not-allowed`) y activar spinner animado (`animate-spin`) vía HTMX (`hx-disabled-elt`) o JS nativo.
 
 ---
 
