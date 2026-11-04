@@ -41,6 +41,12 @@
             "type": "java.lang.Boolean",
             "description": "Indica si se sincronizan las secuencias de PostgreSQL (setval) al arrancar la aplicación.",
             "defaultValue": true
+        },
+        {
+            "name": "brevo.api.key",
+            "type": "java.lang.String",
+            "description": "Clave API REST de Brevo (v3) sobre HTTPS (puerto 443) para sortear bloqueos de puertos SMTP en entornos cloud.",
+            "defaultValue": "${BREVO_API_KEY}"
         }
     ]
 }

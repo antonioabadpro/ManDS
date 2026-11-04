@@ -1,6 +1,12 @@
 package com.autoescuela.erp.core.email;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -12,27 +18,35 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementación del servicio de envío de correos electrónicos transaccionales.
- * Emplea {@link JavaMailSender} para despachar mensajes en formato HTML con estilos integrados.
- * Integra un mecanismo de reintentos exponenciales y sobre SMTP explícito para garantizar alta entregabilidad con Brevo.
+ * Emplea la API REST v3 de Brevo sobre HTTPS (puerto 443) de forma exclusiva en producción
+ * (inmune a bloqueos de cortafuegos en la nube como Render Free Tier) y {@link JavaMailSender}
+ * sobre SMTP reservado para el servidor simulador local (Mailpit) en desarrollo.
  */
 @Slf4j
 @Service
 @Async("emailTaskExecutor")
-@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService
 {
     private final JavaMailSender mailSender;
+    private HttpClient httpClient;
+
+    @Value("${brevo.api.key:${BREVO_API_KEY:}}")
+    private String brevoApiKey;
 
     @Value("${app.mail.from:${MAIL_FROM:mands.notifications@gmail.com}}")
     private String correoRemitente;
 
     @Value("${app_base_url:http://localhost:8080}")
     private String appBaseUrl;
+
+    public EmailServiceImpl(JavaMailSender mailSender)
+    {
+        this.mailSender = mailSender;
+    }
 
     /**
      * Envía un correo de recuperación de contraseña.
@@ -61,7 +75,7 @@ public class EmailServiceImpl implements EmailService
             String cuerpoHtml = this.construirHtmlRecuperacion(nombreDestinatario, enlaceRecuperacion, duracionTokenMinutos);
             helper.setText(cuerpoHtml, true);
 
-            this.despacharConReintentos(mensaje, correoDestinatario, "Correo de recuperación de contraseña");
+            this.despacharCorreo(correoDestinatario, nombreDestinatario, "ManDS - Recuperación de contraseña", cuerpoHtml, true, mensaje, "Correo de recuperación de contraseña");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
@@ -95,7 +109,7 @@ public class EmailServiceImpl implements EmailService
             String cuerpoHtml = this.construirHtmlInvitacionProfesor(nombreDestinatario, enlaceActivacion, duracionTokenMinutos);
             helper.setText(cuerpoHtml, true);
 
-            this.despacharConReintentos(mensaje, correoDestinatario, "Invitación y activación de profesor");
+            this.despacharCorreo(correoDestinatario, nombreDestinatario, "ManDS - Bienvenida y activación de cuenta de Profesor", cuerpoHtml, true, mensaje, "Invitación y activación de profesor");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
@@ -123,7 +137,7 @@ public class EmailServiceImpl implements EmailService
             helper.setSubject("ManDS - " + asunto);
             helper.setText(mensaje, false);
 
-            this.despacharConReintentos(mimeMessage, correoDestinatario, "Notificación a alumno (" + asunto + ")");
+            this.despacharCorreo(correoDestinatario, null, "ManDS - " + asunto, mensaje, false, mimeMessage, "Notificación a alumno (" + asunto + ")");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
@@ -151,7 +165,7 @@ public class EmailServiceImpl implements EmailService
             helper.setSubject("ManDS - " + asunto);
             helper.setText(mensaje, false);
 
-            this.despacharConReintentos(mimeMessage, correoDestinatario, "Notificación a profesor (" + asunto + ")");
+            this.despacharCorreo(correoDestinatario, null, "ManDS - " + asunto, mensaje, false, mimeMessage, "Notificación a profesor (" + asunto + ")");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
@@ -185,7 +199,7 @@ public class EmailServiceImpl implements EmailService
             String cuerpoHtml = this.construirHtmlBienvenidaAlumno(nombreDestinatario, descripcionCarnet, importeAbonado, enlaceLogin);
             helper.setText(cuerpoHtml, true);
 
-            this.despacharConReintentos(mensaje, correoDestinatario, "Bienvenida y confirmación de matrícula");
+            this.despacharCorreo(correoDestinatario, nombreDestinatario, "ManDS - ¡Bienvenido/a a la autoescuela!", cuerpoHtml, true, mensaje, "Bienvenida y confirmación de matrícula");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
@@ -225,12 +239,142 @@ public class EmailServiceImpl implements EmailService
             String cuerpoHtml = this.construirHtmlIncidenciaAdmin(nombreAdmin, nombreProfesor, vehiculoInfo, matricula, descripcionIncidencia, enlaceDefinitivo);
             helper.setText(cuerpoHtml, true);
 
-            this.despacharConReintentos(mensaje, correoDestinatario, "Notificación de incidencia mecánica a administración");
+            this.despacharCorreo(correoDestinatario, nombreAdmin, "ManDS - Nueva Incidencia Reportada en Vehículo " + matricula, cuerpoHtml, true, mensaje, "Notificación de incidencia mecánica a administración");
         }
         catch (MessagingException | UnsupportedEncodingException ex)
         {
             log.error("Error al preparar la notificación de avería al Administrador {}: {}", correoDestinatario, ex.getMessage());
         }
+    }
+
+    /**
+     * Despacha un correo electrónico utilizando la API REST v3 de Brevo sobre HTTPS (puerto 443)
+     * de forma exclusiva cuando se encuentra configurada 'brevo.api.key' / 'BREVO_API_KEY' (modo producción).
+     * Si no está definida (modo local / pruebas), recurre al canal SMTP local (Mailpit)
+     * mediante {@link JavaMailSender} aplicando reintentos exponenciales.
+     *
+     * @param destinatario Dirección de correo del destinatario.
+     * @param nombreDestinatario Nombre de pila del destinatario (opcional).
+     * @param asunto Asunto del correo.
+     * @param cuerpo Contenido del correo en HTML o texto plano.
+     * @param esHtml Indica si el cuerpo corresponde a formato HTML.
+     * @param mensajeFallback Mensaje MIME preconstruido para el canal SMTP.
+     * @param tipoCorreo Descripción semántica del correo para trazabilidad en logs.
+     */
+    private void despacharCorreo(String destinatario, String nombreDestinatario, String asunto, String cuerpo, boolean esHtml, MimeMessage mensajeFallback, String tipoCorreo)
+    {
+        if (this.brevoApiKey != null && !this.brevoApiKey.isBlank())
+        {
+            boolean enviadoPorApi = this.despacharViaBrevoApi(destinatario, nombreDestinatario, asunto, cuerpo, esHtml, tipoCorreo);
+            if (!enviadoPorApi)
+            {
+                log.error("[EmailService] Falló definitivamente el despacho por Brevo REST API para {}. Se cancela el envío sin recurrir a SMTP en producción.", destinatario);
+            }
+            return;
+        }
+
+        this.despacharConReintentos(mensajeFallback, destinatario, tipoCorreo);
+    }
+
+    /**
+     * Envía el correo mediante la API v3 transaccional de Brevo utilizando peticiones HTTPS (puerto 443).
+     * Este canal resulta completamente inmune a las restricciones de salida de puertos SMTP en entornos cloud (Render Free Tier).
+     *
+     * @param destinatario Dirección de correo del destinatario.
+     * @param nombreDestinatario Nombre del destinatario.
+     * @param asunto Asunto del correo.
+     * @param cuerpo Contenido del mensaje.
+     * @param esHtml Indica si el cuerpo es HTML.
+     * @param tipoCorreo Descripción semántica del mensaje.
+     * @return {@code true} si la API de Brevo aceptó el mensaje (HTTP 200/201); {@code false} en caso contrario.
+     */
+    private boolean despacharViaBrevoApi(String destinatario, String nombreDestinatario, String asunto, String cuerpo, boolean esHtml, String tipoCorreo)
+    {
+        try
+        {
+            String nombreDestinatarioFinal = (nombreDestinatario != null && !nombreDestinatario.isBlank()) ? nombreDestinatario : "Usuario";
+
+            String jsonPayload = String.format("""
+                {"sender":{"name":"ManDS Autoescuela","email":"%s"},"to":[{"email":"%s","name":"%s"}],"subject":"%s","%s":"%s"}
+                """,
+                this.escaparJson(this.correoRemitente),
+                this.escaparJson(destinatario),
+                this.escaparJson(nombreDestinatarioFinal),
+                this.escaparJson(asunto),
+                esHtml ? "htmlContent" : "textContent",
+                this.escaparJson(cuerpo)
+            ).trim();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                    .header("api-key", this.brevoApiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .timeout(Duration.ofSeconds(10))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpClient clienteHttp = (this.httpClient != null)
+                    ? this.httpClient
+                    : HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+
+
+            HttpResponse<String> response = clienteHttp.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            if (response.statusCode() == 200 || response.statusCode() == 201)
+            {
+                log.info("[EmailService-BrevoAPI] {} enviado con éxito a {} vía HTTPS (HTTP {} - {})",
+                        tipoCorreo, destinatario, response.statusCode(), response.body());
+                return true;
+            }
+            else
+            {
+                log.error("[EmailService-BrevoAPI] Error al despachar {} a {} vía API (HTTP {}): {}",
+                        tipoCorreo, destinatario, response.statusCode(), response.body());
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            log.error("[EmailService-BrevoAPI] Excepción al conectar con la API de Brevo para {}: {}", destinatario, ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Escapa caracteres especiales para generar una cadena JSON válida sin depender de bibliotecas externas.
+     */
+    private String escaparJson(String texto)
+    {
+        if (texto == null)
+        {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (char c : texto.toCharArray())
+        {
+            switch (c)
+            {
+                case '"' -> sb.append("\\\"");
+                case '\\' -> sb.append("\\\\");
+                case '\b' -> sb.append("\\b");
+                case '\f' -> sb.append("\\f");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                default -> {
+                    if (c < ' ')
+                    {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    }
+                    else
+                    {
+                        sb.append(c);
+                    }
+                }
+            }
+        }
+        return sb.toString();
     }
 
     /**
