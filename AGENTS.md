@@ -103,6 +103,7 @@
 - **Aserciones Web Desacopladas de HTML:** Prohibido validar cadenas HTML estáticas en Thymeleaf (`content().string(...)`). Tests de controladores verifican solo estado HTTP (`status()`), vista/redirección (`view()`, `redirectedUrl()`) y modelo (`model().attributeExists(...)`).
 - **Seguridad RBAC y Context Caching:** Autorización y accesos 403 pertenecen en exclusiva a `SeguridadIntegrationTest`. Todo test `@SpringBootTest` debe extender de `BaseIntegrationTest` sin declarar `@TestPropertySource` ni `@MockitoBean` en hijas para preservar el *Spring Test Context Caching*.
 - **Ejecución Selectiva:** Ejecutar únicamente el test afectado (`mvn test -Dtest=NombreTest`) durante el desarrollo activo.
+- **Mensajería Transaccional Segregada (Brevo API y Mailpit):** En producción (Render), despacho exclusivo mediante Brevo REST API v3 sobre HTTPS (puerto 443) con `HttpClient` nativo, inmune a bloqueos de cortafuegos cloud y sin reintentos SMTP. En desarrollo local y Docker, canal SMTP exclusivo con `JavaMailSender` hacia Mailpit (puerto 1025) para capturar correos sin consumo de cuota.
 
 ---
 
