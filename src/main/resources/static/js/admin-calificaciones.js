@@ -31,6 +31,7 @@ function inicializarGestionCalificacionesAdmin() {
     registrarEscuchadoresTransicionConfirmacionAdmin();
     registrarEscuchadoresVolverModalesAdmin();
     registrarEscuchadoresCierreModalesAdmin();
+    registrarEnvioFormulariosCalificarAdmin();
 }
 
 /**
@@ -237,4 +238,35 @@ function cerrarTodosLosModalesCalificarAdmin() {
         }
     });
     document.body.classList.remove('overflow-hidden');
+}
+
+/**
+ * Gestiona el envío seguro de los formularios de calificación asentando el resultado y mostrando el spinner animado.
+ */
+function registrarEnvioFormulariosCalificarAdmin() {
+    ['modal-confirmar-apto', 'modal-confirmar-no-apto'].forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        const form = modal.querySelector('form');
+        if (!form) return;
+
+        form.addEventListener('submit', (evento) => {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                if (btn.disabled) {
+                    evento.preventDefault();
+                    return;
+                }
+                btn.disabled = true;
+                const btnIcon = btn.querySelector('svg:not(.btn-spinner)');
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnIcon) btnIcon.classList.add('hidden');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+            }
+        });
+    });
 }

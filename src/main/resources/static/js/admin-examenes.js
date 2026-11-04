@@ -165,8 +165,18 @@ function inicializarExamenesAdmin() {
         }
 
         if (event.target.closest('#btn-ejecutar-aceptar')) {
-            const form = document.getElementById('form-aceptar-solicitud');
-            if (form) form.submit();
+            const btn = event.target.closest('#btn-ejecutar-aceptar');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+                const form = document.getElementById('form-aceptar-solicitud');
+                if (form) form.submit();
+            }
             return;
         }
 
@@ -194,8 +204,18 @@ function inicializarExamenesAdmin() {
         }
 
         if (event.target.closest('#btn-ejecutar-rechazar')) {
-            const form = document.getElementById('form-rechazar-solicitud');
-            if (form) form.submit();
+            const btn = event.target.closest('#btn-ejecutar-rechazar');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+                const form = document.getElementById('form-rechazar-solicitud');
+                if (form) form.submit();
+            }
             return;
         }
     });

@@ -1,12 +1,14 @@
 package com.autoescuela.erp.core.email;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -16,9 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Implementación del servicio de envío de correos electrónicos transaccionales.
  * Emplea {@link JavaMailSender} para despachar mensajes en formato HTML con estilos integrados.
+ * Integra un mecanismo de reintentos exponenciales y sobre SMTP explícito para garantizar alta entregabilidad con Brevo.
  */
 @Slf4j
 @Service
+@Async("emailTaskExecutor")
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService
 {
@@ -49,21 +53,19 @@ public class EmailServiceImpl implements EmailService
             MimeMessage mensaje = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
 
-            helper.setFrom(this.correoRemitente);
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - Recuperación de contraseña");
 
             // Construimos el cuerpo del mensaje en formato HTML
-            String cuerpoHtml = construirHtmlRecuperacion(nombreDestinatario, enlaceRecuperacion, duracionTokenMinutos);
+            String cuerpoHtml = this.construirHtmlRecuperacion(nombreDestinatario, enlaceRecuperacion, duracionTokenMinutos);
             helper.setText(cuerpoHtml, true);
 
-            this.mailSender.send(mensaje);
-            log.info("Correo de recuperación enviado con éxito a {}", correoDestinatario);
+            this.despacharConReintentos(mensaje, correoDestinatario, "Correo de recuperación de contraseña");
         }
-        catch (MessagingException | MailException ex)
+        catch (MessagingException | UnsupportedEncodingException ex)
         {
-            log.error("Error al enviar el correo de recuperación a {}: {}", correoDestinatario, ex.getMessage());
-            // No propagamos la excepción técnica para no romper la experiencia de usuario y preservar la seguridad
+            log.error("Error al preparar el correo de recuperación a {}: {}", correoDestinatario, ex.getMessage());
         }
     }
 
@@ -85,20 +87,19 @@ public class EmailServiceImpl implements EmailService
             MimeMessage mensaje = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
 
-            helper.setFrom(this.correoRemitente);
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - Bienvenida y activación de cuenta de Profesor");
 
             // Construimos el cuerpo del mensaje en formato HTML
-            String cuerpoHtml = construirHtmlInvitacionProfesor(nombreDestinatario, enlaceActivacion, duracionTokenMinutos);
+            String cuerpoHtml = this.construirHtmlInvitacionProfesor(nombreDestinatario, enlaceActivacion, duracionTokenMinutos);
             helper.setText(cuerpoHtml, true);
 
-            this.mailSender.send(mensaje);
-            log.info("Correo de invitación de profesor enviado con éxito a {}", correoDestinatario);
+            this.despacharConReintentos(mensaje, correoDestinatario, "Invitación y activación de profesor");
         }
-        catch (MessagingException | MailException ex)
+        catch (MessagingException | UnsupportedEncodingException ex)
         {
-            log.error("Error al enviar la invitación de profesor a {}: {}", correoDestinatario, ex.getMessage());
+            log.error("Error al preparar la invitación de profesor a {}: {}", correoDestinatario, ex.getMessage());
         }
     }
 
@@ -117,17 +118,16 @@ public class EmailServiceImpl implements EmailService
             MimeMessage mimeMessage = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
-            helper.setFrom(this.correoRemitente);
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - " + asunto);
             helper.setText(mensaje, false);
 
-            this.mailSender.send(mimeMessage);
-            log.info("Notificación enviada con éxito al alumno {}", correoDestinatario);
+            this.despacharConReintentos(mimeMessage, correoDestinatario, "Notificación a alumno (" + asunto + ")");
         }
-        catch (MessagingException | MailException ex)
+        catch (MessagingException | UnsupportedEncodingException ex)
         {
-            log.error("Error al enviar notificación a {}: {}", correoDestinatario, ex.getMessage());
+            log.error("Error al preparar notificación a {}: {}", correoDestinatario, ex.getMessage());
         }
     }
 
@@ -146,17 +146,16 @@ public class EmailServiceImpl implements EmailService
             MimeMessage mimeMessage = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
-            helper.setFrom(this.correoRemitente);
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - " + asunto);
             helper.setText(mensaje, false);
 
-            this.mailSender.send(mimeMessage);
-            log.info("Notificación enviada con éxito al profesor {}", correoDestinatario);
+            this.despacharConReintentos(mimeMessage, correoDestinatario, "Notificación a profesor (" + asunto + ")");
         }
-        catch (MessagingException | MailException ex)
+        catch (MessagingException | UnsupportedEncodingException ex)
         {
-            log.error("Error al enviar notificación al profesor {}: {}", correoDestinatario, ex.getMessage());
+            log.error("Error al preparar notificación al profesor {}: {}", correoDestinatario, ex.getMessage());
         }
     }
 
@@ -178,23 +177,109 @@ public class EmailServiceImpl implements EmailService
             MimeMessage mensaje = this.mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
 
-            helper.setFrom(this.correoRemitente);
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
             helper.setTo(correoDestinatario);
             helper.setSubject("ManDS - ¡Bienvenido/a a la autoescuela!");
 
             String enlaceLogin = this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "login" : this.appBaseUrl + "/login";
-            String cuerpoHtml = construirHtmlBienvenidaAlumno(nombreDestinatario, descripcionCarnet, importeAbonado, enlaceLogin);
+            String cuerpoHtml = this.construirHtmlBienvenidaAlumno(nombreDestinatario, descripcionCarnet, importeAbonado, enlaceLogin);
             helper.setText(cuerpoHtml, true);
 
-            this.mailSender.send(mensaje);
-            log.info("Correo de bienvenida y confirmación de matrícula enviado con éxito a {}", correoDestinatario);
+            this.despacharConReintentos(mensaje, correoDestinatario, "Bienvenida y confirmación de matrícula");
         }
-        catch (MessagingException | MailException ex)
+        catch (MessagingException | UnsupportedEncodingException ex)
         {
-            log.error("Error al enviar el correo de bienvenida a {}: {}", correoDestinatario, ex.getMessage());
+            log.error("Error al preparar el correo de bienvenida a {}: {}", correoDestinatario, ex.getMessage());
         }
     }
 
+    /**
+     * Envía un correo electrónico de notificación al Administrador cuando un profesor reporta una incidencia o avería mecánica.
+     *
+     * @param correoDestinatario Dirección de correo del Administrador.
+     * @param nombreAdmin Nombre de pila del Administrador.
+     * @param nombreProfesor Nombre completo del profesor emisor.
+     * @param vehiculoInfo Marca y modelo del vehículo afectado.
+     * @param matricula Matrícula del vehículo afectado.
+     * @param descripcionIncidencia Descripción o anomalía detallada.
+     * @param urlIncidencias Enlace directo al Panel de Incidencias de Flota.
+     */
+    @Override
+    public void enviarNotificacionIncidenciaAdmin(String correoDestinatario, String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcionIncidencia, String urlIncidencias)
+    {
+        try
+        {
+            Boolean multipart = true;
+
+            MimeMessage mensaje = this.mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
+
+            helper.setFrom(this.correoRemitente, "ManDS Autoescuela");
+            helper.setTo(correoDestinatario);
+            helper.setSubject("ManDS - Nueva Incidencia Reportada en Vehículo " + matricula);
+
+            String enlaceDefinitivo = (urlIncidencias != null && !urlIncidencias.isBlank())
+                    ? urlIncidencias
+                    : (this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "admin/incidencias" : this.appBaseUrl + "/admin/incidencias");
+
+            String cuerpoHtml = this.construirHtmlIncidenciaAdmin(nombreAdmin, nombreProfesor, vehiculoInfo, matricula, descripcionIncidencia, enlaceDefinitivo);
+            helper.setText(cuerpoHtml, true);
+
+            this.despacharConReintentos(mensaje, correoDestinatario, "Notificación de incidencia mecánica a administración");
+        }
+        catch (MessagingException | UnsupportedEncodingException ex)
+        {
+            log.error("Error al preparar la notificación de avería al Administrador {}: {}", correoDestinatario, ex.getMessage());
+        }
+    }
+
+    /**
+     * Despacha un mensaje MIME mediante el servidor SMTP configurado aplicando un mecanismo
+     * de reintentos exponenciales (hasta 3 intentos) para mitigar caídas transitorias de red o congestión del relay.
+     *
+     * @param mensaje Mensaje MIME preparado con cabeceras y contenido.
+     * @param destinatario Dirección de correo electrónico del destinatario para trazabilidad.
+     * @param tipoCorreo Descripción semántica del tipo de notificación para logs.
+     */
+    private void despacharConReintentos(MimeMessage mensaje, String destinatario, String tipoCorreo)
+    {
+        final int maxIntentos = 3;
+        final long retardoBaseMs = 1500L;
+
+        for (int intento = 1; intento <= maxIntentos; intento++)
+        {
+            try
+            {
+                this.mailSender.send(mensaje);
+                log.info("[EmailService] {} enviado con éxito a {} (intento {}/{})", tipoCorreo, destinatario, intento, maxIntentos);
+                return;
+            }
+            catch (MailException ex)
+            {
+                if (intento < maxIntentos)
+                {
+                    long espera = retardoBaseMs * intento;
+                    log.warn("[EmailService] Error transitorio al enviar {} a {} (intento {}/{}): {}. Reintentando en {}ms...",
+                            tipoCorreo, destinatario, intento, maxIntentos, ex.getMessage(), espera);
+                    try
+                    {
+                        Thread.sleep(espera);
+                    }
+                    catch (InterruptedException ie)
+                    {
+                        Thread.currentThread().interrupt();
+                        log.error("[EmailService] Reintento de envío interrumpido para {}: {}", destinatario, ie.getMessage());
+                        return;
+                    }
+                }
+                else
+                {
+                    log.error("[EmailService] Error persistente tras {} intentos al enviar {} a {}: {}",
+                            maxIntentos, tipoCorreo, destinatario, ex.getMessage());
+                }
+            }
+        }
+    }
 
     /**
      * Genera la plantilla HTML responsive con branding corporativo ManDS para el restablecimiento de contraseña.
@@ -427,47 +512,6 @@ public class EmailServiceImpl implements EmailService
             """;
 
         return contenidoHTML.formatted(nombreMostrado, carnetMostrado, importeFormateado, enlaceLogin);
-    }
-
-    /**
-     * Envía un correo electrónico de notificación al Administrador cuando un profesor reporta una incidencia o avería mecánica.
-     *
-     * @param correoDestinatario Dirección de correo del Administrador.
-     * @param nombreAdmin Nombre de pila del Administrador.
-     * @param nombreProfesor Nombre completo del profesor emisor.
-     * @param vehiculoInfo Marca y modelo del vehículo afectado.
-     * @param matricula Matrícula del vehículo afectado.
-     * @param descripcionIncidencia Descripción o anomalía detallada.
-     * @param urlIncidencias Enlace directo al Panel de Incidencias de Flota.
-     */
-    @Override
-    public void enviarNotificacionIncidenciaAdmin(String correoDestinatario, String nombreAdmin, String nombreProfesor, String vehiculoInfo, String matricula, String descripcionIncidencia, String urlIncidencias)
-    {
-        try
-        {
-            Boolean multipart = true;
-
-            MimeMessage mensaje = this.mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, multipart, "UTF-8");
-
-            helper.setFrom(this.correoRemitente);
-            helper.setTo(correoDestinatario);
-            helper.setSubject("ManDS - Nueva Incidencia Reportada en Vehículo " + matricula);
-
-            String enlaceDefinitivo = (urlIncidencias != null && !urlIncidencias.isBlank())
-                    ? urlIncidencias
-                    : (this.appBaseUrl.endsWith("/") ? this.appBaseUrl + "admin/incidencias" : this.appBaseUrl + "/admin/incidencias");
-
-            String cuerpoHtml = this.construirHtmlIncidenciaAdmin(nombreAdmin, nombreProfesor, vehiculoInfo, matricula, descripcionIncidencia, enlaceDefinitivo);
-            helper.setText(cuerpoHtml, true);
-
-            this.mailSender.send(mensaje);
-            log.info("Notificación de avería mecánica enviada con éxito al Administrador {}", correoDestinatario);
-        }
-        catch (MessagingException | MailException ex)
-        {
-            log.error("Error al enviar la notificación de avería al Administrador {}: {}", correoDestinatario, ex.getMessage());
-        }
     }
 
     /**
