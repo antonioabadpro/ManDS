@@ -1,4 +1,4 @@
-/**
+﻿/**
  * login.js - Lógica interactiva no intrusiva para la pantalla de inicio de sesión
  *
  * =====================================================================================
@@ -96,6 +96,18 @@ function inicializarEventosLogin() {
                 passwordInput.focus();
                 passwordInput.reportValidity();
                 return;
+            }
+
+            // Inhabilitar botón e iniciar spinner para prevenir doble sumisión en autenticación
+            const btnSubmit = document.getElementById('btn-submit-login');
+            if (btnSubmit && !btnSubmit.disabled) {
+                btnSubmit.disabled = true;
+                const btnText = btnSubmit.querySelector('.btn-text');
+                const spinner = btnSubmit.querySelector('.btn-spinner');
+                const spinnerText = btnSubmit.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
             }
         });
     }

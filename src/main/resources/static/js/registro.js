@@ -1,4 +1,4 @@
-/**
+﻿/**
  * registro.js - Asistente de Registro Multi-Paso de Alumnos (Wizard) para ManDS
  *
  * =====================================================================================
@@ -676,6 +676,18 @@ function inicializarEventosRegistro() {
                         irAPaso(i);
                         return;
                     }
+                }
+
+                // Inhabilitar botón de pago e iniciar spinner para evitar doble cobro y conectar con Stripe
+                const btnPago = document.getElementById('btn-ir-pago');
+                if (btnPago && !btnPago.disabled) {
+                    btnPago.disabled = true;
+                    const btnText = btnPago.querySelector('.btn-text');
+                    const spinner = btnPago.querySelector('.btn-spinner');
+                    const spinnerText = btnPago.querySelector('.btn-spinner-text');
+                    if (btnText) btnText.classList.add('hidden');
+                    if (spinner) spinner.classList.remove('hidden');
+                    if (spinnerText) spinnerText.classList.remove('hidden');
                 }
             }
         });

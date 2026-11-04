@@ -1,4 +1,4 @@
-/**
+﻿/**
  * alumno.js - Lógica Cliente para el Portal del Alumno (Calendario, Clases y Tarifas)
  *
  * =====================================================================================
@@ -231,6 +231,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // =========================================================================
+    // 7. GESTIÓN REACTIVA DE BOTONES DE ACCIÓN POST (PAGOS STRIPE Y EXÁMENES DGT)
+    // =========================================================================
+    // Formularios de compra de clases y renovación de matrícula (conexión externa Stripe)
+    document.querySelectorAll('form[action*="/alumno/pagos/comprar-clases"], form[action*="/matricula/renovar"]').forEach(form => {
+        form.addEventListener('submit', () => {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+            }
+        });
+    });
+
+    // Formulario modal de solicitud de examen DGT (escucha delegada para modales dinámicos)
+    document.addEventListener('submit', (e) => {
+        const formExamen = e.target.closest('#form-solicitar-examen');
+        if (formExamen) {
+            const btn = formExamen.querySelector('#btn-submit-solicitar-examen');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const btnText = btn.querySelector('.btn-text');
+                const spinner = btn.querySelector('.btn-spinner');
+                const spinnerText = btn.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
+            }
+        }
+    });
 
     inicializarToggleLeyenda();
 });

@@ -9,7 +9,7 @@
  *      donde define su nueva contraseña.
  *
  * 2. REQUISITOS DE ROBUSTEZ Y ASISTENCIA VISUAL:
- *    - Exige una longitud mínima de 8 caracteres (para cuentas restablecidas).
+ *    - Exige una longitud mínima de 6 caracteres (para cuentas restablecidas).
  *    - Comprueba la inclusión de al menos un número y una letra mayúscula.
  *    - Los iconos y colores de la lista de requisitos cambian en vivo mientras el usuario teclea.
  *
@@ -73,9 +73,9 @@ function inicializarValidadorSeguridad() {
     passInput.addEventListener('input', () => {
         const val = passInput.value;
 
-        // Requisito: Mínimo 8 caracteres para restablecimiento de seguridad
+        // Requisito: Mínimo 6 caracteres para restablecimiento de seguridad
         if (reqLength) {
-            actualizarIndicadorRequisito(reqLength, val.length >= 8);
+            actualizarIndicadorRequisito(reqLength, val.length >= 6);
         }
 
         // Requisito: Al menos un número (\d)
@@ -176,10 +176,23 @@ function inicializarEventosRecuperacion() {
             }
 
             const passInput = document.getElementById('nueva-password');
-            if (passInput && passInput.value.length < 8) {
+            if (passInput && passInput.value.length < 6) {
                 e.preventDefault();
                 passInput.focus();
                 passInput.reportValidity();
+                return;
+            }
+
+            // Inhabilitar botón e iniciar animación de spinner para prevenir doble sumisión
+            const btnSubmit = document.getElementById('btn-restablecer-password');
+            if (btnSubmit && !btnSubmit.disabled) {
+                btnSubmit.disabled = true;
+                const btnText = btnSubmit.querySelector('.btn-text');
+                const spinner = btnSubmit.querySelector('.btn-spinner');
+                const spinnerText = btnSubmit.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
             }
         });
     }

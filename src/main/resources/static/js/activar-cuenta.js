@@ -1,4 +1,4 @@
-/**
+﻿/**
  * activar-cuenta.js - Asistente de Activación de Cuenta de Profesor para ManDS
  *
  * =====================================================================================
@@ -238,6 +238,19 @@ function inicializarEventosActivacion() {
                     confirmInput.focus();
                     confirmInput.reportValidity();
                 }
+                return;
+            }
+
+            // Inhabilitar botón e iniciar animación de spinner para prevenir doble sumisión
+            const btnSubmit = document.getElementById('btn-submit-activar');
+            if (btnSubmit && !btnSubmit.disabled) {
+                btnSubmit.disabled = true;
+                const btnText = btnSubmit.querySelector('.btn-text');
+                const spinner = btnSubmit.querySelector('.btn-spinner');
+                const spinnerText = btnSubmit.querySelector('.btn-spinner-text');
+                if (btnText) btnText.classList.add('hidden');
+                if (spinner) spinner.classList.remove('hidden');
+                if (spinnerText) spinnerText.classList.remove('hidden');
             }
         });
     }
