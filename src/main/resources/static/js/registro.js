@@ -713,6 +713,21 @@ function inicializarEventosRegistro() {
             }
         }
     });
+
+    // 10. Cierre accesible de alertas y notificaciones con animación suave
+    document.addEventListener('click', (evento) => {
+        const triggerAlertaCerrar = evento.target.closest('[data-alerta-cerrar]');
+        if (triggerAlertaCerrar) {
+            evento.preventDefault();
+            const alerta = triggerAlertaCerrar.closest('[role="alert"]') || triggerAlertaCerrar.closest('.p-4') || triggerAlertaCerrar.parentElement;
+            if (alerta) {
+                alerta.classList.add('transition-all', 'duration-300', 'opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    alerta.remove();
+                }, 300);
+            }
+        }
+    });
 }
 
 // Inicialización del asistente al completarse el DOM

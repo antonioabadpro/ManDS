@@ -9,11 +9,27 @@
     <div th:fragment="feedbackExito">
         <!-- Actualización Out-Of-Band del contenedor de alertas superior -->
         <div id="contenedor-alertas" hx-swap-oob="true">
-            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+            <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200 shadow-sm animate-fade-in" role="alert">
                 <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+                <button type="button" data-alerta-cerrar class="shrink-0 -mr-1 -mt-1 p-1.5 rounded-xl text-emerald-600/70 hover:text-emerald-800 hover:bg-emerald-100/80 dark:text-emerald-400/70 dark:hover:text-emerald-200 dark:hover:bg-emerald-900/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer" aria-label="Cerrar notificación" title="Cerrar notificación">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200 shadow-sm animate-fade-in" role="alert">
+                <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+                <button type="button" data-alerta-cerrar class="shrink-0 -mr-1 -mt-1 p-1.5 rounded-xl text-rose-600/70 hover:text-rose-800 hover:bg-rose-100/80 dark:text-rose-400/70 dark:hover:text-rose-200 dark:hover:bg-rose-900/40 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all cursor-pointer" aria-label="Cerrar notificación" title="Cerrar notificación">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>

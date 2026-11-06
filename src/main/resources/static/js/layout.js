@@ -519,6 +519,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Disparador de cierre de alertas y popups de feedback (mensajeExito, error, etc.)
+        const triggerAlertaCerrar = event.target.closest('[data-alerta-cerrar]');
+        if (triggerAlertaCerrar) {
+            event.preventDefault();
+            const alerta = triggerAlertaCerrar.closest('[role="alert"]') || triggerAlertaCerrar.closest('.p-4') || triggerAlertaCerrar.parentElement;
+            if (alerta) {
+                alerta.classList.add('transition-all', 'duration-300', 'opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    alerta.remove();
+                }, 300);
+            }
+            return;
+        }
+
         // Cierre por clic en el fondo semitransparente del modal (Light-Dismiss)
         if (event.target.classList.contains('modal-backdrop')) {
             const modalPadre = event.target.closest('[role="dialog"]');
