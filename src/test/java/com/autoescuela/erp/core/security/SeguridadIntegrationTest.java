@@ -6,6 +6,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.mock.web.MockHttpSession;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Assertions;
 
@@ -15,6 +16,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -79,6 +81,26 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/admin/usuarios"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    @DisplayName("Acceso no autenticado a ruta protegida con sesión caducada -> Redirige a /login con flash attribute sesionExpirada")
+    void testAccesoNoAutenticadoConSesionCaducadaRedirigeALoginConFlashAttribute() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/usuarios").cookie(new Cookie("JSESSIONID", "sesion-invalida-antigua")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(flash().attribute("sesionExpirada", true));
+    }
+
+    @Test
+    @DisplayName("Acceso no autenticado a ruta protegida sin sesión previa -> Redirige a /login sin flash attribute sesionExpirada")
+    void testAccesoNoAutenticadoSinSesionPreviaRedirigeALoginSinFlashAttribute() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/usuarios"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andExpect(flash().attribute("sesionExpirada", false));
     }
 
     @Test
