@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO para redactar y enviar una notificación directa por correo a un alumno tutelado.
+ * DTO para redactar y enviar una notificación directa por correo a un alumno.
  */
 public record ContactarAlumnoDTO(
     @NotNull(message = "El identificador del alumno es obligatorio.")

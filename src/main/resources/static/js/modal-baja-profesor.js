@@ -42,7 +42,7 @@ document.addEventListener('submit', (e) => {
     const inputProfesor = document.getElementById('input-confirmacion-nuevo-profesor');
 
     if (totalAlumnos === 0) {
-        if (resumenDestino) resumenDestino.textContent = 'Sin alumnos tutelados';
+        if (resumenDestino) resumenDestino.textContent = 'Sin alumnos asignados';
         if (inputOpcion) inputOpcion.value = 'SIN_PROFESOR';
         if (inputProfesor) inputProfesor.value = '';
     } else if (opcion === 'SIN_PROFESOR') {
