@@ -1,0 +1,125 @@
+@startuml Diagrama_Secuencia_Webhook_Stripe_v1
+' ==============================================================================
+' MAN-DS: DIAGRAMA DE SECUENCIA 3
+' FLUJO: DESACOPLAMIENTO FINANCIERO, RETORNO Y WEBHOOK ASÍNCRONO DE STRIPE
+' ==============================================================================
+
+skinparam handwritten false
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 6
+
+skinparam sequence {
+    ArrowColor #2563EB
+    ActorBorderColor #2563EB
+    LifeLineBorderColor #64748B
+    LifeLineBackgroundColor #F1F5F9
+
+    ParticipantBorderColor #2563EB
+    ParticipantBackgroundColor #EFF6FF
+    ParticipantFontColor #0F172A
+    ParticipantFontStyle bold
+
+    DatabaseBorderColor #DC2626
+    DatabaseBackgroundColor #FEF2F2
+    DatabaseFontColor #991B1B
+}
+
+actor "Alumno" as Alumno #DBEAFE
+participant "Pasarela Stripe\n(Checkout & API)" as Stripe #E0E7FF
+participant "StripeResponseController /\nStripeWebhookController" as Controller #EDE9FE
+participant "AcademicoService /\nAuthenticationService" as Service #DCFCE7
+database "PostgreSQL\n(Supabase)" as DB #FEE2E2
+participant "EmailService\n(Brevo / Mailpit)" as Mail #f9b97c
+
+activate Alumno
+
+alt Pago autorizado con éxito (checkout.session.completed)
+    Alumno -> Stripe : Introduce los datos bancarios\ny pulsa el botón "Pagar"
+    activate Stripe
+    Stripe -> Controller : POST /pagos/webhook\nprocesarWebhookStripe()
+    activate Controller
+
+    Controller -> Controller : Webhook.constructEvent()
+    note left
+      <b>Verificación Criptográfica (HMAC-SHA256):</b>
+      Webhook.constructEvent (payload, sigHeader, webhookSecret)
+    end note
+
+    Controller -> Service : matricularTrasPago\n(alumnoId, tipoCarnet, modalidad, importeTotal)
+
+    activate Service
+    Service -> DB : save (alumno)
+    activate DB
+    DB --> Service : alumnoActivo: Alumno
+    Service -> DB : save (matricula)
+    DB --> Service : matriculaGuardada: Matricula
+    deactivate DB
+
+    Service -> Mail : enviarBienvenidaAlumno (correo, nombre, carnet, importe)
+    activate Mail
+    Mail --> Service : Correo despachado (@Async)
+    deactivate Mail
+
+    Service --> Controller : matricula: Matricula
+    deactivate Service
+    Controller --> Stripe : HTTP 200 OK\n(Evento de matrícula procesado)
+
+    Stripe -> Controller : mostrarExitoCheckout()\nGET /pagos/checkout/success?session_id=...
+    note over Controller #EFF6FF
+      Comprobación idempotente si el navegador
+      llega antes que el webhook
+    end note
+    Controller --> Alumno : Renderiza pagos/matricula-success\n y Mensaje de éxito
+    deactivate Controller
+    deactivate Stripe
+
+else El Alumno cancela el pago o expira la sesión (checkout.session.expired)
+    Alumno -> Stripe : Pulsa el botón "Cancelar"/"Volver"\no abandona la sesión
+    activate Stripe
+    Stripe -> Controller : GET /pagos/checkout/cancel (mostrarCancelacionCheckout())\n/ POST /pagos/webhook (procesarWebhookStripe())
+    activate Controller
+
+    note over Controller #FEF3C7
+      Si entra por webhook, valida HMAC-SHA256
+      mediante Webhook.constructEvent(...)
+    end note
+
+    Controller -> Service : eliminarAlumnoInactivoPorId (alumnoId)
+    activate Service
+    Service -> DB : findById (alumnoId)
+    activate DB
+    DB --> Service : alumno: Optional<Alumno>
+    deactivate DB
+    opt Alumno INACTIVO sin matrícula
+        Service -> DB : delete (alumno)
+        activate DB
+        DB --> Service : Registro huérfano eliminado
+        deactivate DB
+    end
+    Service --> Controller : Purga completada
+    deactivate Service
+
+    Controller --> Stripe : HTTP 200 OK
+    Controller --> Alumno : Renderiza pagos/matricula-cancel\ny Mensaje de error
+    deactivate Controller
+    deactivate Stripe
+
+else Pago rechazado en pasarela (Tarjeta denegada / Error)
+    Alumno -> Stripe : Introduce los datos bancarios\ny pulsa el botón "Pagar"
+    activate Stripe
+    Stripe --> Alumno : Mensaje de error en pasarela\n(Permite reintentar el pago o cancelar)
+    deactivate Stripe
+
+else Firma de Webhook Inválida o Manipulada
+    Stripe -> Controller : POST /pagos/webhook\nprocesarWebhookStripe()
+    activate Controller
+    Controller -> Controller : Webhook.constructEvent()
+    Controller --> Stripe : HTTP 400 Bad Request\n(Firma no válida)
+    deactivate Controller
+end
+
+deactivate Alumno
+
+@enduml

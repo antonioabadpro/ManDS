@@ -1,0 +1,88 @@
+@startuml Diagrama_Secuencia_Reserva_Clase_v1
+' ==============================================================================
+' MAN-DS: DIAGRAMA DE SECUENCIA 1
+' FLUJO: RESERVA CONCURRENTE DE CLASE PRÁCTICA (FIRST-COME, FIRST-SERVED)
+' ==============================================================================
+
+skinparam handwritten false
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 6
+
+skinparam sequence {
+    ArrowColor #2563EB
+    ActorBorderColor #2563EB
+    LifeLineBorderColor #64748B
+    LifeLineBackgroundColor #F1F5F9
+
+    ParticipantBorderColor #2563EB
+    ParticipantBackgroundColor #EFF6FF
+    ParticipantFontColor #0F172A
+    ParticipantFontStyle bold
+
+    DatabaseBorderColor #DC2626
+    DatabaseBackgroundColor #FEF2F2
+    DatabaseFontColor #991B1B
+}
+
+actor "Alumno" as Alumno #DBEAFE
+boundary "Vista Calendario" as UI #EFF6FF
+participant "ClasePracticaController" as Controller #EDE9FE
+participant "ClasePracticaService" as Service #DCFCE7
+database "PostgreSQL\n(Supabase)" as DB #FEE2E2
+
+activate Alumno
+Alumno -> UI : Selecciona una franja horaria libre
+
+activate UI
+UI --> Alumno: Muestra el modal con el formulario de reserva
+
+Alumno -> UI : Rellena el formulario y pulsa el botón"Reservar"
+
+UI -> Controller : POST /alumno/clases/reservar-modal\nobtenerModalReservarClase (fecha)
+activate Controller
+
+Controller -> Service : reservarClase(alumno, profesor, dto)
+activate Service
+
+note over Service
+  <b>Barreras Preventivas:</b>
+  1. Festivos y Vacaciones (FestivosCalendarioUtil)
+  2. Expediente activo y convocatorias > 0
+  3. Aprobado teórico previo (si TEORICO_PRACTICA)
+  4. Jornada NO cancelada por el profesor
+  5. Franja horaria libre (NO reservada por otro alumno)
+end note
+
+Service -> DB : saveAndFlush (nuevaClase)
+activate DB
+
+alt Si NO hay conflictos de concurrencia
+    DB --> Service : clase: ClasePractica (PENDIENTE)
+    note left of DB #DCFCE7
+      <b>Índice único nativo:</b>
+      uq_clase_profesor_fechahora_activa
+      ON clase_practica (profesor_id, fecha_hora)
+      WHERE estado_clase != 'CANCELADA'
+    end note
+    Service --> Controller : clase: ClasePractica
+    Controller --> UI : HTTP 200 OK\n(Fragmento HTML actualizado)
+    UI --> Alumno : Mensaje de éxito y actualización de la UI
+else Si se realizan reservas concurrentes y se produce una colisión
+    DB --> Service : Violación de unicidad (DataIntegrityViolationException)
+    deactivate DB
+    note over Service #FEE2E2
+      <b>Captura de colisión concurrentemente:</b>
+      Rollback atómico de la transacción
+    end note
+    Service --> Controller : throw ReglaNegocioException\n("Franja horaria ocupada por otro alumno")
+    deactivate Service
+    Controller --> UI : HTTP 409 Conflict\n(Fragmento Alerta OOB)
+    deactivate Controller
+    UI --> Alumno : Mensaje de error y actualización de la UI
+    deactivate UI
+    deactivate Alumno
+end
+
+@enduml

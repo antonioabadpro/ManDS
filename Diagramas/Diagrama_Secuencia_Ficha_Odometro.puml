@@ -1,0 +1,98 @@
+@startuml Diagrama_Secuencia_Ficha_Odometro_v1
+' ==============================================================================
+' MAN-DS: DIAGRAMA DE SECUENCIA 2
+' FLUJO: CUMPLIMENTACIÓN DE FICHA TÉCNICA, ODÓMETRO Y DEDUCCIÓN DE SALDO
+' ==============================================================================
+
+skinparam handwritten false
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 6
+
+skinparam sequence {
+    ArrowColor #2563EB
+    ActorBorderColor #2563EB
+    LifeLineBorderColor #64748B
+    LifeLineBackgroundColor #F1F5F9
+
+    ParticipantBorderColor #2563EB
+    ParticipantBackgroundColor #EFF6FF
+    ParticipantFontColor #0F172A
+    ParticipantFontStyle bold
+
+    DatabaseBorderColor #DC2626
+    DatabaseBackgroundColor #FEF2F2
+    DatabaseFontColor #991B1B
+}
+
+actor "Profesor" as Profesor #DBEAFE
+boundary "Vista Calendario" as UI #EFF6FF
+participant "ClasePracticaController" as Controller #EDE9FE
+participant "ClasePracticaService" as Service #DCFCE7
+database "PostgreSQL\n(Supabase)" as DB #FEE2E2
+
+activate Profesor
+Profesor -> UI : Selecciona la clase PENDIENTE que desea completar
+
+activate UI
+UI --> Profesor: Muestra el modal con el formulario\nque contiene los campos de la ficha técnica de la clase
+
+Profesor -> UI : Rellena el formulario y pulsa "Guardar Ficha"
+
+UI -> Controller : POST /profesor/clases/completar\ncompletarClasePractica (dto)
+activate Controller
+
+Controller -> Service : completarClasePractica (dto)
+activate Service
+
+note over Service
+  <b>Validaciones de Negocio:</b>
+  1. Hora actual >= fin de la clase (now >= fechaHora + duracion)
+  2. Coherencia de odómetro: kmFin > kmInicio
+end note
+
+Service -> DB : findById (claseId)
+activate DB
+DB --> Service : clase: ClasePractica (PENDIENTE)
+
+note over Service
+  <b>Transición de Estado:</b>
+  clase.setEstadoClase (RECIBIDA)
+  clase.setKmInicio (dto.kmInicio)
+  clase.setKmFin (dto.kmFin)
+  clase.setObservaciones (dto.observaciones)
+end note
+
+Service -> DB : save (clase)
+DB --> Service : claseGuardada: ClasePractica
+
+opt Vehículo Asignado
+    Service -> DB : vehiculo.setKm (dto.kmFin)\nsave (vehiculo)
+    DB --> Service : Odómetro de vehículo actualizado
+end
+
+opt Matrícula Activa del Alumno
+    Service -> DB : findByAlumnoAndEstaActivaTrue (alumno)
+    DB --> Service : matricula: Matricula
+    note over Service
+      <b>Deducción Atómica:</b>
+      saldoClases = saldoClases - 1
+    end note
+    Service -> DB : save (matricula)
+    DB --> Service : Saldo actualizado
+end
+deactivate DB
+
+Service --> Controller : claseGuardada: ClasePractica
+deactivate Service
+
+Controller --> UI : HTTP 200 OK\n(Fragmento HTML actualizado)
+deactivate Controller
+
+UI --> Profesor : Mensaje de éxito y actualización de la UI
+deactivate UI
+
+deactivate Profesor
+
+@enduml
