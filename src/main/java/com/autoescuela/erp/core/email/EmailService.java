@@ -1,8 +1,10 @@
 package com.autoescuela.erp.core.email;
 
+import com.autoescuela.erp.core.enums.Rol;
+
 /**
  * Servicio transversal para el envío de correos electrónicos transaccionales.
- * Gestiona notificaciones automáticas
+ * Gestiona notificaciones automáticas con formato HTML corporativo unificado.
  */
 public interface EmailService
 {
@@ -29,22 +31,16 @@ public interface EmailService
     void enviarInvitacionProfesor(String correoDestinatario, String nombreDestinatario, String enlaceActivacion, String duracionTokenMinutos);
 
     /**
-     * Envía un correo electrónico de notificación formal o pedagógica a un alumno tutelado.
+     * Envía un correo electrónico de notificación formal en HTML corporativo a cualquier usuario del sistema
+     * (Alumno, Profesor o Administrador), dirigiendo el acceso hacia su panel correspondiente según su rol.
      *
-     * @param correoDestinatario Dirección de correo del alumno.
+     * @param correoDestinatario Dirección de correo del destinatario.
+     * @param nombreDestinatario Nombre de pila del destinatario para personalizar el saludo (opcional).
      * @param asunto Asunto del correo electrónico.
-     * @param mensaje Cuerpo del mensaje en texto plano o contenido transaccional.
+     * @param mensaje Cuerpo formal del aviso (soporta saltos de línea para párrafos o listas).
+     * @param rolDestinatario Rol del destinatario para dirigir el enlace a su panel, o {@code null} para acceso general.
      */
-    void enviarNotificacionAlumno(String correoDestinatario, String asunto, String mensaje);
-
-    /**
-     * Envía un correo electrónico de notificación o comunicación directa a un profesor.
-     *
-     * @param correoDestinatario Dirección de correo del profesor.
-     * @param asunto Asunto del correo electrónico.
-     * @param mensaje Cuerpo del mensaje en texto plano o aviso informativo.
-     */
-    void enviarNotificacionProfesor(String correoDestinatario, String asunto, String mensaje);
+    void enviarNotificacionCorreo(String correoDestinatario, String nombreDestinatario, String asunto, String mensaje, Rol rolDestinatario);
 
     /**
      * Envía un correo electrónico de bienvenida y confirmación de matrícula a un nuevo alumno tras el pago.

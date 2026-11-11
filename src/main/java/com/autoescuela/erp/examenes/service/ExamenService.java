@@ -19,6 +19,7 @@ import com.autoescuela.erp.core.config.CacheConfig;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -331,37 +332,31 @@ public class ExamenService
                 if (examen.getTipo() == TipoExamen.TEORICO)
                 {
                     String correoAlumno = alumno.getCorreo();
-                    String asunto = "Resultado oficial de tu Examen Teórico DGT - ManDS Autoescuela";
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                            + "Te comunicamos oficialmente que el resultado de tu examen teórico oficial de conducir"
+                    String asunto = "Resultado oficial de tu Examen Teórico DGT";
+                    String mensaje = "Te comunicamos oficialmente que el resultado de tu examen teórico oficial de conducir"
                             + (tipoCarnet.isBlank() ? "" : " para el " + tipoCarnet) + " ha sido calificado como NO APTO.\n\n"
                             + "Queremos transmitirte mucho ánimo. En esta convocatoria se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
                             + (convocatoriasGastadas >= 2
                                     ? "Has agotado las 2 convocatorias oficiales incluidas en tu matrícula. Para poder presentarte a una nueva convocatoria oficial de examen deberás abonar las tasas de Renovación de Matrícula desde tu panel de pagos.\n\n"
                                     : "Te recomendamos continuar repasando los test y el temario teórico. Podrás solicitar una nueva fecha de examen oficial desde tu panel de alumno en cuanto te sientas preparado/a.\n\n")
                             + "Recuerda que el acceso a clases prácticas de circulación se habilitará una vez superada la prueba teórica oficial ante la DGT.\n\n"
-                            + "¡Mucho ánimo y a seguir adelante!\n\n"
-                            + "Un cordial saludo,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
+                            + "¡Mucho ánimo y a seguir adelante!";
 
-                    this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                    this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                 }
                 else // Si ha suspendido el examen práctico
                 {
                     String correoAlumno = alumno.getCorreo();
-                    String asunto = "Resultado oficial de tu Examen Práctico DGT - ManDS Autoescuela";
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                            + "Te comunicamos oficialmente que el resultado de tu examen práctico oficial de conducir"
+                    String asunto = "Resultado oficial de tu Examen Práctico DGT";
+                    String mensaje = "Te comunicamos oficialmente que el resultado de tu examen práctico oficial de conducir"
                             + (tipoCarnet.isBlank() ? "" : " para el " + tipoCarnet) + " ha sido calificado como NO APTO.\n\n"
                             + "No te desanimes, es una etapa habitual en el aprendizaje de la conducción. En esta prueba se ha consumido 1 intento de tu matrícula. Convocatorias oficiales restantes: " + convocatoriasRestantes + " de 2.\n\n"
                             + (convocatoriasGastadas >= 2
                                     ? "Has acumulado 2 convocatorias agotadas. Por normativa oficial, la adquisición de saldo y la reserva de clases prácticas quedan temporalmente pausadas hasta que tramites la Renovación de Matrícula desde tu panel de pagos.\n\n"
                                     : "Mantienes asignado a tu profesor de autoescuela. Te recomendamos reservar clases prácticas adicionales en el calendario para pulir las maniobras antes de tu siguiente examen.\n\n")
-                            + "¡Mucho ánimo, estamos a tu lado para conseguirlo!\n\n"
-                            + "Un cordial saludo,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
+                            + "¡Mucho ánimo, estamos a tu lado para conseguirlo!";
 
-                    this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                    this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                 }
             }
         }
@@ -403,16 +398,13 @@ public class ExamenService
                     {
                         String correoAlumno = alumno.getCorreo();
                         String asunto = "¡Enhorabuena! Has aprobado tu examen práctico en ManDS Autoescuela";
-                        String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                                + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen práctico de conducir"
+                        String mensaje = "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen práctico de conducir"
                                 + (tipoCarnet.isBlank() ? "" : " para el " + tipoCarnet) + ".\n\n"
                                 + "Tu expediente para este permiso ha finalizado con éxito. A partir de ahora podrás consultar todo tu historial de clases y notas desde tu panel de usuario.\n\n"
                                 + "Si en el futuro deseas matricularte en un nuevo permiso de conducir, podrás gestionarlo directamente desde tu panel personal.\n\n"
-                                + "¡Gracias por confiar en ManDS Autoescuela!\n\n"
-                                + "Un cordial saludo,\n"
-                                + "Equipo de Coordinación - ManDS Autoescuela";
+                                + "¡Gracias por confiar en ManDS Autoescuela!";
 
-                        this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                        this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                     }
                 }
 
@@ -435,15 +427,12 @@ public class ExamenService
                     {
                         String correoAlumno = alumno.getCorreo();
                         String asunto = "¡Enhorabuena! Has aprobado tu examen teórico en ManDS Autoescuela";
-                        String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                                + "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen teórico oficial de conducir"
+                        String mensaje = "¡Muchísimas felicidades! Te comunicamos oficialmente que has resultado APTO en tu examen teórico oficial de conducir"
                                 + (tipoCarnet.isBlank() ? "" : " para el " + tipoCarnet) + ".\n\n"
                                 + "A partir de este momento tienes habilitado el acceso al calendario de reservas para comenzar tus clases prácticas de circulación con tu profesor de autoescuela.\n\n"
-                                + "¡Mucho éxito en esta nueva etapa formativa hacia tu carnet!\n\n"
-                                + "Un cordial saludo,\n"
-                                + "Equipo de Coordinación - ManDS Autoescuela";
+                                + "¡Mucho éxito en esta nueva etapa formativa hacia tu carnet!";
 
-                        this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                        this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                     }
                 }
             }
@@ -870,15 +859,14 @@ public class ExamenService
 
                         if (clase.getAlumno() != null && clase.getAlumno().getCorreo() != null && !clase.getAlumno().getCorreo().isBlank())
                         {
-                            this.emailService.enviarNotificacionAlumno(
+                            this.emailService.enviarNotificacionCorreo(
                                     clase.getAlumno().getCorreo(),
+                                    clase.getAlumno().getNombre(),
                                     "Cancelación de clase práctica por jornada oficial de exámenes DGT",
-                                    "Estimado/a " + clase.getAlumno().getNombre() + ",\n\n"
-                                    + "Te informamos de que tu clase práctica fijada para el día "
+                                    "Te informamos de que tu clase práctica fijada para el día "
                                     + fechaExamen.toLocalDate() + " ha sido cancelada por Coordinación debido a que tu profesor y su vehículo estarán destinados a la jornada oficial de exámenes prácticos de la DGT.\n\n"
-                                    + "Se ha restituido tu capacidad de reserva para que puedas seleccionar una nueva clase en el calendario cuando lo desees.\n\n"
-                                    + "Disculpa las molestias,\n"
-                                    + "Equipo de Coordinación - ManDS Autoescuela"
+                                    + "Se ha restituido tu capacidad de reserva para que puedas seleccionar una nueva clase en el calendario cuando lo desees.",
+                                    Rol.ALUMNO
                             );
                         }
                     }
@@ -895,19 +883,19 @@ public class ExamenService
                     ? solicitud.getMatricula().getPermisoCarnet().getDescripcion()
                     : "conducción";
 
-            this.emailService.enviarNotificacionAlumno(
+            this.emailService.enviarNotificacionCorreo(
                     alumno.getCorreo(),
-                    "Citación Oficial a Examen DGT - ManDS Autoescuela",
-                    "Estimado/a " + alumno.getNombre() + ",\n\n"
-                    + "Te comunicamos que tu solicitud de examen oficial "
+                    alumno.getNombre(),
+                    "Citación Oficial a Examen DGT",
+                    "Te comunicamos que tu solicitud de examen oficial "
                     + (solicitud.getTipo() == TipoExamen.TEORICO ? "teórico" : "práctico")
                     + " para el " + permisoDesc + " ha sido ACEPTADA.\n\n"
                     + "Datos oficiales de la citación:\n"
                     + "• Fecha y hora: " + fechaTexto + " h\n"
                     + "• Tipo de prueba: " + (solicitud.getTipo() == TipoExamen.TEORICO ? "Teórico Oficial DGT" : "Práctico de Circulación DGT") + "\n\n"
                     + "Recuerda presentarte con tu documento identificativo en vigor (DNI / NIE) y con 15 minutos de antelación.\n\n"
-                    + "¡Mucho éxito en la prueba!\n"
-                    + "Equipo de Coordinación - ManDS Autoescuela"
+                    + "¡Mucho éxito en la prueba!",
+                    Rol.ALUMNO
             );
         }
 
@@ -948,16 +936,15 @@ public class ExamenService
         Alumno alumno = solicitud.getAlumno();
         if (alumno != null && alumno.getCorreo() != null && !alumno.getCorreo().isBlank())
         {
-            this.emailService.enviarNotificacionAlumno(
+            this.emailService.enviarNotificacionCorreo(
                     alumno.getCorreo(),
-                    "Resolución de tu Solicitud de Examen DGT - ManDS Autoescuela",
-                    "Estimado/a " + alumno.getNombre() + ",\n\n"
-                    + "Te comunicamos que tu solicitud de examen oficial ha sido RECHAZADA por la Administración del centro.\n\n"
+                    alumno.getNombre(),
+                    "Resolución de tu Solicitud de Examen DGT",
+                    "Te comunicamos que tu solicitud de examen oficial ha sido RECHAZADA por la Administración del centro.\n\n"
                     + "Motivo o justificación indicada:\n"
                     + comentarioJustificacion.trim() + "\n\n"
-                    + "Podrás formular una nueva solicitud desde tu panel de alumno una vez subsanadas las observaciones notificadas.\n\n"
-                    + "Un cordial saludo,\n"
-                    + "Equipo de Coordinación - ManDS Autoescuela"
+                    + "Podrás formular una nueva solicitud desde tu panel de alumno una vez subsanadas las observaciones notificadas.",
+                    Rol.ALUMNO
             );
         }
 

@@ -17,6 +17,7 @@ import com.autoescuela.erp.core.config.CacheConfig;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
@@ -441,11 +442,11 @@ public class ClasePracticaService
             {
                 String correoAlumno = alumno.getCorreo();
                 String asunto = "Cancelación de clase práctica programada";
-                String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\nTu clase práctica del "
+                String mensaje = "Tu clase práctica del "
                         + clase.getFechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + " ha sido cancelada por el profesor. Motivo: "
                         + (motivo != null && !motivo.isBlank() ? motivo.trim() : "Imprevisto del Profesor") + ".\n\nTu saldo de clases permanece intacto para que reserves una nueva fecha.";
 
-                this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
 
             }
             catch (Exception ex)
@@ -562,9 +563,9 @@ public class ClasePracticaService
                 {
                     String correoAlumno = alumno.getCorreo();
                     String asunto = "Cancelación de clases prácticas - Jornada del " + fechaFormatoLegible;
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\nTe informamos de que todas las clases prácticas programadas con tu profesor para el día " + fechaFormatoLegible + " han sido canceladas.\n\nMotivo de la cancelación: " + (motivo != null ? motivo.trim() : "Imprevisto") + ".\n\nSi disponías de una reserva para dicho día, tu saldo de clases permanece intacto para que reserves una nueva fecha.\n\nDisculpa las molestias.";
+                    String mensaje = "Te informamos de que todas las clases prácticas programadas con tu profesor para el día " + fechaFormatoLegible + " han sido canceladas.\n\nMotivo de la cancelación: " + (motivo != null ? motivo.trim() : "Imprevisto") + ".\n\nSi disponías de una reserva para dicho día, tu saldo de clases permanece intacto para que reserves una nueva fecha.\n\nDisculpa las molestias.";
 
-                    this.emailService.enviarNotificacionAlumno(correoAlumno, asunto, mensaje);
+                    this.emailService.enviarNotificacionCorreo(correoAlumno, alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                 }
                 catch (Exception ex)
                 {

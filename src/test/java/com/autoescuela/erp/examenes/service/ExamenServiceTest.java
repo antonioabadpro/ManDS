@@ -18,6 +18,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -457,7 +458,7 @@ class ExamenServiceTest
         assertEquals(EstadoSolicitud.ACEPTADA, resultado.getEstado());
         assertNotNull(resultado.getExamen());
         assertEquals(f1, resultado.getExamen().getFechaHora());
-        verify(this.emailService).enviarNotificacionAlumno(eq("david.ruiz@example.com"), anyString(), anyString());
+        verify(this.emailService).enviarNotificacionCorreo(eq("david.ruiz@example.com"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test
@@ -476,7 +477,7 @@ class ExamenServiceTest
 
         assertEquals(EstadoSolicitud.RECHAZADA, resultado.getEstado());
         assertEquals("Falta dominio en estacionamiento.", resultado.getComentarioJustificacion());
-        verify(this.emailService).enviarNotificacionAlumno(eq("david.ruiz@example.com"), anyString(), anyString());
+        verify(this.emailService).enviarNotificacionCorreo(eq("david.ruiz@example.com"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test
@@ -603,7 +604,7 @@ class ExamenServiceTest
         assertEquals(EstadoSolicitud.ACEPTADA, resultado.getEstado());
         assertNotNull(resultado.getExamen());
         assertEquals(f1Nov, resultado.getExamen().getFechaHora());
-        verify(this.emailService).enviarNotificacionAlumno(eq("david.ruiz@example.com"), anyString(), anyString());
+        verify(this.emailService).enviarNotificacionCorreo(eq("david.ruiz@example.com"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.service.TokenVerificacionService;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
@@ -23,6 +25,7 @@ import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.BajaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.EditarProfesorDTO;
 import com.autoescuela.erp.usuarios.mapper.ProfesorMapper;
@@ -34,6 +37,8 @@ import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -199,6 +204,55 @@ class ProfesorServiceTest
         assertEquals(EstadoVehiculo.OCUPADO, vehiculoNuevo.getEstado());
         verify(this.vehiculoRepository).save(vehiculoAnterior);
         verify(this.vehiculoRepository).save(vehiculoNuevo);
+    }
+
+    @Test
+    @DisplayName("darAltaProfesor normaliza barras finales de baseUrl y usa appBaseUrl de respaldo cuando baseUrl viene vacía")
+    void darAltaProfesor_normalizaBarrasFinalesYRespaldoEnEnlaceActivacion()
+    {
+        ReflectionTestUtils.setField(this.profesorService, "appBaseUrl", "https://fallback.mands.es///");
+
+        AltaProfesorDTO dto = new AltaProfesorDTO(
+                "Carlos",
+                "Ruiz",
+                "23456789D",
+                "600111222",
+                "profe@autoescuela.es",
+                LocalDate.of(1985, 5, 10),
+                "Calle Mayor 1",
+                LocalDate.now(),
+                TipoTurno.MATINAL,
+                null,
+                List.of(TipoCarnet.PERMISO_B)
+        );
+
+        Profesor profesorMapeado = this.crearProfesorBase(10L);
+        TokenVerificacion token = new TokenVerificacion("tok-abc", profesorMapeado, LocalDateTime.now().plusMinutes(60));
+
+        when(this.personaRepository.existsByDni("23456789D")).thenReturn(false);
+        when(this.usuarioService.esLetraDniValida("23456789D")).thenReturn(true);
+        when(this.personaRepository.existsByCorreo("profe@autoescuela.es")).thenReturn(false);
+        when(this.personaRepository.existsByTelefono("600111222")).thenReturn(false);
+        when(this.profesorMapper.toProfesor(dto)).thenReturn(profesorMapeado);
+        when(this.passwordEncoder.encode(anyString())).thenReturn("hash-temporal");
+        when(this.profesorRepository.save(any(Profesor.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(this.tokenVerificacionService.generarTokenRecuperacion(profesorMapeado, 60)).thenReturn(token);
+
+        this.profesorService.darAltaProfesor(dto, "https://mands.onrender.com///");
+        this.profesorService.darAltaProfesor(dto, null);
+
+        verify(this.emailService).enviarInvitacionProfesor(
+                eq("profe@autoescuela.es"),
+                eq("Carlos"),
+                eq("https://mands.onrender.com/activar-cuenta?token=tok-abc"),
+                eq("60")
+        );
+        verify(this.emailService).enviarInvitacionProfesor(
+                eq("profe@autoescuela.es"),
+                eq("Carlos"),
+                eq("https://fallback.mands.es/activar-cuenta?token=tok-abc"),
+                eq("60")
+        );
     }
 
     private Profesor crearProfesorBase(Long id)

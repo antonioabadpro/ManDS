@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
@@ -180,7 +181,7 @@ public class UsuarioController
 
         if (correo != null && !correo.isBlank())
         {
-            String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+            String baseUrl = UrlAplicacionUtil.resolverBaseUrlDesdeRequest(request, null);
             this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
             model.addAttribute("correo", correo);
         }

@@ -21,6 +21,7 @@ import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
@@ -107,7 +108,7 @@ public class AdministradorController
 
         try
         {
-            String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+            String baseUrl = UrlAplicacionUtil.resolverBaseUrlDesdeRequest(request, null);
             this.profesorService.darAltaProfesor(altaProfesorDTO, baseUrl);
             String mensajeExito = "El profesor " + altaProfesorDTO.nombre() + " " + altaProfesorDTO.apellidos()
                     + " ha sido dado de alta correctamente. Se ha enviado un correo electrónico a "

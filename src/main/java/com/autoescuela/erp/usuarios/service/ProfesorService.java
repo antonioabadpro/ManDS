@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +30,7 @@ import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -65,6 +67,9 @@ public class ProfesorService
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final ProfesorMapper profesorMapper;
+
+    @Value("${app_base_url:http://localhost:8080}")
+    private String appBaseUrl;
 
     /**
      * Da de alta a un nuevo profesor en el sistema, validando unicidad de datos,
@@ -180,7 +185,8 @@ public class ProfesorService
 
         // Emisión de token criptográfico temporal para activación
         TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(profesor, duracionTokenMinutos);
-        String enlaceActivacion = (baseUrl != null ? baseUrl : "") + "/activar-cuenta?token=" + token.getToken();
+        String baseUrlEfectiva = UrlAplicacionUtil.resolverBaseUrlEfectiva(baseUrl, this.appBaseUrl);
+        String enlaceActivacion = UrlAplicacionUtil.construirUrl(baseUrlEfectiva, "/activar-cuenta?token=" + token.getToken());
         this.emailService.enviarInvitacionProfesor(profesor.getCorreo(), profesor.getNombre(), enlaceActivacion, String.valueOf(duracionTokenMinutos));
 
         return profesor;
@@ -515,15 +521,12 @@ public class ProfesorService
                     this.alumnoRepository.save(alumno);
 
                     String asunto = "Aviso importante: Asignación de nuevo profesor de prácticas";
-                    String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                            + "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
+                    String mensaje = "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
                             + "A partir de este momento, tu nuevo profesor asignado es " + nombreNuevoProfesor + ".\n\n"
                             + "Conforme al protocolo del centro, todas tus clases prácticas pendientes han sido canceladas automáticamente. "
-                            + "Te invitamos a acceder a tu panel de alumno para programar tus próximas sesiones prácticas con tu nuevo profesor.\n\n"
-                            + "Un cordial saludo,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
+                            + "Te invitamos a acceder a tu panel de alumno para programar tus próximas sesiones prácticas con tu nuevo profesor.";
 
-                    this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                    this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                 }
             }
             else
@@ -538,15 +541,12 @@ public class ProfesorService
                         this.alumnoRepository.save(alumno);
 
                         String asunto = "Aviso importante: Baja de tu profesor de prácticas";
-                        String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                                + "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
+                        String mensaje = "Te comunicamos que tu profesor/a " + nombreProfesorBaja + " ha causado baja en la autoescuela.\n"
                                 + "Actualmente tu expediente queda temporalmente sin profesor asignado y tus clases prácticas pendientes "
                                 + "han sido canceladas de forma automática.\n\n"
-                                + "El equipo de administración te asignará un nuevo profesor a la mayor brevedad posible para que puedas retomar tus clases.\n\n"
-                                + "Un cordial saludo,\n"
-                                + "Equipo de Coordinación - ManDS Autoescuela";
+                                + "El equipo de administración te asignará un nuevo profesor a la mayor brevedad posible para que puedas retomar tus clases.";
 
-                        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                        this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
                     }
                 }
                 else
