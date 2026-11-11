@@ -57,19 +57,34 @@ public class PagoStripeService
      */
     private String obtenerBaseUrlEfectiva()
     {
+        String baseUrl = this.appBaseUrl;
         try
         {
             String urlContexto = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
             if (urlContexto != null && !urlContexto.isBlank())
             {
-                return urlContexto;
+                baseUrl = urlContexto;
             }
         }
         catch (Exception ex)
         {
             log.debug("No se pudo resolver la URL base desde el contexto HTTP actual: {}", ex.getMessage());
         }
-        return this.appBaseUrl;
+        return this.normalizarSinBarraFinal(baseUrl);
+    }
+
+    private String normalizarSinBarraFinal(String url)
+    {
+        if (url == null)
+        {
+            return "";
+        }
+        String limpia = url.trim();
+        while (limpia.endsWith("/"))
+        {
+            limpia = limpia.substring(0, limpia.length() - 1);
+        }
+        return limpia;
     }
 
     /**

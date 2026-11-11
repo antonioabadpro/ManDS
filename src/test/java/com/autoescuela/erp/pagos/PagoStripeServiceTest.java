@@ -377,4 +377,17 @@ class PagoStripeServiceTest
         assertNull(resultado);
         verify(this.stripeClient.v1().checkout().sessions(), never()).retrieve(any(String.class));
     }
+
+    @Test
+    @DisplayName("obtenerBaseUrlEfectiva elimina barras finales de appBaseUrl al construir URLs de retorno")
+    void testAppBaseUrlConBarraFinalNoGeneraDobleBarra()
+    {
+        ReflectionTestUtils.setField(this.pagoStripeService, "appBaseUrl", "https://mands-mu4p.onrender.com///");
+        ReflectionTestUtils.setField(this.pagoStripeService, "stripeSecretKey", "sk_test_placeholder");
+
+        SesionPagoDTO resultado = this.pagoStripeService.crearSesionPagoMatricula(205L, TipoCarnet.PERMISO_B, ModalidadMatricula.TEORICO_PRACTICA);
+
+        assertTrue(resultado.urlStripe().startsWith("https://mands-mu4p.onrender.com/pagos/checkout/success?session_id="));
+        assertFalse(resultado.urlStripe().contains("//pagos/"));
+    }
 }

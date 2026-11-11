@@ -1,6 +1,7 @@
 package com.autoescuela.erp.pagos.controller;
 
 import java.util.Locale;
+import java.util.Map;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -106,25 +107,18 @@ public class StripeResponseController
         // Si la sesión HTTP perdió los atributos (ej. navegación cross-site en dispositivos móviles), recuperamos desde Stripe
         if (alumnoId == null && sessionId != null && !sessionId.isBlank())
         {
-            Session stripeSession = this.pagoStripeService.obtenerSesionStripe(sessionId);
-            if (stripeSession != null && stripeSession.getMetadata() != null)
+            Session stripeSession = this.obtenerSesionStripePagada(sessionId, "MATRICULA");
+            if (stripeSession != null)
             {
-                String alumnoIdMeta = stripeSession.getMetadata().get("alumnoId");
-                if (alumnoIdMeta != null && !alumnoIdMeta.isBlank())
+                Map<String, String> metadata = stripeSession.getMetadata();
+                alumnoId = this.parsearLongSeguro(metadata.get("alumnoId"), "alumnoId");
+                if (alumnoId != null)
                 {
-                    try
+                    tipoCarnetStr = metadata.get("tipoCarnet");
+                    modalidadStr = metadata.get("modalidad");
+                    if (stripeSession.getAmountTotal() != null)
                     {
-                        alumnoId = Long.valueOf(alumnoIdMeta);
-                        tipoCarnetStr = stripeSession.getMetadata().get("tipoCarnet");
-                        modalidadStr = stripeSession.getMetadata().get("modalidad");
-                        if (stripeSession.getAmountTotal() != null)
-                        {
-                            importeTotal = stripeSession.getAmountTotal() / 100.0f;
-                        }
-                    }
-                    catch (NumberFormatException ex)
-                    {
-                        log.error("Identificador de alumno inválido en metadata de Stripe: {}", alumnoIdMeta, ex);
+                        importeTotal = stripeSession.getAmountTotal() / 100.0f;
                     }
                 }
             }
@@ -209,6 +203,28 @@ public class StripeResponseController
         Float importeTotal = (Float) sesion.getAttribute("pagoClases_importe");
         String tipoCarnetStr = (String) sesion.getAttribute("pagoClases_tipoCarnet");
 
+        // Respaldo ante pérdida de cookie de sesión tras redirección desde Stripe Checkout
+        if ((alumnoId == null || numeroClases == null || numeroClases <= 0) && sessionId != null && !sessionId.isBlank())
+        {
+            Session stripeSession = this.obtenerSesionStripePagada(sessionId, "CLASES_PRACTICAS");
+            if (stripeSession != null)
+            {
+                Map<String, String> metadata = stripeSession.getMetadata();
+                Long alumnoRecuperado = this.parsearLongSeguro(metadata.get("alumnoId"), "alumnoId");
+                int clasesRecuperadas = this.parsearEnteroSeguro(metadata.get("numeroClases"), "numeroClases");
+                if (alumnoRecuperado != null && clasesRecuperadas > 0)
+                {
+                    alumnoId = alumnoRecuperado;
+                    numeroClases = clasesRecuperadas;
+                    tipoCarnetStr = metadata.get("tipoCarnet");
+                    if (stripeSession.getAmountTotal() != null)
+                    {
+                        importeTotal = stripeSession.getAmountTotal() / 100.0f;
+                    }
+                }
+            }
+        }
+
         if (alumnoId != null && numeroClases != null && numeroClases > 0)
         {
             Matricula matricula = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, numeroClases, sessionId);
@@ -248,7 +264,7 @@ public class StripeResponseController
     @GetMapping("/clases/cancel")
     public String mostrarCancelacionPagoClases(HttpSession sesion)
     {
-        sesion.removeAttribute("pagoClases_dni");
+        sesion.removeAttribute("pagoClases_alumnoId");
         sesion.removeAttribute("pagoClases_numero");
         sesion.removeAttribute("pagoClases_importe");
         sesion.removeAttribute("pagoClases_tipoCarnet");
@@ -271,16 +287,36 @@ public class StripeResponseController
         Float importeTotal = (Float) sesion.getAttribute("pagoRenovacion_importe");
         String tipoCarnetStr = (String) sesion.getAttribute("pagoRenovacion_tipoCarnet");
 
+        // Respaldo ante pérdida de cookie de sesión tras redirección desde Stripe Checkout
+        if (alumnoId == null && sessionId != null && !sessionId.isBlank())
+        {
+            Session stripeSession = this.obtenerSesionStripePagada(sessionId, "RENOVACION_MATRICULA");
+            if (stripeSession != null)
+            {
+                Map<String, String> metadata = stripeSession.getMetadata();
+                alumnoId = this.parsearLongSeguro(metadata.get("alumnoId"), "alumnoId");
+                if (alumnoId != null)
+                {
+                    tipoCarnetStr = metadata.get("tipoCarnet");
+                    if (stripeSession.getAmountTotal() != null)
+                    {
+                        importeTotal = stripeSession.getAmountTotal() / 100.0f;
+                    }
+                }
+            }
+        }
+
         if (alumnoId != null)
         {
-            Matricula matricula = this.academicoService.renovarMatriculaTrasPago(alumnoId, sessionId, importeTotal);
+            float importeEfectivo = importeTotal != null ? importeTotal : 250.0f;
+            Matricula matricula = this.academicoService.renovarMatriculaTrasPago(alumnoId, sessionId, importeEfectivo);
 
             sesion.removeAttribute("pagoRenovacion_alumnoId");
             sesion.removeAttribute("pagoRenovacion_importe");
             sesion.removeAttribute("pagoRenovacion_tipoCarnet");
 
             model.addAttribute("convocatorias", matricula != null ? matricula.getConvocatorias() : 2);
-            model.addAttribute("importeTotal", importeTotal != null ? String.format(Locale.GERMAN, "%.2f", importeTotal) : "250,00");
+            model.addAttribute("importeTotal", String.format(Locale.GERMAN, "%.2f", importeEfectivo));
             model.addAttribute("tipoCarnet", matricula != null && matricula.getPermisoCarnet() != null ? matricula.getPermisoCarnet().getDescripcion() : tipoCarnetStr);
             model.addAttribute("nombreAlumno", matricula != null && matricula.getAlumno() != null ? matricula.getAlumno().getNombre() : "Alumno");
         }
@@ -311,5 +347,64 @@ public class StripeResponseController
         sesion.removeAttribute("pagoRenovacion_tipoCarnet");
 
         return "pagos/renovacion-cancel";
+    }
+
+    /**
+     * Recupera una sesión de Stripe Checkout verificando que esté cobrada ({@code paid})
+     * y corresponda al tipo de operación esperado.
+     */
+    private Session obtenerSesionStripePagada(String sessionId, String tipoOperacionEsperado)
+    {
+        Session stripeSession = this.pagoStripeService.obtenerSesionStripe(sessionId);
+        if (stripeSession == null || stripeSession.getMetadata() == null)
+        {
+            return null;
+        }
+        if (!"paid".equalsIgnoreCase(stripeSession.getPaymentStatus()))
+        {
+            log.warn("La sesión de Stripe {} no presenta estado 'paid' (estado actual: {}).", sessionId, stripeSession.getPaymentStatus());
+            return null;
+        }
+        String tipoOperacion = stripeSession.getMetadata().get("tipoOperacion");
+        if (tipoOperacionEsperado != null && !tipoOperacionEsperado.equals(tipoOperacion))
+        {
+            log.warn("Tipo de operación inesperado en sesión {} (esperado: {}, recibido: {}).", sessionId, tipoOperacionEsperado, tipoOperacion);
+            return null;
+        }
+        return stripeSession;
+    }
+
+    private Long parsearLongSeguro(String valor, String nombreCampo)
+    {
+        if (valor == null || valor.isBlank())
+        {
+            return null;
+        }
+        try
+        {
+            return Long.valueOf(valor.trim());
+        }
+        catch (NumberFormatException ex)
+        {
+            log.error("Identificador inválido en metadata '{}' de Stripe: {}", nombreCampo, valor, ex);
+            return null;
+        }
+    }
+
+    private int parsearEnteroSeguro(String valor, String nombreCampo)
+    {
+        if (valor == null || valor.isBlank())
+        {
+            return 0;
+        }
+        try
+        {
+            return Integer.parseInt(valor.trim());
+        }
+        catch (NumberFormatException ex)
+        {
+            log.error("Valor entero inválido en metadata '{}' de Stripe: {}", nombreCampo, valor, ex);
+            return 0;
+        }
     }
 }
