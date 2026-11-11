@@ -153,25 +153,25 @@
                 </p>
 
                 <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Estado posterior:</span>
-                        <span class="font-bold text-red-600 dark:text-red-400">INACTIVO (Histórico preservado)</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Estado posterior:</span>
+                        <span class="font-bold text-red-600 dark:text-red-400 text-right">INACTIVO (Histórico preservado)</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]" th:if="${profesor.vehiculoMatricula != null}">
-                        <span class="text-slate-500 dark:text-slate-400">Vehículo asignado:</span>
-                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" th:text="|${profesor.vehiculoMatricula} (${profesor.vehiculoModelo}) — Libre|"></span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]" th:if="${profesor.vehiculoMatricula != null}">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Vehículo asignado:</span>
+                        <span class="font-semibold text-emerald-600 dark:text-emerald-400 text-right" th:text="|${profesor.vehiculoMatricula} (${profesor.vehiculoModelo}) — Libre|"></span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]" th:if="${profesor.vehiculoMatricula == null}">
-                        <span class="text-slate-500 dark:text-slate-400">Vehículo asignado:</span>
-                        <span class="font-medium text-slate-500 dark:text-slate-400">Sin vehículo asignado</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]" th:if="${profesor.vehiculoMatricula == null}">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Vehículo asignado:</span>
+                        <span class="font-medium text-slate-500 dark:text-slate-400 text-right">Sin vehículo asignado</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Destino de alumnos:</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Destino de alumnos:</span>
                         <span id="resumen-confirmacion-destino-alumnos" class="font-bold text-indigo-600 dark:text-indigo-400 text-right truncate max-w-[200px]" th:text="${profesor.totalAlumnos == 0} ? 'Sin alumnos asignados' : 'Por determinar'">Sin alumnos asignados</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Clases prácticas:</span>
-                        <span class="font-semibold text-amber-600 dark:text-amber-400">Cancelación de clases pendientes</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Clases prácticas:</span>
+                        <span class="font-semibold text-amber-600 dark:text-amber-400 text-right">Cancelación de clases pendientes</span>
                     </div>
                 </div>
 

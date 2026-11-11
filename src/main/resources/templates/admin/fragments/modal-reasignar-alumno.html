@@ -168,17 +168,17 @@
                 </p>
 
                 <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-2">
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Nuevo profesor:</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Nuevo profesor:</span>
                         <span id="resumen-confirmacion-destino" class="font-bold text-indigo-600 dark:text-indigo-400 text-right">Laura Sánchez</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Clases que se cancelarán:</span>
-                        <span th:text="|${clasesPendientes} clase(s) pendiente(s)|" class="font-semibold text-amber-600 dark:text-amber-400">1 pendiente</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Clases que se cancelarán:</span>
+                        <span th:text="|${clasesPendientes} clase(s) pendiente(s)|" class="font-semibold text-amber-600 dark:text-amber-400 text-right">1 pendiente</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-slate-500 dark:text-slate-400">Notificación al alumno:</span>
-                        <span th:text="${alumno.correo}" class="tabular-nums text-slate-700 dark:text-slate-300 text-right">correo@alumno.es</span>
+                    <div class="flex items-start justify-between gap-3 text-[11px]">
+                        <span class="shrink-0 text-slate-500 dark:text-slate-400">Notificación al alumno:</span>
+                        <span th:text="${alumno.correo}" class="tabular-nums text-slate-700 dark:text-slate-300 text-right break-all">correo@alumno.es</span>
                     </div>
                 </div>
 

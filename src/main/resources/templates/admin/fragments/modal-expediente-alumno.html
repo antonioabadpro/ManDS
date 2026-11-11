@@ -46,9 +46,10 @@
             <!-- Listado de Clases si existen -->
             <div th:if="${expediente.ultimasClases != null and not #lists.isEmpty(expediente.ultimasClases)}" class="space-y-2 text-xs">
                 <div th:each="clase : ${expediente.ultimasClases}" class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 flex justify-between items-start gap-3">
-                    <div class="space-y-0.5">
-                        <p class="font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="|${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')} (${clase.duracion} min) · ${clase.puntoRecogida}|">
-                            10/09/2026 10:00 (45 min) · Calle Alcalá 45
+                    <div class="flex-1 min-w-0 space-y-0.5">
+                        <p class="font-semibold text-slate-900 dark:text-white break-words">
+                            <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}">10/09/2026 10:00</span>
+                            <span th:text="| (${clase.duracion} min) · ${clase.puntoRecogida}|">(45 min) · Calle Alcalá 45</span>
                         </p>
                         <p class="text-slate-500 dark:text-slate-400 text-[11px]" th:text="|${clase.kmFormateado} · Prof: ${clase.profesorNombre != null ? clase.profesorNombre : 'No asignado'}|">
                             Km: 44.955 a 45.000 · Prof: Laura Sánchez
@@ -83,9 +84,10 @@
             <!-- Listado de Exámenes si existen -->
             <div th:if="${expediente.ultimosExamenes != null and not #lists.isEmpty(expediente.ultimosExamenes)}" class="space-y-2 text-xs">
                 <div th:each="examen : ${expediente.ultimosExamenes}" class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 flex justify-between items-center text-xs gap-3">
-                    <div>
-                        <p class="font-semibold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="|${examen.titulo} · ${#temporals.format(examen.fechaHora, 'dd/MM/yyyy')}|">
-                            Examen Teórico Oficial · 20/07/2026
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-slate-900 dark:text-white break-words">
+                            <span th:text="|${examen.titulo} · |">Examen Teórico Oficial · </span>
+                            <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(examen.fechaHora, 'dd/MM/yyyy')}">20/07/2026</span>
                         </p>
                         <p class="text-[11px] text-slate-400 dark:text-slate-500" th:text="|Duración: ${examen.duracion} min · ${examen.centroDgt}|">
                             Duración: 30 min · Centro DGT Móstoles
