@@ -19,6 +19,7 @@ import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
 
@@ -190,7 +191,7 @@ public class AuthenticationController
     public String procesarSolicitudRecuperacion(@RequestParam(name = "correo", required = false) String correo, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes)
     {
         boolean esPeticionHtmx = "true".equals(request.getHeader("HX-Request"));
-        String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+        String baseUrl = UrlAplicacionUtil.resolverBaseUrlDesdeRequest(request, null);
         this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
 
         redirectAttributes.addFlashAttribute("mensajeEnviado", true);

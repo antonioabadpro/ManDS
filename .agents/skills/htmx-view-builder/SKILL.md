@@ -6,7 +6,7 @@ description: >-
   modales con doble confirmación o fragmentos renderizados desde el servidor sin JavaScript intrusivo.
 metadata:
   author: ManDS
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # HTMX View Builder (SSR + Tailwind CSS + Thymeleaf)
@@ -27,10 +27,14 @@ Esta skill establece la guía operativa para construir interfaces de usuario rea
 3. **Desacoplamiento JS y Named Event Handlers:**
    * Mínimo un fichero JS independiente por cada endpoint o vista funcional (ej. `admin-flota.js`, `alumno-perfil.js`).
    * Estructurar el código bajo funciones con nombre explícito (`manejar...`) y una función punto de entrada (`inicializar...`), facilitando la depuración en pila y evitando escuchadores duplicados.
-4. **Diseño Mobile-First Responsivo:**
+4. **Diseño Mobile-First Responsivo y Precisión en Clases Tailwind:**
    * Todas las vistas, modales y fragmentos deben ser 100% responsivos sin desbordamiento horizontal (`overflow-x`) en móvil (`< 640px`), tablet (`768px`) y escritorio (`>= 1024px`).
    * Las tablas deben envolverse siempre en un contenedor `<div class="overflow-x-auto">` o transformarse en tarjetas apiladas en pantallas pequeñas.
    * Soporte simultáneo obligatorio de modo claro y oscuro (`dark:`).
+   * **Cero Conflictos de Propiedades CSS (`display`, `cursor`, `text-*`):** Queda terminantemente prohibido declarar dos clases que compitan por la misma propiedad CSS en el mismo atributo `class` (en especial **`hidden` junto con `flex`, `inline-flex`, `block`, `grid` o `table`**, o `cursor-pointer` junto a `cursor-not-allowed`), ya que provocan *warnings* `cssConflict` y dependen del orden de compilación de Tailwind.
+     * Para contenedores ocultos que al mostrarse necesiten `flex` o `grid`, dejar **únicamente `hidden`** junto con sus modificadores ortogonales (p. ej. `class="hidden flex-col justify-center items-center ..."`), y conmutar `hidden` <-> `flex` de forma simétrica desde JavaScript (`classList.remove('hidden'); classList.add('flex')` y viceversa).
+     * En fragmentos Thymeleaf renderizados condicionalmente abiertos/cerrados desde servidor, usar `th:classappend="${condicion} ? 'flex' : 'hidden'"` sin incluir ninguna clase `display` en el `class` base.
+   * **Contención Flexible y Fechas (`min-w-0` / `shrink-0`):** Todo contenedor `flex` con contenido textual variable junto a badges, botones o fechas a la derecha debe usar `gap-2`/`gap-3`, `flex-1 min-w-0` en el bloque izquierdo y `shrink-0` en el derecho. Aplicar `tabular-nums whitespace-nowrap` **únicamente** sobre la fecha, hora o cifra compacta (nunca sobre frases largas o concatenaciones con campos libres), y colocar avisos largos de estado/error en un bloque independiente inferior para evitar solapamientos.
 
 ---
 
@@ -97,21 +101,24 @@ Desde los controladores Spring MVC, se utilizan cabeceras de respuesta para cont
    </div>
    ```
 
-### 3.2. Prevención de Doble Envío con Spinners
-Todo botón de acción o submit en modales y formularios debe incluir el estado de carga animado:
+### 3.2. Submodales de Doble Confirmación y Reseteo de Pasos
+En modales de 2 pasos (Paso 1 -> Confirmación aislada):
+1. El contenedor del paso 2 (`#submodal-confirmar-...`) debe declararse en HTML únicamente con `hidden` y sus modificadores ortogonales (`class="hidden flex-col justify-center items-center text-center ..."`), **nunca** con `hidden` y `flex` simultáneamente.
+2. En JavaScript, centralizar la transición en un *helper* que alterne **ambas** clases de forma simétrica (`submodal.classList.remove('hidden'); submodal.classList.add('flex')` al abrir; `add('hidden')` y `remove('flex')` al volver o cerrar), valide el paso 1 antes de avanzar, desplace el foco al botón seguro (`Volver`) y restaure siempre el paso 1 al cerrar o pulsar `Escape`.
+
+### 3.3. Prevención de Doble Envío con Spinners
+Todo botón de acción o submit en modales y formularios debe incluir el estado de carga animado sin combinar clases `display` conflictivas en el HTML:
 ```html
 <button type="submit"
         id="btn-confirmar-accion"
-        class="inline-flex items-center justify-center px-4 py-2 font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-50 transition-colors"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer shrink-0"
         hx-disabled-elt="this">
-    <span class="htmx-indicator-none">Confirmar</span>
-    <span class="htmx-indicator hidden items-center space-x-2">
-        <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-        <span>Procesando...</span>
-    </span>
+    <span class="btn-text">Confirmar</span>
+    <svg class="btn-spinner hidden w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </svg>
+    <span class="btn-spinner-text hidden">Procesando...</span>
 </button>
 ```
 
@@ -195,5 +202,6 @@ Antes de dar por finalizada cualquier vista o fragmento:
 1. [ ] **CSP Compliance:** Cero atributos `onclick`, `onchange` o `style` inline; sin scripts `<script>` embebidos con sintaxis Thymeleaf.
 2. [ ] **Responsividad Total:** Comprobada en móvil (`375px`), tablet (`768px`) y escritorio (`1280px`). Sin scroll horizontal involuntario.
 3. [ ] **Modo Oscuro:** Todas las clases de fondo, texto y bordes disponen de su homólogo `dark:` con contraste legible (WCAG AA/AAA).
-4. [ ] **Prevención de Doble Clic:** Botones de submit protegidos con `hx-disabled-elt="this"` y spinner animado `animate-spin`.
-5. [ ] **Gestión de Errores Visual:** Errores de validación devueltos con mensajes contextuales accesibles y bordes en color de peligro (`border-rose-500`).
+4. [ ] **Cero Conflictos de Utilidades Tailwind:** Ningún elemento mezcla clases `display` opuestas (`hidden` + `flex`/`block`/`grid`) ni estados incompatibles (`cursor-pointer` + `cursor-not-allowed`); JS alterna `hidden` <-> `flex` de forma simétrica y las filas flexibles incorporan `min-w-0` + `shrink-0` + `gap-*` sin solapamientos.
+5. [ ] **Prevención de Doble Clic:** Botones de submit protegidos con `hx-disabled-elt="this"` o bloqueo JS (`disabled`) y spinner animado `animate-spin`.
+6. [ ] **Gestión de Errores Visual y Accesibilidad:** Errores de validación devueltos con mensajes contextuales accesibles (`role="alert"` / `aria-labelledby`), foco gestionado en submodales multipaso y reseteo al paso 1 tras cerrar.

@@ -1,0 +1,142 @@
+@startuml Diagrama_Componentes_v1
+' ==============================================================================
+' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
+' VISTA LÓGICA / DIAGRAMA DE COMPONENTES DE ARQUITECTURA (FORMATO VERTICAL A4)
+' ==============================================================================
+
+top to bottom direction
+
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+skinparam roundCorner 8
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam wrapWidth 240
+
+' Paleta de colores corporativa
+skinparam package {
+  BackgroundColor #F8FAFC
+  BorderColor #64748B
+  FontColor #0F172A
+  FontStyle bold
+}
+
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #2563EB
+  FontColor #1E293B
+}
+
+skinparam interface {
+  BackgroundColor #EDE9FE
+  BorderColor #6D28D9
+  FontColor #4C1D95
+}
+
+skinparam database {
+  BackgroundColor #FAF5FF
+  BorderColor #7C3AED
+  FontColor #4C1D95
+}
+
+' ------------------------------------------------------------------------------
+' 1. CAPA DE PRESENTACIÓN (CLIENTE WEB)
+' ------------------------------------------------------------------------------
+package "1. Capa de Presentación (Cliente Web / Navegador)" as CapaCliente #EFF6FF {
+  component [Vistas y Plantillas SSR\n(Thymeleaf + Fragmentos Atómicos)] as CompVistas #DBEAFE
+  component [Motor de Interactividad Asíncrona\n(HTMX: hx-get, hx-post, hx-target)] as CompHTMX #DBEAFE
+  component [Diseño Adaptativo y Estilos\n(Tailwind CSS Compilado / Mobile-First)] as CompTailwind #DBEAFE
+  component [Interactividad No Intrusiva\n(JavaScript ES6+ / DOM Nativo / CSP)] as CompJS #DBEAFE
+
+  CompVistas -right- CompHTMX
+  CompTailwind -right- CompJS
+  CompVistas -down- CompTailwind
+}
+
+' ------------------------------------------------------------------------------
+' 2. CAPA DE SEGURIDAD PERIMETRAL
+' ------------------------------------------------------------------------------
+package "2. Capa de Seguridad Perimetral (Spring Security)" as CapaSeguridad #FEF2F2 {
+  component [Cadena de Filtros de Seguridad Web\n(SecurityFilterChain)] as FiltrosSeguridad #FEE2E2
+  component [Control de Acceso RBAC\n(ROLE_ADMIN, ROLE_PROFESOR, ROLE_ALUMNO)] as CompRBAC #FEE2E2
+  component [Protección Anti-CSRF\ny Cabeceras CSP] as CompCSRF #FEE2E2
+  component [Gestión de Sesión Única\n(Cookies JSESSIONID)] as CompSesiones #FEE2E2
+
+  FiltrosSeguridad -right- CompRBAC
+  CompCSRF -right- CompSesiones
+  FiltrosSeguridad -down- CompCSRF
+}
+
+' ------------------------------------------------------------------------------
+' 3. NÚCLEO MODULAR DE LA APLICACIÓN (PACKAGE-BY-FEATURE)
+' ------------------------------------------------------------------------------
+package "3. Núcleo de Aplicación (Patrón Package-by-Feature)" as NucleoApp #F0FDF4 {
+
+  ' Controladores Web agrupados por módulo funcional
+  package "Capa de Controladores Web (Spring MVC)" as CapaControladores #DCFCE7 {
+    component [Módulo Auth & Usuarios\n• AuthenticationController\n• AdministradorController\n• ProfesorController\n• AlumnoController] as CtrlUsuarios #FFFFFF
+
+    component [Módulo Académico & Prácticas\n• ClasePracticaController\n• CalendarioController\n• FlotaController] as CtrlPracticas #FFFFFF
+
+    component [Módulo Exámenes & Pagos\n• ExamenController\n• StripeWebhookController] as CtrlExamenes #FFFFFF
+  }
+
+  ' Capa de Transferencia y Mapeo Desacoplado
+  package "Capa de Transferencia y Desacoplamiento (DTOs & Mappers)" as CapaTransferencia #F3F4F6 {
+    component [DTOs Inmutables de Transferencia\n(Java 21 Records + Bean Validation)] as CompDTOs #E5E7EB
+    component [Mappers Bidireccionales\n(MapStruct en compilación)] as CompMappers #E5E7EB
+    CompDTOs <-> CompMappers
+  }
+
+  ' Capa de Servicios de Negocio Transaccionales
+  package "Capa de Servicios de Negocio (Lógica Transaccional @Transactional)" as CapaServicios #FEF9C3 {
+    component [Servicios de Identidad y Perfiles\n• AuthenticationService\n• UsuarioService\n• ProfesorService\n• AlumnoService] as SrvUsuarios #FEF08A
+
+    component [Servicios Operativos y de Flota\n• FlotaService\n• CalendarioService\n• ClasePracticaService] as SrvOperativa #FEF08A
+
+    component [Servicios Administrativos e Integración\n• ExamenService (Cupos DGT)\n• PagoStripeService (Checkout)\n• EmailService (Despacho Asíncrono)] as SrvAdmin #FEF08A
+  }
+
+  ' Capa de Persistencia Spring Data JPA
+  package "Capa de Acceso a Datos (Spring Data JPA Repositories)" as CapaPersistencia #F5F3FF {
+    interface "PersonaRepository\nProfesorRepository\nAlumnoRepository" as RepoUsuarios
+    interface "VehiculoRepository\nIncidenciaRepository" as RepoFlota
+    interface "ClasePracticaRepository\nCalendarioRepository" as RepoPracticas
+    interface "MatriculaRepository\nExamenRepository\nSolicitudExamenRepository" as RepoAcademico
+  }
+
+  CapaControladores ..> CompDTOs : recibe y valida
+  CapaControladores ..> CompMappers : utiliza
+  CapaControladores --> CapaServicios : invoca casos de uso
+  CompMappers ..> CapaServicios : asiste mapeo
+  CapaServicios --> CapaPersistencia : operaciones CRUD y consultas
+}
+
+' ------------------------------------------------------------------------------
+' 4. DOMINIO, PERSISTENCIA Y SERVICIOS EXTERNOS
+' ------------------------------------------------------------------------------
+package "4. Persistencia Relacional y Dominio" as CapaDominio #FAF5FF {
+  component [Entidades de Dominio JPA\n(Hibernate ORM: Persona, Matricula,\nVehiculo, ClasePractica, Examen)] as CompEntidades #EDE9FE
+  database "PostgreSQL 16 Engine\n(Supabase Cloud / Transacciones ACID)" as BDPostgres #DDD6FE
+
+  CompEntidades --> BDPostgres : Conexión SQL (HikariCP / SSL)
+}
+
+package "5. Servicios Externos Desacoplados" as CapaExternos #F8FAFC {
+  component [Pasarela de Pagos Stripe\n(Stripe Checkout API & Webhooks)] as ExtStripe #E2E8F0
+  component [Servicio de Correo Brevo\n(REST API v3 / HTTPS 443)] as ExtEmail #E2E8F0
+}
+
+' ------------------------------------------------------------------------------
+' CONEXIONES ENTRE CAPAS PRINCIPALES (FLUJO VERTICAL)
+' ------------------------------------------------------------------------------
+CapaCliente --> FiltrosSeguridad : Peticiones HTTP/S (GET, POST)
+FiltrosSeguridad --> CapaControladores : Peticiones Autorizadas
+
+CapaPersistencia --> CompEntidades : Mapeo ORM (Hibernate)
+
+SrvAdmin ..> ExtStripe : Checkout / Webhooks
+SrvAdmin ..> ExtEmail : Despacho Asíncrono (@Async)
+
+@enduml

@@ -6,7 +6,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 
+import jakarta.servlet.http.Cookie;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -25,6 +28,16 @@ class VistaLoginTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/login"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/login"));
+    }
+
+    @Test
+    @DisplayName("GET /login con cookie de sesión caducada o previa -> Renderiza 200 OK sin alerta sesionExpirada")
+    void testAccesoLoginConCookieCaducadaMuestraVistaLimpia() throws Exception
+    {
+        this.mockMvc.perform(get("/login").cookie(new Cookie("JSESSIONID", "sesion-invalida-antigua")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/login"))
+                .andExpect(model().attributeDoesNotExist("sesionExpirada"));
     }
 
     @Test

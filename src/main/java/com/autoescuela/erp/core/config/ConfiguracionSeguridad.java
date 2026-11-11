@@ -13,7 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import com.autoescuela.erp.core.security.FlashAuthenticationFailureHandler;
-import com.autoescuela.erp.core.security.FlashInvalidSessionStrategy;
 import com.autoescuela.erp.core.security.FlashLogoutSuccessHandler;
 import com.autoescuela.erp.core.security.FlashSessionInformationExpiredStrategy;
 import com.autoescuela.erp.core.security.HtmxAuthenticationEntryPoint;
@@ -32,7 +31,6 @@ public class ConfiguracionSeguridad
     private final FlashAuthenticationFailureHandler flashAuthenticationFailureHandler;
     private final FlashLogoutSuccessHandler flashLogoutSuccessHandler;
     private final FlashSessionInformationExpiredStrategy flashSessionInformationExpiredStrategy;
-    private final FlashInvalidSessionStrategy flashInvalidSessionStrategy;
 
     @Bean
     public PasswordEncoder passwordEncoder()
@@ -118,7 +116,6 @@ public class ConfiguracionSeguridad
                 // Gestión de sesiones: prevención de fijación de sesión y limitación estricta a 1 sesión por usuario
                 .sessionManagement(session -> session
                         .sessionFixation(fixation -> fixation.migrateSession())
-                        .invalidSessionStrategy(this.flashInvalidSessionStrategy)
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
                         .sessionRegistry(sessionRegistry())

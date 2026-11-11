@@ -57,6 +57,7 @@ import com.autoescuela.erp.core.enums.EstadoUsuario;
  * Se utilizan mocks para simular el comportamiento de los repositorios y servicios dependientes, y se verifican los resultados esperados en cada caso.
  */
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
@@ -309,6 +310,39 @@ class AutenticacionServiceTest
                 eq("alumno@autoescuela.es"),
                 eq("Juan"),
                 contains("token=token-uuid-123"),
+                eq("15")
+        );
+    }
+
+    @Test
+    @DisplayName("'solicitarRecuperacionPassword()' normaliza barras finales duplicadas y aplica appBaseUrlConfigurada de respaldo")
+    void testSolicitarRecuperacionNormalizaBarrasYRespaldo()
+    {
+        ReflectionTestUtils.setField(this.autenticacionService, "appBaseUrlConfigurada", "https://respaldo.mands.es///");
+
+        Persona persona = mock(Persona.class);
+        when(persona.getEstado()).thenReturn(EstadoUsuario.ACTIVO);
+        when(persona.getCorreo()).thenReturn("alumno@autoescuela.es");
+        when(persona.getNombre()).thenReturn("Juan");
+
+        when(this.personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
+
+        TokenVerificacion token = new TokenVerificacion("token-uuid-456", persona, LocalDateTime.now().plusMinutes(15));
+        when(this.tokenVerificacionService.generarTokenRecuperacion(persona, 15)).thenReturn(token);
+
+        this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "https://mands.onrender.com///");
+        this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "   ");
+
+        verify(this.emailService).enviarCorreoRecuperacion(
+                eq("alumno@autoescuela.es"),
+                eq("Juan"),
+                eq("https://mands.onrender.com/recuperar-password?token=token-uuid-456"),
+                eq("15")
+        );
+        verify(this.emailService).enviarCorreoRecuperacion(
+                eq("alumno@autoescuela.es"),
+                eq("Juan"),
+                eq("https://respaldo.mands.es/recuperar-password?token=token-uuid-456"),
                 eq("15")
         );
     }

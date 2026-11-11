@@ -40,10 +40,6 @@ public class TokenVerificacion
     @EqualsAndHashCode.Include
     private String token;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "persona_id", nullable = false)
-    private Persona persona;
-
     @Column(nullable = false)
     private LocalDateTime fechaExpiracion;
 
@@ -52,6 +48,10 @@ public class TokenVerificacion
 
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "persona_id", nullable = false)
+    private Persona persona;
 
     public TokenVerificacion(String token, Persona persona, LocalDateTime fechaExpiracion)
     {

@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
 import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
 import com.autoescuela.erp.flota.dto.ReportarIncidenciaDTO;
@@ -225,7 +226,8 @@ public class IncidenciaVehiculoController
 
         try
         {
-            this.incidenciaVehiculoService.reportarIncidencia(profesor, vehiculo, dto, this.appBaseUrl);
+            String baseUrl = UrlAplicacionUtil.resolverBaseUrlDesdeRequest(request, this.appBaseUrl);
+            this.incidenciaVehiculoService.reportarIncidencia(profesor, vehiculo, dto, baseUrl);
         }
         catch (ReglaNegocioException ex)
         {

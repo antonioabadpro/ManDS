@@ -3,7 +3,7 @@
 
 <body>
 
-    <div th:fragment="modalEditarSolicitud" id="modal-editar-solicitud" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div th:fragment="modalEditarSolicitud" id="modal-editar-solicitud" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-editar-solicitud" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-editar-solicitud"></div>
 
@@ -14,9 +14,9 @@
             <!-- ------------------------------------------------------------- -->
             <div id="contenedor-paso-1-solicitud" class="space-y-6">
                 <!-- Encabezado Modal -->
-                <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div>
-                        <div class="flex items-center space-x-2">
+                <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-600 text-white">
                                 Resolución DGT
                             </span>
@@ -27,7 +27,7 @@
                                 Examen Práctico
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1" th:text="${solicitud?.alumno?.nombre + ' ' + solicitud?.alumno?.apellidos}">
+                        <h3 id="titulo-modal-editar-solicitud" class="text-lg font-bold text-slate-900 dark:text-white mt-1" th:text="${solicitud?.alumno?.nombre + ' ' + solicitud?.alumno?.apellidos}">
                             Nombre del Alumno
                         </h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400">
@@ -36,7 +36,7 @@
                             <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(solicitud?.fechaHora, 'dd/MM/yyyy HH:mm')}">10/10/2026 10:00</span>
                         </p>
                     </div>
-                    <button type="button" data-modal-close="modal-editar-solicitud" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl transition cursor-pointer">
+                    <button type="button" data-modal-close="modal-editar-solicitud" aria-label="Cerrar modal" class="shrink-0 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -90,64 +90,82 @@
 
                         <div class="space-y-3">
                             <!-- Opción Convocatoria 1 -->
-                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer gap-3" th:classappend="${diagnostico?.convocatoria1?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
-                                <div class="flex items-start space-x-3 flex-1 min-w-0">
-                                    <input type="radio" name="numeroConvocatoria" value="1" th:disabled="${!diagnostico?.convocatoria1?.disponible()}" th:checked="${diagnostico?.convocatoria1?.disponible()}" class="mt-1 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
-                                    <div>
+                            <label class="flex items-start gap-3 p-3.5 rounded-2xl border transition" th:classappend="${diagnostico?.convocatoria1?.disponible()} ? 'cursor-pointer border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-65 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
+                                <input type="radio" name="numeroConvocatoria" value="1" th:disabled="${!diagnostico?.convocatoria1?.disponible()}" th:checked="${diagnostico?.convocatoria1?.disponible()}" class="mt-1 shrink-0 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
+                                <div class="flex-1 min-w-0 space-y-1.5">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
                                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">1ª Convocatoria Mensual</span>
-                                        <p class="text-sm font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${diagnostico?.convocatoria1?.fechaHora != null ? #temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Sin fijar'}">
-                                            Jueves, 15 de Octubre de 2026 - 08:30h
-                                        </p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">
-                                            Cupo oficial:
-                                            <th:block th:if="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
-                                                <strong th:text="${diagnostico.convocatoria1.alumnosCitados + ' / ' + diagnostico.convocatoria1.cupoMaximo + ' plazas'}">2/4 plazas</strong>
-                                            </th:block>
-                                            <th:block th:unless="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
-                                                <strong>Sin fijar</strong>
-                                            </th:block>
-                                        </p>
+                                        <span th:if="${diagnostico?.convocatoria1?.disponible()}" class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap" th:text="${diagnostico.convocatoria1.plazasLibres + ' plazas libres'}">
+                                            2 plazas libres
+                                        </span>
+                                        <span th:unless="${diagnostico?.convocatoria1?.disponible()}" class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                                            No disponible
+                                        </span>
                                     </div>
-                                </div>
-                                <div class="shrink-0 max-w-[200px] sm:max-w-[240px] text-left">
-                                    <span th:if="${diagnostico?.convocatoria1?.disponible()}" class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 whitespace-nowrap" th:text="${diagnostico.convocatoria1.plazasLibres + ' plazas libres'}">
-                                        2 libres
-                                    </span>
-                                    <p th:unless="${diagnostico?.convocatoria1?.disponible()}" class="text-left text-xs font-semibold text-rose-600 dark:text-rose-400 leading-snug" th:text="${diagnostico?.convocatoria1?.motivoNoDisponible ?: 'No disponible'}">
-                                        Cupo Completo
+                                    <p th:if="${diagnostico?.convocatoria1?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
+                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">15 de Octubre de 2026</span>
+                                        <span class="text-slate-400 dark:text-slate-500">·</span>
+                                        <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'HH:mm''h''')}">08:30h</span>
+                                    </p>
+                                    <p th:unless="${diagnostico?.convocatoria1?.fechaHora != null}" class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Sin fijar
+                                    </p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Cupo oficial:
+                                        <th:block th:if="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
+                                            <strong class="tabular-nums whitespace-nowrap" th:text="${diagnostico.convocatoria1.alumnosCitados + ' / ' + diagnostico.convocatoria1.cupoMaximo + ' plazas'}">2/4 plazas</strong>
+                                        </th:block>
+                                        <th:block th:unless="${diagnostico?.convocatoria1?.cupoMaximo > 0}">
+                                            <strong>Sin fijar</strong>
+                                        </th:block>
+                                    </p>
+                                    <p th:unless="${diagnostico?.convocatoria1?.disponible()}" class="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl px-2.5 py-1.5 leading-snug" th:text="${diagnostico?.convocatoria1?.motivoNoDisponible ?: 'No disponible'}">
+                                        Cupo completo
                                     </p>
                                 </div>
                             </label>
 
                             <!-- Opción Convocatoria 2 -->
-                            <label class="flex items-start justify-between p-3.5 rounded-2xl border transition cursor-pointer gap-3" th:classappend="${diagnostico?.convocatoria2?.disponible()} ? 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-60 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
-                                <div class="flex items-start space-x-3 flex-1 min-w-0">
-                                    <input type="radio" name="numeroConvocatoria" value="2" th:disabled="${!diagnostico?.convocatoria2?.disponible()}" th:checked="${!diagnostico?.convocatoria1?.disponible() and diagnostico?.convocatoria2?.disponible()}" class="mt-1 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
-                                    <div>
+                            <label class="flex items-start gap-3 p-3.5 rounded-2xl border transition" th:classappend="${diagnostico?.convocatoria2?.disponible()} ? 'cursor-pointer border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60' : 'opacity-65 bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 cursor-not-allowed'">
+                                <input type="radio" name="numeroConvocatoria" value="2" th:disabled="${!diagnostico?.convocatoria2?.disponible()}" th:checked="${!diagnostico?.convocatoria1?.disponible() and diagnostico?.convocatoria2?.disponible()}" class="mt-1 shrink-0 text-blue-600 focus:ring-blue-500 disabled:opacity-50" />
+                                <div class="flex-1 min-w-0 space-y-1.5">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
                                         <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">2ª Convocatoria Mensual</span>
-                                        <p class="text-sm font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${diagnostico?.convocatoria2?.fechaHora != null ? #temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE, dd ''de'' MMMM ''de'' yyyy - HH:mm''h''') : 'Sin fijar'}">
-                                            Jueves, 29 de Octubre de 2026 - 08:30h
-                                        </p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">
-                                            Cupo oficial:
-                                            <th:block th:if="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
-                                                <strong th:text="${diagnostico.convocatoria2.alumnosCitados + ' / ' + diagnostico.convocatoria2.cupoMaximo + ' plazas'}">1/4 plazas</strong>
-                                            </th:block>
-                                            <th:block th:unless="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
-                                                <strong>Sin fijar</strong>
-                                            </th:block>
-                                        </p>
+                                        <span th:if="${diagnostico?.convocatoria2?.disponible()}" class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 whitespace-nowrap" th:text="${diagnostico.convocatoria2.plazasLibres + ' plazas libres'}">
+                                            3 plazas libres
+                                        </span>
+                                        <span th:unless="${diagnostico?.convocatoria2?.disponible()}" class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                                            No disponible
+                                        </span>
                                     </div>
-                                </div>
-                                <div class="shrink-0 max-w-[200px] sm:max-w-[240px] text-left">
-                                    <span th:if="${diagnostico?.convocatoria2?.disponible()}" class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 whitespace-nowrap" th:text="${diagnostico.convocatoria2.plazasLibres + ' plazas libres'}">
-                                        3 libres
-                                    </span>
-                                    <p th:unless="${diagnostico?.convocatoria2?.disponible()}" class="text-left text-xs font-semibold text-rose-600 dark:text-rose-400 leading-snug" th:text="${diagnostico?.convocatoria2?.motivoNoDisponible ?: 'No disponible'}">
-                                        Cupo Completo
+                                    <p th:if="${diagnostico?.convocatoria2?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
+                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">29 de Octubre de 2026</span>
+                                        <span class="text-slate-400 dark:text-slate-500">·</span>
+                                        <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'HH:mm''h''')}">08:30h</span>
+                                    </p>
+                                    <p th:unless="${diagnostico?.convocatoria2?.fechaHora != null}" class="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Sin fijar
+                                    </p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                                        Cupo oficial:
+                                        <th:block th:if="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
+                                            <strong class="tabular-nums whitespace-nowrap" th:text="${diagnostico.convocatoria2.alumnosCitados + ' / ' + diagnostico.convocatoria2.cupoMaximo + ' plazas'}">1/4 plazas</strong>
+                                        </th:block>
+                                        <th:block th:unless="${diagnostico?.convocatoria2?.cupoMaximo > 0}">
+                                            <strong>Sin fijar</strong>
+                                        </th:block>
+                                    </p>
+                                    <p th:unless="${diagnostico?.convocatoria2?.disponible()}" class="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl px-2.5 py-1.5 leading-snug" th:text="${diagnostico?.convocatoria2?.motivoNoDisponible ?: 'No disponible'}">
+                                        Cupo completo
                                     </p>
                                 </div>
                             </label>
+
+                            <p id="error-seleccion-convocatoria" role="alert" class="hidden text-xs font-medium text-rose-600 dark:text-rose-400">
+                                Debes seleccionar una convocatoria disponible antes de continuar.
+                            </p>
                         </div>
                     </div>
 
@@ -158,11 +176,11 @@
                     </div>
 
                     <!-- Botón para abrir 2º Modal de Confirmación de Aceptación -->
-                    <div class="flex items-center justify-between pt-2">
-                        <button type="button" id="btn-desplegar-rechazar" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer">
+                    <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                        <button type="button" id="btn-desplegar-rechazar" class="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer text-left">
                             ¿Deseas denegar o rechazar esta solicitud?
                         </button>
-                        <button type="button" id="btn-pre-aceptar" th:disabled="${!diagnostico?.puedeAceptar()}" class="px-5 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition cursor-pointer">
+                        <button type="button" id="btn-pre-aceptar" th:disabled="${!diagnostico?.puedeAceptar()}" class="shrink-0 px-5 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm transition cursor-pointer">
                             Aceptar y Citar
                         </button>
                     </div>
@@ -199,7 +217,7 @@
             <!-- ------------------------------------------------------------- -->
             <!-- 2º MODAL: CONFIRMACIÓN DE CITACIÓN (PANTALLA LIMPIA AISLADA) -->
             <!-- ------------------------------------------------------------- -->
-            <div id="submodal-confirmar-aceptar" class="flex flex-col justify-center items-center text-center space-y-5 py-4">
+            <div id="submodal-confirmar-aceptar" class="hidden flex-col justify-center items-center text-center space-y-5 py-4">
                 <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                     <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

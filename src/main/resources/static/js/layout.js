@@ -166,54 +166,71 @@ document.addEventListener('DOMContentLoaded', () => {
         // Si la página actual no dispone de reloj en la barra superior, salimos sin hacer nada
         if (!relojBadge && !relojTexto && !relojFecha && !relojHora) return;
 
+        // Formateadores reutilizables fuera del bucle para evitar instanciaciones repetitivas
+        const formateadorFecha = new Intl.DateTimeFormat('es-ES', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+        });
+
+        const formateadorHora = new Intl.DateTimeFormat('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const formateadorTexto = new Intl.DateTimeFormat('es-ES', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        // Control de estado para mutar el DOM únicamente cuando cambie el minuto o el día
+        let ultimoMinutoRegistrado = -1;
+        let ultimoDiaRegistrado = -1;
+
         /**
-         * Obtiene la hora actual del cliente y formatea la fecha y la hora
-         * utilizando la API nativa de internacionalización 'Intl.DateTimeFormat'.
+         * Comprueba la hora cada segundo. Si el minuto del sistema no ha cambiado,
+         * descarta la ejecución inmediatamente sin tocar el DOM ni formatear cadenas.
+         * @param {boolean} forzar - Si es true, omite la comprobación de minuto (útil tras swaps de HTMX).
          */
-        function actualizarReloj() {
+        function actualizarReloj(forzar = false) {
             const ahora = new Date();
+            const minutoActual = ahora.getMinutes();
+            const diaActual = ahora.getDate();
+
+            // Salir de inmediato si el minuto y el día siguen siendo los mismos (59 de cada 60 segundos)
+            if (!forzar && minutoActual === ultimoMinutoRegistrado && diaActual === ultimoDiaRegistrado) {
+                return;
+            }
+
+            ultimoMinutoRegistrado = minutoActual;
+            ultimoDiaRegistrado = diaActual;
+
             const elFecha = document.getElementById('reloj-sistema-fecha');
             const elHora = document.getElementById('reloj-sistema-hora');
             const elTexto = document.getElementById('reloj-sistema-texto');
 
             if (elFecha && elHora) {
-                // Formato Fecha: ej. "jue., 29 oct."
-                const fechaFormateada = new Intl.DateTimeFormat('es-ES', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short'
-                }).format(ahora);
-
-                // Formato Hora en formato 24 horas: ej. "20:05"
-                const horaFormateada = new Intl.DateTimeFormat('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).format(ahora);
-
-                // Capitalizar primera letra de la fecha (ej. "jue., 29 oct." -> "Jue, 29 oct.")
+                // Formato Fecha: ej. "Jue, 29 oct."
+                const fechaFormateada = formateadorFecha.format(ahora);
                 elFecha.textContent = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
-                elHora.textContent = horaFormateada;
+                elHora.textContent = formateadorHora.format(ahora);
             }
 
             // Retrocompatibilidad con contenedores de texto único
             if (elTexto) {
-                const formateador = new Intl.DateTimeFormat('es-ES', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                elTexto.textContent = formateador.format(ahora);
+                elTexto.textContent = formateadorTexto.format(ahora);
             }
         }
 
-        actualizarReloj();
-        // Actualiza el reloj cada 30 segundos (suficiente para minutos sin sobrecargar la CPU)
-        setInterval(actualizarReloj, 30000);
+        actualizarReloj(true);
+        // Comprobación cada 1 segundo (1000 ms) para sincronización inmediata con el reloj del SO
+        setInterval(() => actualizarReloj(false), 1000);
 
-        // Re-sincronizar reloj si HTMX intercambia fragmentos de la cabecera
-        document.addEventListener('htmx:afterSwap', actualizarReloj);
+        // Re-sincronizar forzosamente el reloj si HTMX intercambia fragmentos de la cabecera
+        document.addEventListener('htmx:afterSwap', () => actualizarReloj(true));
     }
     iniciarRelojSistema();
 
@@ -515,6 +532,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Solo prevenir default si no es un disparador de petición HTMX (para no interrumpir 'hx-post' o 'hx-get')
             if (!triggerCerrar.hasAttribute('hx-get') && !triggerCerrar.hasAttribute('hx-post')) {
                 event.preventDefault();
+            }
+            return;
+        }
+
+        // Disparador de cierre de alertas y popups de feedback (mensajeExito, error, etc.)
+        const triggerAlertaCerrar = event.target.closest('[data-alerta-cerrar]');
+        if (triggerAlertaCerrar) {
+            event.preventDefault();
+            const alerta = triggerAlertaCerrar.closest('[role="alert"]') || triggerAlertaCerrar.closest('.p-4') || triggerAlertaCerrar.parentElement;
+            if (alerta) {
+                alerta.classList.add('transition-all', 'duration-300', 'opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    alerta.remove();
+                }, 300);
             }
             return;
         }

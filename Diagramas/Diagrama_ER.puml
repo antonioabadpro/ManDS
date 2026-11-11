@@ -1,164 +1,72 @@
-@startuml Diagrama_ER_v16
-' --- AJUSTES VISUALES ---
-skinparam linetype ortho
-skinparam nodesep 70
-skinparam ranksep 70
-skinparam padding 5
+@startuml Diagrama_ER_v18
+' --- AJUSTES VISUALES (linetype polyline, bordes ceñidos, 6 entidades en paralelo, Enums compactos A4) ---
+scale max 1200 width
+skinparam linetype polyline
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam classFontSize 12
+skinparam classAttributeFontSize 11
+skinparam packageFontSize 11
+skinparam arrowFontSize 10
+skinparam nodesep 50
+skinparam ranksep 120
+skinparam padding 3
 skinparam packageStyle rectangle
+hide empty members
 
-' --- 1. ENUMS (Agrupados a la derecha para no molestar) ---
-package "Enums" {
-  enum EstadoUsuario {
-    - ACTIVO
-    - INACTIVO
-  }
-  enum EstadoVehiculo {
-    - DISPONIBLE
-    - OCUPADO
-    - MANTENIMIENTO
-    - INACTIVO
-  }
-  enum TipoCarnet {
-    - PERMISO_AM
-    - PERMISO_A1
-    - PERMISO_A2
-    - PERMISO_A
-    - PERMISO_B
-    - PERMISO_B_E
-    - PERMISO_B1
-    - PERMISO_C
-    - PERMISO_C_E
-    - PERMISO_D
-    - PERMISO_D_E
-    - PERMISO_LVA
-  }
-  enum TipoCombustible {
-    - GASOLINA
-    - DIESEL
-    - ELECTRICO
-    - HIBRIDO
-  }
-  enum TipoCambio {
-    - MANUAL
-    - AUTOMATICO
-  }
-  enum TipoMatricula {
-    - NUEVA
-    - RENOVACION
-  }
-  enum TipoTurno {
-    - MATINAL
-    - TARDE
-  }
-  enum ModalidadMatricula {
-    - TEORICO_PRACTICA
-    - PRACTICA
-  }
-  enum EstadoSolicitud {
-    - PENDIENTE
-    - ACEPTADA
-    - RECHAZADA
-  }
-  enum TipoExamen {
-    - TEORICO
-    - PRACTICO
-  }
-  enum EstadoIncidencia {
-    - PENDIENTE
-    - EN_PROCESO
-    - RESUELTA
-  }
-  enum EstadoClase {
-    - RECIBIDA
-    - PENDIENTE
-    - CANCELADA
-  }
-  enum Rol {
-    - ADMIN
-    - PROFESOR
-    - ALUMNO
-  }
+<style>
+package {
+  Padding 8
 }
+</style>
 
-' --- 2. USUARIOS (Capa Superior) ---
-' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
+' --- 1. AUTENTICACIÓN (Tokens de verificación) ---
 package "Autenticación" {
   class TokenVerificacion {
     - id: Long
     - token: String
     - fechaExpiracion: LocalDateTime
-    - usado: Boolean
+    - usado: boolean
     - fechaCreacion: LocalDateTime
     - persona: Persona
-    + isExpirado(): Boolean
-    + isValido(): Boolean
-    + isUsado(): Boolean
+    + isExpirado(): boolean
+    + isValido(): boolean
+    + isUsado(): boolean
     + marcarComoUsado(): void
   }
 }
 
-' --- 3. USUARIOS (Capa Superior) ---
+' --- 2. USUARIOS (Capa Superior) ---
 package "Usuarios" {
   abstract class Persona {
     - id: Long
-    - nombreUsuario: String
     - nombre: String
     - apellidos: String
     - dni: String
     - fechaNacimiento: LocalDate
+    - nombreUsuario: String
     - correo: String
     - password: String
     - telefono: String
     - direccion: String
     - estado: EstadoUsuario
-    + iniciarSesion(): Boolean
-    + cerrarSesion(): void
     + actualizarPassword(passwordCodificada: String): void
+    + esMayorDeEdad(): boolean
     + {abstract} getRol(): Rol
   }
 
   class Administrador {
-    + crearUsuario(): void
-    + eliminarUsuario(): void
-    + modificarUsuario(): void
-    + consultarUsuarios(): List<Persona>
-    + asignarRol(): void
-    + modificarEstadoUsuario(): void
-    + crearProfesor(): void
-    + eliminarProfesor(): void
-    + modificarProfesor(): void
-    + consultarProfesores(): List<Profesor>
-    + crearAlumno(): void
-    + eliminarAlumno(): void
-    + modificarAlumno(): void
-    + consultarAlumnos(): List<Alumno>
-    + insertarVehiculo(): void
-    + eliminarVehiculo(): void
-    + modificarVehiculo(): void
-    + consultarVehiculos(): List<Vehiculo>
-    + consultarEstadisticas(): void
     + getRol(): Rol
-    + fijarFechasExamen(mes: LocalDate, fechaHora1: LocalDateTime, fechaHora2: LocalDateTime): void
-    + fijarCuposExamen(mes: LocalDate, cupos: List<CupoExamen>): void
-    + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
-    + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
   }
 
   class Profesor {
     - fechaContratacion: LocalDate
+    - turno: TipoTurno
     - listaAlumnos: List<Alumno>
     - listaClasesPracticas: List<ClasePractica>
     - listaSolicitudesExamen: List<SolicitudExamen>
     - listaTiposCarnet: List<TipoCarnet>
-    - turno: TipoTurno
     - vehiculo: Vehiculo
-    + consultarCalendario(): void
-    + consultarListadoAlumnos(): List<Alumno>
-    + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
-    + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
-    + reportarIncidenciaVehiculo(descripcion: String): void
     + getRol(): Rol
   }
 
@@ -168,16 +76,11 @@ package "Usuarios" {
     - historialMatriculas: List<Matricula>
     - listaSolicitudesExamen: List<SolicitudExamen>
     - profesor: Profesor
-    + getHistorialClases(): List<ClasePractica>
-    + getHistorialExamenes(): List<Examen>
-    + solicitarClase(): void
-    + solicitarFechaExamen(): LocalDateTime
-    + consultarEstadisticas(): void
     + getRol(): Rol
   }
 }
 
-' --- 4. AUTOESCUELA (Capa Inferior) ---
+' --- 3. AUTOESCUELA (Capa Central) ---
 package "Autoescuela" {
   class Vehiculo {
     - id: Long
@@ -189,7 +92,7 @@ package "Autoescuela" {
     - cv: Integer
     - anio: Integer
     - tipoCombustible: TipoCombustible
-    - tipoCambio: TipoCambio
+    - cajaCambios: TipoCambio
     - fechaUltimaRevision: LocalDate
     - fechaProximaRevision: LocalDate
     - estado: EstadoVehiculo
@@ -220,13 +123,7 @@ package "Autoescuela" {
     - modalidad: ModalidadMatricula
     - alumno: Alumno
     - listaSolicitudesExamen: List<SolicitudExamen>
-    + getSaldoClases(): Integer
-    + getConvocatoriasGastadas(): Integer
-    + estaActiva(): Boolean
-    + pagarMatricula(alumno: Alumno): Boolean
-    + pagarClase(alumno: Alumno): Boolean
-    + pagarExamen(alumno: Alumno): Boolean
-    + comprarClases(cantidad: Integer): Boolean
+    + tieneConvocatoriasAgotadas(): boolean
   }
 
   class ClasePractica {
@@ -234,8 +131,8 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - duracion: Integer
     - puntoRecogida: String
-    - kmInicio: Integer
-    - kmFin: Integer
+    - kmInicio: Long
+    - kmFin: Long
     - observaciones: String
     - motivoCancelacion: String
     - estadoClase: EstadoClase
@@ -243,7 +140,6 @@ package "Autoescuela" {
     - isCancelacionJornada: Boolean
     - alumno: Alumno
     - profesor: Profesor
-    + cambiarEstado(): Boolean
   }
 
   class FechaExamen {
@@ -264,8 +160,8 @@ package "Autoescuela" {
   class SolicitudExamen {
     - id: Long
     - fechaHora: LocalDateTime
-    - tipo: TipoExamen
     - estado: EstadoSolicitud
+    - tipo: TipoExamen
     - comentarioJustificacion: String
     - alumno: Alumno
     - profesor: Profesor
@@ -284,45 +180,145 @@ package "Autoescuela" {
   }
 }
 
-' --- 5. RELACIONES (Optimizadas para visualización) ---
+' --- 4. ENUMS (Rejilla compacta de 6 columnas alineada bajo Autoescuela) ---
+package "Enums" {
+  enum TipoCarnet {
+    PERMISO_AM, PERMISO_A1, PERMISO_A2, PERMISO_A
+    PERMISO_B, PERMISO_B_E, PERMISO_B1, PERMISO_C
+    PERMISO_C_E, PERMISO_D, PERMISO_D_E, PERMISO_LVA
+  }
+  enum EstadoVehiculo {
+    DISPONIBLE
+    OCUPADO
+    MANTENIMIENTO
+    INACTIVO
+  }
+  enum TipoCombustible {
+    GASOLINA
+    DIESEL
+    ELECTRICO
+    HIBRIDO
+  }
+  enum EstadoSolicitud {
+    PENDIENTE
+    ACEPTADA
+    RECHAZADA
+  }
+  enum EstadoIncidencia {
+    PENDIENTE
+    EN_PROCESO
+    RESUELTA
+  }
+  enum EstadoClase {
+    RECIBIDA
+    PENDIENTE
+    CANCELADA
+  }
+  enum EstadoUsuario {
+    ACTIVO
+    INACTIVO
+  }
+  enum TipoCambio {
+    MANUAL
+    AUTOMATICO
+  }
+  enum ModalidadMatricula {
+    TEORICO_PRACTICA
+    PRACTICA
+  }
+  enum Rol {
+    ADMIN
+    PROFESOR
+    ALUMNO
+  }
+  enum TipoTurno {
+    MATINAL
+    TARDE
+  }
+  enum TipoMatricula {
+    NUEVA
+    RENOVACION
+  }
+  enum TipoExamen {
+    TEORICO
+    PRACTICO
+  }
+}
 
-' Trucos de alineación para que quede ordenado horizontalmente
-Autenticación -[hidden]right-> Usuarios
-Usuarios -[hidden]right-> Enums
+' --- 5. RELACIONES Y DISPOSICIÓN PLANAR ---
 
+' Alineación superior: Persona centrado sobre Profesor (centro de sus hijos)
+Persona -[hidden]down-> Profesor
 Administrador -[hidden]right-> Profesor
 Profesor -[hidden]right-> Alumno
 
-' Herencia (El flujo cae limpio hacia abajo)
+' Herencia
 Persona <|-down- Administrador
 Persona <|-down- Profesor
 Persona <|-down- Alumno
 
-' Relaciones de autenticación
-Persona "1" -left-> "0..*" TokenVerificacion : posee >
+' Relación de autenticación (ancla Autenticación a la derecha de Alumno con nodesep 50 para liberar 0..* de los bordes)
+Alumno -[hidden]right-> TokenVerificacion
+Persona "1" -down-> "0..*" TokenVerificacion : posee >
 
-' Relaciones principales
-Profesor "1" -down-> "1" Vehiculo : tiene asignado >
-Vehiculo "1" -right-> "0..*" IncidenciaVehiculo : sufre >
-Profesor "1" -right-> "0..*" IncidenciaVehiculo : reporta >
+' Fila paralela principal dentro de Autoescuela (sin cruces ni saltos sobre cajas):
+' Vehiculo -> IncidenciaVehiculo | ClasePractica | Matricula -> SolicitudExamen -> Examen
+Vehiculo "1" -right-> "0..*" IncidenciaVehiculo : sufre >\n 
+IncidenciaVehiculo -[hidden]right-> ClasePractica
+ClasePractica -[hidden]right-> Matricula
+Matricula "1" -right-> "0..*" SolicitudExamen : genera >\n 
+SolicitudExamen "1" -right-> "0..1" Examen : deriva en >\n 
 
-Profesor "1" -right-> "0..*" Alumno : enseña a >
+' Relación horizontal entre profesores y alumnos
+Profesor "0..1" -right-> "0..*" Alumno : enseña a >\n 
 
+' Relaciones verticales hacia la fila paralela de Autoescuela (ordenadas izquierda -> derecha)
+Profesor "0..1" -down-> "0..1" Vehiculo : tiene\nasignado >
+Profesor "0..1" -down-> "0..*" IncidenciaVehiculo : reporta >
+ClasePractica "0..*" -up-> "0..1" Profesor : impartida\npor >
+Profesor "0..1" -down-> "0..*" SolicitudExamen : asignado\na >
+
+ClasePractica "0..*" -up-> "0..1" Alumno : recibida\npor >
 Alumno "1" -down-> "1..*" Matricula : posee >
-
-ClasePractica "0..*" -up-> "1" Alumno : recibida por >
-ClasePractica "0..*" -up-> "1" Profesor : impartida por >
-
-Matricula "1" -down-> "0..*" SolicitudExamen : genera >
-Administrador "1" -down-> "0..*" SolicitudExamen : gestiona >
-Administrador "1" -down-> "0..*" FechaExamen : fija >
-Administrador "1" -down-> "0..*" CupoExamen : fija >
-FechaExamen -[hidden]right-> CupoExamen
 Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
-SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
 Alumno "1" -down-> "0..*" Examen : realiza >
 
-' Separación de los Enums para evitar líneas cruzadas
-Usuarios -[hidden]right-> Enums
+' Fijación de orden izquierdo-derecho (asegura ClasePractica < Matricula < SolicitudExamen < Examen sin saltos superiores)
+Administrador -[hidden]down-> Vehiculo
+Profesor -[hidden]down-> ClasePractica
+Profesor -[hidden]down-> Matricula
+Alumno -[hidden]down-> SolicitudExamen
+Alumno -[hidden]down-> Examen
+
+' Anclaje inferior de entidades independientes de calendario DGT
+ClasePractica -[hidden]down-> FechaExamen
+Matricula -[hidden]down-> CupoExamen
+FechaExamen -[hidden]right-> CupoExamen
+
+' Alineación de Enums contenida dentro del ancho de Autoescuela (6 columnas, 2 bajo TipoCarnet)
+Vehiculo -[hidden]down-> TipoCarnet
+FechaExamen -[hidden]down-> TipoCombustible
+CupoExamen -[hidden]down-> EstadoSolicitud
+SolicitudExamen -[hidden]down-> EstadoClase
+
+TipoCarnet -[hidden]right-> EstadoVehiculo
+EstadoVehiculo -[hidden]right-> TipoCombustible
+TipoCombustible -[hidden]right-> EstadoSolicitud
+EstadoSolicitud -[hidden]right-> EstadoIncidencia
+EstadoIncidencia -[hidden]right-> EstadoClase
+
+EstadoUsuario -[hidden]right-> TipoCambio
+TipoCambio -[hidden]right-> ModalidadMatricula
+ModalidadMatricula -[hidden]right-> Rol
+Rol -[hidden]right-> TipoTurno
+TipoTurno -[hidden]right-> TipoMatricula
+TipoMatricula -[hidden]right-> TipoExamen
+
+TipoCarnet -[hidden]down-> EstadoUsuario
+EstadoVehiculo -[hidden]down-> ModalidadMatricula
+TipoCombustible -[hidden]down-> Rol
+EstadoSolicitud -[hidden]down-> TipoTurno
+EstadoIncidencia -[hidden]down-> TipoMatricula
+EstadoClase -[hidden]down-> TipoExamen
 
 @enduml

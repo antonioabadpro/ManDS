@@ -46,6 +46,7 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
         if (hxRequest != null && hxRequest.equalsIgnoreCase("true"))
         {
             FlashMap flashMap = new FlashMap();
+            flashMap.setTargetRequestPath("/login");
             flashMap.put("sesionExpirada", true);
             FlashMapManager flashMapManager = new SessionFlashMapManager();
             flashMapManager.saveOutputFlashMap(flashMap, request, response);
@@ -55,9 +56,10 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
             return;
         }
 
-        if (request.getRequestedSessionId() != null)
+        if (request.getRequestedSessionId() != null && !request.isRequestedSessionIdValid())
         {
             FlashMap flashMap = new FlashMap();
+            flashMap.setTargetRequestPath("/login");
             flashMap.put("sesionExpirada", true);
             FlashMapManager flashMapManager = new SessionFlashMapManager();
             flashMapManager.saveOutputFlashMap(flashMap, request, response);

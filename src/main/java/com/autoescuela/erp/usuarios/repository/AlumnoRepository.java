@@ -67,7 +67,7 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>
     List<Alumno> findByProfesor(Profesor profesor);
 
     /**
-     * Recupera todos los alumnos tutelados por el identificador del profesor.
+     * Recupera todos los alumnos por el identificador del profesor.
      */
     @EntityGraph(attributePaths = {"historialMatriculas"})
     List<Alumno> findByProfesorId(Long profesorId);

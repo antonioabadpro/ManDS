@@ -216,7 +216,7 @@ public class ProfesorController
     }
 
     /**
-     * Envía un mensaje directo por correo a un alumno tutelado.
+     * Envía un mensaje directo por correo a un alumno.
      */
     @PostMapping("/alumnos/contactar")
     public String contactarAlumno(@AuthenticationPrincipal Object principal, @Valid @ModelAttribute("contactarDTO") ContactarAlumnoDTO dto, BindingResult bindingResult, RedirectAttributes redirectAttributes)

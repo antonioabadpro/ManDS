@@ -4,11 +4,11 @@ import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
@@ -57,19 +57,7 @@ public class PagoStripeService
      */
     private String obtenerBaseUrlEfectiva()
     {
-        try
-        {
-            String urlContexto = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-            if (urlContexto != null && !urlContexto.isBlank())
-            {
-                return urlContexto;
-            }
-        }
-        catch (Exception ex)
-        {
-            log.debug("No se pudo resolver la URL base desde el contexto HTTP actual: {}", ex.getMessage());
-        }
-        return this.appBaseUrl;
+        return UrlAplicacionUtil.resolverBaseUrlEfectiva(null, this.appBaseUrl);
     }
 
     /**

@@ -14,8 +14,10 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
 import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
 import com.autoescuela.erp.flota.dto.ReportarIncidenciaDTO;
@@ -151,27 +153,20 @@ public class IncidenciaVehiculoService
                     }
 
                     String asuntoProfesor = "Aviso urgente: Vehículo en mantenimiento - Clases canceladas";
-                    String mensajeProfesor = "Estimado/a " + profesor.getNombre() + ",\n\n"
-                            + "Te comunicamos que tu vehículo asignado " + vehiculo.getMarca() + " " + vehiculo.getModelo()
+                    String mensajeProfesor = "Te comunicamos que tu vehículo asignado " + vehiculo.getMarca() + " " + vehiculo.getModelo()
                             + " (" + vehiculo.getMatricula() + ") ha entrado en mantenimiento debido a la incidencia reportada.\n"
                             + "Conforme al protocolo de la autoescuela, todas tus clases prácticas pendientes han sido canceladas automáticamente.\n\n"
-                            + "Te avisaremos por correo en cuanto el vehículo esté reparado y disponible de nuevo.\n\n"
-                            + "Atentamente,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
-                    this.emailService.enviarNotificacionProfesor(profesor.getCorreo(), asuntoProfesor, mensajeProfesor);
+                            + "Te avisaremos por correo en cuanto el vehículo esté reparado y disponible de nuevo.";
+                    this.emailService.enviarNotificacionCorreo(profesor.getCorreo(), profesor.getNombre(), asuntoProfesor, mensajeProfesor, Rol.PROFESOR);
 
                     List<Alumno> alumnosAsignados = this.alumnoRepository.findByProfesor(profesor);
                     for (Alumno alumno : alumnosAsignados)
                     {
                         String asuntoAlumno = "Aviso importante: Vehículo en mantenimiento - Clases prácticas suspendidas";
-                        String mensajeAlumno = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                                + "Te comunicamos que el vehículo de prácticas de tu profesor ha entrado en mantenimiento debido a una incidencia.\n"
+                        String mensajeAlumno = "Te comunicamos que el vehículo de prácticas de tu profesor ha entrado en mantenimiento debido a una incidencia.\n"
                                 + "Tus clases prácticas pendientes han sido canceladas automáticamente y la reserva de nuevas sesiones queda temporalmente suspendida hasta nuevo aviso.\n\n"
-                                + "Te avisaremos por correo en cuanto el vehículo esté reparado y disponible de nuevo para que puedas volver a reservar clases prácticas.\n\n"
-                                + "Disculpa las molestias,\n"
-                                + "Atentamente,\n"
-                                + "Equipo de Coordinación - ManDS Autoescuela";
-                        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asuntoAlumno, mensajeAlumno);
+                                + "Te avisaremos por correo en cuanto el vehículo esté reparado y disponible de nuevo para que puedas volver a reservar clases prácticas.";
+                        this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asuntoAlumno, mensajeAlumno, Rol.ALUMNO);
                     }
                 }
             }
@@ -189,24 +184,18 @@ public class IncidenciaVehiculoService
                 if (profesor != null)
                 {
                     String asuntoProfesor = "Vehículo reparado - Reapertura de clases prácticas";
-                    String mensajeProfesor = "Estimado/a " + profesor.getNombre() + ",\n\n"
-                            + "Te informamos de que la incidencia mecánica de tu vehículo asignado " + vehiculo.getMarca() + " " + vehiculo.getModelo()
+                    String mensajeProfesor = "Te informamos de que la incidencia mecánica de tu vehículo asignado " + vehiculo.getMarca() + " " + vehiculo.getModelo()
                             + " (" + vehiculo.getMatricula() + ") ha sido resuelta satisfactoriamente.\n"
-                            + "El vehículo vuelve a estar plenamente operativo para impartir clases prácticas.\n\n"
-                            + "Atentamente,\n"
-                            + "Equipo de Coordinación - ManDS Autoescuela";
-                    this.emailService.enviarNotificacionProfesor(profesor.getCorreo(), asuntoProfesor, mensajeProfesor);
+                            + "El vehículo vuelve a estar plenamente operativo para impartir clases prácticas.";
+                    this.emailService.enviarNotificacionCorreo(profesor.getCorreo(), profesor.getNombre(), asuntoProfesor, mensajeProfesor, Rol.PROFESOR);
 
                     List<Alumno> alumnosAsignados = this.alumnoRepository.findByProfesor(profesor);
                     for (Alumno alumno : alumnosAsignados)
                     {
                         String asuntoAlumno = "Aviso: Vehículo reparado - Reapertura de reservas de clases prácticas";
-                        String mensajeAlumno = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                                + "Te informamos de que el vehículo de tu profesor ya ha sido reparado y se encuentra plenamente operativo.\n"
-                                + "Ya puedes acceder a tu calendario en el portal del alumno para reservar tus próximas clases prácticas.\n\n"
-                                + "Un cordial saludo,\n"
-                                + "Equipo de Coordinación - ManDS Autoescuela";
-                        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asuntoAlumno, mensajeAlumno);
+                        String mensajeAlumno = "Te informamos de que el vehículo de tu profesor ya ha sido reparado y se encuentra plenamente operativo.\n"
+                                + "Ya puedes acceder a tu calendario en el portal del alumno para reservar tus próximas clases prácticas.";
+                        this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asuntoAlumno, mensajeAlumno, Rol.ALUMNO);
                     }
                 }
             }
@@ -292,9 +281,8 @@ public class IncidenciaVehiculoService
             List<Administrador> administradores = this.personaRepository.findAdministradoresActivos();
             String nombreProfesor = profesor.getNombre() + " " + profesor.getApellidos();
             String vehiculoInfo = vehiculo.getMarca() + " " + vehiculo.getModelo();
-            String urlIncidencias = (baseUrl != null && baseUrl.endsWith("/"))
-                    ? baseUrl + "admin/incidencias"
-                    : (baseUrl != null ? baseUrl + "/admin/incidencias" : "http://localhost:8080/admin/incidencias");
+            String baseUrlEfectiva = UrlAplicacionUtil.resolverBaseUrlEfectiva(baseUrl, null);
+            String urlIncidencias = UrlAplicacionUtil.construirUrl(baseUrlEfectiva, "/admin/incidencias");
 
             if (administradores != null && !administradores.isEmpty())
             {

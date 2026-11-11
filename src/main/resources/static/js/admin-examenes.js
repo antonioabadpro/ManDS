@@ -53,6 +53,7 @@ function inicializarExamenesAdmin() {
             const modalId = targetBtn.getAttribute('data-modal-target');
             const modalEl = document.getElementById(modalId);
             if (modalEl) {
+                restaurarPasosModal(modalId);
                 modalEl.classList.remove('hidden');
                 modalEl.classList.add('flex');
                 if (modalId === 'modal-fijar-fechas-dgt') {
@@ -70,6 +71,7 @@ function inicializarExamenesAdmin() {
             if (modalEl) {
                 modalEl.classList.add('hidden');
                 modalEl.classList.remove('flex');
+                restaurarPasosModal(modalId);
             }
             return;
         }
@@ -79,10 +81,7 @@ function inicializarExamenesAdmin() {
         if (event.target.closest('#btn-pre-fijar-fechas')) {
             const form = document.getElementById('form-fijar-fechas-dgt');
             if (form && form.checkValidity()) {
-                const paso1 = document.getElementById('contenedor-paso-1-fechas');
-                const submodal = document.getElementById('submodal-confirmar-fijar-fechas');
-                if (paso1) paso1.classList.add('hidden');
-                if (submodal) submodal.classList.remove('hidden');
+                alternarPasoConfirmacion('contenedor-paso-1-fechas', 'submodal-confirmar-fijar-fechas', true, 'btn-cancelar-submodal-fechas');
             } else if (form) {
                 form.reportValidity();
             }
@@ -91,10 +90,7 @@ function inicializarExamenesAdmin() {
 
         // Cancelar Paso 2 y regresar al Paso 1
         if (event.target.closest('#btn-cancelar-submodal-fechas')) {
-            const paso1 = document.getElementById('contenedor-paso-1-fechas');
-            const submodal = document.getElementById('submodal-confirmar-fijar-fechas');
-            if (submodal) submodal.classList.add('hidden');
-            if (paso1) paso1.classList.remove('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-fechas', 'submodal-confirmar-fijar-fechas', false, 'btn-pre-fijar-fechas');
             return;
         }
 
@@ -119,10 +115,7 @@ function inicializarExamenesAdmin() {
         if (event.target.closest('#btn-pre-fijar-cupos')) {
             const form = document.getElementById('form-fijar-cupos-dgt');
             if (form && form.checkValidity()) {
-                const paso1 = document.getElementById('contenedor-paso-1-cupos');
-                const submodal = document.getElementById('submodal-confirmar-fijar-cupos');
-                if (paso1) paso1.classList.add('hidden');
-                if (submodal) submodal.classList.remove('hidden');
+                alternarPasoConfirmacion('contenedor-paso-1-cupos', 'submodal-confirmar-fijar-cupos', true, 'btn-cancelar-submodal-cupos');
             } else if (form) {
                 form.reportValidity();
             }
@@ -130,10 +123,7 @@ function inicializarExamenesAdmin() {
         }
 
         if (event.target.closest('#btn-cancelar-submodal-cupos')) {
-            const paso1 = document.getElementById('contenedor-paso-1-cupos');
-            const submodal = document.getElementById('submodal-confirmar-fijar-cupos');
-            if (submodal) submodal.classList.add('hidden');
-            if (paso1) paso1.classList.remove('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-cupos', 'submodal-confirmar-fijar-cupos', false, 'btn-pre-fijar-cupos');
             return;
         }
 
@@ -167,20 +157,34 @@ function inicializarExamenesAdmin() {
             return;
         }
 
+        if (event.target.matches('input[name="numeroConvocatoria"]')) {
+            const errorEl = document.getElementById('error-seleccion-convocatoria');
+            if (errorEl) errorEl.classList.add('hidden');
+            return;
+        }
+
         // Doble confirmación para Aceptar Solicitud
         if (event.target.closest('#btn-pre-aceptar')) {
-            const paso1 = document.getElementById('contenedor-paso-1-solicitud');
-            const submodal = document.getElementById('submodal-confirmar-aceptar');
-            if (paso1) paso1.classList.add('hidden');
-            if (submodal) submodal.classList.remove('hidden');
+            const form = document.getElementById('form-aceptar-solicitud');
+            const radioSeleccionado = form
+                ? form.querySelector('input[name="numeroConvocatoria"]:checked:not(:disabled)')
+                : null;
+            const errorEl = document.getElementById('error-seleccion-convocatoria');
+            if (!radioSeleccionado) {
+                if (errorEl) errorEl.classList.remove('hidden');
+                const primerRadioHabilitado = form
+                    ? form.querySelector('input[name="numeroConvocatoria"]:not(:disabled)')
+                    : null;
+                if (primerRadioHabilitado) primerRadioHabilitado.focus();
+                return;
+            }
+            if (errorEl) errorEl.classList.add('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-aceptar', true, 'btn-cancelar-submodal-aceptar');
             return;
         }
 
         if (event.target.closest('#btn-cancelar-submodal-aceptar')) {
-            const paso1 = document.getElementById('contenedor-paso-1-solicitud');
-            const submodal = document.getElementById('submodal-confirmar-aceptar');
-            if (submodal) submodal.classList.add('hidden');
-            if (paso1) paso1.classList.remove('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-aceptar', false, 'btn-pre-aceptar');
             return;
         }
 
@@ -208,18 +212,12 @@ function inicializarExamenesAdmin() {
                 motivoText.reportValidity();
                 return;
             }
-            const paso1 = document.getElementById('contenedor-paso-1-solicitud');
-            const submodal = document.getElementById('submodal-confirmar-rechazar');
-            if (paso1) paso1.classList.add('hidden');
-            if (submodal) submodal.classList.remove('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-rechazar', true, 'btn-cancelar-submodal-rechazar');
             return;
         }
 
         if (event.target.closest('#btn-cancelar-submodal-rechazar')) {
-            const paso1 = document.getElementById('contenedor-paso-1-solicitud');
-            const submodal = document.getElementById('submodal-confirmar-rechazar');
-            if (submodal) submodal.classList.add('hidden');
-            if (paso1) paso1.classList.remove('hidden');
+            alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-rechazar', false, 'btn-pre-rechazar');
             return;
         }
 
@@ -260,9 +258,55 @@ function inicializarExamenesAdmin() {
             document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(modal => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                if (modal.id) {
+                    restaurarPasosModal(modal.id);
+                }
             });
         }
     });
+}
+
+function enfocarElemento(idElemento) {
+    const el = document.getElementById(idElemento);
+    if (el && typeof el.focus === 'function') {
+        el.focus();
+    }
+}
+
+function alternarPasoConfirmacion(paso1Id, submodalId, mostrarSubmodal, idElementoFoco) {
+    const paso1 = document.getElementById(paso1Id);
+    const submodal = document.getElementById(submodalId);
+    if (mostrarSubmodal) {
+        if (paso1) paso1.classList.add('hidden');
+        if (submodal) {
+            submodal.classList.remove('hidden');
+            submodal.classList.add('flex');
+        }
+    } else {
+        if (submodal) {
+            submodal.classList.add('hidden');
+            submodal.classList.remove('flex');
+        }
+        if (paso1) paso1.classList.remove('hidden');
+    }
+    if (idElementoFoco) {
+        enfocarElemento(idElementoFoco);
+    }
+}
+
+function restaurarPasosModal(modalId) {
+    if (modalId === 'modal-fijar-fechas-dgt') {
+        alternarPasoConfirmacion('contenedor-paso-1-fechas', 'submodal-confirmar-fijar-fechas', false);
+    } else if (modalId === 'modal-fijar-cupos-dgt') {
+        alternarPasoConfirmacion('contenedor-paso-1-cupos', 'submodal-confirmar-fijar-cupos', false);
+    } else if (modalId === 'modal-editar-solicitud') {
+        alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-aceptar', false);
+        alternarPasoConfirmacion('contenedor-paso-1-solicitud', 'submodal-confirmar-rechazar', false);
+        const seccionRechazar = document.getElementById('seccion-rechazar-solicitud');
+        const errorConv = document.getElementById('error-seleccion-convocatoria');
+        if (seccionRechazar) seccionRechazar.classList.add('hidden');
+        if (errorConv) errorConv.classList.add('hidden');
+    }
 }
 
 /**

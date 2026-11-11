@@ -22,6 +22,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -419,12 +420,8 @@ public class AuthenticationService
             if (persona.getEstado() == EstadoUsuario.ACTIVO)
             {
                 TokenVerificacion token = this.tokenVerificacionService.generarTokenRecuperacion(persona, duracionTokenMinutos);
-                String baseUrlFinal = (baseUrl != null && !baseUrl.isBlank()) ? baseUrl : this.appBaseUrlConfigurada;
-                if (baseUrlFinal.endsWith("/"))
-                {
-                    baseUrlFinal = baseUrlFinal.substring(0, baseUrlFinal.length() - 1);
-                }
-                String enlace = baseUrlFinal + "/recuperar-password?token=" + token.getToken();
+                String baseUrlFinal = UrlAplicacionUtil.resolverBaseUrlEfectiva(baseUrl, this.appBaseUrlConfigurada);
+                String enlace = UrlAplicacionUtil.construirUrl(baseUrlFinal, "/recuperar-password?token=" + token.getToken());
                 this.emailService.enviarCorreoRecuperacion(persona.getCorreo(), persona.getNombre(), enlace, String.valueOf(duracionTokenMinutos));
             }
         }

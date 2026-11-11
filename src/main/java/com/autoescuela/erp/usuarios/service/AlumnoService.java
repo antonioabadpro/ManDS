@@ -283,15 +283,12 @@ public class AlumnoService
 
             // Notificación por correo al alumno
             String asunto = "Aviso importante: Actualización en la asignación de tu profesor";
-            String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                    + "Te comunicamos que se ha retirado la asignación de tu profesor/a de prácticas actual.\n"
+            String mensaje = "Te comunicamos que se ha retirado la asignación de tu profesor/a de prácticas actual.\n"
                     + "Actualmente tu expediente queda temporalmente sin profesor asignado y todas tus clases prácticas pendientes "
                     + "han sido canceladas de forma automática conforme al protocolo del centro.\n\n"
-                    + "El equipo de administración te asignará un/una nuevo/a profesor/a con la mayor brevedad posible para que puedas retomar tus clases.\n\n"
-                    + "Un cordial saludo,\n"
-                    + "Equipo de Coordinación - ManDS Autoescuela";
+                    + "El equipo de administración te asignará un/una nuevo/a profesor/a con la mayor brevedad posible para que puedas retomar tus clases.";
 
-            this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+            this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
         }
         else // Si NO queremos dejar al alumno sin profesor, procedemos a reasignarle uno nuevo
         {
@@ -351,15 +348,12 @@ public class AlumnoService
 
             String nombreNuevoProfesor = nuevoProfesor.getNombre() + " " + nuevoProfesor.getApellidos();
             String asunto = "Aviso importante: Asignación de nuevo profesor de prácticas";
-            String mensaje = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                    + "Te comunicamos que se ha modificado la asignación de tu profesor/a de prácticas actual.\n"
+            String mensaje = "Te comunicamos que se ha modificado la asignación de tu profesor/a de prácticas actual.\n"
                     + "A partir de este momento, tu nuevo/a profesor/a asignado es " + nombreNuevoProfesor + ".\n\n"
                     + "Conforme al protocolo del centro, todas tus clases prácticas pendientes han sido canceladas automáticamente. "
-                    + "Te invitamos a acceder a tu panel de alumno para programar tus próximas sesiones prácticas con tu nuevo/a profesor/a.\n\n"
-                    + "Un cordial saludo,\n"
-                    + "Equipo de Coordinación - ManDS Autoescuela";
+                    + "Te invitamos a acceder a tu panel de alumno para programar tus próximas sesiones prácticas con tu nuevo/a profesor/a.";
 
-            this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+            this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
         }
     }
 
@@ -409,27 +403,21 @@ public class AlumnoService
 
         // Notificación por correo electrónico al alumno
         String asuntoAlumno = "Aviso importante: Tramitación de baja de tu expediente de alumno";
-        String mensajeAlumno = "Estimado/a " + alumno.getNombre() + ",\n\n"
-                + "Te comunicamos que tu expediente de alumno en ManDS Autoescuela ha sido dado de baja.\n"
+        String mensajeAlumno = "Te comunicamos que tu expediente de alumno en ManDS Autoescuela ha sido dado de baja.\n"
                 + "Conforme al protocolo de la autoescuela, todas tus clases prácticas pendientes (" + clasesPendientes.size() + ") "
                 + "han sido canceladas de forma automática y se ha desvinculado a tu profesor asignado.\n\n"
-                + "Para cualquier consulta sobre tu expediente o una futura reactivación, por favor ponte en contacto con la administración del centro.\n\n"
-                + "Un cordial saludo,\n"
-                + "Equipo de Coordinación - ManDS Autoescuela";
-        this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asuntoAlumno, mensajeAlumno);
+                + "Para cualquier consulta sobre tu expediente o una futura reactivación, por favor ponte en contacto con la administración del centro.";
+        this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asuntoAlumno, mensajeAlumno, Rol.ALUMNO);
 
         // Notificación por correo electrónico al profesor asignado si tuviese uno
         if (profesorAsignado != null && profesorAsignado.getCorreo() != null)
         {
             String asuntoProfesor = "Aviso: Baja de alumno asignado";
-            String mensajeProfesor = "Estimado/a " + profesorAsignado.getNombre() + ",\n\n"
-                    + "Te informamos de que el alumno " + alumno.getNombre() + " " + alumno.getApellidos() + " (DNI: " + alumno.getDni() + ") "
+            String mensajeProfesor = "Te informamos de que el alumno " + alumno.getNombre() + " " + alumno.getApellidos() + " (DNI: " + alumno.getDni() + ") "
                     + "ha sido dado de baja en la autoescuela.\n"
                     + "Como consecuencia, dicho alumno ha sido desvinculado de tu lista de alumnos y todas las clases prácticas pendientes "
-                    + "que tenía reservadas contigo (" + clasesPendientes.size() + ") han sido canceladas de forma automática, liberando dichos tramos de tu calendario de prácticas.\n\n"
-                    + "Un cordial saludo,\n"
-                    + "Equipo de Coordinación - ManDS Autoescuela";
-            this.emailService.enviarNotificacionProfesor(profesorAsignado.getCorreo(), asuntoProfesor, mensajeProfesor);
+                    + "que tenía reservadas contigo (" + clasesPendientes.size() + ") han sido canceladas de forma automática, liberando dichos tramos de tu calendario de prácticas.";
+            this.emailService.enviarNotificacionCorreo(profesorAsignado.getCorreo(), profesorAsignado.getNombre(), asuntoProfesor, mensajeProfesor, Rol.PROFESOR);
         }
 
         return alumnoGuardado;
@@ -670,7 +658,7 @@ public class AlumnoService
         {
             try
             {
-                this.emailService.enviarNotificacionAlumno(alumno.getCorreo(), asunto, mensaje);
+                this.emailService.enviarNotificacionCorreo(alumno.getCorreo(), alumno.getNombre(), asunto, mensaje, Rol.ALUMNO);
             }
             catch (Exception ex)
             {

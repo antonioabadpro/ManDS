@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -39,18 +39,28 @@
 
             <!-- Mensajes Flash y Alertas -->
             <div id="contenedor-alertas" class="space-y-4">
-                <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200">
+                <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200 shadow-sm transition" role="alert">
                     <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${mensajeExito}"></div>
+                    <button type="button" data-alerta-cerrar class="shrink-0 -mr-1 -mt-1 p-1.5 rounded-xl text-emerald-600/70 hover:text-emerald-800 hover:bg-emerald-100/80 dark:text-emerald-400/70 dark:hover:text-emerald-200 dark:hover:bg-emerald-900/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer" aria-label="Cerrar notificación" title="Cerrar notificación">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200">
+                <div th:if="${error}" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-start space-x-3 text-rose-800 dark:text-rose-200 shadow-sm transition" role="alert">
                     <svg class="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div class="flex-1 text-xs sm:text-sm font-medium" th:text="${error}"></div>
+                    <button type="button" data-alerta-cerrar class="shrink-0 -mr-1 -mt-1 p-1.5 rounded-xl text-rose-600/70 hover:text-rose-800 hover:bg-rose-100/80 dark:text-rose-400/70 dark:hover:text-rose-200 dark:hover:bg-rose-900/40 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all cursor-pointer" aria-label="Cerrar notificación" title="Cerrar notificación">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Banner Alerta: Convocatorias Agotadas -->
@@ -228,7 +238,7 @@
                             <button id="btn-comprar-bono-10" type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition transform active:scale-95 cursor-pointer flex items-center justify-center space-x-2">
                                 <span class="btn-text">
                                     <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
-                                    <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (540 €)' : 'Confirmar Compra (270 €)'}">Confirmar Compra (270 €)</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (540 €)' : 'Confirmar Compra (270 €)'}">Confirmar Compra (270 €)</span>
                                 </span>
                                 <svg class="btn-spinner hidden w-4 h-4 animate-spin text-white shrink-0" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -302,7 +312,7 @@
                             <button id="btn-comprar-bono-15" type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none disabled:ring-0 text-white font-bold text-xs shadow-lg shadow-indigo-500/25 ring-2 ring-indigo-500/20 transition transform active:scale-95 cursor-pointer flex items-center justify-center space-x-2">
                                 <span class="btn-text">
                                     <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
-                                    <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (800 €)' : 'Confirmar Compra (400 €)'}">Confirmar Compra (400 €)</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (800 €)' : 'Confirmar Compra (400 €)'}">Confirmar Compra (400 €)</span>
                                 </span>
                                 <svg class="btn-spinner hidden w-4 h-4 animate-spin text-white shrink-0" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -366,7 +376,7 @@
                             <button id="btn-comprar-bono-20" type="submit" th:disabled="${convocatoriasAgotadas}" class="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-slate-400 dark:disabled:bg-slate-700 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none disabled:shadow-none text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition transform active:scale-95 cursor-pointer flex items-center justify-center space-x-2">
                                 <span class="btn-text">
                                     <span th:if="${convocatoriasAgotadas}">Compra Bloqueada</span>
-                                    <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (1.000 €)' : 'Confirmar Compra (500 €)'}">Confirmar Compra (500 €)</span>
+                                <span th:unless="${convocatoriasAgotadas}" th:text="${esVehiculoPesado ? 'Confirmar Compra (1.000 €)' : 'Confirmar Compra (500 €)'}">Confirmar Compra (500 €)</span>
                                 </span>
                                 <svg class="btn-spinner hidden w-4 h-4 animate-spin text-white shrink-0" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

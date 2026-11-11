@@ -16,6 +16,7 @@ import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -191,8 +192,8 @@ class IncidenciaVehiculoServiceTest
         verify(this.vehiculoRepository).save(vehiculo);
         verify(this.clasePracticaRepository).save(clasePendiente);
         verify(this.incidenciaVehiculoRepository).save(inc);
-        verify(this.emailService).enviarNotificacionProfesor(eq("laura@autoescuela.es"), anyString(), anyString());
-        verify(this.emailService).enviarNotificacionAlumno(eq("mario@alumno.es"), anyString(), anyString());
+        verify(this.emailService).enviarNotificacionCorreo(eq("laura@autoescuela.es"), any(), anyString(), anyString(), eq(Rol.PROFESOR));
+        verify(this.emailService).enviarNotificacionCorreo(eq("mario@alumno.es"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test
@@ -252,8 +253,8 @@ class IncidenciaVehiculoServiceTest
 
         verify(this.vehiculoRepository).save(vehiculo);
         verify(this.incidenciaVehiculoRepository).save(inc);
-        verify(this.emailService).enviarNotificacionProfesor(eq("laura@autoescuela.es"), anyString(), anyString());
-        verify(this.emailService).enviarNotificacionAlumno(eq("mario@alumno.es"), anyString(), anyString());
+        verify(this.emailService).enviarNotificacionCorreo(eq("laura@autoescuela.es"), any(), anyString(), anyString(), eq(Rol.PROFESOR));
+        verify(this.emailService).enviarNotificacionCorreo(eq("mario@alumno.es"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test
@@ -283,8 +284,8 @@ class IncidenciaVehiculoServiceTest
 
         verify(this.vehiculoRepository).save(vehiculo);
         verify(this.incidenciaVehiculoRepository).save(inc);
-        verify(this.emailService, never()).enviarNotificacionProfesor(anyString(), anyString(), anyString());
-        verify(this.emailService, never()).enviarNotificacionAlumno(anyString(), anyString(), anyString());
+        verify(this.emailService, never()).enviarNotificacionCorreo(anyString(), any(), anyString(), anyString(), eq(Rol.PROFESOR));
+        verify(this.emailService, never()).enviarNotificacionCorreo(anyString(), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
     @Test
