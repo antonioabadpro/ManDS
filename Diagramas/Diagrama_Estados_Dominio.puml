@@ -3,13 +3,15 @@
 ' MAN-DS: DIAGRAMA DE ESTADOS DEL DOMINIO (VISTA UNIFICADA EN 2 FILAS)
 ' ==============================================================================
 
-scale max 1000 width
+' Cabecera optimizada (sin scale max para no destruir la resolución)
 skinparam shadowing false
-skinparam defaultFontSize 10
-skinparam nodesep 20
-skinparam ranksep 25
-skinparam padding 6
-skinparam wrapWidth 160
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 12
+skinparam arrowFontSize 11
+skinparam nodesep 18
+skinparam ranksep 24
+skinparam padding 5
+skinparam wrapWidth 130
 
 ' --- FILA 1: GESTIÓN DE FLOTA, INCIDENCIAS Y SOLICITUDES ---
 
@@ -91,9 +93,10 @@ state "Ciclo de Vida: Clase Práctica" as SecClase {
     CLASE_CANCELADA --> [*]
 }
 
-' Disposición estructural en 2 filas equilibradas (3 arriba / 2 abajo alineadas a la izquierda)
+' Disposición en 2 columnas para reducir el ancho total y maximizar lectura
+SecVehiculo -[hidden]right-> SecIncidencia
 SecVehiculo -[hidden]down-> SecUsuario
-SecIncidencia -[hidden]down-> SecClase
-SecSolicitud -[hidden]down-> SecClase
+SecIncidencia -[hidden]down-> SecSolicitud
+SecUsuario -[hidden]down-> SecClase
 
 @enduml
