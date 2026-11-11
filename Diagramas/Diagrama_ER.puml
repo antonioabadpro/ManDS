@@ -1,4 +1,4 @@
-@startuml Diagrama_ER_v16
+@startuml Diagrama_ER_v17
 ' --- AJUSTES VISUALES ---
 skinparam linetype ortho
 skinparam nodesep 70
@@ -80,19 +80,18 @@ package "Enums" {
   }
 }
 
-' --- 2. USUARIOS (Capa Superior) ---
 ' --- 2. AUTENTICACIÓN (Tokens de verificación) ---
 package "Autenticación" {
   class TokenVerificacion {
     - id: Long
     - token: String
     - fechaExpiracion: LocalDateTime
-    - usado: Boolean
+    - usado: boolean
     - fechaCreacion: LocalDateTime
     - persona: Persona
-    + isExpirado(): Boolean
-    + isValido(): Boolean
-    + isUsado(): Boolean
+    + isExpirado(): boolean
+    + isValido(): boolean
+    + isUsado(): boolean
     + marcarComoUsado(): void
   }
 }
@@ -101,64 +100,33 @@ package "Autenticación" {
 package "Usuarios" {
   abstract class Persona {
     - id: Long
-    - nombreUsuario: String
     - nombre: String
     - apellidos: String
     - dni: String
     - fechaNacimiento: LocalDate
+    - nombreUsuario: String
     - correo: String
     - password: String
     - telefono: String
     - direccion: String
     - estado: EstadoUsuario
-    + iniciarSesion(): Boolean
-    + cerrarSesion(): void
     + actualizarPassword(passwordCodificada: String): void
+    + esMayorDeEdad(): boolean
     + {abstract} getRol(): Rol
   }
 
   class Administrador {
-    + crearUsuario(): void
-    + eliminarUsuario(): void
-    + modificarUsuario(): void
-    + consultarUsuarios(): List<Persona>
-    + asignarRol(): void
-    + modificarEstadoUsuario(): void
-    + crearProfesor(): void
-    + eliminarProfesor(): void
-    + modificarProfesor(): void
-    + consultarProfesores(): List<Profesor>
-    + crearAlumno(): void
-    + eliminarAlumno(): void
-    + modificarAlumno(): void
-    + consultarAlumnos(): List<Alumno>
-    + insertarVehiculo(): void
-    + eliminarVehiculo(): void
-    + modificarVehiculo(): void
-    + consultarVehiculos(): List<Vehiculo>
-    + consultarEstadisticas(): void
     + getRol(): Rol
-    + fijarFechasExamen(mes: LocalDate, fechaHora1: LocalDateTime, fechaHora2: LocalDateTime): void
-    + fijarCuposExamen(mes: LocalDate, cupos: List<CupoExamen>): void
-    + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + aceptarSolicitudExamen(idSolicitud: Long, fechaExamen: LocalDate): void
-    + rechazarSolicitudExamen(idSolicitud: Long, motivo: String): void
   }
 
   class Profesor {
     - fechaContratacion: LocalDate
+    - turno: TipoTurno
     - listaAlumnos: List<Alumno>
     - listaClasesPracticas: List<ClasePractica>
     - listaSolicitudesExamen: List<SolicitudExamen>
     - listaTiposCarnet: List<TipoCarnet>
-    - turno: TipoTurno
     - vehiculo: Vehiculo
-    + consultarCalendario(): void
-    + consultarListadoAlumnos(): List<Alumno>
-    + enviarCorreo(destinatario: String, asunto: String, mensaje: String): void
-    + consultarSolicitudesExamen(): List<SolicitudExamen>
-    + asignarCalificacionExamen(solicitud: SolicitudExamen, calificacion: Boolean): void
-    + reportarIncidenciaVehiculo(descripcion: String): void
     + getRol(): Rol
   }
 
@@ -168,11 +136,6 @@ package "Usuarios" {
     - historialMatriculas: List<Matricula>
     - listaSolicitudesExamen: List<SolicitudExamen>
     - profesor: Profesor
-    + getHistorialClases(): List<ClasePractica>
-    + getHistorialExamenes(): List<Examen>
-    + solicitarClase(): void
-    + solicitarFechaExamen(): LocalDateTime
-    + consultarEstadisticas(): void
     + getRol(): Rol
   }
 }
@@ -189,7 +152,7 @@ package "Autoescuela" {
     - cv: Integer
     - anio: Integer
     - tipoCombustible: TipoCombustible
-    - tipoCambio: TipoCambio
+    - cajaCambios: TipoCambio
     - fechaUltimaRevision: LocalDate
     - fechaProximaRevision: LocalDate
     - estado: EstadoVehiculo
@@ -220,13 +183,7 @@ package "Autoescuela" {
     - modalidad: ModalidadMatricula
     - alumno: Alumno
     - listaSolicitudesExamen: List<SolicitudExamen>
-    + getSaldoClases(): Integer
-    + getConvocatoriasGastadas(): Integer
-    + estaActiva(): Boolean
-    + pagarMatricula(alumno: Alumno): Boolean
-    + pagarClase(alumno: Alumno): Boolean
-    + pagarExamen(alumno: Alumno): Boolean
-    + comprarClases(cantidad: Integer): Boolean
+    + tieneConvocatoriasAgotadas(): boolean
   }
 
   class ClasePractica {
@@ -234,8 +191,8 @@ package "Autoescuela" {
     - fechaHora: LocalDateTime
     - duracion: Integer
     - puntoRecogida: String
-    - kmInicio: Integer
-    - kmFin: Integer
+    - kmInicio: Long
+    - kmFin: Long
     - observaciones: String
     - motivoCancelacion: String
     - estadoClase: EstadoClase
@@ -243,7 +200,6 @@ package "Autoescuela" {
     - isCancelacionJornada: Boolean
     - alumno: Alumno
     - profesor: Profesor
-    + cambiarEstado(): Boolean
   }
 
   class FechaExamen {
@@ -264,8 +220,8 @@ package "Autoescuela" {
   class SolicitudExamen {
     - id: Long
     - fechaHora: LocalDateTime
-    - tipo: TipoExamen
     - estado: EstadoSolicitud
+    - tipo: TipoExamen
     - comentarioJustificacion: String
     - alumno: Alumno
     - profesor: Profesor
@@ -302,23 +258,21 @@ Persona <|-down- Alumno
 Persona "1" -left-> "0..*" TokenVerificacion : posee >
 
 ' Relaciones principales
-Profesor "1" -down-> "1" Vehiculo : tiene asignado >
+Profesor "0..1" -down-> "0..1" Vehiculo : tiene asignado >
 Vehiculo "1" -right-> "0..*" IncidenciaVehiculo : sufre >
-Profesor "1" -right-> "0..*" IncidenciaVehiculo : reporta >
+Profesor "0..1" -right-> "0..*" IncidenciaVehiculo : reporta >
 
-Profesor "1" -right-> "0..*" Alumno : enseña a >
+Profesor "0..1" -right-> "0..*" Alumno : enseña a >
 
 Alumno "1" -down-> "1..*" Matricula : posee >
 
-ClasePractica "0..*" -up-> "1" Alumno : recibida por >
-ClasePractica "0..*" -up-> "1" Profesor : impartida por >
+ClasePractica "0..*" -up-> "0..1" Alumno : recibida por >
+ClasePractica "0..*" -up-> "0..1" Profesor : impartida por >
 
 Matricula "1" -down-> "0..*" SolicitudExamen : genera >
-Administrador "1" -down-> "0..*" SolicitudExamen : gestiona >
-Administrador "1" -down-> "0..*" FechaExamen : fija >
-Administrador "1" -down-> "0..*" CupoExamen : fija >
-FechaExamen -[hidden]right-> CupoExamen
 Alumno "1" -down-> "0..*" SolicitudExamen : solicita >
+Profesor "0..1" -down-> "0..*" SolicitudExamen : asignado a >
+FechaExamen -[hidden]right-> CupoExamen
 SolicitudExamen "1" -right-> "0..1" Examen : deriva en >
 Alumno "1" -down-> "0..*" Examen : realiza >
 
