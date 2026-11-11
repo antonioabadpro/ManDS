@@ -369,9 +369,7 @@ public class ProfesorService
             // Desvincular vehículo si poseía uno previamente
             if (vehiculoActual != null)
             {
-                vehiculoActual.setProfesor(null);
-                vehiculoActual.setEstado(EstadoVehiculo.DISPONIBLE);
-                this.vehiculoRepository.save(vehiculoActual);
+                this.liberarVehiculoConservandoMantenimiento(vehiculoActual);
                 profesor.setVehiculo(null);
             }
         }
@@ -393,12 +391,10 @@ public class ProfesorService
                             + " requerido para conducir el vehículo asignado (" + nuevoVehiculo.getMatricula() + ").");
                 }
 
-                // Liberar el vehículo previo
+                // Liberar el vehículo previo conservando el estado de mantenimiento si procediese
                 if (vehiculoActual != null)
                 {
-                    vehiculoActual.setProfesor(null);
-                    vehiculoActual.setEstado(EstadoVehiculo.DISPONIBLE);
-                    this.vehiculoRepository.save(vehiculoActual);
+                    this.liberarVehiculoConservandoMantenimiento(vehiculoActual);
                 }
 
                 nuevoVehiculo.setProfesor(profesor);
@@ -433,7 +429,7 @@ public class ProfesorService
     /**
      * Tramita la baja lógica de un profesor.
      * - Su estado pasa a INACTIVO preservando todo su historial.
-     * - El vehículo asignado se libera y pasa a estado DISPONIBLE.
+     * - El vehículo asignado se libera y pasa a estado DISPONIBLE, salvo si se encuentra en MANTENIMIENTO o INACTIVO.
      * - Se cancelan automáticamente todas sus clases prácticas pendientes.
      * - Si posee alumnos asignados, se reasignan a otro profesor activo o se dejan temporalmente sin profesor, notificando en ambos casos a los alumnos por correo electrónico.
      *
@@ -457,13 +453,11 @@ public class ProfesorService
             throw new ReglaNegocioException("El profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " ya se encuentra en estado INACTIVO.");
         }
 
-        // Liberamos el vehículo asignado si lo tuviese
+        // Liberamos el vehículo asignado si lo tuviese, preservando su estado si está en mantenimiento
         Vehiculo vehiculoActual = profesor.getVehiculo();
         if (vehiculoActual != null)
         {
-            vehiculoActual.setProfesor(null);
-            vehiculoActual.setEstado(EstadoVehiculo.DISPONIBLE);
-            this.vehiculoRepository.save(vehiculoActual);
+            this.liberarVehiculoConservandoMantenimiento(vehiculoActual);
             profesor.setVehiculo(null);
         }
 
@@ -833,5 +827,21 @@ public class ProfesorService
 
         profesor.actualizarPassword(this.passwordEncoder.encode(nuevaPassword));
         return this.profesorRepository.save(profesor);
+    }
+
+    /**
+     * Desvincula el vehículo de su profesor actual y restituye su estado a DISPONIBLE,
+     * salvo si se encuentra en MANTENIMIENTO o INACTIVO para no habilitar indebidamente un vehículo inoperativo.
+     *
+     * @param vehiculo Vehículo a desvincular.
+     */
+    private void liberarVehiculoConservandoMantenimiento(Vehiculo vehiculo)
+    {
+        vehiculo.setProfesor(null);
+        if (vehiculo.getEstado() != EstadoVehiculo.MANTENIMIENTO && vehiculo.getEstado() != EstadoVehiculo.INACTIVO)
+        {
+            vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
+        }
+        this.vehiculoRepository.save(vehiculo);
     }
 }
