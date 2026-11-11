@@ -1,0 +1,99 @@
+@startuml Diagrama_Estados_Dominio_v1
+' ==============================================================================
+' MAN-DS: DIAGRAMA DE ESTADOS DEL DOMINIO (VISTA UNIFICADA EN 2 FILAS)
+' ==============================================================================
+
+scale max 1000 width
+skinparam shadowing false
+skinparam defaultFontSize 10
+skinparam nodesep 20
+skinparam ranksep 25
+skinparam padding 6
+skinparam wrapWidth 160
+
+' --- FILA 1: GESTIÓN DE FLOTA, INCIDENCIAS Y SOLICITUDES ---
+
+state "Ciclo de Vida: Vehículo" as SecVehiculo {
+    state "DISPONIBLE" as VEH_DISPONIBLE
+    state "OCUPADO" as VEH_OCUPADO
+    state "MANTENIMIENTO" as VEH_MANTENIMIENTO
+    state "INACTIVO" as VEH_INACTIVO
+
+    [*] --> VEH_DISPONIBLE : Alta en sistema
+    VEH_DISPONIBLE --> VEH_OCUPADO : Asignar a profesor
+    VEH_OCUPADO --> VEH_DISPONIBLE : Desvincular o baja\nde profesor
+
+    VEH_DISPONIBLE --> VEH_MANTENIMIENTO : Incidencia\nEN_PROCESO
+    VEH_OCUPADO --> VEH_MANTENIMIENTO : Incidencia EN_PROCESO\n(Cancela clases\npendientes)
+    VEH_MANTENIMIENTO --> VEH_DISPONIBLE : Incidencia RESUELTA\n(Sin profesor)
+    VEH_MANTENIMIENTO --> VEH_OCUPADO : Incidencia RESUELTA\n(Con profesor)
+
+    VEH_DISPONIBLE --> VEH_INACTIVO : Baja definitiva\n(Soft Delete)
+    VEH_INACTIVO --> [*]
+}
+
+state "Ciclo de Vida: Incidencia de Vehículo" as SecIncidencia {
+    state "PENDIENTE" as INC_PENDIENTE
+    state "EN_PROCESO" as INC_EN_PROCESO
+    state "RESUELTA" as INC_RESUELTA
+
+    [*] --> INC_PENDIENTE : Profesor reporta avería
+
+    INC_PENDIENTE --> INC_EN_PROCESO : Admin pasa a revisión\n(Vehículo a MANTENIMIENTO;\ncancela clases y notifica)
+    INC_PENDIENTE --> INC_RESUELTA : Admin resuelve\ndirectamente\n(Sin pasar por taller)
+    INC_EN_PROCESO --> INC_RESUELTA : Admin resuelve incidencia\n(Restituye vehículo\ny notifica)
+
+    INC_RESUELTA --> [*]
+}
+
+state "Ciclo de Vida: Solicitud de Examen" as SecSolicitud {
+    state "PENDIENTE" as SOL_PENDIENTE
+    state "ACEPTADA" as SOL_ACEPTADA
+    state "RECHAZADA" as SOL_RECHAZADA
+
+    [*] --> SOL_PENDIENTE : Solicitud formalizada\npor alumno
+
+    SOL_PENDIENTE --> SOL_ACEPTADA : Admin acepta solicitud\n(Valida cupo y crea examen;\nen práctico bloquea jornada)
+    SOL_PENDIENTE --> SOL_RECHAZADA : Admin rechaza solicitud\n(Motivo obligatorio,\nsin penalizar)
+
+    SOL_ACEPTADA --> [*]
+    SOL_RECHAZADA --> [*]
+}
+
+' --- FILA 2: USUARIOS Y CLASES PRÁCTICAS ---
+
+state "Ciclo de Vida: Usuario" as SecUsuario {
+    state "INACTIVO" as USR_INACTIVO
+    state "ACTIVO" as USR_ACTIVO
+
+    [*] --> USR_INACTIVO : Registro público de alumno\n(Pendiente de pago Stripe)
+    [*] --> USR_ACTIVO : Alta de profesor por Admin\n(Invitación con token 60 min)
+
+    USR_INACTIVO --> USR_ACTIVO : Pago Stripe (Alumno) o\nreactivación sin vehículo\n(Profesor)
+    USR_ACTIVO --> USR_INACTIVO : Baja lógica (Soft Delete)\n(Conserva historial;\ncancela clases)
+
+    USR_INACTIVO --> [*] : Purga sin matrícula\n(Alumno) o\nbaja definitiva
+}
+
+state "Ciclo de Vida: Clase Práctica" as SecClase {
+    state "PENDIENTE" as CLASE_PENDIENTE
+    state "RECIBIDA" as CLASE_RECIBIDA
+    state "CANCELADA" as CLASE_CANCELADA
+
+    [*] --> CLASE_PENDIENTE : Reserva confirmada\npor alumno
+
+    CLASE_PENDIENTE --> CLASE_RECIBIDA : Ficha técnica cumplimentada\n(Tras fin de clase; actualiza\nodómetro y deduce 1 saldo)
+    CLASE_PENDIENTE --> CLASE_CANCELADA : Cancelada por alumno\n(Antes del inicio;\nlibera franja)
+    CLASE_PENDIENTE --> CLASE_CANCELADA : Cancelada por profesor\n(Bloquea franja horaria)
+    CLASE_PENDIENTE --> CLASE_CANCELADA : Cancelada por sistema / Admin\n(Mantenimiento, examen DGT\no baja / reasignación)
+
+    CLASE_RECIBIDA --> [*]
+    CLASE_CANCELADA --> [*]
+}
+
+' Disposición estructural en 2 filas equilibradas (3 arriba / 2 abajo alineadas a la izquierda)
+SecVehiculo -[hidden]down-> SecUsuario
+SecIncidencia -[hidden]down-> SecClase
+SecSolicitud -[hidden]down-> SecClase
+
+@enduml
