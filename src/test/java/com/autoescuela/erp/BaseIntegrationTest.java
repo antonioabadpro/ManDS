@@ -9,14 +9,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.autoescuela.erp.core.email.EmailAsyncDispatcher;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 /**
  * Clase base unificada para pruebas de integración con contexto completo de Spring Boot.
- * Centraliza la configuración de base de datos H2, data.sql, Spring Security y el mock transversal
- * de Stripe para maximizar el Context Caching de Spring Test y evitar reinicios continuos del contenedor.
+ * Centraliza la configuración de base de datos H2, data.sql, Spring Security y los mocks
+ * transversales de Stripe y despacho de correo para maximizar el Context Caching de Spring Test,
+ * evitar reinicios del contenedor y aislar conexiones externas durante la suite.
  */
 @SpringBootTest
 @Transactional
@@ -27,6 +29,9 @@ public abstract class BaseIntegrationTest
 
     @MockitoBean
     protected PagoStripeService pagoStripeService;
+
+    @MockitoBean
+    protected EmailAsyncDispatcher emailAsyncDispatcher;
 
     protected MockMvc mockMvc;
 

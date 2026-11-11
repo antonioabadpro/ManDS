@@ -1,5 +1,6 @@
 package com.autoescuela.erp.core.email;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -438,7 +439,7 @@ public class EmailServiceImpl implements EmailService
                 : "Estimado/a usuario/a:";
 
         String asuntoBase = (asunto != null && !asunto.isBlank()) ? asunto.trim() : "Notificación oficial";
-        String etiquetaAvisoEscapada = HtmlUtils.htmlEscape(asuntoBase.toUpperCase(Locale.forLanguageTag("es-ES")));
+        String etiquetaAvisoEscapada = this.escaparHtmlUtf8(asuntoBase.toUpperCase(Locale.forLanguageTag("es-ES")));
         String cuerpoFormateado = this.formatearMensajeHtml(mensaje);
 
         String filaPillAviso = """
@@ -636,7 +637,7 @@ public class EmailServiceImpl implements EmailService
                     String l = linea.trim();
                     if (l.startsWith("• ") || l.startsWith("- "))
                     {
-                        String item = HtmlUtils.htmlEscape(l.substring(2).trim());
+                        String item = this.escaparHtmlUtf8(l.substring(2).trim());
                         lista.append("<li>").append(item).append("</li>");
                     }
                     else if (!l.isEmpty())
@@ -647,7 +648,7 @@ public class EmailServiceImpl implements EmailService
                             lista.setLength(0);
                         }
                         contenidoTarjeta.append("<div style=\"padding: 0 0 6px 0; color: #0f172a;\"><strong>")
-                                .append(HtmlUtils.htmlEscape(l))
+                                .append(this.escaparHtmlUtf8(l))
                                 .append("</strong></div>");
                     }
                 }
@@ -679,7 +680,7 @@ public class EmailServiceImpl implements EmailService
                     {
                         parrafo.append("<br>");
                     }
-                    parrafo.append(HtmlUtils.htmlEscape(lineas[i].trim()));
+                    parrafo.append(this.escaparHtmlUtf8(lineas[i].trim()));
                 }
                 html.append(this.construirFilaTexto(parrafo.toString()));
             }
@@ -828,9 +829,14 @@ public class EmailServiceImpl implements EmailService
     {
         if (texto == null || texto.isBlank())
         {
-            return HtmlUtils.htmlEscape(respaldo);
+            return this.escaparHtmlUtf8(respaldo);
         }
-        return HtmlUtils.htmlEscape(texto.trim());
+        return this.escaparHtmlUtf8(texto.trim());
+    }
+
+    private String escaparHtmlUtf8(String texto)
+    {
+        return HtmlUtils.htmlEscape(texto, StandardCharsets.UTF_8.name());
     }
 
     private String sanitizarHref(String enlace)
