@@ -1,4 +1,4 @@
-@startuml Diagrama_Secuencia_Reserva_Clase_v1
+@startuml Diagrama_Secuencia_Reservar_Clase_v1
 ' ==============================================================================
 ' MAN-DS: DIAGRAMA DE SECUENCIA 1
 ' FLUJO: RESERVA CONCURRENTE DE CLASE PRÁCTICA (FIRST-COME, FIRST-SERVED)

@@ -1,4 +1,4 @@
-@startuml Diagrama_Secuencia_Ficha_Odometro_v1
+@startuml Diagrama_Secuencia_RellenarFichaClase_v1
 ' ==============================================================================
 ' MAN-DS: DIAGRAMA DE SECUENCIA 2
 ' FLUJO: CUMPLIMENTACIÓN DE FICHA TÉCNICA, ODÓMETRO Y DEDUCCIÓN DE SALDO
