@@ -93,4 +93,27 @@ class FechaHoraUtilTest
             TimeZone.setDefault(zonaOriginal);
         }
     }
+
+    @Test
+    @DisplayName("esMayorDeEdad valida correctamente el umbral de 18 años y nulos")
+    void esMayorDeEdad_debeValidarUmbral()
+    {
+        LocalDate hoy = FechaHoraUtil.hoy();
+
+        assertTrue(FechaHoraUtil.esMayorDeEdad(null));
+        assertTrue(FechaHoraUtil.esMayorDeEdad(hoy.minusYears(18)));
+        assertTrue(FechaHoraUtil.esMayorDeEdad(hoy.minusYears(25)));
+        assertFalse(FechaHoraUtil.esMayorDeEdad(hoy.minusYears(18).plusDays(1)));
+    }
+
+    @Test
+    @DisplayName("esEdadRazonable valida correctamente el umbral de 100 años y nulos")
+    void esEdadRazonable_debeValidarUmbral()
+    {
+        LocalDate hoy = FechaHoraUtil.hoy();
+
+        assertTrue(FechaHoraUtil.esEdadRazonable(null));
+        assertTrue(FechaHoraUtil.esEdadRazonable(hoy.minusYears(100)));
+        assertFalse(FechaHoraUtil.esEdadRazonable(hoy.minusYears(100).minusDays(1)));
+    }
 }

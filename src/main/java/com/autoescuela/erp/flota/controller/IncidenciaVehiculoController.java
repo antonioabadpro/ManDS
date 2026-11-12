@@ -12,13 +12,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoIncidencia;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
 import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
@@ -124,28 +122,7 @@ public class IncidenciaVehiculoController
                             + " ha sido RESUELTA. El vehículo ha recuperado su operatividad ("
                             + incidencia.getVehiculo().getEstado() + ") y se ha notificado por correo electrónico la reapertura de reservas de clases prácticas.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/incidencias";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/incidencias";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/incidencias", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -243,28 +220,7 @@ public class IncidenciaVehiculoController
         }
 
         String mensajeExito = "Incidencia mecánica reportada correctamente. El Administrador ha sido notificado para su revisión.";
-        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-        String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-        String destinoRedireccion = contextPath + "/profesor/vehiculo";
-
-        if (esPeticionHtmx)
-        {
-            FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-            if (flashMap != null)
-            {
-                flashMap.put("mensajeExito", mensajeExito);
-                FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                if (flashMapManager != null)
-                {
-                    flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                }
-            }
-            response.setHeader("HX-Redirect", destinoRedireccion);
-            return null;
-        }
-
-        return "redirect:/profesor/vehiculo";
+        return HtmxRedirectUtil.redirigirConFlash("/profesor/vehiculo", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
     }
 }
 

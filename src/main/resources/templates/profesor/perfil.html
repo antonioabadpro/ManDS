@@ -87,7 +87,7 @@
             <!-- Banner de Cabecera del Usuario -->
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-sm flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
                 <!-- Avatar Circular Grande -->
-                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white font-extrabold text-3xl flex items-center justify-center shadow-md ring-4 ring-violet-500/20 shrink-0" th:text="${#strings.substring(perfilDTO?.nombre != null ? perfilDTO.nombre : 'P', 0, 1).toUpperCase()}">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white font-extrabold text-3xl flex items-center justify-center shadow-md ring-4 ring-violet-500/20 shrink-0" th:text="${#strings.substring(perfilDTO?.nombre != null and !perfilDTO.nombre.trim().isEmpty() ? perfilDTO.nombre.trim() : 'P', 0, 1).toUpperCase()}">
                     P
                 </div>
                 <div class="space-y-1.5 flex-1 min-w-0">

@@ -197,26 +197,7 @@ public class ClasePracticaController
     @GetMapping("/alumno/clases/{id}/modal")
     public String obtenerModalDetalleClase(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
-        if (alumno == null)
-        {
-            return "redirect:/login";
-        }
-
-        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
-        if (claseOptional.isEmpty())
-        {
-            return "error/404";
-        }
-
-        ClasePractica clase = claseOptional.get();
-        if (clase.getAlumno() != null && !clase.getAlumno().getId().equals(alumno.getId()))
-        {
-            return "error/403";
-        }
-
-        model.addAttribute("clase", clase);
-        return "alumno/fragments/modal-detalle-clase :: modalDetalleClase";
+        return this.cargarModalClaseAlumno(id, principal, model, "alumno/fragments/modal-detalle-clase :: modalDetalleClase");
     }
 
     /**
@@ -225,26 +206,7 @@ public class ClasePracticaController
     @GetMapping("/alumno/clases/{id}/cancelar-modal")
     public String obtenerModalConfirmarCancelarClase(@PathVariable("id") Long id, @AuthenticationPrincipal Object principal, Model model)
     {
-        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
-        if (alumno == null)
-        {
-            return "redirect:/login";
-        }
-
-        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
-        if (claseOptional.isEmpty())
-        {
-            return "error/404";
-        }
-
-        ClasePractica clase = claseOptional.get();
-        if (clase.getAlumno() != null && !clase.getAlumno().getId().equals(alumno.getId()))
-        {
-            return "error/403";
-        }
-
-        model.addAttribute("clase", clase);
-        return "alumno/fragments/modal-confirmar-cancelar-clase :: modalConfirmarCancelarClase";
+        return this.cargarModalClaseAlumno(id, principal, model, "alumno/fragments/modal-confirmar-cancelar-clase :: modalConfirmarCancelarClase");
     }
 
     /**
@@ -261,6 +223,8 @@ public class ClasePracticaController
             Model model,
             RedirectAttributes redirectAttributes)
     {
+        String msjError = null;
+
         Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
         if (alumno == null)
         {
@@ -270,113 +234,59 @@ public class ClasePracticaController
         Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         if (matricula == null || matricula.tieneConvocatoriasAgotadas())
         {
-            String error = "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "Has agotado las convocatorias de tu matrícula. Debes tramitar la renovación antes de reservar clases prácticas.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
         if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
                 && !this.examenService.tieneTeoricoAprobado(alumno))
         {
-            String error = "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "No puedes reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         int capacidad = this.calcularCapacidadReserva(alumno, matricula);
         if (capacidad <= 0)
         {
-            String error = "No tienes capacidad de reserva disponible. Has agotado tu saldo de clases o tienes reservas pendientes de cursar.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "No tienes capacidad de reserva disponible. Has agotado tu saldo de clases o tienes reservas pendientes de cursar.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         Profesor profesor = alumno.getProfesor();
         if (profesor == null)
         {
-            String error = "Aún no tienes un profesor asignado por la autoescuela para reservar clases.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "Aún no tienes un profesor asignado por la autoescuela para reservar clases.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         if (profesor.getVehiculo() != null && profesor.getVehiculo().getEstado() == EstadoVehiculo.MANTENIMIENTO)
         {
-            String error = "El vehículo de tu profesor se encuentra actualmente en mantenimiento técnico. No es posible reservar clases prácticas hasta que finalice su reparación.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "El vehículo de tu profesor se encuentra actualmente en mantenimiento técnico. No es posible reservar clases prácticas hasta que finalice su reparación.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         if (bindingResult.hasErrors() || dto.fechaHora() == null)
         {
-            String error = "Los datos de fecha, hora o punto de recogida no son válidos.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "Los datos de fecha, hora o punto de recogida no son válidos.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         if (FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
         {
             String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(dto.fechaHora().toLocalDate());
-            String error = "No es posible reservar clases prácticas en días festivos nacionales o periodos vacacionales (" + motivo + ").";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "No es posible reservar clases prácticas en días festivos nacionales o periodos vacacionales (" + motivo + ").";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         LocalTime hora = dto.fechaHora().toLocalTime();
         if (profesor.getTurno() == TipoTurno.MATINAL && (hora.isBefore(LocalTime.of(8, 0)) || hora.isAfter(LocalTime.of(15, 0))))
         {
-            String error = "El profesor imparte turno MATINAL (08:00 a 15:00). Selecciona un tramo dentro de ese intervalo.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "El profesor imparte turno MATINAL (08:00 a 15:00). Selecciona un tramo dentro de ese intervalo.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
         else if (profesor.getTurno() == TipoTurno.TARDE && (hora.isBefore(LocalTime.of(15, 0)) || hora.isAfter(LocalTime.of(22, 0))))
         {
-            String error = "El profesor imparte turno de TARDE (15:00 a 22:00). Selecciona un tramo dentro de ese intervalo.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = "El profesor imparte turno TARDE (15:00 a 22:00). Selecciona un tramo dentro de ese intervalo.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
         }
 
         try
@@ -385,34 +295,13 @@ public class ClasePracticaController
         }
         catch (ReglaNegocioException ex)
         {
-            String error = ex.getMessage();
-            if (hxRequest != null)
-            {
-                response.setHeader("HX-Trigger", "actualizarCalendario");
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            msjError = ex.getMessage();
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, true, response, model, redirectAttributes);
         }
 
         String mensajeExito = "¡Clase práctica reservada correctamente para el " +
                 dto.fechaHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "! Consulta tu agenda.";
-
-        if (hxRequest != null)
-        {
-            int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
-            int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
-            model.addAttribute("matricula", matricula);
-            model.addAttribute("clasesReservadas", clasesReservadas);
-            model.addAttribute("capacidadReserva", capacidadReserva);
-            response.setHeader("HX-Trigger", "actualizarCalendario");
-            model.addAttribute("mensajeExito", mensajeExito);
-            return "alumno/fragments/alerta-feedback :: feedbackExito";
-        }
-
-        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-        return "redirect:/alumno/calendario";
+        return this.responderExitoAlumnoCalendario(alumno, matricula, mensajeExito, hxRequest, response, model, redirectAttributes);
     }
 
     /**
@@ -437,14 +326,9 @@ public class ClasePracticaController
         Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(claseId);
         if (claseOptional.isEmpty())
         {
-            String error = "No se ha encontrado la clase práctica solicitada.";
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            return this.responderErrorAlumnoCalendario(
+                    "No se ha encontrado la clase práctica solicitada.",
+                    hxRequest, false, response, model, redirectAttributes);
         }
 
         ClasePractica clase = claseOptional.get();
@@ -459,34 +343,12 @@ public class ClasePracticaController
         }
         catch (ReglaNegocioException ex)
         {
-            String error = ex.getMessage();
-            if (hxRequest != null)
-            {
-                response.setHeader("HX-Trigger", "actualizarCalendario");
-                model.addAttribute("error", error);
-                return "alumno/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", error);
-            return "redirect:/alumno/calendario";
+            return this.responderErrorAlumnoCalendario(ex.getMessage(), hxRequest, true, response, model, redirectAttributes);
         }
 
+        Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
         String mensajeExito = "Reserva de clase práctica cancelada con éxito. Has liberado tu capacidad de reserva.";
-
-        if (hxRequest != null)
-        {
-            Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
-            int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
-            int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
-            model.addAttribute("matricula", matricula);
-            model.addAttribute("clasesReservadas", clasesReservadas);
-            model.addAttribute("capacidadReserva", capacidadReserva);
-            response.setHeader("HX-Trigger", "actualizarCalendario");
-            model.addAttribute("mensajeExito", mensajeExito);
-            return "alumno/fragments/alerta-feedback :: feedbackExito";
-        }
-
-        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-        return "redirect:/alumno/calendario";
+        return this.responderExitoAlumnoCalendario(alumno, matricula, mensajeExito, hxRequest, response, model, redirectAttributes);
     }
 
     /**
@@ -569,34 +431,22 @@ public class ClasePracticaController
             Model model,
             RedirectAttributes redirectAttributes)
     {
+        String mensaje = null;
         Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(dto.claseId());
+
         if (claseOptional.isEmpty())
         {
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", "No se encontró la clase práctica solicitada.");
-                return "profesor/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", "No se encontró la clase práctica solicitada.");
-            return "redirect:/profesor/calendario";
+            mensaje = "No se encontró la clase práctica solicitada.";
+            return this.responderFeedbackProfesorCalendario(
+                    "error", mensaje, false, hxRequest, response, model, redirectAttributes);
         }
 
         ClasePractica clase = claseOptional.get();
 
         if (bindingResult.hasErrors())
         {
-            if (hxRequest != null)
-            {
-                Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
-                        ? clase.getProfesor().getVehiculo().getKm()
-                        : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
-                model.addAttribute("kmActualVehiculo", kmActualVehiculo);
-                model.addAttribute("clase", clase);
-                model.addAttribute("error", "Error en los datos de kilometraje u observaciones de la clase.");
-                return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
-            }
-            redirectAttributes.addFlashAttribute("error", "Error en los datos de kilometraje u observaciones de la clase.");
-            return "redirect:/profesor/calendario";
+            mensaje = "Error en los datos de kilometraje u observaciones de la clase.";
+            return this.responderErrorFichaClase(clase, dto, mensaje, hxRequest, model, redirectAttributes);
         }
 
         try
@@ -605,30 +455,11 @@ public class ClasePracticaController
         }
         catch (ReglaNegocioException ex)
         {
-            if (hxRequest != null)
-            {
-                Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
-                        ? clase.getProfesor().getVehiculo().getKm()
-                        : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
-                model.addAttribute("kmActualVehiculo", kmActualVehiculo);
-                model.addAttribute("clase", clase);
-                model.addAttribute("error", ex.getMessage());
-                return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
-            }
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            return "redirect:/profesor/calendario";
+            return this.responderErrorFichaClase(clase, dto, ex.getMessage(), hxRequest, model, redirectAttributes);
         }
 
-        String mensajeExito = "Ficha técnica de la clase registrada correctamente. Se ha descontado 1 unidad de saldo al alumno.";
-        if (hxRequest != null)
-        {
-            response.setHeader("HX-Trigger", "actualizarCalendario");
-            model.addAttribute("mensajeExito", mensajeExito);
-            return "profesor/fragments/alerta-feedback :: feedbackExito";
-        }
-
-        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-        return "redirect:/profesor/calendario";
+        mensaje = "Ficha técnica de la clase registrada correctamente. Se ha descontado 1 unidad de saldo al alumno.";
+        return this.responderFeedbackProfesorCalendario("mensajeExito", mensaje, true, hxRequest, response, model, redirectAttributes);
     }
 
     /**
@@ -650,30 +481,106 @@ public class ClasePracticaController
         }
         catch (ReglaNegocioException ex)
         {
-            if (hxRequest != null)
-            {
-                model.addAttribute("error", ex.getMessage());
-                return "profesor/fragments/alerta-feedback :: feedbackExito";
-            }
-            redirectAttributes.addFlashAttribute("error", ex.getMessage());
-            return "redirect:/profesor/calendario";
+            return this.responderFeedbackProfesorCalendario("error", ex.getMessage(), false, hxRequest, response, model, redirectAttributes);
         }
 
         String mensajeExito = "Clase práctica cancelada correctamente y alumno notificado por correo.";
-        if (hxRequest != null)
-        {
-            response.setHeader("HX-Trigger", "actualizarCalendario");
-            model.addAttribute("mensajeExito", mensajeExito);
-            return "profesor/fragments/alerta-feedback :: feedbackExito";
-        }
-
-        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-        return "redirect:/profesor/calendario";
+        return this.responderFeedbackProfesorCalendario("mensajeExito", mensajeExito, true, hxRequest, response, model, redirectAttributes);
     }
 
     // =========================================================================
     // MÉTODOS AUXILIARES
     // =========================================================================
+
+    private String cargarModalClaseAlumno(Long id, Object principal, Model model, String vistaDestino)
+    {
+        Alumno alumno = this.alumnoService.obtenerAlumnoActual(principal);
+        if (alumno == null)
+        {
+            return "redirect:/login";
+        }
+
+        Optional<ClasePractica> claseOptional = this.clasePracticaService.buscarPorId(id);
+        if (claseOptional.isEmpty())
+        {
+            return "error/404";
+        }
+
+        ClasePractica clase = claseOptional.get();
+        if (clase.getAlumno() != null && !clase.getAlumno().getId().equals(alumno.getId()))
+        {
+            return "error/403";
+        }
+
+        model.addAttribute("clase", clase);
+        return vistaDestino;
+    }
+
+    private String responderErrorAlumnoCalendario(String error, String hxRequest,
+            boolean dispararActualizacion, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
+    {
+        if (hxRequest != null)
+        {
+            if (dispararActualizacion)
+            {
+                response.setHeader("HX-Trigger", "actualizarCalendario");
+            }
+            model.addAttribute("error", error);
+            return "alumno/fragments/alerta-feedback :: feedbackExito";
+        }
+        redirectAttributes.addFlashAttribute("error", error);
+        return "redirect:/alumno/calendario";
+    }
+
+    private String responderExitoAlumnoCalendario(Alumno alumno, Matricula matricula, String mensajeExito, String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
+    {
+        if (hxRequest != null)
+        {
+            int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
+            int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
+            model.addAttribute("matricula", matricula);
+            model.addAttribute("clasesReservadas", clasesReservadas);
+            model.addAttribute("capacidadReserva", capacidadReserva);
+            response.setHeader("HX-Trigger", "actualizarCalendario");
+            model.addAttribute("mensajeExito", mensajeExito);
+            return "alumno/fragments/alerta-feedback :: feedbackExito";
+        }
+
+        redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
+        return "redirect:/alumno/calendario";
+    }
+
+    private String responderErrorFichaClase(ClasePractica clase, CompletarClaseDTO dto, String error, String hxRequest, Model model, RedirectAttributes redirectAttributes)
+    {
+        if (hxRequest != null)
+        {
+            Long kmActualVehiculo = (clase.getProfesor() != null && clase.getProfesor().getVehiculo() != null && clase.getProfesor().getVehiculo().getKm() != null)
+                    ? clase.getProfesor().getVehiculo().getKm()
+                    : (dto.kmInicio() != null ? dto.kmInicio() : 0L);
+            model.addAttribute("kmActualVehiculo", kmActualVehiculo);
+            model.addAttribute("clase", clase);
+            model.addAttribute("error", error);
+            return "profesor/fragments/modal-ficha-clase :: modalFichaClase";
+        }
+        redirectAttributes.addFlashAttribute("error", error);
+        return "redirect:/profesor/calendario";
+    }
+
+    private String responderFeedbackProfesorCalendario(String claveModelo, String mensaje, boolean dispararActualizacion, String hxRequest, HttpServletResponse response, Model model, RedirectAttributes redirectAttributes)
+    {
+        if (hxRequest != null)
+        {
+            if (dispararActualizacion)
+            {
+                response.setHeader("HX-Trigger", "actualizarCalendario");
+            }
+            model.addAttribute(claveModelo, mensaje);
+            return "profesor/fragments/alerta-feedback :: feedbackExito";
+        }
+
+        redirectAttributes.addFlashAttribute(claveModelo, mensaje);
+        return "redirect:/profesor/calendario";
+    }
 
     private int calcularCapacidadReserva(Alumno alumno, Matricula matricula)
     {

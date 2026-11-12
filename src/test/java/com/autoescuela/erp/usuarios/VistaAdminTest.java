@@ -572,4 +572,247 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/admin/calificaciones"))
                 .andExpect(flash().attribute("error", "Solo los exámenes teóricos pueden ser calificados desde este panel de administración."));
     }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/profesores/detalle/{id} renderiza el modal informativo del profesor")
+    void testModalDetalleProfesorRenderizado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/profesores/detalle/100"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-detalle-profesor :: modal-detalle-profesor"))
+                .andExpect(model().attributeExists("profesor", "abrirModalDetalleProfesor"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/alta gestiona errores de validación y negocio en flujo HTMX y estándar")
+    void testAltaProfesorErroresHtmxYTradicional() throws Exception
+    {
+        // Error de validación en HTMX desde profesores
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("origen", "profesores")
+                        .param("nombre", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-alta-profesor :: #modal-alta-profesor"))
+                .andExpect(model().attributeExists("abrirModalAltaProfesor"));
+
+        // ReglaNegocioException (DNI duplicado) en HTMX desde dashboard
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("origen", "dashboard")
+                        .param("nombre", "Prueba")
+                        .param("apellidos", "Dos")
+                        .param("dni", "23456789D")
+                        .param("telefono", "699000111")
+                        .param("correo", "nuevo.profe@autoescuela.es")
+                        .param("fechaNacimiento", "1990-01-01")
+                        .param("direccion", "Calle Falsa 123")
+                        .param("fechaContratacion", LocalDate.now().toString())
+                        .param("turno", "MATINAL")
+                        .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-alta-profesor :: #modal-alta-profesor"))
+                .andExpect(model().attributeExists("errorAltaProfesor"));
+
+        // ReglaNegocioException en POST tradicional desde profesores
+        this.mockMvc.perform(post("/admin/profesores/alta")
+                        .with(csrf())
+                        .header("Referer", "http://localhost/admin/profesores")
+                        .param("nombre", "Prueba")
+                        .param("apellidos", "Dos")
+                        .param("dni", "23456789D")
+                        .param("telefono", "699000111")
+                        .param("correo", "nuevo.profe@autoescuela.es")
+                        .param("fechaNacimiento", "1990-01-01")
+                        .param("direccion", "Calle Falsa 123")
+                        .param("fechaContratacion", LocalDate.now().toString())
+                        .param("turno", "MATINAL")
+                        .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attributeExists("errorAltaProfesor"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/profesores/editar, /baja y /reactivar cubren errores HTMX y redirecciones")
+    void testEditarBajaYReactivarProfesorErroresYFlujos() throws Exception
+    {
+        // Editar con error de validación en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("id", "100")
+                        .param("nombre", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-editar-profesor :: modal-editar-profesor"));
+
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                        .with(csrf())
+                        .param("id", "100")
+                        .param("nombre", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"));
+
+        // Editar con ReglaNegocioException (profesor 105 inactivo) en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("id", "105")
+                        .param("nombre", "Benjamín")
+                        .param("apellidos", "Soto Morales")
+                        .param("dni", "21098799W")
+                        .param("telefono", "600999111")
+                        .param("correo", "benjamin.profesor@autoescuela.es")
+                        .param("fechaNacimiento", "1989-05-18")
+                        .param("direccion", "Calle Bravo Murillo 210")
+                        .param("fechaContratacion", "2022-08-01")
+                        .param("turno", "MATINAL")
+                        .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-editar-profesor :: modal-editar-profesor"))
+                .andExpect(model().attributeExists("errorEditarProfesor"));
+
+        this.mockMvc.perform(post("/admin/profesores/editar")
+                        .with(csrf())
+                        .param("id", "105")
+                        .param("nombre", "Benjamín")
+                        .param("apellidos", "Soto Morales")
+                        .param("dni", "21098799W")
+                        .param("telefono", "600999111")
+                        .param("correo", "benjamin.profesor@autoescuela.es")
+                        .param("fechaNacimiento", "1989-05-18")
+                        .param("direccion", "Calle Bravo Murillo 210")
+                        .param("fechaContratacion", "2022-08-01")
+                        .param("turno", "MATINAL")
+                        .param("permisos", "PERMISO_B"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attributeExists("errorEditarProfesor"));
+
+        // Baja con error de validación (opcionAlumnos=REASIGNAR sin nuevoProfesorId) en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/profesores/baja")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("profesorId", "100")
+                        .param("opcionAlumnos", "REASIGNAR"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
+                .andExpect(model().attributeExists("errorBajaProfesor"));
+
+        this.mockMvc.perform(post("/admin/profesores/baja")
+                        .with(csrf())
+                        .param("profesorId", "100")
+                        .param("opcionAlumnos", "REASIGNAR"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/profesores"));
+
+        // Baja con ReglaNegocioException (profesor 105 ya inactivo) en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/profesores/baja")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("profesorId", "105")
+                        .param("opcionAlumnos", "SIN_PROFESOR"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
+                .andExpect(model().attributeExists("errorBajaProfesor"));
+
+        this.mockMvc.perform(post("/admin/profesores/baja")
+                        .with(csrf())
+                        .param("profesorId", "105")
+                        .param("opcionAlumnos", "SIN_PROFESOR"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attributeExists("errorBajaProfesor"));
+
+        // Reactivar profesor 100 ya ACTIVO -> ReglaNegocioException en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/profesores/reactivar/100")
+                        .with(csrf())
+                        .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
+                .andExpect(model().attributeExists("errorReactivarProfesor"));
+
+        this.mockMvc.perform(post("/admin/profesores/reactivar/100")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attributeExists("errorReactivarProfesor"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("POST /admin/alumnos/reasignar, /baja y /admin/perfil validan errores HTMX y de negocio")
+    void testAlumnosErroresReasignarBajaYPerfilAdmin() throws Exception
+    {
+        // Reasignar alumno con error de validación (opcion=REASIGNAR sin nuevoProfesorId) en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/alumnos/reasignar")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("alumnoId", "200")
+                        .param("opcion", "REASIGNAR"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"));
+
+        this.mockMvc.perform(post("/admin/alumnos/reasignar")
+                        .with(csrf())
+                        .param("alumnoId", "200")
+                        .param("opcion", "REASIGNAR"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/alumnos"));
+
+        // Reasignar alumno inactivo (id=207) -> ReglaNegocioException en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/alumnos/reasignar")
+                        .with(csrf())
+                        .header("HX-Request", "true")
+                        .param("alumnoId", "207")
+                        .param("opcion", "SIN_PROFESOR"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"))
+                .andExpect(model().attributeExists("errorReasignarAlumno"));
+
+        this.mockMvc.perform(post("/admin/alumnos/reasignar")
+                        .with(csrf())
+                        .param("alumnoId", "207")
+                        .param("opcion", "SIN_PROFESOR"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/alumnos"));
+
+        // Baja alumno ya INACTIVO (id=207) -> ReglaNegocioException en HTMX y no-HTMX
+        this.mockMvc.perform(post("/admin/alumnos/baja/207")
+                        .with(csrf())
+                        .header("HX-Request", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-baja-alumno :: modal-baja-alumno"))
+                .andExpect(model().attributeExists("errorBajaAlumno"));
+
+        this.mockMvc.perform(post("/admin/alumnos/baja/207")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/alumnos"))
+                .andExpect(model().attributeExists("errorBajaAlumno"));
+
+        // Perfil admin con error de validación y con ReglaNegocioException (DNI duplicado)
+        this.mockMvc.perform(post("/admin/perfil")
+                        .with(csrf())
+                        .param("nombre", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/perfil"));
+
+        this.mockMvc.perform(post("/admin/perfil")
+                        .with(csrf())
+                        .param("dni", "23456789D")
+                        .param("nombre", "Antonio")
+                        .param("apellidos", "Hernández")
+                        .param("telefono", "600111222")
+                        .param("direccion", "Calle Gran Vía 28")
+                        .param("fechaNacimiento", "1985-04-12"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/perfil"))
+                .andExpect(model().attributeExists("error"));
+    }
 }

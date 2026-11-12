@@ -1,6 +1,7 @@
 package com.autoescuela.erp.auth;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -20,13 +21,16 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Persona;
+import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -421,6 +425,111 @@ class AutenticacionServiceTest
 
         verify(persona).actualizarPassword("$2a$10$encodedHashPassword");
         verify(this.personaRepository).save(persona);
+        verify(this.tokenVerificacionService).marcarComoUsado(token);
+    }
+
+    @Test
+    @DisplayName("'obtenerUserDetails()' y 'obtenerPersonaAutenticada()' retornan vacío sin sesión o sin UserDetailsImpl")
+    void testObtenerUserDetailsYPersonaNoAutenticado()
+    {
+        assertTrue(this.autenticacionService.obtenerUserDetails().isEmpty());
+        assertTrue(this.autenticacionService.obtenerPersonaAutenticada().isEmpty());
+
+        Authentication authString = new UsernamePasswordAuthenticationToken(
+                "soloString", "password", AuthorityUtils.createAuthorityList("ROLE_ALUMNO"));
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authString);
+        SecurityContextHolder.setContext(context);
+
+        assertTrue(this.autenticacionService.obtenerUserDetails().isEmpty());
+        assertTrue(this.autenticacionService.obtenerPersonaAutenticada().isEmpty());
+    }
+
+    @Test
+    @DisplayName("'registrarAlumno()' purga huérfanos inactivos previos y valida DTO/duplicados")
+    void testRegistrarAlumnoPurgaYValidaciones()
+    {
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.registrarAlumno(null));
+
+        RegistroAlumnoDTO dtoDistintas = new RegistroAlumnoDTO("u1", "u1@m.es", "123456", "654321",
+                "Nom", "Ape", "12345678Z", LocalDate.of(2000, 1, 1), "600111222", "Dir", true, TipoCarnet.PERMISO_B);
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.registrarAlumno(dtoDistintas));
+
+        Alumno huerfano = new Alumno();
+        huerfano.setEstado(EstadoUsuario.INACTIVO);
+        huerfano.setHistorialMatriculas(List.of());
+
+        RegistroAlumnoDTO dto = new RegistroAlumnoDTO("nuevo", "nuevo@m.es", "123456", "123456",
+                "Ana", "Ruiz", "12345678Z", LocalDate.of(2000, 1, 1), "600111222", "Calle 1", true, TipoCarnet.PERMISO_B);
+
+        when(this.alumnoRepository.findAlumnosInactivosSinMatricula()).thenReturn(List.of(huerfano));
+        when(this.alumnoRepository.findByDni("12345678Z")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByCorreo("nuevo@m.es")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByNombreUsuario("nuevo")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByTelefono("600111222")).thenReturn(Optional.of(huerfano));
+        when(this.personaRepository.existsByNombreUsuario("nuevo")).thenReturn(true);
+
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.registrarAlumno(dto));
+
+        when(this.personaRepository.existsByNombreUsuario("nuevo")).thenReturn(false);
+        when(this.personaRepository.existsByCorreo("nuevo@m.es")).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.registrarAlumno(dto));
+
+        when(this.personaRepository.existsByCorreo("nuevo@m.es")).thenReturn(false);
+        when(this.personaRepository.existsByDni("12345678Z")).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.registrarAlumno(dto));
+    }
+
+    @Test
+    @DisplayName("eliminarAlumnoInactivoPorId y eliminarAlumnoInactivoPorDni purgan solo inactivos sin matrícula")
+    void testEliminarAlumnoInactivoPorIdYDni()
+    {
+        this.autenticacionService.eliminarAlumnoInactivoPorId(null);
+        this.autenticacionService.eliminarAlumnoInactivoPorDni(null);
+        this.autenticacionService.eliminarAlumnoInactivoPorDni("  ");
+
+        Alumno huerfano = new Alumno();
+        huerfano.setEstado(EstadoUsuario.INACTIVO);
+        huerfano.setHistorialMatriculas(List.of());
+
+        when(this.alumnoRepository.findById(50L)).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByDni("12345678Z")).thenReturn(Optional.of(huerfano));
+
+        this.autenticacionService.eliminarAlumnoInactivoPorId(50L);
+        this.autenticacionService.eliminarAlumnoInactivoPorDni(" 12345678z ");
+
+        verify(this.alumnoRepository, org.mockito.Mockito.times(2)).delete(huerfano);
+        verify(this.alumnoRepository, org.mockito.Mockito.times(2)).flush();
+    }
+
+    @Test
+    @DisplayName("'activarCuentaProfesor()' valida DTO, contraseñas, token, username duplicado y activa cuenta")
+    void testActivarCuentaProfesorCompleto()
+    {
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.activarCuentaProfesor(null));
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.activarCuentaProfesor(
+                new ActivarCuentaProfesorDTO("tok", "profe", "123456", "654321")));
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.activarCuentaProfesor(
+                new ActivarCuentaProfesorDTO("tok", "profe", "123", "123")));
+
+        ActivarCuentaProfesorDTO dtoValido = new ActivarCuentaProfesorDTO("tok-ok", "profeNuevo", "password123", "password123");
+        when(this.tokenVerificacionService.obtenerTokenValido("tok-ok")).thenReturn(Optional.empty());
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.activarCuentaProfesor(dtoValido));
+
+        Profesor profesor = new Profesor();
+        profesor.setNombreUsuario("profe_temp");
+        TokenVerificacion token = new TokenVerificacion("tok-ok", profesor, FechaHoraUtil.ahora().plusMinutes(60));
+        when(this.tokenVerificacionService.obtenerTokenValido("tok-ok")).thenReturn(Optional.of(token));
+        when(this.personaRepository.existsByNombreUsuario("profeNuevo")).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.autenticacionService.activarCuentaProfesor(dtoValido));
+
+        when(this.personaRepository.existsByNombreUsuario("profeNuevo")).thenReturn(false);
+        when(this.passwordEncoder.encode("password123")).thenReturn("hashProfe");
+        this.autenticacionService.activarCuentaProfesor(dtoValido);
+
+        assertEquals("profeNuevo", profesor.getNombreUsuario());
+        assertEquals("hashProfe", profesor.getPassword());
+        verify(this.personaRepository).save(profesor);
         verify(this.tokenVerificacionService).marcarComoUsado(token);
     }
 }

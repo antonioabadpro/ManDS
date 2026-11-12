@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -10,11 +11,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.mapper.UsuarioMapper;
 import com.autoescuela.erp.usuarios.model.Administrador;
+import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 import com.autoescuela.erp.usuarios.service.UsuarioService;
@@ -199,6 +203,92 @@ class UsuarioServiceTest
         assertThat(this.usuarioService.esLetraDniValida("12345678")).isFalse();
         assertThat(this.usuarioService.esLetraDniValida("123456789Z")).isFalse();
         assertThat(this.usuarioService.esLetraDniValida("A1234567Z")).isFalse();
+    }
+
+    @Test
+    @DisplayName("existe* purga alumnos huérfanos INACTIVOS sin matrículas y métodos OtroUsuario delegan con o sin ID")
+    void testPurgaHuerfanosYValidacionesOtroUsuario()
+    {
+        Alumno huerfano = new Alumno();
+        huerfano.setEstado(EstadoUsuario.INACTIVO);
+        huerfano.setHistorialMatriculas(List.of());
+
+        when(this.alumnoRepository.findByNombreUsuario("huerfano")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByCorreo("h@m.es")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByDni("12345678Z")).thenReturn(Optional.of(huerfano));
+        when(this.alumnoRepository.findByTelefono("600111222")).thenReturn(Optional.of(huerfano));
+
+        assertThat(this.usuarioService.existeNombreUsuario("huerfano")).isFalse();
+        assertThat(this.usuarioService.existeCorreo("h@m.es")).isFalse();
+        assertThat(this.usuarioService.existeDni("12345678Z")).isFalse();
+        assertThat(this.usuarioService.existeTelefono("600111222")).isFalse();
+        verify(this.alumnoRepository, org.mockito.Mockito.times(4)).delete(huerfano);
+        verify(this.alumnoRepository, org.mockito.Mockito.times(4)).flush();
+
+        // Métodos OtroUsuario con null/blank, id nulo e id presente
+        assertThat(this.usuarioService.existeCorreoOtroUsuario(null, 1L)).isFalse();
+        assertThat(this.usuarioService.existeDniOtroUsuario(" ", 1L)).isFalse();
+        assertThat(this.usuarioService.existeTelefonoOtroUsuario(null, 1L)).isFalse();
+
+        assertThat(this.usuarioService.existeCorreoOtroUsuario("h@m.es", null)).isFalse();
+        assertThat(this.usuarioService.existeDniOtroUsuario("12345678Z", null)).isFalse();
+        assertThat(this.usuarioService.existeTelefonoOtroUsuario("600111222", null)).isFalse();
+
+        when(this.personaRepository.existsByCorreoAndIdNot("c@m.es", 5L)).thenReturn(true);
+        when(this.personaRepository.existsByDniAndIdNot("12345678Z", 5L)).thenReturn(true);
+        when(this.personaRepository.existsByTelefonoAndIdNot("600111222", 5L)).thenReturn(true);
+
+        assertThat(this.usuarioService.existeCorreoOtroUsuario("C@M.ES", 5L)).isTrue();
+        assertThat(this.usuarioService.existeDniOtroUsuario("12345678z", 5L)).isTrue();
+        assertThat(this.usuarioService.existeTelefonoOtroUsuario("600111222", 5L)).isTrue();
+    }
+
+    @Test
+    @DisplayName("obtenerPerfilAdminPorUsername, validaciones DNI/edad en actualizarPerfilAdmin y obtenerAdministradoresActivos")
+    void testPerfilAdminValidacionesYListado()
+    {
+        Administrador admin = new Administrador();
+        admin.setDni("12345678Z");
+        EditarPerfilAdminDTO dtoAdmin = EditarPerfilAdminDTO.builder().nombre("Admin").build();
+
+        when(this.personaRepository.findByNombreUsuarioOrCorreo("admin", "admin")).thenReturn(Optional.of(admin));
+        when(this.usuarioMapper.toEditarPerfilAdminDTO(admin)).thenReturn(dtoAdmin);
+        assertThat(this.usuarioService.obtenerPerfilAdminPorUsername("admin")).isSameAs(dtoAdmin);
+
+        when(this.personaRepository.findByNombreUsuarioOrCorreo("noexiste", "noexiste")).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> this.usuarioService.obtenerPerfilAdminPorUsername("noexiste"))
+                .isInstanceOf(RecursoNoEncontradoException.class);
+
+        when(this.personaRepository.findById(1L)).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> this.usuarioService.actualizarPerfilAdmin(1L, EditarPerfilAdminDTO.builder().dni(" ").build()))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        assertThatThrownBy(() -> this.usuarioService.actualizarPerfilAdmin(1L, EditarPerfilAdminDTO.builder().dni("99999999A").build()))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        when(this.personaRepository.existsByDniAndIdNot("87654321X", 1L)).thenReturn(true);
+        assertThatThrownBy(() -> this.usuarioService.actualizarPerfilAdmin(1L, EditarPerfilAdminDTO.builder().dni("87654321X").build()))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        LocalDate hoy = FechaHoraUtil.hoy();
+        when(this.personaRepository.existsByDniAndIdNot("12345678Z", 1L)).thenReturn(false);
+        when(this.personaRepository.existsByTelefonoAndIdNot("600111222", 1L)).thenReturn(false);
+
+        EditarPerfilAdminDTO dtoMenor = EditarPerfilAdminDTO.builder()
+                .dni("12345678Z").telefono("600111222").nombre("A").apellidos("B").direccion("C")
+                .fechaNacimiento(hoy.minusYears(16)).build();
+        assertThatThrownBy(() -> this.usuarioService.actualizarPerfilAdmin(1L, dtoMenor))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        EditarPerfilAdminDTO dtoCentenario = EditarPerfilAdminDTO.builder()
+                .dni("12345678Z").telefono("600111222").nombre("A").apellidos("B").direccion("C")
+                .fechaNacimiento(hoy.minusYears(105)).build();
+        assertThatThrownBy(() -> this.usuarioService.actualizarPerfilAdmin(1L, dtoCentenario))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        when(this.personaRepository.findAdministradoresActivos()).thenReturn(List.of(admin));
+        assertThat(this.usuarioService.obtenerAdministradoresActivos()).containsExactly(admin);
     }
 }
 

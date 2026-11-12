@@ -83,7 +83,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white">Profesorado</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalProfesores != null ? totalProfesores : #lists.size(profesores)}">0</span> profesores en plantilla (<span th:text="|${totalMatinal != null ? totalMatinal : 0} Turno Matinal y ${totalTarde != null ? totalTarde : 0} Tarde|">0 Turno Matinal y 0 Tarde</span>)</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total: <span th:text="${totalProfesores != null ? totalProfesores : (profesores != null ? #lists.size(profesores) : 0)}">0</span> profesores en plantilla (<span th:text="|${totalMatinal != null ? totalMatinal : 0} Turno Matinal y ${totalTarde != null ? totalTarde : 0} Tarde|">0 Turno Matinal y 0 Tarde</span>)</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative w-full sm:w-64">
