@@ -2,19 +2,25 @@ package com.autoescuela.erp.practicas.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.enums.Rol;
+import com.autoescuela.erp.core.security.UserDetailsImpl;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -35,20 +41,31 @@ class CalendarioControllerTest extends BaseIntegrationTest
     @Autowired
     private MatriculaRepository matriculaRepository;
 
+    private UserDetailsImpl crearDummyUserDetails(Rol rol, Long id)
+    {
+        UserDetailsImpl mockUser = Mockito.mock(UserDetailsImpl.class);
+        Mockito.lenient().when(mockUser.getId()).thenReturn(id);
+        Mockito.lenient().when(mockUser.getRol()).thenReturn(rol);
+        Mockito.lenient().when(mockUser.getUsername()).thenReturn("inexistente_" + id);
+        Mockito.lenient().doReturn(List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()))).when(mockUser).getAuthorities();
+        return mockUser;
+    }
+
     @Test
-    @WithMockUser(username = "usuario_inexistente", roles = "ALUMNO")
     @DisplayName("Endpoints de calendario del alumno redirigen a /login si el usuario no existe en BD")
     void testCalendarioAlumnoSinEntidad() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/calendario"))
+        UserDetailsImpl dummy = this.crearDummyUserDetails(Rol.ALUMNO, 99999L);
+
+        this.mockMvc.perform(get("/alumno/calendario").with(user(dummy)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/alumno/calendario/cuadricula"))
+        this.mockMvc.perform(get("/alumno/calendario/cuadricula").with(user(dummy)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/alumno/calendario/eventos"))
+        this.mockMvc.perform(get("/alumno/calendario/eventos").with(user(dummy)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -81,32 +98,33 @@ class CalendarioControllerTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "usuario_inexistente", roles = "PROFESOR")
     @DisplayName("Endpoints de calendario del profesor redirigen a /login si el usuario no existe en BD")
     void testCalendarioProfesorSinEntidad() throws Exception
     {
-        this.mockMvc.perform(get("/profesor/calendario"))
+        UserDetailsImpl dummyProf = this.crearDummyUserDetails(Rol.PROFESOR, 99999L);
+
+        this.mockMvc.perform(get("/profesor/calendario").with(user(dummyProf)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/profesor/calendario/cuadricula"))
+        this.mockMvc.perform(get("/profesor/calendario/cuadricula").with(user(dummyProf)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/profesor/calendario/eventos"))
+        this.mockMvc.perform(get("/profesor/calendario/eventos").with(user(dummyProf)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
 
-        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal"))
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal").with(user(dummyProf)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases").param("fecha", LocalDate.now().toString()))
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases").with(user(dummyProf)).param("fecha", LocalDate.now().toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
+        this.mockMvc.perform(post("/profesor/calendario/cancelar-dia").with(user(dummyProf))
                         .with(csrf())
                         .param("fecha", LocalDate.now().plusDays(1).toString())
                         .param("motivo", "Prueba"))

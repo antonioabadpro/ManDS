@@ -125,6 +125,7 @@ class IncidenciaVehiculoControllerTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/profesor/vehiculo/incidencia")
                         .with(csrf())
                         .header("HX-Request", "true")
+                        .param("vehiculoId", "16")
                         .param("descripcion", "Ruido metálico pronunciado al girar la dirección a la izquierda."))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Redirect", "/profesor/vehiculo"));

@@ -13,6 +13,8 @@ import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
+import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
@@ -36,6 +38,9 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
 
     @Autowired
     private VehiculoRepository vehiculoRepository;
+
+    @Autowired
+    private ClasePracticaRepository clasePracticaRepository;
 
     @Test
     @WithMockUser(username = "alumno1", roles = "ALUMNO")
@@ -126,11 +131,12 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("error"));
 
-        // ReglaNegocioException del servicio (fecha pasada) -> HX-Trigger: actualizarCalendario
+        // ReglaNegocioException del servicio: colisión con clase existente (clase 37) -> HX-Trigger: actualizarCalendario
+        ClasePractica clase37 = this.clasePracticaRepository.findById(37L).orElseThrow();
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("fechaHora", LocalDate.now().minusDays(5).with(DayOfWeek.TUESDAY) + "T10:15")
+                        .param("fechaHora", clase37.getFechaHora().toString())
                         .param("duracion", "45")
                         .param("puntoRecogida", "Calle Toledo 10"))
                 .andExpect(status().isOk())
@@ -183,10 +189,14 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     }
 
     @Test
-    @WithMockUser(username = "alumno22", roles = "ALUMNO")
+    @WithMockUser(username = "alumno1", roles = "ALUMNO")
     @DisplayName("POST /alumno/clases/reservar rechaza alumno sin profesor asignado")
     void testReservarSinProfesorAsignado() throws Exception
     {
+        Alumno alumno = this.alumnoRepository.findByNombreUsuario("alumno1").orElseThrow();
+        alumno.setProfesor(null);
+        this.alumnoRepository.saveAndFlush(alumno);
+
         LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
@@ -305,23 +315,23 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
                 .andExpect(redirectedUrl("/profesor/calendario"))
                 .andExpect(flash().attributeExists("error"));
 
-        // ReglaNegocioException del servicio (clase 35 ya RECIBIDA)
+        // ReglaNegocioException del servicio (clase 37 en el futuro no se puede marcar como recibida aún)
         this.mockMvc.perform(post("/profesor/clases/completar")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("claseId", "35")
-                        .param("kmInicio", "42152")
-                        .param("kmFin", "42185"))
+                        .param("claseId", "37")
+                        .param("kmInicio", "42207")
+                        .param("kmFin", "42235"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profesor/fragments/modal-ficha-clase :: modalFichaClase"))
                 .andExpect(model().attributeExists("error"));
 
-        // Completar válido en flujo estándar (clase 37)
+        // Completar válido en flujo estándar (clase 36 en el pasado)
         this.mockMvc.perform(post("/profesor/clases/completar")
                         .with(csrf())
-                        .param("claseId", "37")
-                        .param("kmInicio", "42207")
-                        .param("kmFin", "42235")
+                        .param("claseId", "36")
+                        .param("kmInicio", "42185")
+                        .param("kmFin", "42210")
                         .param("observaciones", "Buena gestión en incorporaciones."))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profesor/calendario"))

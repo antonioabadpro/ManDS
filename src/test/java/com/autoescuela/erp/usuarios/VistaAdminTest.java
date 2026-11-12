@@ -694,18 +694,20 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(view().name("admin/profesores"))
                 .andExpect(model().attributeExists("errorEditarProfesor"));
 
-        // Baja con error de validación (sin opcionAlumnos) en HTMX y no-HTMX
+        // Baja con error de validación (opcionAlumnos=REASIGNAR sin nuevoProfesorId) en HTMX y no-HTMX
         this.mockMvc.perform(post("/admin/profesores/baja")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("profesorId", "100"))
+                        .param("profesorId", "100")
+                        .param("opcionAlumnos", "REASIGNAR"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
                 .andExpect(model().attributeExists("errorBajaProfesor"));
 
         this.mockMvc.perform(post("/admin/profesores/baja")
                         .with(csrf())
-                        .param("profesorId", "100"))
+                        .param("profesorId", "100")
+                        .param("opcionAlumnos", "REASIGNAR"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/profesores"));
 
@@ -747,17 +749,19 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("POST /admin/alumnos/reasignar, /baja y /admin/perfil validan errores HTMX y de negocio")
     void testAlumnosErroresReasignarBajaYPerfilAdmin() throws Exception
     {
-        // Reasignar alumno con error de validación (sin opcion) en HTMX y no-HTMX
+        // Reasignar alumno con error de validación (opcion=REASIGNAR sin nuevoProfesorId) en HTMX y no-HTMX
         this.mockMvc.perform(post("/admin/alumnos/reasignar")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("alumnoId", "200"))
+                        .param("alumnoId", "200")
+                        .param("opcion", "REASIGNAR"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-reasignar-alumno :: modal-reasignar-alumno"));
 
         this.mockMvc.perform(post("/admin/alumnos/reasignar")
                         .with(csrf())
-                        .param("alumnoId", "200"))
+                        .param("alumnoId", "200")
+                        .param("opcion", "REASIGNAR"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/alumnos"));
 

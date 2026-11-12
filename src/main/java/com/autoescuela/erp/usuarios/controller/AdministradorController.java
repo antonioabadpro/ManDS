@@ -96,6 +96,10 @@ public class AdministradorController
             {
                 cargarDatosDashboard(model);
             }
+            else
+            {
+                cargarDatosGestionProfesores(model);
+            }
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
             {
@@ -122,6 +126,10 @@ public class AdministradorController
             {
                 cargarDatosDashboard(model);
             }
+            else
+            {
+                cargarDatosGestionProfesores(model);
+            }
             model.addAttribute("errorAltaProfesor", ex.getMessage());
             model.addAttribute("abrirModalAltaProfesor", true);
             if (esPeticionHtmx)
@@ -137,6 +145,10 @@ public class AdministradorController
             if (!esDesdeProfesores)
             {
                 cargarDatosDashboard(model);
+            }
+            else
+            {
+                cargarDatosGestionProfesores(model);
             }
             model.addAttribute("errorAltaProfesor", "Se ha producido un error inesperado al tramitar el alta del profesor: " + ex.getMessage());
             model.addAttribute("abrirModalAltaProfesor", true);
@@ -403,6 +415,18 @@ public class AdministradorController
         }
 
         model.addAttribute("vehiculosDisponibles", this.flotaService.obtenerVehiculosDisponiblesParaProfesor());
+    }
+
+    /**
+     * Carga en el modelo la lista de profesores y contadores por turno para la vista de gestión de profesores.
+     */
+    private void cargarDatosGestionProfesores(Model model)
+    {
+        List<ProfesorResumenDTO> profesores = this.profesorService.obtenerTodosLosProfesores();
+        model.addAttribute("profesores", profesores);
+        model.addAttribute("totalProfesores", profesores.size());
+        model.addAttribute("totalMatinal", profesores.stream().filter(p -> p.turno() == TipoTurno.MATINAL).count());
+        model.addAttribute("totalTarde", profesores.stream().filter(p -> p.turno() == TipoTurno.TARDE).count());
     }
 
     /**
