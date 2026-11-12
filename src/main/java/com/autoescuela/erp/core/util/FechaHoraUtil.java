@@ -48,4 +48,34 @@ public final class FechaHoraUtil
     {
         return YearMonth.now(ZONA_SPAIN);
     }
+
+    /**
+     * Valida que una persona sea mayor de edad (al menos 18 años cumplidos en la fecha actual de España).
+     *
+     * @param fechaNacimiento Fecha de nacimiento (si es {@code null}, devuelve {@code true} para delegar en {@code @NotNull}).
+     * @return {@code true} si tiene al menos 18 años o es nula.
+     */
+    public static boolean esMayorDeEdad(LocalDate fechaNacimiento)
+    {
+        if (fechaNacimiento == null)
+        {
+            return true;
+        }
+        return !fechaNacimiento.plusYears(18).isAfter(hoy());
+    }
+
+    /**
+     * Valida que una fecha de nacimiento no exceda un límite razonable de 100 años respecto a la fecha actual de España.
+     *
+     * @param fechaNacimiento Fecha de nacimiento (si es {@code null}, devuelve {@code true} para delegar en {@code @NotNull}).
+     * @return {@code true} si tiene 100 años o menos, o es nula.
+     */
+    public static boolean esEdadRazonable(LocalDate fechaNacimiento)
+    {
+        if (fechaNacimiento == null)
+        {
+            return true;
+        }
+        return !fechaNacimiento.isBefore(hoy().minusYears(100));
+    }
 }

@@ -81,39 +81,14 @@ public class CalendarioController
         }
 
         Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
-        if (matricula == null)
+        String redireccionBloqueo = this.validarAccesoCalendarioAlumno(alumno, matricula, redirectAttributes);
+        if (redireccionBloqueo != null)
         {
-            redirectAttributes.addFlashAttribute("error", "Debes disponer de una matrícula activa para acceder al calendario de reservas.");
-            return "redirect:/alumno/dashboard";
-        }
-
-        if (matricula.tieneConvocatoriasAgotadas())
-        {
-            redirectAttributes.addFlashAttribute("error", "Has agotado las convocatorias de examen de tu matrícula. Debes tramitar la renovación de matrícula para acceder al calendario y reservar clases prácticas.");
-            return "redirect:/alumno/dashboard";
-        }
-
-        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA)
-        {
-            boolean teoricoAprobado = this.examenService.tieneTeoricoAprobado(alumno);
-            if (!teoricoAprobado)
-            {
-                redirectAttributes.addFlashAttribute("error", "No puedes acceder al panel para reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.");
-                return "redirect:/alumno/dashboard";
-            }
+            return redireccionBloqueo;
         }
 
         LocalDate fechaRef = this.parsearFechaRef(fechaRefStr);
-        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
-        int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
-        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
-
-        model.addAttribute("alumno", alumno);
-        model.addAttribute("matricula", matricula);
-        model.addAttribute("profesor", alumno.getProfesor());
-        model.addAttribute("clasesReservadas", clasesReservadas);
-        model.addAttribute("capacidadReserva", capacidadReserva);
-        model.addAttribute("calendarioSemanal", calendarioSemanal);
+        this.cargarModeloCalendarioAlumno(alumno, matricula, fechaRef, model);
 
         return "alumno/calendario";
     }
@@ -135,26 +110,13 @@ public class CalendarioController
 
         LocalDate fechaRef = this.parsearFechaRef(fechaRefStr);
         Matricula matricula = this.academicoService.buscarMatriculaActiva(alumno).orElse(null);
-        if (matricula == null || matricula.tieneConvocatoriasAgotadas())
+        String redireccionBloqueo = this.validarAccesoCalendarioAlumno(alumno, matricula, null);
+        if (redireccionBloqueo != null)
         {
-            return "redirect:/alumno/dashboard";
-        }
-        if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
-                && !this.examenService.tieneTeoricoAprobado(alumno))
-        {
-            return "redirect:/alumno/dashboard";
+            return redireccionBloqueo;
         }
 
-        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
-        int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
-        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
-
-        model.addAttribute("alumno", alumno);
-        model.addAttribute("matricula", matricula);
-        model.addAttribute("profesor", alumno.getProfesor());
-        model.addAttribute("clasesReservadas", clasesReservadas);
-        model.addAttribute("capacidadReserva", capacidadReserva);
-        model.addAttribute("calendarioSemanal", calendarioSemanal);
+        this.cargarModeloCalendarioAlumno(alumno, matricula, fechaRef, model);
 
         return "alumno/fragments/cuadricula-calendario :: cuadriculaSemanal";
     }
@@ -286,12 +248,7 @@ public class CalendarioController
         }
 
         LocalDate fechaRef = this.parsearFechaRef(fechaRefStr);
-        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
-
-        model.addAttribute("profesor", profesor);
-        model.addAttribute("vehiculo", profesor.getVehiculo());
-        model.addAttribute("completarClaseDTO", new CompletarClaseDTO());
-        model.addAttribute("calendarioSemanal", calendarioSemanal);
+        this.cargarModeloCalendarioProfesor(profesor, fechaRef, model);
 
         return "profesor/calendario";
     }
@@ -312,12 +269,7 @@ public class CalendarioController
         }
 
         LocalDate fechaRef = this.parsearFechaRef(fechaRefStr);
-        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
-
-        model.addAttribute("profesor", profesor);
-        model.addAttribute("vehiculo", profesor.getVehiculo());
-        model.addAttribute("completarClaseDTO", new CompletarClaseDTO());
-        model.addAttribute("calendarioSemanal", calendarioSemanal);
+        this.cargarModeloCalendarioProfesor(profesor, fechaRef, model);
 
         return "profesor/fragments/cuadricula-calendario :: cuadriculaSemanal";
     }
@@ -677,5 +629,57 @@ public class CalendarioController
         model.addAttribute("noCancelable", noCancelable);
         model.addAttribute("motivoNoCancelable", motivoNoCancelable);
         model.addAttribute("clasesPendientes", clasesPendientes);
+    }
+
+    private String validarAccesoCalendarioAlumno(Alumno alumno, Matricula matricula, RedirectAttributes redirectAttributes)
+    {
+        String error = null;
+        if (matricula == null)
+        {
+            error = "Debes disponer de una matrícula activa para acceder al calendario de reservas.";
+        }
+        else if (matricula.tieneConvocatoriasAgotadas())
+        {
+            error = "Has agotado las convocatorias de examen de tu matrícula. Debes tramitar la renovación de matrícula para acceder al calendario y reservar clases prácticas.";
+        }
+        else if (matricula.getModalidad() == ModalidadMatricula.TEORICO_PRACTICA
+                && !this.examenService.tieneTeoricoAprobado(alumno))
+        {
+            error = "No puedes acceder al panel para reservar clases prácticas hasta haber aprobado el examen teórico oficial ante la DGT.";
+        }
+
+        if (error != null)
+        {
+            if (redirectAttributes != null)
+            {
+                redirectAttributes.addFlashAttribute("error", error);
+            }
+            return "redirect:/alumno/dashboard";
+        }
+        return null;
+    }
+
+    private void cargarModeloCalendarioAlumno(Alumno alumno, Matricula matricula, LocalDate fechaRef, Model model)
+    {
+        int clasesReservadas = this.clasePracticaService.contarClasesPendientesPorAlumno(alumno);
+        int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioAlumno(alumno, fechaRef);
+
+        model.addAttribute("alumno", alumno);
+        model.addAttribute("matricula", matricula);
+        model.addAttribute("profesor", alumno.getProfesor());
+        model.addAttribute("clasesReservadas", clasesReservadas);
+        model.addAttribute("capacidadReserva", capacidadReserva);
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
+    }
+
+    private void cargarModeloCalendarioProfesor(Profesor profesor, LocalDate fechaRef, Model model)
+    {
+        CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
+
+        model.addAttribute("profesor", profesor);
+        model.addAttribute("vehiculo", profesor.getVehiculo());
+        model.addAttribute("completarClaseDTO", new CompletarClaseDTO());
+        model.addAttribute("calendarioSemanal", calendarioSemanal);
     }
 }

@@ -19,7 +19,7 @@
 | **Contenedores** | Docker (Docker Compose) | Entorno local de desarrollo y pruebas (PostgreSQL 16 y servidor simulado de correos Mailpit). |
 | **Pasarela de Pago** | Stripe API | Webhooks, Checkout Sessions y Payment Intents |
 | **Calendario** | SSR + Thymeleaf + HTMX | Cuadrícula semanal laboral nativa renderizada en servidor. Navegación e interactividad asíncrona con HTMX y JS nativo (sin librerías cliente pesadas como FullCalendar). |
-| **Email** | Spring Mail (JavaMailSender) | Notificaciones transaccionales automáticas por protocolo SMTP: entorno local con **Mailpit** (Docker) y entorno de producción con servicio SMTP en la nube (**Brevo / Sendinblue**). |
+| **Email** | Spring Mail (JavaMailSender) | Notificaciones transaccionales automáticas: entorno local con **Mailpit** SMTP (Docker) y entorno de producción con Brevo REST API v3. |
 
 ---
 

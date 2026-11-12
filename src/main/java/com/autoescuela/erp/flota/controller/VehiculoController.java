@@ -11,13 +11,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 import com.autoescuela.erp.flota.dto.AltaVehiculoDTO;
 import com.autoescuela.erp.flota.dto.EditarVehiculoDTO;
 import com.autoescuela.erp.flota.dto.ReportarIncidenciaDTO;
@@ -97,28 +95,7 @@ public class VehiculoController
             String mensajeExito = "El vehículo " + vehiculoRegistrado.getMarca() + " " + vehiculoRegistrado.getModelo()
                     + " (" + vehiculoRegistrado.getMatricula() + ") ha sido dado de alta correctamente en estado DISPONIBLE.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/flota", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -230,28 +207,7 @@ public class VehiculoController
             String mensajeExito = "El vehículo " + vehiculoModificado.getMarca() + " " + vehiculoModificado.getModelo()
                     + " (" + vehiculoModificado.getMatricula() + ") ha sido modificado correctamente.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/flota", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -329,28 +285,7 @@ public class VehiculoController
             String mensajeExito = "El vehículo " + vehiculoBaja.getMarca() + " " + vehiculoBaja.getModelo()
                     + " (" + vehiculoBaja.getMatricula() + ") ha sido dado de baja correctamente (estado INACTIVO).";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/flota";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/flota";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/flota", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {

@@ -100,7 +100,7 @@
 - **Prohibición Léxica Expresa:** Terminantemente prohibido usar los términos *"profesor tutor"* o *"docente"* en textos, vistas, variables o comentarios del sistema. Prohibido mostrar al usuario o incluir en comentarios o código numeraciones o identificadores de reglas (utilizar siempre explicaciones semánticas del requisito o validación).
 - **Rangos de IDs en `data.sql`:** `persona`: Admin (ID 1), libres (2..99), Profesores (100..199), Alumnos (200..299). Vehículos agrupados por carnet (ver enum `TipoCarnet.java`).
 - **Estrategia de Caché en Memoria:** Métodos de agregación estadística y dashboards centralizados con `@Cacheable` (`ConcurrentMapCacheManager`). Todo método de servicio que mute el estado de entidades clave (matrículas, clases, exámenes, profesores, flota) debe invalidar con `@CacheEvict(value = {CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)`.
-- **Pirámide de Testing:** Servicios, mappers y utilidades se validan exclusivamente con tests unitarios en JUnit 5 + Mockito (`@ExtendWith(MockitoExtension.class)`); prohibido `@SpringBootTest` en ellos.
+- **Pirámide de Testing:** Servicios, mappers y utilidades se validan exclusivamente con tests unitarios en JUnit 6 + Mockito (`@ExtendWith(MockitoExtension.class)`); prohibido `@SpringBootTest` en ellos.
 - **Aserciones Web Desacopladas de HTML:** Prohibido validar cadenas HTML estáticas en Thymeleaf (`content().string(...)`). Tests de controladores verifican solo estado HTTP (`status()`), vista/redirección (`view()`, `redirectedUrl()`) y modelo (`model().attributeExists(...)`).
 - **Seguridad RBAC y Context Caching:** Autorización y accesos 403 pertenecen en exclusiva a `SeguridadIntegrationTest`. Todo test `@SpringBootTest` debe extender de `BaseIntegrationTest` sin declarar `@TestPropertySource` ni `@MockitoBean` en hijas para preservar el *Spring Test Context Caching*.
 - **Ejecución Selectiva:** Ejecutar únicamente el test afectado (`mvn test -Dtest=NombreTest`) durante el desarrollo activo.
@@ -113,7 +113,7 @@
 1. `feature-scaffolder`: Andamiaje de paquetes *Package by Feature* (Entidad, DTOs, Repositorio, Servicio, Controlador, Vistas).
 2. `htmx-view-builder`: Fragmentos interactivos responsivos con Thymeleaf, Tailwind y atributos HTMX (`hx-*`).
 3. `stripe-flow-validator`: Gestión de webhooks de Stripe, verificación de firmas criptográficas y flujos de pago.
-4. `business-rules-tester`: Pruebas JUnit 5 + Mockito enfocadas en reglas de negocio estrictas.
+4. `business-rules-tester`: Pruebas JUnit 6 + Mockito enfocadas en reglas de negocio estrictas.
 5. `git-commits`: Estandarización de commits bajo Conventional Commits (`feat:`, `fix:`, `refactor:`).
 6. `supabase`: Directrices generales de configuración, cliente y migraciones en Supabase.
 7. `supabase-postgres-best-practices`: Optimización de esquemas relacionales, transacciones, RLS e índices en PostgreSQL.

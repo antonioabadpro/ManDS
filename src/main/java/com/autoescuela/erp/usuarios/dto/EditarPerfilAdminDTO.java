@@ -68,11 +68,7 @@ public class EditarPerfilAdminDTO
     @AssertTrue(message = "El administrador debe ser mayor de edad (al menos 18 años).")
     public boolean isMayorDeEdad()
     {
-        if (this.fechaNacimiento == null)
-        {
-            return true; // Se valida con @NotNull
-        }
-        return !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
+        return FechaHoraUtil.esMayorDeEdad(this.fechaNacimiento);
     }
 
     /**
@@ -81,11 +77,7 @@ public class EditarPerfilAdminDTO
     @AssertTrue(message = "La fecha de nacimiento no puede ser anterior a hace 100 años.")
     public boolean isEdadRazonable()
     {
-        if (this.fechaNacimiento == null)
-        {
-            return true;
-        }
-        return !this.fechaNacimiento.isBefore(FechaHoraUtil.hoy().minusYears(100));
+        return FechaHoraUtil.esEdadRazonable(this.fechaNacimiento);
     }
 }
 

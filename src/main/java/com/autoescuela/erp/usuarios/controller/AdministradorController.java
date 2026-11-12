@@ -12,15 +12,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
@@ -114,28 +112,8 @@ public class AdministradorController
                     + " ha sido dado de alta correctamente. Se ha enviado un correo electrónico a "
                     + altaProfesorDTO.correo() + " para que configure sus credenciales de acceso.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + (esDesdeProfesores ? "/admin/profesores" : "/admin/dashboard");
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return esDesdeProfesores ? "redirect:/admin/profesores" : "redirect:/admin/dashboard";
+            String rutaDestino = esDesdeProfesores ? "/admin/profesores" : "/admin/dashboard";
+            return HtmxRedirectUtil.redirigirConFlash(rutaDestino, "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -248,28 +226,7 @@ public class AdministradorController
             String mensajeExito = "El profesor " + editarProfesorDTO.nombre() + " " + editarProfesorDTO.apellidos()
                     + " ha sido modificado correctamente.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/profesores";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/profesores";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/profesores", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -351,28 +308,7 @@ public class AdministradorController
             String mensajeExito = "El profesor " + profesorBaja.getNombre() + " " + profesorBaja.getApellidos()
                     + " ha sido dado de baja correctamente (estado INACTIVO). Su vehículo ha quedado libre y sus clases pendientes han sido canceladas.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/profesores";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/profesores";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/profesores", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -428,28 +364,7 @@ public class AdministradorController
             String mensajeExito = "El profesor " + profesorReactivado.getNombre() + " " + profesorReactivado.getApellidos()
                     + " ha sido reactivado correctamente en estado ACTIVO y sin vehículo asignado. Puede editar su ficha para asignarle un vehículo si lo desea.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/profesores";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/profesores";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/profesores", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -589,28 +504,7 @@ public class AdministradorController
         {
             this.alumnoService.reasignarProfesor(reasignarAlumnoDTO);
             String mensajeExito = "El profesor del alumno ha sido actualizado correctamente. Se han cancelado sus clases pendientes y se le ha notificado por correo electrónico tanto al alumno como al profesor asignado.";
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/alumnos";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/alumnos";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/alumnos", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
@@ -669,28 +563,7 @@ public class AdministradorController
             String mensajeExito = "El alumno " + alumnoBaja.getNombre() + " " + alumnoBaja.getApellidos()
                     + " ha sido dado de baja correctamente (estado INACTIVO). Sus clases pendientes han sido canceladas y se ha notificado por correo electrónico tanto al alumno como al profesor asignado.";
 
-            redirectAttributes.addFlashAttribute("mensajeExito", mensajeExito);
-
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            String destinoRedireccion = contextPath + "/admin/alumnos";
-
-            if (esPeticionHtmx)
-            {
-                FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-                if (flashMap != null)
-                {
-                    flashMap.put("mensajeExito", mensajeExito);
-                    FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                    if (flashMapManager != null)
-                    {
-                        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                    }
-                }
-                response.setHeader("HX-Redirect", destinoRedireccion);
-                return null;
-            }
-
-            return "redirect:/admin/alumnos";
+            return HtmxRedirectUtil.redirigirConFlash("/admin/alumnos", "mensajeExito", mensajeExito, esPeticionHtmx, request, response, redirectAttributes);
         }
         catch (ReglaNegocioException ex)
         {
