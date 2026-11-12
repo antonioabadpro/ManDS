@@ -117,3 +117,4 @@
 5. `git-commits`: Estandarización de commits bajo Conventional Commits (`feat:`, `fix:`, `refactor:`).
 6. `supabase`: Directrices generales de configuración, cliente y migraciones en Supabase.
 7. `supabase-postgres-best-practices`: Optimización de esquemas relacionales, transacciones, RLS e índices en PostgreSQL.
+8. `memoria-tfg-writer`: Redacción técnica y académica de capítulos y anexos de la memoria del TFG ManDS según el estilo del autor, trazabilidad con el código y presupuesto A4.
