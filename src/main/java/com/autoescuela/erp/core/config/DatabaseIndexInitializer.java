@@ -1,6 +1,7 @@
 package com.autoescuela.erp.core.config;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -134,31 +135,28 @@ public class DatabaseIndexInitializer implements ApplicationRunner
 
     private void sincronizarSecuenciasEstaticasPostgreSQL()
     {
-        List<String> tablas = List.of(
-                "persona",
-                "vehiculo",
-                "matricula",
-                "incidencia_vehiculo",
-                "clase_practica",
-                "solicitud_examen",
-                "examen",
-                "fecha_examen",
-                "cupo_examen"
+        List<Map.Entry<String, String>> consultasTablas = List.of(
+                Map.entry("persona", "SELECT setval(pg_get_serial_sequence('persona', 'id'), COALESCE((SELECT MAX(id) FROM persona), 1), (SELECT MAX(id) IS NOT NULL FROM persona))"),
+                Map.entry("vehiculo", "SELECT setval(pg_get_serial_sequence('vehiculo', 'id'), COALESCE((SELECT MAX(id) FROM vehiculo), 1), (SELECT MAX(id) IS NOT NULL FROM vehiculo))"),
+                Map.entry("matricula", "SELECT setval(pg_get_serial_sequence('matricula', 'id'), COALESCE((SELECT MAX(id) FROM matricula), 1), (SELECT MAX(id) IS NOT NULL FROM matricula))"),
+                Map.entry("incidencia_vehiculo", "SELECT setval(pg_get_serial_sequence('incidencia_vehiculo', 'id'), COALESCE((SELECT MAX(id) FROM incidencia_vehiculo), 1), (SELECT MAX(id) IS NOT NULL FROM incidencia_vehiculo))"),
+                Map.entry("clase_practica", "SELECT setval(pg_get_serial_sequence('clase_practica', 'id'), COALESCE((SELECT MAX(id) FROM clase_practica), 1), (SELECT MAX(id) IS NOT NULL FROM clase_practica))"),
+                Map.entry("solicitud_examen", "SELECT setval(pg_get_serial_sequence('solicitud_examen', 'id'), COALESCE((SELECT MAX(id) FROM solicitud_examen), 1), (SELECT MAX(id) IS NOT NULL FROM solicitud_examen))"),
+                Map.entry("examen", "SELECT setval(pg_get_serial_sequence('examen', 'id'), COALESCE((SELECT MAX(id) FROM examen), 1), (SELECT MAX(id) IS NOT NULL FROM examen))"),
+                Map.entry("fecha_examen", "SELECT setval(pg_get_serial_sequence('fecha_examen', 'id'), COALESCE((SELECT MAX(id) FROM fecha_examen), 1), (SELECT MAX(id) IS NOT NULL FROM fecha_examen))"),
+                Map.entry("cupo_examen", "SELECT setval(pg_get_serial_sequence('cupo_examen', 'id'), COALESCE((SELECT MAX(id) FROM cupo_examen), 1), (SELECT MAX(id) IS NOT NULL FROM cupo_examen))")
         );
 
-        for (String tabla : tablas)
+        for (Map.Entry<String, String> entrada : consultasTablas)
         {
             try
             {
-                String sql = "SELECT setval(pg_get_serial_sequence('" + tabla + "', 'id'), "
-                        + "COALESCE((SELECT MAX(id) FROM " + tabla + "), 1), "
-                        + "(SELECT MAX(id) IS NOT NULL FROM " + tabla + "))";
-                this.jdbcTemplate.execute(sql);
-                log.info("Secuencia sincronizada en PostgreSQL para tabla: {}", tabla);
+                this.jdbcTemplate.execute(entrada.getValue());
+                log.info("Secuencia sincronizada en PostgreSQL para tabla: {}", entrada.getKey());
             }
             catch (Exception ex)
             {
-                log.warn("No se pudo sincronizar la secuencia para la tabla {}: {}", tabla, ex.getMessage());
+                log.warn("No se pudo sincronizar la secuencia para la tabla {}: {}", entrada.getKey(), ex.getMessage());
             }
         }
     }

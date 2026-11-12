@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
+import org.springframework.web.util.WebUtils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,7 +57,7 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
             return;
         }
 
-        if (request.getRequestedSessionId() != null && !request.isRequestedSessionIdValid())
+        if (WebUtils.getCookie(request, "JSESSIONID") != null && !request.isRequestedSessionIdValid())
         {
             FlashMap flashMap = new FlashMap();
             flashMap.setTargetRequestPath("/login");

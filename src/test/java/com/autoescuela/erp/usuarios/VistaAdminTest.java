@@ -1,5 +1,7 @@
 package com.autoescuela.erp.usuarios;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -319,6 +321,20 @@ class VistaAdminTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes con flash attribute mes normaliza al día 1 y carga las jornadas del mes")
+    void testExamenesConFlashAttributeMes() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/examenes")
+                        .flashAttr("mes", LocalDate.of(2026, 11, 15)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/examenes"))
+                .andExpect(model().attribute("mesSeleccionado", LocalDate.of(2026, 11, 1)))
+                .andExpect(model().attribute("mesSiguiente", LocalDate.of(2026, 12, 1)))
+                .andExpect(model().attribute("mesAnterior", LocalDate.of(2026, 10, 1)));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("GET /admin/examenes/jornadas renderiza el fragmento HTMX de jornadas y cupos del mes")
     void testJornadasDgtMesHTMX() throws Exception
     {
@@ -329,6 +345,22 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(model().attributeExists("mesSeleccionado"))
                 .andExpect(model().attributeExists("mesSiguiente"))
                 .andExpect(model().attributeExists("mesAnterior"))
+                .andExpect(model().attributeExists("tiposCarnet"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    @DisplayName("GET /admin/examenes/jornadas sin parámetro mes usa el mes actual")
+    void testJornadasDgtMesHTMXSinParametroMes() throws Exception
+    {
+        LocalDate inicioMesActual = LocalDate.now().withDayOfMonth(1);
+
+        this.mockMvc.perform(get("/admin/examenes/jornadas"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
+                .andExpect(model().attribute("mesSeleccionado", inicioMesActual))
+                .andExpect(model().attribute("mesSiguiente", inicioMesActual.plusMonths(1)))
+                .andExpect(model().attribute("mesAnterior", inicioMesActual.minusMonths(1)))
                 .andExpect(model().attributeExists("tiposCarnet"));
     }
 

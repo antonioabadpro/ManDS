@@ -133,6 +133,33 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
     }
 
     @Test
+    @DisplayName("Acceso no autenticado con cookie JSESSIONID válida -> Redirige a /login sin flash attribute sesionExpirada")
+    void testAccesoNoAutenticadoConCookieYSessionIdValidoNoMarcaSesionExpirada() throws Exception
+    {
+        MvcResult resultado = this.mockMvc.perform(get("/admin/usuarios")
+                .cookie(new Cookie("JSESSIONID", "sesion-valida"))
+                .with(request -> {
+                    request.setRequestedSessionIdValid(true);
+                    return request;
+                }))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"))
+                .andReturn();
+
+        MockHttpSession sesionTrasRedirect = (MockHttpSession) resultado.getRequest().getSession(false);
+        MockHttpServletRequestBuilder peticionLogin = get("/login");
+        if (sesionTrasRedirect != null)
+        {
+            peticionLogin.session(sesionTrasRedirect);
+        }
+
+        this.mockMvc.perform(peticionLogin)
+                .andExpect(status().isOk())
+                .andExpect(view().name("auth/login"))
+                .andExpect(model().attributeDoesNotExist("sesionExpirada"));
+    }
+
+    @Test
     @DisplayName("Petición HTMX no autenticada -> Responde con HTTP 401 y cabecera HX-Redirect")
     void testPeticionHtmxNoAutenticadaDevuelveHxRedirect() throws Exception
     {

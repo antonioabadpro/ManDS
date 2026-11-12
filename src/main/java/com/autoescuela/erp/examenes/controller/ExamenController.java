@@ -84,20 +84,13 @@ public class ExamenController
                 ? mesFlash.withDayOfMonth(1)
                 : LocalDate.now().withDayOfMonth(1);
 
-        Optional<FechaExamen> fechasMesOpt = this.examenService.obtenerFechasExamen(mes);
-        List<CupoExamen> cuposMes = this.examenService.obtenerCuposExamen(mes);
+        cargarJornadasDgtEnModelo(mes, model);
 
         // Por defecto, muestra todas las solicitudes en estado PENDIENTE sin pulsar buscar (orden FIFO)
         List<SolicitudExamen> solicitudesPendientes = this.examenService.buscarSolicitudesConFiltros(null, null, null, null, EstadoSolicitud.PENDIENTE);
 
-        model.addAttribute("fechasMes", fechasMesOpt.orElse(null));
-        model.addAttribute("cuposMes", cuposMes);
         model.addAttribute("solicitudes", solicitudesPendientes);
         model.addAttribute("totalSolicitudes", solicitudesPendientes.size());
-        model.addAttribute("mesSeleccionado", mes);
-        model.addAttribute("mesAnioDefecto", YearMonth.from(mes).toString());
-        model.addAttribute("mesSiguiente", mes.plusMonths(1));
-        model.addAttribute("mesAnterior", mes.minusMonths(1));
         model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
         model.addAttribute("tiposCarnet", TipoCarnet.values());
         model.addAttribute("tiposExamen", TipoExamen.values());
@@ -137,7 +130,15 @@ public class ExamenController
             @RequestParam(value = "mes", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate mesParam,
             Model model)
     {
-        LocalDate mes = mesParam != null ? mesParam.withDayOfMonth(1) : LocalDate.now().withDayOfMonth(1);
+        cargarJornadasDgtEnModelo(mesParam, model);
+        model.addAttribute("tiposCarnet", TipoCarnet.values());
+
+        return "admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt";
+    }
+
+    private void cargarJornadasDgtEnModelo(LocalDate mesBase, Model model)
+    {
+        LocalDate mes = (mesBase != null ? mesBase : LocalDate.now()).withDayOfMonth(1);
 
         Optional<FechaExamen> fechasMesOpt = this.examenService.obtenerFechasExamen(mes);
         List<CupoExamen> cuposMes = this.examenService.obtenerCuposExamen(mes);
@@ -148,9 +149,6 @@ public class ExamenController
         model.addAttribute("mesAnioDefecto", YearMonth.from(mes).toString());
         model.addAttribute("mesSiguiente", mes.plusMonths(1));
         model.addAttribute("mesAnterior", mes.minusMonths(1));
-        model.addAttribute("tiposCarnet", TipoCarnet.values());
-
-        return "admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt";
     }
 
     /**

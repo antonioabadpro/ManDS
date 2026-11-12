@@ -236,26 +236,29 @@ class ExamenServiceTest
     @DisplayName("Permite citar si las clases pendientes son anteriores a la fecha de examen")
     void testObtenerGestionarSolicitud_ClasesPendientesAnterioresPermitidas()
     {
+        LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+        LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
+
         SolicitudExamen solicitud = new SolicitudExamen();
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.PRACTICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 5, 10, 0));
+        solicitud.setFechaHora(ahora.minusDays(1));
 
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(LocalDate.of(2026, 11, 1), f1, f2);
+        LocalDateTime f1 = ahora.plusDays(5).withHour(8).withMinute(30);
+        LocalDateTime f2 = ahora.plusDays(15).withHour(8).withMinute(30);
+        FechaExamen fechas = new FechaExamen(mesActual, f1, f2);
 
-        CupoExamen cupoB = new CupoExamen(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B, 5, 4);
+        CupoExamen cupoB = new CupoExamen(mesActual, TipoCarnet.PERMISO_B, 5, 4);
 
-        // Clase pendiente fechada el 10 de noviembre (anterior a f1 y f2)
+        // Clase pendiente anterior a f1 y f2
         ClasePractica claseAnterior = new ClasePractica();
-        claseAnterior.setFechaHora(LocalDateTime.of(2026, 11, 10, 10, 0));
+        claseAnterior.setFechaHora(ahora.plusDays(2).withHour(10).withMinute(0));
         claseAnterior.setEstadoClase(EstadoClase.PENDIENTE);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(LocalDate.of(2026, 11, 1))).thenReturn(Optional.of(fechas));
-        when(this.cupoExamenRepository.findByMesAndTipoPermiso(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B))
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.of(fechas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesActual, TipoCarnet.PERMISO_B))
                 .thenReturn(Optional.of(cupoB));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
                 .thenReturn(3);
@@ -277,26 +280,29 @@ class ExamenServiceTest
     @DisplayName("Bloquea Fecha 1 si hay clases entre Fecha 1 y Fecha 2, pero permite Fecha 2")
     void testObtenerGestionarSolicitud_ClaseEntreFechasBloqueaFecha1PeroPermiteFecha2()
     {
+        LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+        LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
+
         SolicitudExamen solicitud = new SolicitudExamen();
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.PRACTICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 5, 10, 0));
+        solicitud.setFechaHora(ahora.minusDays(1));
 
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(LocalDate.of(2026, 11, 1), f1, f2);
+        LocalDateTime f1 = ahora.plusDays(5).withHour(8).withMinute(30);
+        LocalDateTime f2 = ahora.plusDays(15).withHour(8).withMinute(30);
+        FechaExamen fechas = new FechaExamen(mesActual, f1, f2);
 
-        CupoExamen cupoB = new CupoExamen(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B, 5, 4);
+        CupoExamen cupoB = new CupoExamen(mesActual, TipoCarnet.PERMISO_B, 5, 4);
 
-        // Clase pendiente el 20 de noviembre (posterior a f1, pero anterior a f2)
+        // Clase pendiente posterior a f1, pero anterior a f2
         ClasePractica claseIntermedia = new ClasePractica();
-        claseIntermedia.setFechaHora(LocalDateTime.of(2026, 11, 20, 10, 0));
+        claseIntermedia.setFechaHora(ahora.plusDays(10).withHour(10).withMinute(0));
         claseIntermedia.setEstadoClase(EstadoClase.PENDIENTE);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(LocalDate.of(2026, 11, 1))).thenReturn(Optional.of(fechas));
-        when(this.cupoExamenRepository.findByMesAndTipoPermiso(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B))
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.of(fechas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesActual, TipoCarnet.PERMISO_B))
                 .thenReturn(Optional.of(cupoB));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
                 .thenReturn(4);
@@ -426,23 +432,26 @@ class ExamenServiceTest
     @DisplayName("Aceptar solicitud exitosamente cita al alumno, bloquea clases del vehículo y envía citación")
     void testAceptarSolicitudExamen_Exito()
     {
+        LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+        LocalDateTime ahora = LocalDateTime.now().withSecond(0).withNano(0);
+
         SolicitudExamen solicitud = new SolicitudExamen();
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setProfesor(this.profesorEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.PRACTICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 10, 10, 0));
+        solicitud.setFechaHora(ahora.minusDays(1));
 
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(LocalDate.of(2026, 11, 1), f1, f2);
+        LocalDateTime f1 = ahora.plusDays(5).withHour(8).withMinute(30);
+        LocalDateTime f2 = ahora.plusDays(15).withHour(8).withMinute(30);
+        FechaExamen fechas = new FechaExamen(mesActual, f1, f2);
 
-        CupoExamen cupoB = new CupoExamen(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B, 5, 4);
+        CupoExamen cupoB = new CupoExamen(mesActual, TipoCarnet.PERMISO_B, 5, 4);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(LocalDate.of(2026, 11, 1))).thenReturn(Optional.of(fechas));
-        when(this.cupoExamenRepository.findByMesAndTipoPermiso(LocalDate.of(2026, 11, 1), TipoCarnet.PERMISO_B))
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.of(fechas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesActual, TipoCarnet.PERMISO_B))
                 .thenReturn(Optional.of(cupoB));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
                 .thenReturn(5);
@@ -579,31 +588,31 @@ class ExamenServiceTest
         solicitud.setTipo(TipoExamen.PRACTICO);
         solicitud.setFechaHora(LocalDateTime.of(2026, 10, 20, 10, 0));
 
-        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1Nov = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2Nov = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechasNov = new FechaExamen(mesNoviembre, f1Nov, f2Nov);
+        LocalDate mesFuturo = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+        LocalDateTime f1Futuro = mesFuturo.plusDays(11).atTime(8, 30);
+        LocalDateTime f2Futuro = mesFuturo.plusDays(25).atTime(8, 30);
+        FechaExamen fechasFuturas = new FechaExamen(mesFuturo, f1Futuro, f2Futuro);
 
-        CupoExamen cupoNov = new CupoExamen(mesNoviembre, TipoCarnet.PERMISO_B, 5, 4);
+        CupoExamen cupoFuturo = new CupoExamen(mesFuturo, TipoCarnet.PERMISO_B, 5, 4);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.of(fechasNov));
-        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesNoviembre, TipoCarnet.PERMISO_B))
-                .thenReturn(Optional.of(cupoNov));
+        when(this.fechaExamenRepository.findByMes(mesFuturo)).thenReturn(Optional.of(fechasFuturas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesFuturo, TipoCarnet.PERMISO_B))
+                .thenReturn(Optional.of(cupoFuturo));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
                 .thenReturn(5);
         when(this.clasePracticaRepository.findByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.PENDIENTE))
                 .thenReturn(List.of());
-        when(this.solicitudExamenRepository.countAlumnosCitados(f1Nov, TipoCarnet.PERMISO_B, TipoExamen.PRACTICO))
+        when(this.solicitudExamenRepository.countAlumnosCitados(f1Futuro, TipoCarnet.PERMISO_B, TipoExamen.PRACTICO))
                 .thenReturn(0L);
         when(this.examenRepository.save(any(Examen.class))).thenAnswer(i -> i.getArgument(0));
         when(this.solicitudExamenRepository.save(any(SolicitudExamen.class))).thenAnswer(i -> i.getArgument(0));
 
-        SolicitudExamen resultado = this.examenService.aceptarSolicitudExamen(1L, 1, mesNoviembre);
+        SolicitudExamen resultado = this.examenService.aceptarSolicitudExamen(1L, 1, mesFuturo);
 
         assertEquals(EstadoSolicitud.ACEPTADA, resultado.getEstado());
         assertNotNull(resultado.getExamen());
-        assertEquals(f1Nov, resultado.getExamen().getFechaHora());
+        assertEquals(f1Futuro, resultado.getExamen().getFechaHora());
         verify(this.emailService).enviarNotificacionCorreo(eq("david.ruiz@example.com"), any(), anyString(), anyString(), eq(Rol.ALUMNO));
     }
 
