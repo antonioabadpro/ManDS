@@ -776,6 +776,7 @@ public class ExamenService
      * Operación irreversible.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria)
     {
         return this.aceptarSolicitudExamen(solicitudId, numeroConvocatoria, null);

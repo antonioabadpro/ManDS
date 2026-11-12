@@ -157,8 +157,7 @@ public class AuthenticationService
      * @param dto DTO con los datos del formulario de registro.
      * @throws ReglaNegocioException Si alguna validación de negocio falla.
      */
-    @Transactional
-    public void validarDatosRegistro(RegistroAlumnoDTO dto)
+    private void validarDatosRegistro(RegistroAlumnoDTO dto)
     {
         if (dto == null)
         {
@@ -217,8 +216,7 @@ public class AuthenticationService
      * @param nombreUsuario Nombre de usuario a comprobar.
      * @param telefono Teléfono a comprobar.
      */
-    @Transactional
-    public void purgarAlumnoInactivoSiExiste(String dni, String correo, String nombreUsuario, String telefono)
+    private void purgarAlumnoInactivoSiExiste(String dni, String correo, String nombreUsuario, String telefono)
     {
         if (dni != null && !dni.isBlank())
         {
@@ -268,8 +266,7 @@ public class AuthenticationService
      *
      * @return Número de alumnos huérfanos inactivos eliminados.
      */
-    @Transactional
-    public int purgarAlumnosInactivosHuerfanos()
+    private int purgarAlumnosInactivosHuerfanos()
     {
         List<Alumno> huerfanos = this.alumnoRepository.findAlumnosInactivosSinMatricula();
         if (huerfanos == null || huerfanos.isEmpty())

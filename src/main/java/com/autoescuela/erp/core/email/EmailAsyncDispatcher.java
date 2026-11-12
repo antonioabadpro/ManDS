@@ -125,6 +125,12 @@ public class EmailAsyncDispatcher
                     tipoCorreo, destinatario, response.statusCode(), response.body());
             return false;
         }
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            log.error("[EmailService-BrevoAPI] Hilo interrumpido al despachar correo a {} vía API de Brevo: {}", destinatario, ex.getMessage());
+            return false;
+        }
         catch (Exception ex)
         {
             log.error("[EmailService-BrevoAPI] Excepción al conectar con la API de Brevo para {}: {}", destinatario, ex.getMessage());

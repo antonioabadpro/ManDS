@@ -281,8 +281,7 @@ class EstadisticaServiceTest
         assertEquals(1.5, stats.tiempoVolante().horasConduccion());
 
         // Km
-        assertNotNull(stats.distancia());
-        assertEquals(70, stats.distancia());
+        assertEquals(70L, stats.distancia());
 
         // Permisos
         assertNotNull(stats.permisosHabilitados());

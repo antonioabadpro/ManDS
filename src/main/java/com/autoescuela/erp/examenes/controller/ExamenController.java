@@ -79,8 +79,9 @@ public class ExamenController
             return "redirect:/admin/examenes";
         }
 
-        LocalDate mes = model.containsAttribute("mes")
-                ? ((LocalDate) model.getAttribute("mes")).withDayOfMonth(1)
+        Object mesAtributo = model.getAttribute("mes");
+        LocalDate mes = (mesAtributo instanceof LocalDate mesFlash)
+                ? mesFlash.withDayOfMonth(1)
                 : LocalDate.now().withDayOfMonth(1);
 
         Optional<FechaExamen> fechasMesOpt = this.examenService.obtenerFechasExamen(mes);
