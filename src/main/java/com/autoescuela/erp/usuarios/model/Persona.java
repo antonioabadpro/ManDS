@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.Rol;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -90,7 +91,7 @@ public abstract class Persona
      */
     public boolean esMayorDeEdad()
     {
-        return this.fechaNacimiento != null && !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+        return this.fechaNacimiento != null && !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
     }
 
     /**

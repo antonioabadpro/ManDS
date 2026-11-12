@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -77,7 +78,7 @@ public record AltaProfesorDTO(
      */
     public AltaProfesorDTO()
     {
-        this(null, null, null, null, null, null, null, LocalDate.now(), TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B));
+        this(null, null, null, null, null, null, null, FechaHoraUtil.hoy(), TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B));
     }
 
     /**
@@ -90,7 +91,7 @@ public record AltaProfesorDTO(
         {
             return true; // Se valida con @NotNull
         }
-        return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+        return !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
     }
 
     /**
@@ -103,7 +104,7 @@ public record AltaProfesorDTO(
         {
             return true;
         }
-        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+        return !this.fechaNacimiento.isBefore(FechaHoraUtil.hoy().minusYears(100));
     }
 
     /**
@@ -129,8 +130,8 @@ public record AltaProfesorDTO(
         {
             return true;
         }
-        LocalDate haceUnMes = LocalDate.now().minusMonths(1);
-        LocalDate enUnMes = LocalDate.now().plusMonths(1);
+        LocalDate haceUnMes = FechaHoraUtil.hoy().minusMonths(1);
+        LocalDate enUnMes = FechaHoraUtil.hoy().plusMonths(1);
         return !this.fechaContratacion.isBefore(haceUnMes) && !this.fechaContratacion.isAfter(enUnMes);
     }
 }

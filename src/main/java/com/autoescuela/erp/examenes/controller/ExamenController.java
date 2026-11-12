@@ -25,6 +25,7 @@ import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.FijarFechasExamenDTO;
@@ -82,7 +83,7 @@ public class ExamenController
         Object mesAtributo = model.getAttribute("mes");
         LocalDate mes = (mesAtributo instanceof LocalDate mesFlash)
                 ? mesFlash.withDayOfMonth(1)
-                : LocalDate.now().withDayOfMonth(1);
+                : FechaHoraUtil.hoy().withDayOfMonth(1);
 
         cargarJornadasDgtEnModelo(mes, model);
 
@@ -138,7 +139,17 @@ public class ExamenController
 
     private void cargarJornadasDgtEnModelo(LocalDate mesBase, Model model)
     {
-        LocalDate mes = (mesBase != null ? mesBase : LocalDate.now()).withDayOfMonth(1);
+        YearMonth mesObjetivo;
+        if (mesBase == null)
+        {
+            mesObjetivo = FechaHoraUtil.mesActual();
+        }
+        else
+        {
+            mesObjetivo = YearMonth.from(mesBase);
+        }
+
+        LocalDate mes = mesObjetivo.atDay(1);
 
         Optional<FechaExamen> fechasMesOpt = this.examenService.obtenerFechasExamen(mes);
         List<CupoExamen> cuposMes = this.examenService.obtenerCuposExamen(mes);
@@ -146,9 +157,9 @@ public class ExamenController
         model.addAttribute("fechasMes", fechasMesOpt.orElse(null));
         model.addAttribute("cuposMes", cuposMes);
         model.addAttribute("mesSeleccionado", mes);
-        model.addAttribute("mesAnioDefecto", YearMonth.from(mes).toString());
-        model.addAttribute("mesSiguiente", mes.plusMonths(1));
-        model.addAttribute("mesAnterior", mes.minusMonths(1));
+        model.addAttribute("mesAnioDefecto", mesObjetivo.toString());
+        model.addAttribute("mesSiguiente", mesObjetivo.plusMonths(1).atDay(1));
+        model.addAttribute("mesAnterior", mesObjetivo.minusMonths(1).atDay(1));
     }
 
     /**
@@ -160,7 +171,7 @@ public class ExamenController
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes)
     {
-        LocalDate mesNormalizado = dto.mes() != null ? dto.mes().withDayOfMonth(1) : LocalDate.now().withDayOfMonth(1);
+        LocalDate mesNormalizado = dto.mes() != null ? dto.mes().withDayOfMonth(1) : FechaHoraUtil.hoy().withDayOfMonth(1);
         if (bindingResult.hasErrors())
         {
             redirectAttributes.addFlashAttribute("error", "Los datos de fechas y horas introducidos no son válidos.");
@@ -209,7 +220,7 @@ public class ExamenController
         }
         catch (Exception ex)
         {
-            mesNormalizado = LocalDate.now().withDayOfMonth(1);
+            mesNormalizado = FechaHoraUtil.hoy().withDayOfMonth(1);
         }
 
         try
@@ -273,7 +284,7 @@ public class ExamenController
         try
         {
             GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(id, mesParam);
-            LocalDate mesActual = LocalDate.now().withDayOfMonth(1);
+            LocalDate mesActual = FechaHoraUtil.hoy().withDayOfMonth(1);
             LocalDate mes = diagnostico.mesSeleccionado() != null ? diagnostico.mesSeleccionado() : mesActual;
 
             model.addAttribute("diagnostico", diagnostico);

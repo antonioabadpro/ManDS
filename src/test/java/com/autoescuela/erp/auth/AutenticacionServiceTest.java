@@ -25,6 +25,7 @@ import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Persona;
 import com.autoescuela.erp.usuarios.repository.PersonaRepository;
 
@@ -42,8 +43,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-
-import java.time.LocalDateTime;
 
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.model.TokenVerificacion;
@@ -300,7 +299,7 @@ class AutenticacionServiceTest
 
         when(this.personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
 
-        TokenVerificacion token = new TokenVerificacion("token-uuid-123", persona, LocalDateTime.now().plusMinutes(15));
+        TokenVerificacion token = new TokenVerificacion("token-uuid-123", persona, FechaHoraUtil.ahora().plusMinutes(15));
         when(this.tokenVerificacionService.generarTokenRecuperacion(persona, 15)).thenReturn(token);
 
         this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "http://localhost:8080");
@@ -327,7 +326,7 @@ class AutenticacionServiceTest
 
         when(this.personaRepository.findByCorreo("alumno@autoescuela.es")).thenReturn(Optional.of(persona));
 
-        TokenVerificacion token = new TokenVerificacion("token-uuid-456", persona, LocalDateTime.now().plusMinutes(15));
+        TokenVerificacion token = new TokenVerificacion("token-uuid-456", persona, FechaHoraUtil.ahora().plusMinutes(15));
         when(this.tokenVerificacionService.generarTokenRecuperacion(persona, 15)).thenReturn(token);
 
         this.autenticacionService.solicitarRecuperacionPassword("alumno@autoescuela.es", "https://mands.onrender.com///");
@@ -412,7 +411,7 @@ class AutenticacionServiceTest
     void testRestablecerPasswordExito()
     {
         Persona persona = mock(Persona.class);
-        TokenVerificacion token = new TokenVerificacion("token-valido", persona, LocalDateTime.now().plusMinutes(15));
+        TokenVerificacion token = new TokenVerificacion("token-valido", persona, FechaHoraUtil.ahora().plusMinutes(15));
 
         when(this.tokenVerificacionService.obtenerTokenValido("token-valido")).thenReturn(Optional.of(token));
         when(this.passwordEncoder.encode("nuevaPassword123")).thenReturn("$2a$10$encodedHashPassword");

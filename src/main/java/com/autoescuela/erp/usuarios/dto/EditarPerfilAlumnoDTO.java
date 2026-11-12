@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -80,7 +81,7 @@ public record EditarPerfilAlumnoDTO(
         {
             return true;
         }
-        return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+        return !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
     }
 
     /**
@@ -93,7 +94,7 @@ public record EditarPerfilAlumnoDTO(
         {
             return true;
         }
-        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+        return !this.fechaNacimiento.isBefore(FechaHoraUtil.hoy().minusYears(100));
     }
 
     /**
@@ -105,7 +106,7 @@ public record EditarPerfilAlumnoDTO(
         {
             return null;
         }
-        int anios = Period.between(this.fechaMatriculacion, LocalDate.now()).getYears();
+        int anios = Period.between(this.fechaMatriculacion, FechaHoraUtil.hoy()).getYears();
         if (anios <= 0)
         {
             return "menos de 1 año";

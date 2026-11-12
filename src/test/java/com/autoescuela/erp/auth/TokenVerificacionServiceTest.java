@@ -1,6 +1,5 @@
 package com.autoescuela.erp.auth;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.repository.TokenVerificacionRepository;
 import com.autoescuela.erp.auth.service.TokenVerificacionService;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Persona;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,8 +54,8 @@ class TokenVerificacionServiceTest
         assertNotNull(resultado.getToken());
         assertEquals(persona, resultado.getPersona());
         assertFalse(resultado.isUsado());
-        assertTrue(resultado.getFechaExpiracion().isAfter(LocalDateTime.now().plusMinutes(14)));
-        assertTrue(resultado.getFechaExpiracion().isBefore(LocalDateTime.now().plusMinutes(16)));
+        assertTrue(resultado.getFechaExpiracion().isAfter(FechaHoraUtil.ahora().plusMinutes(14)));
+        assertTrue(resultado.getFechaExpiracion().isBefore(FechaHoraUtil.ahora().plusMinutes(16)));
         assertTrue(resultado.isValido());
     }
 
@@ -81,8 +81,8 @@ class TokenVerificacionServiceTest
         assertNotNull(resultado);
         assertEquals(persona, resultado.getPersona());
         assertFalse(resultado.isUsado());
-        assertTrue(resultado.getFechaExpiracion().isAfter(LocalDateTime.now().plusMinutes(59)));
-        assertTrue(resultado.getFechaExpiracion().isBefore(LocalDateTime.now().plusMinutes(61)));
+        assertTrue(resultado.getFechaExpiracion().isAfter(FechaHoraUtil.ahora().plusMinutes(59)));
+        assertTrue(resultado.getFechaExpiracion().isBefore(FechaHoraUtil.ahora().plusMinutes(61)));
         assertTrue(resultado.isValido());
     }
 
@@ -106,7 +106,7 @@ class TokenVerificacionServiceTest
     void testObtenerTokenValidoExito()
     {
         Persona persona = mock(Persona.class);
-        TokenVerificacion token = new TokenVerificacion("token-valido-123", persona, LocalDateTime.now().plusMinutes(10));
+        TokenVerificacion token = new TokenVerificacion("token-valido-123", persona, FechaHoraUtil.ahora().plusMinutes(10));
         when(this.tokenVerificacionRepository.findByTokenAndUsadoFalse("token-valido-123"))
                 .thenReturn(Optional.of(token));
 
@@ -121,7 +121,7 @@ class TokenVerificacionServiceTest
     void testObtenerTokenValidoExpirado()
     {
         Persona persona = mock(Persona.class);
-        TokenVerificacion tokenExpirado = new TokenVerificacion("token-caducado", persona, LocalDateTime.now().minusMinutes(1));
+        TokenVerificacion tokenExpirado = new TokenVerificacion("token-caducado", persona, FechaHoraUtil.ahora().minusMinutes(1));
         when(this.tokenVerificacionRepository.findByTokenAndUsadoFalse("token-caducado"))
                 .thenReturn(Optional.of(tokenExpirado));
 
@@ -145,7 +145,7 @@ class TokenVerificacionServiceTest
     void testEsTokenValido()
     {
         Persona persona = mock(Persona.class);
-        TokenVerificacion tokenOk = new TokenVerificacion("token-ok", persona, LocalDateTime.now().plusMinutes(10));
+        TokenVerificacion tokenOk = new TokenVerificacion("token-ok", persona, FechaHoraUtil.ahora().plusMinutes(10));
         when(this.tokenVerificacionRepository.findByTokenAndUsadoFalse("token-ok")).thenReturn(Optional.of(tokenOk));
         when(this.tokenVerificacionRepository.findByTokenAndUsadoFalse("token-ko")).thenReturn(Optional.empty());
 
@@ -158,7 +158,7 @@ class TokenVerificacionServiceTest
     void testMarcarComoUsado()
     {
         Persona persona = mock(Persona.class);
-        TokenVerificacion token = new TokenVerificacion("token-a-usar", persona, LocalDateTime.now().plusMinutes(10));
+        TokenVerificacion token = new TokenVerificacion("token-a-usar", persona, FechaHoraUtil.ahora().plusMinutes(10));
 
         this.tokenVerificacionService.marcarComoUsado(token);
 

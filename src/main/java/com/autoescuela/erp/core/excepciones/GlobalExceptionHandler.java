@@ -1,7 +1,5 @@
 package com.autoescuela.erp.core.excepciones;
 
-import java.time.LocalDateTime;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
@@ -10,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler
                 ? ex.getMessage()
                 : "La página o el recurso solicitado no existe o ha sido movido.");
         model.addAttribute("path", request.getRequestURI());
-        model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("timestamp", FechaHoraUtil.ahora());
         return "error/404";
     }
 
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler
         model.addAttribute("error", "Acceso denegado");
         model.addAttribute("message", "No dispones de los permisos necesarios para acceder a esta sección del sistema.");
         model.addAttribute("path", request.getRequestURI());
-        model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("timestamp", FechaHoraUtil.ahora());
         return "error/403";
     }
 
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler
         model.addAttribute("error", "Regla de Negocio");
         model.addAttribute("message", ex.getMessage());
         model.addAttribute("path", request.getRequestURI());
-        model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("timestamp", FechaHoraUtil.ahora());
         return "error/error-negocio";
     }
 
@@ -84,7 +84,7 @@ public class GlobalExceptionHandler
         model.addAttribute("error", "Error Interno del Servidor");
         model.addAttribute("message", "Se ha producido un error inesperado al procesar la solicitud. El equipo técnico ha sido notificado.");
         model.addAttribute("path", request.getRequestURI());
-        model.addAttribute("timestamp", LocalDateTime.now());
+        model.addAttribute("timestamp", FechaHoraUtil.ahora());
         return "error/500";
     }
 }

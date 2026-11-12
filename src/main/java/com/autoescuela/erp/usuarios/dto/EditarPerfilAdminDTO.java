@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.autoescuela.erp.core.util.FechaHoraUtil;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -70,7 +72,7 @@ public class EditarPerfilAdminDTO
         {
             return true; // Se valida con @NotNull
         }
-        return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+        return !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
     }
 
     /**
@@ -83,7 +85,7 @@ public class EditarPerfilAdminDTO
         {
             return true;
         }
-        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+        return !this.fechaNacimiento.isBefore(FechaHoraUtil.hoy().minusYears(100));
     }
 }
 

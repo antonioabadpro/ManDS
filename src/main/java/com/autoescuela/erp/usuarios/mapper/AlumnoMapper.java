@@ -1,5 +1,6 @@
 package com.autoescuela.erp.usuarios.mapper;
 
+import java.time.Period;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,7 +37,7 @@ public interface AlumnoMapper
     @Mapping(target = "id", source = "alumno.id")
     @Mapping(target = "nombreCompleto", expression = "java(alumno != null ? alumno.getNombre() + \" \" + alumno.getApellidos() : null)")
     @Mapping(target = "iniciales", expression = "java(calcularIniciales(alumno))")
-    @Mapping(target = "edad", expression = "java(alumno != null && alumno.getFechaNacimiento() != null ? java.time.Period.between(alumno.getFechaNacimiento(), java.time.LocalDate.now()).getYears() : null)")
+    @Mapping(target = "edad", expression = "java(alumno != null && alumno.getFechaNacimiento() != null ? java.time.Period.between(alumno.getFechaNacimiento(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy()).getYears() : null)")
     @Mapping(target = "profesorId", source = "alumno.profesor.id")
     @Mapping(target = "profesorNombre", expression = "java(alumno != null && alumno.getProfesor() != null ? alumno.getProfesor().getNombre() + \" \" + alumno.getProfesor().getApellidos() : null)")
     @Mapping(target = "profesorTurno", source = "alumno.profesor.turno")
@@ -106,13 +107,13 @@ public interface AlumnoMapper
     @Mapping(target = "estado", source = "alumno.estado")
     @Mapping(target = "dni", source = "alumno.dni")
     @Mapping(target = "fechaNacimiento", source = "alumno.fechaNacimiento")
-    @Mapping(target = "edad", expression = "java(alumno != null && alumno.getFechaNacimiento() != null ? java.time.Period.between(alumno.getFechaNacimiento(), java.time.LocalDate.now()).getYears() : null)")
+    @Mapping(target = "edad", expression = "java(alumno != null && alumno.getFechaNacimiento() != null ? java.time.Period.between(alumno.getFechaNacimiento(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy()).getYears() : null)")
     @Mapping(target = "direccion", source = "alumno.direccion")
     @Mapping(target = "correo", source = "alumno.correo")
     @Mapping(target = "telefono", source = "alumno.telefono")
     @Mapping(target = "fechaMatriculacion", expression = "java(matriculaActiva != null ? matriculaActiva.getFechaMatriculacion() : null)")
     @Mapping(target = "anioMatriculacion", expression = "java(matriculaActiva != null && matriculaActiva.getFechaMatriculacion() != null ? matriculaActiva.getFechaMatriculacion().getYear() : null)")
-    @Mapping(target = "antiguedadAnios", expression = "java(matriculaActiva != null && matriculaActiva.getFechaMatriculacion() != null ? java.time.Period.between(matriculaActiva.getFechaMatriculacion(), java.time.LocalDate.now()).getYears() : 0)")
+    @Mapping(target = "antiguedadAnios", expression = "java(matriculaActiva != null && matriculaActiva.getFechaMatriculacion() != null ? java.time.Period.between(matriculaActiva.getFechaMatriculacion(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy()).getYears() : 0)")
     @Mapping(target = "antiguedadTexto", expression = "java(calcularAntiguedadTexto(matriculaActiva))")
     @Mapping(target = "tieneMatriculaActiva", expression = "java(matriculaActiva != null)")
     @Mapping(target = "turno", source = "alumno.profesor.turno")
@@ -205,7 +206,7 @@ public interface AlumnoMapper
         {
             return "Sin antigüedad";
         }
-        java.time.Period p = java.time.Period.between(matricula.getFechaMatriculacion(), java.time.LocalDate.now());
+        Period p = Period.between(matricula.getFechaMatriculacion(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy());
         if (p.getYears() > 1)
         {
             return p.getYears() + " años";

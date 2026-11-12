@@ -58,6 +58,8 @@ public class ConfiguracionSeguridad
         return new SessionRegistryImpl();
     }
 
+    // Exclusión CSRF acotada al webhook firmado de Stripe y a la consola H2 de desarrollo local; los formularios web mantienen protección CSRF activa.
+    @SuppressWarnings("java:S4502")
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {

@@ -477,4 +477,33 @@ class CalendarioServiceTest
         assertThat(celdaAjena.esClicable()).isFalse();
         assertThat(celdaAjena.modalUrl()).isNull();
     }
+
+    @Test
+    @DisplayName("obtenerCalendarioProfesor y obtenerCalendarioAlumno usan la fecha actual en España cuando fechaReferencia es null")
+    void testCalendariosConFechaReferenciaNula()
+    {
+        Profesor profesor = new Profesor();
+        ReflectionTestUtils.setField(profesor, "id", 10L);
+        profesor.setTurno(TipoTurno.MATINAL);
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 20L);
+        alumno.setProfesor(profesor);
+
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor))
+                .thenReturn(new ArrayList<>());
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(eq(profesor), any(), any()))
+                .thenReturn(new ArrayList<>());
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno))
+                .thenReturn(Optional.empty());
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE))
+                .thenReturn(0);
+
+        CalendarioSemanalDTO calProf = this.calendarioService.obtenerCalendarioProfesor(profesor, null);
+        CalendarioSemanalDTO calAlum = this.calendarioService.obtenerCalendarioAlumno(alumno, null);
+
+        assertThat(calProf.fechaInicio()).isNotNull();
+        assertThat(calProf.hoy()).isNotNull();
+        assertThat(calAlum.fechaInicio()).isEqualTo(calProf.fechaInicio());
+    }
 }

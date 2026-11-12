@@ -1,11 +1,16 @@
 package com.autoescuela.erp.usuarios.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
+import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.usuarios.model.Alumno;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -108,5 +113,72 @@ class ValidacionFechaNacimientoDTOTest
         );
         assertTrue(dtoCentenario.isMayorDeEdad());
         assertFalse(dtoCentenario.isEdadRazonable());
+    }
+
+    @Test
+    @DisplayName("Persona.esMayorDeEdad valida correctamente nulos, menores y mayores de edad")
+    void testPersona_EsMayorDeEdad()
+    {
+        LocalDate hoy = FechaHoraUtil.hoy();
+
+        Alumno sinFecha = new Alumno();
+        assertFalse(sinFecha.esMayorDeEdad());
+
+        Alumno menor = new Alumno();
+        menor.setFechaNacimiento(hoy.minusYears(18).plusDays(1));
+        assertFalse(menor.esMayorDeEdad());
+
+        Alumno mayor = new Alumno();
+        mayor.setFechaNacimiento(hoy.minusYears(18));
+        assertTrue(mayor.esMayorDeEdad());
+    }
+
+    @Test
+    @DisplayName("EditarPerfilAdminDTO, EditarPerfilAlumnoDTO y EditarProfesorDTO validan rangos de edad")
+    void testOtrosDTOs_ValidacionesEdad()
+    {
+        LocalDate hoy = FechaHoraUtil.hoy();
+
+        EditarPerfilAdminDTO adminValido = EditarPerfilAdminDTO.builder()
+                .fechaNacimiento(hoy.minusYears(30))
+                .build();
+        assertTrue(adminValido.isMayorDeEdad());
+        assertTrue(adminValido.isEdadRazonable());
+
+        EditarPerfilAdminDTO adminMenor = EditarPerfilAdminDTO.builder()
+                .fechaNacimiento(hoy.minusYears(17))
+                .build();
+        assertFalse(adminMenor.isMayorDeEdad());
+
+        EditarPerfilAdminDTO adminCentenario = EditarPerfilAdminDTO.builder()
+                .fechaNacimiento(hoy.minusYears(101))
+                .build();
+        assertFalse(adminCentenario.isEdadRazonable());
+
+        EditarPerfilAlumnoDTO alumnoMenor = new EditarPerfilAlumnoDTO(
+                1L, "Ana", "Gómez", "600112233", "Calle 1", "ana@test.es", hoy.minusYears(17),
+                "12345678Z", "ana", null, null, null, null, null, null, null, null, hoy, 0, 2
+        );
+        assertFalse(alumnoMenor.isMayorDeEdad());
+        assertTrue(alumnoMenor.isEdadRazonable());
+
+        EditarPerfilAlumnoDTO alumnoCentenario = new EditarPerfilAlumnoDTO(
+                1L, "Ana", "Gómez", "600112233", "Calle 1", "ana@test.es", hoy.minusYears(101),
+                "12345678Z", "ana", null, null, null, null, null, null, null, null, hoy, 0, 2
+        );
+        assertFalse(alumnoCentenario.isEdadRazonable());
+
+        EditarProfesorDTO profMenor = new EditarProfesorDTO(
+                1L, "Luis", "Pérez", "12345678Z", "600112233", "luis@test.es", hoy.minusYears(17),
+                "Calle 1", hoy, TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B)
+        );
+        assertFalse(profMenor.isMayorDeEdad());
+        assertTrue(profMenor.isEdadRazonable());
+
+        EditarProfesorDTO profCentenario = new EditarProfesorDTO(
+                1L, "Luis", "Pérez", "12345678Z", "600112233", "luis@test.es", hoy.minusYears(101),
+                "Calle 1", hoy, TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B)
+        );
+        assertFalse(profCentenario.isEdadRazonable());
     }
 }

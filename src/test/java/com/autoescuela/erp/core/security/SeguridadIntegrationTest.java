@@ -371,4 +371,23 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
                 .session((MockHttpSession) sesionAlumno))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("POST /login sin token CSRF es rechazado con 403 Forbidden (protección CSRF global activa)")
+    void testPostLoginSinCsrfEsRechazado() throws Exception
+    {
+        this.mockMvc.perform(post("/login")
+                .param("username", "admin")
+                .param("password", "admin123"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("POST /pagos/webhook está exento de CSRF y alcanza el controlador de Stripe")
+    void testWebhookStripeExentoDeCsrf() throws Exception
+    {
+        this.mockMvc.perform(post("/pagos/webhook")
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }

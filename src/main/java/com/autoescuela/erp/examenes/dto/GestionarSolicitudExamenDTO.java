@@ -1,6 +1,8 @@
 package com.autoescuela.erp.examenes.dto;
 
 import java.time.LocalDate;
+
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 
 /**
@@ -18,6 +20,6 @@ public record GestionarSolicitudExamenDTO(
 {
     public GestionarSolicitudExamenDTO(SolicitudExamen solicitud, DisponibilidadConvocatoriaDTO convocatoria1, DisponibilidadConvocatoriaDTO convocatoria2, boolean puedeAceptar, String motivoBloqueoGeneral)
     {
-        this(solicitud, convocatoria1, convocatoria2, puedeAceptar, motivoBloqueoGeneral, LocalDate.now().withDayOfMonth(1));
+        this(solicitud, convocatoria1, convocatoria2, puedeAceptar, motivoBloqueoGeneral, FechaHoraUtil.hoy().withDayOfMonth(1));
     }
 }

@@ -20,6 +20,7 @@ import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
@@ -180,7 +181,7 @@ public class ClasePracticaService
             throw new ReglaNegocioException("Solo se pueden cancelar clases que se encuentren en estado PENDIENTE.");
         }
 
-        if (clase.getFechaHora() == null || !clase.getFechaHora().isAfter(LocalDateTime.now()))
+        if (clase.getFechaHora() == null || !clase.getFechaHora().isAfter(FechaHoraUtil.ahora()))
         {
             throw new ReglaNegocioException("No es posible cancelar una clase práctica que ya ha comenzado o cuya hora de inicio ha transcurrido.");
         }
@@ -362,7 +363,7 @@ public class ClasePracticaService
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró la clase práctica solicitada."));
 
         int duracion = clase.getDuracion() != null ? clase.getDuracion() : 45;
-        if (clase.getFechaHora() != null && LocalDateTime.now().isBefore(clase.getFechaHora().plusMinutes(duracion)))
+        if (clase.getFechaHora() != null && FechaHoraUtil.ahora().isBefore(clase.getFechaHora().plusMinutes(duracion)))
         {
             throw new ReglaNegocioException("No es posible marcar como recibida una clase práctica antes de su fecha y hora de finalización.");
         }

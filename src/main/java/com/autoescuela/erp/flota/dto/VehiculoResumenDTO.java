@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 /**
  * DTO inmutable (record) para la visualización del parque móvil de vehículos
@@ -33,7 +34,7 @@ public record VehiculoResumenDTO(
      */
     public boolean isRevisionVencida()
     {
-        return this.fechaProximaRevision != null && this.fechaProximaRevision.isBefore(LocalDate.now());
+        return this.fechaProximaRevision != null && this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy());
     }
 
     /**
@@ -43,7 +44,7 @@ public record VehiculoResumenDTO(
     {
         return this.fechaProximaRevision != null
                 && !this.isRevisionVencida()
-                && this.fechaProximaRevision.isBefore(LocalDate.now().plusDays(60));
+                && this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy().plusDays(60));
     }
 
     /**
@@ -52,6 +53,6 @@ public record VehiculoResumenDTO(
     public boolean isRevisionAlDia()
     {
         return this.fechaProximaRevision != null
-                && !this.fechaProximaRevision.isBefore(LocalDate.now().plusDays(60));
+                && !this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy().plusDays(60));
     }
 }

@@ -7,6 +7,7 @@ import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 /**
  * DTO inmutable (record) con el desglose integral de datos técnicos, administrativos,
@@ -44,7 +45,7 @@ public record VehiculoDetalleDTO(
      */
     public boolean isRevisionVencida()
     {
-        return this.fechaProximaRevision != null && this.fechaProximaRevision.isBefore(LocalDate.now());
+        return this.fechaProximaRevision != null && this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy());
     }
 
     /**
@@ -54,7 +55,7 @@ public record VehiculoDetalleDTO(
     {
         return this.fechaProximaRevision != null
                 && !this.isRevisionVencida()
-                && this.fechaProximaRevision.isBefore(LocalDate.now().plusDays(60));
+                && this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy().plusDays(60));
     }
 
     /**
@@ -63,6 +64,6 @@ public record VehiculoDetalleDTO(
     public boolean isRevisionAlDia()
     {
         return this.fechaProximaRevision != null
-                && !this.fechaProximaRevision.isBefore(LocalDate.now().plusDays(60));
+                && !this.fechaProximaRevision.isBefore(FechaHoraUtil.hoy().plusDays(60));
     }
 }

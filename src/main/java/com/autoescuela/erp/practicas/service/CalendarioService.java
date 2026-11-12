@@ -22,6 +22,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -57,10 +58,10 @@ public class CalendarioService
     @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
     public CalendarioSemanalDTO obtenerCalendarioProfesor(Profesor profesor, LocalDate fechaReferencia)
     {
-        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : LocalDate.now();
+        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();
         LocalDate lunes = fechaBase.with(DayOfWeek.MONDAY);
         LocalDate viernes = lunes.plusDays(4);
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
 
         TipoTurno turno = (profesor != null && profesor.getTurno() != null) ? profesor.getTurno() : TipoTurno.MATINAL;
         List<TramoHorarioDTO> tramos = this.generarTramos(turno);
@@ -115,10 +116,10 @@ public class CalendarioService
     @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'alum_' + (#alumno != null ? #alumno.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
     public CalendarioSemanalDTO obtenerCalendarioAlumno(Alumno alumno, LocalDate fechaReferencia)
     {
-        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : LocalDate.now();
+        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();
         LocalDate lunes = fechaBase.with(DayOfWeek.MONDAY);
         LocalDate viernes = lunes.plusDays(4);
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
 
         Profesor profesor = (alumno != null) ? alumno.getProfesor() : null;
         boolean tieneProfesorAsignado = (profesor != null);
@@ -152,7 +153,7 @@ public class CalendarioService
                 : new ArrayList<>();
 
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clasesProfesor);
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaHoraUtil.ahora();
 
         List<FilaCalendarioDTO> filas = new ArrayList<>();
         for (TramoHorarioDTO tramo : tramos)

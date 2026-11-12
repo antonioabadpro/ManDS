@@ -2,6 +2,7 @@ package com.autoescuela.erp.auth.model;
 
 import java.time.LocalDateTime;
 
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Persona;
 
 import jakarta.persistence.Column;
@@ -71,7 +72,7 @@ public class TokenVerificacion
         this.token = token;
         this.persona = persona;
         this.fechaExpiracion = fechaExpiracion;
-        this.fechaCreacion = LocalDateTime.now();
+        this.fechaCreacion = FechaHoraUtil.ahora();
         this.usado = false;
     }
 
@@ -81,7 +82,7 @@ public class TokenVerificacion
      */
     public boolean isExpirado()
     {
-        return LocalDateTime.now().isAfter(this.fechaExpiracion);
+        return FechaHoraUtil.ahora().isAfter(this.fechaExpiracion);
     }
 
     /**
