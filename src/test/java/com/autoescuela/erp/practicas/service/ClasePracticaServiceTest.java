@@ -26,6 +26,7 @@ import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
@@ -278,7 +279,7 @@ class ClasePracticaServiceTest
         ClasePractica clase = new ClasePractica();
         clase.setAlumno(alumno);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
-        clase.setFechaHora(LocalDateTime.now().plusDays(2));
+        clase.setFechaHora(FechaHoraUtil.ahora().plusDays(2));
 
         when(this.clasePracticaRepository.save(any(ClasePractica.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -302,7 +303,7 @@ class ClasePracticaServiceTest
         ClasePractica clase = new ClasePractica();
         clase.setAlumno(alumno);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
-        clase.setFechaHora(LocalDateTime.now().minusMinutes(10));
+        clase.setFechaHora(FechaHoraUtil.ahora().minusMinutes(10));
 
         assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno))
                 .isInstanceOf(ReglaNegocioException.class)
@@ -480,7 +481,7 @@ class ClasePracticaServiceTest
     {
         Long id = 10L;
         ClasePractica clase = new ClasePractica();
-        clase.setFechaHora(LocalDateTime.now().plusHours(2));
+        clase.setFechaHora(FechaHoraUtil.ahora().plusHours(2));
         clase.setDuracion(45);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
 
@@ -499,7 +500,7 @@ class ClasePracticaServiceTest
     {
         Long id = 10L;
         ClasePractica clase = new ClasePractica();
-        clase.setFechaHora(LocalDateTime.now().minusMinutes(60));
+        clase.setFechaHora(FechaHoraUtil.ahora().minusMinutes(60));
         clase.setDuracion(45);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
 

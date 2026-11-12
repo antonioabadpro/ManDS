@@ -1,7 +1,6 @@
 package com.autoescuela.erp.usuarios.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +21,7 @@ import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
@@ -220,14 +220,14 @@ class ProfesorServiceTest
                 "profe@autoescuela.es",
                 LocalDate.of(1985, 5, 10),
                 "Calle Mayor 1",
-                LocalDate.now(),
+                FechaHoraUtil.hoy(),
                 TipoTurno.MATINAL,
                 null,
                 List.of(TipoCarnet.PERMISO_B)
         );
 
         Profesor profesorMapeado = this.crearProfesorBase(10L);
-        TokenVerificacion token = new TokenVerificacion("tok-abc", profesorMapeado, LocalDateTime.now().plusMinutes(60));
+        TokenVerificacion token = new TokenVerificacion("tok-abc", profesorMapeado, FechaHoraUtil.ahora().plusMinutes(60));
 
         when(this.personaRepository.existsByDni("23456789D")).thenReturn(false);
         when(this.usuarioService.esLetraDniValida("23456789D")).thenReturn(true);
