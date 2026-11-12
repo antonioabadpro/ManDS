@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.auth.model.TokenVerificacion;
 import com.autoescuela.erp.auth.repository.TokenVerificacionRepository;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Persona;
 
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class TokenVerificacionService
         }
 
         String uuid = UUID.randomUUID().toString();
-        LocalDateTime fechaExpiracion = LocalDateTime.now().plusMinutes(duracionMinutos);
+        LocalDateTime fechaExpiracion = FechaHoraUtil.ahora().plusMinutes(duracionMinutos);
 
         TokenVerificacion nuevoToken = new TokenVerificacion(uuid, persona, fechaExpiracion);
         return this.tokenVerificacionRepository.save(nuevoToken);
@@ -77,7 +78,7 @@ public class TokenVerificacionService
     @Transactional(readOnly = true)
     public boolean esTokenValido(String token)
     {
-        return obtenerTokenValido(token).isPresent();
+        return this.obtenerTokenValido(token).isPresent();
     }
 
     /**

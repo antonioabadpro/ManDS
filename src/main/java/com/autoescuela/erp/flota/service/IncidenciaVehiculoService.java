@@ -1,6 +1,5 @@
 package com.autoescuela.erp.flota.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,6 +16,7 @@ import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.dto.IncidenciaDetalleDTO;
 import com.autoescuela.erp.flota.dto.IncidenciaResumenDTO;
@@ -267,7 +267,7 @@ public class IncidenciaVehiculoService
         }
 
         IncidenciaVehiculo incidencia = new IncidenciaVehiculo();
-        incidencia.setFechaHora(LocalDateTime.now());
+        incidencia.setFechaHora(FechaHoraUtil.ahora());
         incidencia.setDescripcion(dto.descripcion().trim());
         incidencia.setEstado(EstadoIncidencia.PENDIENTE);
         incidencia.setVehiculo(vehiculo);

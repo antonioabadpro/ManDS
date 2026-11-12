@@ -21,6 +21,7 @@ import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -81,7 +82,7 @@ public class AlumnoController
         int capacidadReserva = this.calcularCapacidadReserva(alumno, matricula);
 
         // Próxima clase pendiente futura
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaHoraUtil.ahora();
         List<ClasePractica> todasClases = this.clasePracticaService.obtenerClasesPorAlumnoAsc(alumno);
         ClasePractica proximaClase = null;
         for (ClasePractica c : todasClases)

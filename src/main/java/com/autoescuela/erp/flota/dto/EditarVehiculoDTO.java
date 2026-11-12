@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoCombustible;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
@@ -76,7 +77,7 @@ public record EditarVehiculoDTO(
      */
     public EditarVehiculoDTO()
     {
-        this(null, null, null, null, null, 0L, 110, LocalDate.now().getYear(), TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B, null, LocalDate.now().plusYears(1));
+        this(null, null, null, null, null, 0L, 110, FechaHoraUtil.hoy().getYear(), TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B, null, FechaHoraUtil.hoy().plusYears(1));
     }
 
     /**
@@ -89,7 +90,7 @@ public record EditarVehiculoDTO(
         {
             return true;
         }
-        int anioActual = LocalDate.now().getYear();
+        int anioActual = FechaHoraUtil.hoy().getYear();
         return this.anio >= 1990 && this.anio <= anioActual;
     }
 
@@ -118,7 +119,7 @@ public record EditarVehiculoDTO(
         {
             return true;
         }
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
         return this.fechaProximaRevision.isBefore(hoy.plusYears(10)) && !this.fechaProximaRevision.isBefore(hoy);
     }
 
@@ -135,7 +136,7 @@ public record EditarVehiculoDTO(
         {
             return true;
         }
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
         return this.fechaUltimaRevision.isAfter(hoy.minusYears(4)) && !this.fechaUltimaRevision.isAfter(hoy);
     }
 

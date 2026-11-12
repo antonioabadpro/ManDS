@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -77,7 +78,7 @@ public record EditarPerfilProfesorDTO(
         {
             return null;
         }
-        int anios = Period.between(this.fechaContratacion, LocalDate.now()).getYears();
+        int anios = Period.between(this.fechaContratacion, FechaHoraUtil.hoy()).getYears();
         if (anios <= 0)
         {
             return "menos de 1 año";
@@ -114,7 +115,7 @@ public record EditarPerfilProfesorDTO(
         {
             return true;
         }
-        return this.fechaNacimiento.plusYears(18).isBefore(LocalDate.now());
+        return this.fechaNacimiento.plusYears(18).isBefore(FechaHoraUtil.hoy());
     }
 
     /**
@@ -127,6 +128,6 @@ public record EditarPerfilProfesorDTO(
         {
             return true;
         }
-        return this.fechaNacimiento.isAfter(LocalDate.now().minusYears(100));
+        return this.fechaNacimiento.isAfter(FechaHoraUtil.hoy().minusYears(100));
     }
 }

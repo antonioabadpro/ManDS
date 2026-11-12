@@ -30,6 +30,7 @@ import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
@@ -90,18 +91,18 @@ public class ProfesorService
             throw new ReglaNegocioException("Los datos para el alta del profesor no pueden ser nulos.");
         }
 
-        if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
+        if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(FechaHoraUtil.hoy()))
         {
             throw new ReglaNegocioException("El profesor debe ser mayor de edad (al menos 18 años).");
         }
 
-        if (dto.fechaNacimiento().isBefore(LocalDate.now().minusYears(100)))
+        if (dto.fechaNacimiento().isBefore(FechaHoraUtil.hoy().minusYears(100)))
         {
             throw new ReglaNegocioException("La fecha de nacimiento no puede ser anterior a hace 100 años.");
         }
 
-        LocalDate haceUnMesAlta = LocalDate.now().minusMonths(1);
-        LocalDate enUnMesAlta = LocalDate.now().plusMonths(1);
+        LocalDate haceUnMesAlta = FechaHoraUtil.hoy().minusMonths(1);
+        LocalDate enUnMesAlta = FechaHoraUtil.hoy().plusMonths(1);
         if (dto.fechaContratacion() == null || dto.fechaContratacion().isBefore(haceUnMesAlta) || dto.fechaContratacion().isAfter(enUnMesAlta))
         {
             throw new ReglaNegocioException("La fecha de contratación debe estar comprendida entre 1 mes antes y 1 mes después de la fecha actual.");
@@ -316,12 +317,12 @@ public class ProfesorService
             throw new ReglaNegocioException("Solo se pueden modificar profesores en estado ACTIVO. Los profesores inactivos deben ser reactivados previamente.");
         }
 
-        if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(LocalDate.now()))
+        if (dto.fechaNacimiento() == null || dto.fechaNacimiento().plusYears(18).isAfter(FechaHoraUtil.hoy()))
         {
             throw new ReglaNegocioException("El profesor debe ser mayor de edad (al menos 18 años).");
         }
 
-        if (dto.fechaNacimiento().isBefore(LocalDate.now().minusYears(100)))
+        if (dto.fechaNacimiento().isBefore(FechaHoraUtil.hoy().minusYears(100)))
         {
             throw new ReglaNegocioException("La fecha de nacimiento no puede ser anterior a hace 100 años.");
         }

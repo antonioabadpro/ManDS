@@ -133,9 +133,9 @@ public interface ProfesorMapper
      */
     @Mapping(target = "nombreCompleto", expression = "java(profesor.getNombre() + \" \" + profesor.getApellidos())")
     @Mapping(target = "iniciales", expression = "java(calcularIniciales(profesor))")
-    @Mapping(target = "edad", expression = "java(profesor.getFechaNacimiento() != null ? java.time.Period.between(profesor.getFechaNacimiento(), java.time.LocalDate.now()).getYears() : null)")
+    @Mapping(target = "edad", expression = "java(profesor.getFechaNacimiento() != null ? java.time.Period.between(profesor.getFechaNacimiento(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy()).getYears() : null)")
     @Mapping(target = "anioContratacion", expression = "java(profesor.getFechaContratacion() != null ? profesor.getFechaContratacion().getYear() : null)")
-    @Mapping(target = "antiguedadAnios", expression = "java(profesor.getFechaContratacion() != null ? java.time.Period.between(profesor.getFechaContratacion(), java.time.LocalDate.now()).getYears() : 0)")
+    @Mapping(target = "antiguedadAnios", expression = "java(profesor.getFechaContratacion() != null ? java.time.Period.between(profesor.getFechaContratacion(), com.autoescuela.erp.core.util.FechaHoraUtil.hoy()).getYears() : 0)")
     @Mapping(target = "vehiculoId", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getId() : null)")
     @Mapping(target = "vehiculoMatricula", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMatricula() : null)")
     @Mapping(target = "vehiculoModelo", expression = "java(profesor.getVehiculo() != null ? profesor.getVehiculo().getMarca() + \" \" + profesor.getVehiculo().getModelo() : null)")

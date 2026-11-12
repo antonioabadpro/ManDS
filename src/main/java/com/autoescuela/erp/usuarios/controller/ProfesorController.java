@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -67,7 +68,7 @@ public class ProfesorController
             return "redirect:/login";
         }
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
         LocalDateTime inicioHoy = hoy.atStartOfDay();
         LocalDateTime finHoy = hoy.atTime(23, 59, 59);
 
@@ -78,7 +79,7 @@ public class ProfesorController
         // Próxima clase pendiente del profesor
         List<ClasePractica> todasClases = this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor);
         ClasePractica proximaClase = null;
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaHoraUtil.ahora();
 
         // Buscar la próxima clase pendiente que esté programada para después de la fecha y hora actual
         for (ClasePractica clase : todasClases)

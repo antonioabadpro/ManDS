@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -92,7 +93,7 @@ public record EditarProfesorDTO(
         {
             return true;
         }
-        return !this.fechaNacimiento.plusYears(18).isAfter(LocalDate.now());
+        return !this.fechaNacimiento.plusYears(18).isAfter(FechaHoraUtil.hoy());
     }
 
     /**
@@ -105,6 +106,6 @@ public record EditarProfesorDTO(
         {
             return true;
         }
-        return !this.fechaNacimiento.isBefore(LocalDate.now().minusYears(100));
+        return !this.fechaNacimiento.isBefore(FechaHoraUtil.hoy().minusYears(100));
     }
 }

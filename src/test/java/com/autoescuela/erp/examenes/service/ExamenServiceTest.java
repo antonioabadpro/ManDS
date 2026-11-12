@@ -22,6 +22,7 @@ import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
@@ -678,5 +679,23 @@ class ExamenServiceTest
         assertNotNull(resultado);
         assertTrue(resultado.getEsApto());
         verify(this.examenRepository).save(examen);
+    }
+
+    @Test
+    @DisplayName("Registrar solicitud de examen sin fecha asigna fechaHora actual en España")
+    void testRegistrarSolicitudExamen_FechaNulaAsignaFechaActual()
+    {
+        when(this.solicitudExamenRepository.save(any(SolicitudExamen.class))).thenAnswer(i -> i.getArgument(0));
+
+        SolicitudExamen resultado = this.examenService.registrarSolicitudExamen(
+                this.alumnoEjemplo, TipoExamen.TEORICO, null, this.matriculaEjemplo);
+
+        assertNotNull(resultado);
+        assertNotNull(resultado.getFechaHora());
+        assertEquals(EstadoSolicitud.PENDIENTE, resultado.getEstado());
+
+        GestionarSolicitudExamenDTO dtoSinMes = new GestionarSolicitudExamenDTO(
+                resultado, null, null, false, "Sin cupo");
+        assertEquals(FechaHoraUtil.hoy().withDayOfMonth(1), dtoSinMes.mesSeleccionado());
     }
 }

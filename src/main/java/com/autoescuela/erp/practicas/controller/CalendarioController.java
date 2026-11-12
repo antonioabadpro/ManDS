@@ -26,6 +26,7 @@ import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
@@ -417,7 +418,7 @@ public class CalendarioController
             return "redirect:/login";
         }
 
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
         LocalDate fechaRef = this.parsearFechaRef(fechaRefStr);
         CalendarioSemanalDTO calendarioSemanal = this.calendarioService.obtenerCalendarioProfesor(profesor, fechaRef);
 
@@ -500,7 +501,7 @@ public class CalendarioController
             return this.devolverErrorCancelacion("No se especificó la fecha de la jornada a cancelar.", hxRequest, model, redirectAttributes);
         }
 
-        if (fecha.isBefore(LocalDate.now()))
+        if (fecha.isBefore(FechaHoraUtil.hoy()))
         {
             return this.devolverErrorCancelacion("No es posible cancelar jornadas de fechas pasadas.", hxRequest, model, redirectAttributes);
         }
@@ -572,7 +573,7 @@ public class CalendarioController
             {
             }
         }
-        return LocalDate.now();
+        return FechaHoraUtil.hoy();
     }
 
     private int calcularCapacidadReserva(Alumno alumno, Matricula matricula)
@@ -598,7 +599,7 @@ public class CalendarioController
 
     private void prepararModeloCancelarDia(Profesor profesor, LocalDate fecha, Model model)
     {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
         boolean noCancelable = false;
         String motivoNoCancelable = null;
 

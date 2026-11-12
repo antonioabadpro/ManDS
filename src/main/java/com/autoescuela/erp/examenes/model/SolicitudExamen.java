@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -39,7 +40,7 @@ public class SolicitudExamen
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime fechaHora = LocalDateTime.now();
+    private LocalDateTime fechaHora = FechaHoraUtil.ahora();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

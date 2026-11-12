@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -101,8 +102,8 @@ public class CalendarioSeedInitializer implements ApplicationRunner
     {
         Map<Long, Set<LocalDate>> diasExamenPorProfesor = this.obtenerDiasExamenPorProfesor();
         List<ClasePractica> clasesPendientes = this.clasePracticaRepository.findByEstadoClaseOrderByFechaHoraAsc(EstadoClase.PENDIENTE);
-        LocalDate hoy = LocalDate.now();
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
+        LocalDateTime ahora = FechaHoraUtil.ahora();
 
         for (ClasePractica clase : clasesPendientes)
         {

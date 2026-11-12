@@ -23,6 +23,7 @@ import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.DisponibilidadConvocatoriaDTO;
@@ -243,7 +244,7 @@ public class ExamenService
         {
             return false;
         }
-        return this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, LocalDateTime.now());
+        return this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(alumno, EstadoSolicitud.ACEPTADA, FechaHoraUtil.ahora());
     }
 
     /**
@@ -262,7 +263,7 @@ public class ExamenService
         solicitud.setMatricula(matricula);
         solicitud.setTipo(tipo);
         solicitud.setProfesor(tipo == TipoExamen.TEORICO ? null : alumno.getProfesor());
-        solicitud.setFechaHora(fechaHora != null ? fechaHora : LocalDateTime.now());
+        solicitud.setFechaHora(fechaHora != null ? fechaHora : FechaHoraUtil.ahora());
         solicitud.setEstado(EstadoSolicitud.PENDIENTE);
 
         return this.solicitudExamenRepository.save(solicitud);
@@ -293,7 +294,7 @@ public class ExamenService
         }
 
         int duracion = examen.getDuracion() != null ? examen.getDuracion() : (examen.getTipo() == TipoExamen.PRACTICO ? 35 : 30);
-        if (examen.getFechaHora() != null && LocalDateTime.now().isBefore(examen.getFechaHora().plusMinutes(duracion)))
+        if (examen.getFechaHora() != null && FechaHoraUtil.ahora().isBefore(examen.getFechaHora().plusMinutes(duracion)))
         {
             throw new ReglaNegocioException("No es posible calificar un examen oficial antes de su fecha y hora de finalización.");
         }
@@ -626,7 +627,7 @@ public class ExamenService
         SolicitudExamen solicitud = this.solicitudExamenRepository.findById(solicitudId)
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró la solicitud de examen indicada."));
 
-        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime ahora = FechaHoraUtil.ahora();
         LocalDate mesActual = ahora.toLocalDate().withDayOfMonth(1);
 
         LocalDate mesAUsar;

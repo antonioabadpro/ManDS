@@ -1,7 +1,5 @@
 package com.autoescuela.erp.examenes.controller;
 
-import java.time.LocalDateTime;
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +15,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.SolicitudExamenDTO;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -168,7 +167,7 @@ public class SolicitudExamenController
             }
         }
 
-        this.examenService.registrarSolicitudExamen(alumno, dto.tipoExamen(), LocalDateTime.now(), matricula);
+        this.examenService.registrarSolicitudExamen(alumno, dto.tipoExamen(), FechaHoraUtil.ahora(), matricula);
 
         redirectAttributes.addFlashAttribute("mensajeExito", "Solicitud de examen registrada con éxito. Ha ingresado en la cola oficial para su asignación.");
         return "redirect:/alumno/examenes";

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAdminDTO;
 import com.autoescuela.erp.usuarios.mapper.UsuarioMapper;
 import com.autoescuela.erp.usuarios.model.Administrador;
@@ -297,7 +298,7 @@ public class UsuarioService
 
         if (dto.getFechaNacimiento() != null)
         {
-            LocalDate hoy = LocalDate.now();
+            LocalDate hoy = FechaHoraUtil.hoy();
             if (dto.getFechaNacimiento().plusYears(18).isAfter(hoy))
             {
                 throw new ReglaNegocioException("El administrador debe ser mayor de edad (al menos 18 años).");

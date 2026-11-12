@@ -1,6 +1,5 @@
 package com.autoescuela.erp.academico.service;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +19,7 @@ import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
@@ -106,7 +106,7 @@ public class AcademicoService
             matricula.setSaldoClases(0);
             matricula.setConvocatoriasGastadas(0);
             matricula.setPrecio(importeTotal);
-            matricula.setFechaMatriculacion(LocalDate.now());
+            matricula.setFechaMatriculacion(FechaHoraUtil.hoy());
             matricula.setTipo(TipoMatricula.NUEVA);
             matricula.setModalidad(modalidad != null ? modalidad : ModalidadMatricula.TEORICO_PRACTICA);
             matricula.setAlumno(alumno);
