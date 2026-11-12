@@ -5,17 +5,29 @@
 ---
 
 <p align="center">
+  <a href="https://mands-mu4p.onrender.com" target="_blank">
+    <img src="https://img.shields.io/badge/App_en_Vivo-Render-46E3B7?style=for-the-badge&logo=render&logoColor=0f172a" alt="Ver aplicación desplegada en Render" />
+  </a>
+  <img src="https://img.shields.io/badge/Tests-536%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas: 536 tests superados" />
+  <a href="https://sonarcloud.io/project/overview?id=antonioabadpro_ManDS" target="_blank">
+    <img src="https://img.shields.io/badge/SonarQube_Cloud-Quality_Gate-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Análisis en SonarQube Cloud" />
+  </a>
+  <a href="https://hub.docker.com/r/antonioabadpro/mands" target="_blank">
+    <img src="https://img.shields.io/badge/Docker_Hub-mands:latest-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Imagen Docker en Docker Hub" />
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
   <img src="https://img.shields.io/badge/Spring_Boot-4.1.2-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot 4.1.2" />
   <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=thymeleaf&logoColor=white" alt="Thymeleaf" />
   <img src="https://img.shields.io/badge/HTMX-3366CC?style=for-the-badge&logo=htmx&logoColor=white" alt="HTMX" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/Brevo_SMTP-0B996F?style=for-the-badge&logo=brevo&logoColor=white" alt="Brevo" />
-  <img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
-  <img src="https://img.shields.io/badge/Tests-471%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas" />
+  <img src="https://img.shields.io/badge/Brevo_REST_API-0B996F?style=for-the-badge&logo=brevo&logoColor=white" alt="Brevo REST API v3" />
 </p>
+
+> 🌐 **Aplicación desplegada en producción:** [https://mands-mu4p.onrender.com](https://mands-mu4p.onrender.com) *(haz clic en el enlace o en el badge **App en Vivo** para probarla directamente)*.
 
 ---
 
@@ -58,14 +70,15 @@ La plataforma se fundamenta en una arquitectura monolítica modular orientada a 
        ┌────────────────────────────────────────────────────────┐
        │              Capa de Servicios y Dominio               │
        │   Package-by-Feature: academico · auth · practicas ·   │
-       │   flota · examenes · pagos · usuarios · core           │
+       │   flota · examenes · pagos · usuarios · estadisticas · │
+       │   core                                                 │
        └──────────────┬──────────────────────────┬──────────────┘
                       │                          │
         Transacciones │ JPA / Hibernate          │ API / Webhooks
                       ▼                          ▼
        ┌──────────────────────────┐   ┌─────────────────────────┐
        │  PostgreSQL (Supabase)   │   │     Pasarelas y Correo  │
-       │  H2 Database (Pruebas)   │   │  Stripe API · Brevo SMTP│
+       │  H2 Database (Pruebas)   │   │ Stripe API · Brevo API  │
        └──────────────────────────┘   └─────────────────────────┘
 ```
 
@@ -75,19 +88,22 @@ La plataforma se fundamenta en una arquitectura monolítica modular orientada a 
   - **Spring Data JPA & Hibernate:** Mapeo objeto-relacional optimizado, bloqueos de concurrencia e índices únicos a nivel de persistencia.
   - **Bean Validation & MapStruct:** Validación declarativa de DTOs tipados con Records y transformación eficiente entre entidades y vistas.
 - **Frontend (HTML-over-the-wire con Thymeleaf + HTMX + Tailwind CSS):**
-  - **Enfoque HTML-over-the-wire:** Se descartan los frameworks JavaScript pesados del lado cliente (SPA) para erradicar la duplicación de modelos y la sobrecarga de dependencias. **HTMX** proporciona una experiencia de usuario ultra-fluida mediante peticiones asíncronas parciales (`hx-get`, `hx-post`, `hx-target`, `hx-swap`), logrando reactividad en tiempo real sin abandonar el renderizado seguro en servidor.
-  - **Tailwind CSS:** Diseño totalmente adaptativo (*mobile-first*), garantizando coherencia visual en smartphones (<640px), tablets (768px) y estaciones de escritorio (≥1024px) con soporte nativo de modo oscuro (`dark:`).
+  - **Enfoque HTML-over-the-wire:** Se descartan los frameworks JavaScript pesados del lado cliente (SPA) para erradicar la duplicación de modelos y la sobrecarga de dependencias. **HTMX** (auto-hospedado en local) proporciona una experiencia de usuario ultra-fluida mediante peticiones asíncronas parciales (`hx-get`, `hx-post`, `hx-target`, `hx-swap`), logrando reactividad en tiempo real sin abandonar el renderizado seguro en servidor.
+  - **Tailwind CSS:** Compilado estáticamente con CLI a `tailwind.min.css` junto con la tipografía corporativa **Inter** en local (sin CDNs externos). Diseño totalmente adaptativo (*mobile-first*), garantizando coherencia visual en smartphones (<640px), tablets (768px) y estaciones de escritorio (≥1024px) con soporte nativo de modo oscuro (`dark:`).
   - **JavaScript No Intrusivo:** Cumplimiento estricto de directivas CSP (sin JS inline). Scripts modulares en `src/main/resources/static/js/` asociados mediante eventos del DOM y atributos semánticos `data-*`.
 - **Persistencia y Datos:**
-  - **PostgreSQL:** Base de datos relacional principal alojada en Supabase o en contenedor Docker local, configurada con índices de concurrencia y restricciones relacionales.
+  - **PostgreSQL:** Base de datos relacional principal alojada en Supabase (producción) o en contenedor Docker local, configurada con índices de concurrencia y restricciones relacionales.
   - **H2 Database:** Base de datos en memoria para la ejecución ultra-rápida, determinista y aislada de la batería de pruebas automatizadas.
 - **Integraciones Clave:**
   - **Stripe:** Pasarela de pagos con Stripe Checkout para la compra segura de bonos, clases y pagos de matrícula. Incluye conciliación asíncrona mediante webhooks con verificación criptográfica de firmas para prevenir ataques de repetición.
-  - **Servidor de Correo (Mailpit / Brevo SMTP):** `JavaMailSender` integrado con **Mailpit** para interceptar y validar visualmente los emails transaccionales en local (puerto 8025), y con el servicio **Brevo SMTP** en producción para el envío de credenciales, citaciones a examen y notificaciones.
+  - **Mensajería Transaccional Segregada (Brevo REST API v3 / Mailpit SMTP):** Despacho asíncrono gestionado por `EmailAsyncDispatcher`:
+    - **Producción (`deploy` en Render):** Envío exclusivo mediante la **REST API v3 de Brevo** sobre HTTPS (puerto 443) usando `HttpClient` nativo, evitando los bloqueos del tráfico SMTP saliente en proveedores cloud.
+    - **Desarrollo Local y Docker (`docker`):** Envío mediante `JavaMailSender` sobre protocolo SMTP hacia **Mailpit** (puerto `1025`) para interceptar y validar visualmente todos los correos en su interfaz web (puerto `8025`) sin consumir cuota.
 - **Arquitectura Package-by-Feature:** Organización modular del código en paquetes según el dominio de negocio:
   - `com.autoescuela.erp.academico`: Ciclo de vida de matrículas, modalidades y saldo formativo.
   - `com.autoescuela.erp.auth`: Autenticación, tokens efímeros, activación de cuentas y recuperación de accesos.
-  - `com.autoescuela.erp.core`: Configuración transversal, seguridad perimetral, excepciones de negocio y utilidades de calendario.
+  - `com.autoescuela.erp.core`: Configuración transversal, seguridad perimetral, mensajería, excepciones de negocio y utilidades de calendario.
+  - `com.autoescuela.erp.estadisticas`: Cuadros de mando, métricas de rendimiento, tasas de aprobados y desglose financiero por rol.
   - `com.autoescuela.erp.examenes`: Solicitudes, cupos y convocatorias oficiales de la DGT.
   - `com.autoescuela.erp.flota`: Gestión integral del parque móvil, mantenimientos e incidencias de averías.
   - `com.autoescuela.erp.pagos`: Servicios de pago Stripe, checkout y escucha de webhooks.
@@ -171,39 +187,49 @@ El sistema implementa un estricto modelo de Control de Acceso Basado en Roles (R
 | **Stripe Java SDK** | `v33.4.2` | Integración de sesiones Checkout y verificación criptográfica de Webhooks |
 | **MapStruct** | `v1.6.3` | Mapeo tipado en tiempo de compilación entre entidades y DTOs |
 | **Lombok MapStruct Binding**| `v0.2.0` | Generación de código boilerplate y compatibilidad con MapStruct |
-| **Docker Desktop** | `v4.97.0` | Orquestación de contenedores locales (PostgreSQL 16 + Mailpit) |
+| **Tailwind CSS / HTMX** | `v3.4.17` / `v1.9.12` | Compilación estática de estilos y actualización parcial HTML-over-the-wire |
+| **JaCoCo** | `v0.8.16` | Cobertura de código integrada en Maven (`verify`) y SonarQube Cloud |
+| **Docker Desktop** | `v4.97.0` | Orquestación de contenedores locales (PostgreSQL 16 + Mailpit + ManDS App) |
 
 ---
 
-## 5. Guía de Instalación en Docker (Entorno Local)
+## 5. Guía de Ejecución en Docker (Entorno Local)
 
-Sigue estos pasos para desplegar en tu equipo local la infraestructura completa de base de datos PostgreSQL y el servidor de correo virtual junto con la aplicación Spring Boot:
+No es necesario clonar el repositorio ni instalar Java o Maven para probar la aplicación completa en tu equipo. El archivo [`docker-compose.yaml`](docker-compose.yaml) orquesta automáticamente los **3 contenedores** del sistema (`postgres_tfg`, `mailpit_tfg` y `mands_app`) descargando la imagen oficial precompilada `antonioabadpro/mands:latest` desde Docker Hub.
 
-#### - Clonar el repositorio
+### Opción A: Ejecución rápida solo con Docker (Sin clonar el repositorio)
+
+1. **Descargar únicamente el fichero `docker-compose.yaml`** en una carpeta vacía:
+   ```bash
+   curl -O https://raw.githubusercontent.com/antonioabadpro/ManDS/main/docker-compose.yaml
+   ```
+   *(También puedes descargarlo directamente desde GitHub mediante "Download raw file").*
+
+2. **Levantar los 3 contenedores en segundo plano:**
+   ```bash
+   docker compose up -d
+   ```
+   > **Nota sobre variables de entorno:** El archivo `.env` es opcional. Si no está presente, la aplicación arranca automáticamente con la configuración predeterminada del perfil `docker` (PostgreSQL + Mailpit) y opera las pasarelas de Stripe en modo simulación. Si deseas probar pagos reales en modo test de Stripe, crea un `.env` junto al `docker-compose.yaml` con `STRIPE_PUBLIC_KEY`, `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET`.
+
+### Opción B: Para desarrollo (Clonando el repositorio)
+
+Si deseas modificar el código fuente y ejecutarlo o reconstruir la imagen localmente:
 ```bash
 git clone https://github.com/antonioabadpro/ManDS.git
 cd ManDS
+docker compose up -d --build
 ```
-
-#### - Levantar la infraestructura base (PostgreSQL + Mailpit)
-Levanta los contenedores en segundo plano mediante Docker Compose:
+O bien, levantando únicamente la infraestructura auxiliar (`postgres` y `mailpit`) y ejecutando Spring Boot con el Maven Wrapper:
 ```bash
-docker compose up -d
-```
-
-#### - Variables de entorno locales
-El archivo `.env` en la raíz del proyecto (ignorado por Git por seguridad) contiene la configuración predeterminada para el entorno local con Docker (`postgres_tfg`) y Mailpit. Docker Compose cargará automáticamente estas variables al iniciar.
-
-#### - Compilar y arrancar la aplicación
-Ejecuta la aplicación utilizando el Maven Wrapper indicando el perfil de desarrollo para Docker:
-```bash
+docker compose up -d postgres mailpit
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=docker
 ```
 
 #### Puntos de Acceso a los Servicios Locales:
-- 🌐 **Aplicación Web:** [http://localhost:8080](http://localhost:8080)
-- 🗃️ **Base de datos en memoria (H2)**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
-- 📬 **Buzón de Correo Virtual (Mailpit):** [http://localhost:8025](http://localhost:8025)
+- 🌐 **Aplicación Web (ManDS):** [http://localhost:8080](http://localhost:8080)
+- 📬 **Buzón de Correo Virtual (Mailpit - SMTP en puerto 1025):** [http://localhost:8025](http://localhost:8025)
+- 🐘 **Base de Datos PostgreSQL (Docker):** `localhost:5432` (BD: `tfg_db`)
+- 🗃️ **Consola H2 en memoria *(solo si ejecutas con perfil `h2`)*:** [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 
 ---
 
@@ -231,7 +257,7 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 ```
 
 ### Resultados de la Batería de Pruebas:
-> 🟢 **471 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
+> 🟢 **536 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
 
 ```
 [INFO] -------------------------------------------------------
@@ -242,10 +268,10 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 ...
 [INFO] Running com.autoescuela.erp.usuarios.VistaProfesorTest
 [INFO] Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
-...
-[INFO] -------------------------------------------------------
+[INFO]
 [INFO] Results:
-[INFO] Tests run: 471, Failures: 0, Errors: 0, Skipped: 0
+[INFO]
+[INFO] Tests run: 536, Failures: 0, Errors: 0, Skipped: 0
 [INFO] -------------------------------------------------------
 [INFO] BUILD SUCCESS
 ```
@@ -260,33 +286,57 @@ Las pruebas cubren de forma minuciosa:
 
 ---
 
-## 8. Estructura del Repositorio
+## 8. Despliegue en Vivo y Pipeline CI/CD
+
+### 🌐 Entorno de Producción en Vivo
+La aplicación se encuentra desplegada y accesible públicamente en **Render**:
+- **URL de Acceso:** [https://mands-mu4p.onrender.com](https://mands-mu4p.onrender.com)
+- **Topología Cloud:** Contenedor Docker (JRE 21 Alpine optimizado para 512 MB de RAM con perfil `deploy`), base de datos **PostgreSQL** gestionada en **Supabase** (Connection Pooler IPv4 con SSL), pasarela de pagos **Stripe Checkout** y correo transaccional mediante **Brevo REST API v3** sobre HTTPS (puerto 443).
+- *(Nota: Al ejecutarse en el plan gratuito de Render, el servicio entra en reposo tras un periodo de inactividad. Para evitar suspensiones por inactividad, utilizamos UptimeRobot para hacer peticiones a /ping cada 5min).*
+
+### ⚙️ Automatización CI/CD (GitHub Actions)
+El repositorio cuenta con un pipeline unificado en [`.github/workflows/ci_cd.yaml`](.github/workflows/ci_cd.yaml) dividido en dos fases encadenadas:
+1. **Integración Continua y Calidad (`build`):**
+   - En cada `push` a `dev` ejecuta `mvn -B clean verify`, validando compilación, la batería completa de **536 tests** y el reporte de cobertura con **JaCoCo** (`0.8.16`).
+   - En `push` a `main` y en *Pull Requests* hacia `main` ejecuta además el análisis estático de código, cobertura y seguridad en **SonarQube Cloud** (`antonioabadpro_ManDS`).
+2. **Entrega Continua (`docker-publish`):**
+   - Condicionado al éxito previo de `build` (`needs: build`) y restringido exclusivamente a `push` en `main`.
+   - Construye la imagen **multi-stage** definida en [`Dockerfile`](Dockerfile) (compilación estática de **Tailwind CSS** en Node 22 Alpine → empaquetado Maven → imagen final ligera `eclipse-temurin:21-jre-alpine` con usuario no privilegiado) para `linux/amd64` y la publica automáticamente en Docker Hub como `antonioabadpro/mands:latest`.
+
+---
+
+## 9. Estructura del Repositorio
 
 ```
-├── docs/                 # Registro de decisiones de arquitectura (ADRs) y reglas
-├── Diagramas/            # Diagramas PlantUML (Casos de Uso, Entidad-Relación)
+├── .github/workflows/        # Pipeline CI/CD (Maven, JaCoCo, SonarQube Cloud y Docker Hub)
+├── Diagramas/                # Diagramas PlantUML (ER, CU, Componentes, Despliegue, Estados y Secuencia)
+├── docs/                     # Especificación de arquitectura, ADRs y auditoría de datos semilla
 ├── src/
 │   ├── main/
 │   │   ├── java/com/autoescuela/erp/
 │   │   │   ├── academico/    # Módulo de matrículas y compras
 │   │   │   ├── auth/         # Autenticación, tokens y registro
-│   │   │   ├── core/         # Configuración global, seguridad y servicios transversales
+│   │   │   ├── core/         # Configuración global, seguridad, mensajería y calendario
+│   │   │   ├── estadisticas/ # Cuadros de mando y analítica agregada por rol
 │   │   │   ├── examenes/     # Solicitudes y cupos DGT
 │   │   │   ├── flota/        # Gestión de vehículos e incidencias
 │   │   │   ├── pagos/        # Integración con Stripe (checkout y webhooks)
 │   │   │   ├── practicas/    # Calendario y reservas de clases
 │   │   │   └── usuarios/     # Entidades y flujos de Alumno, Profesor y Admin
 │   │   └── resources/
-│   │       ├── static/       # Estilos Tailwind y scripts por vista
-│   │       └── templates/    # Vistas y fragmentos Thymeleaf / HTMX
-│   └── test/                 # Batería de pruebas unitarias y de integración
-├── docker-compose.yaml       # Servicios auxiliares (DB, Mailpit)
-└── pom.xml                   # Configuración y dependencias Maven
+│   │       ├── static/       # CSS compilado (Tailwind), fuentes Inter, imágenes y JS por vista
+│   │       └── templates/    # Vistas y fragmentos Thymeleaf / HTMX por rol
+│   └── test/                 # Batería de pruebas unitarias y de integración (536 tests)
+├── Dockerfile                # Build multi-stage (Node 22 + Maven/JDK 21 + JRE 21 Alpine)
+├── docker-compose.yaml       # Orquestación local (PostgreSQL 16, Mailpit y ManDS App)
+├── package.json              # Scripts de compilación Tailwind CSS y activos frontend locales
+├── tailwind.config.js        # Configuración corporativa de estilos Tailwind
+└── pom.xml                   # Configuración Maven, dependencias, JaCoCo y SonarQube Cloud
 ```
 
 ---
 
-## 9. 📑 Documentación y Memoria Técnica del Proyecto
+## 10. 📑 Documentación y Memoria Técnica del Proyecto
 
 El desarrollo del proyecto está acompañado por un compendio de documentación arquitectónica y de diseño que fundamenta cada decisión técnica adoptada:
 
@@ -296,6 +346,9 @@ El desarrollo del proyecto está acompañado por un compendio de documentación 
 - 📊 **Diagramas Oficiales del Sistema:**
   - [Diagrama Entidad-Relación (PlantUML)](Diagramas/Diagrama_ER.puml)
   - [Diagrama de Casos de Uso (PlantUML)](Diagramas/Diagrama_CU.puml)
+  - [Diagrama de Componentes (PlantUML)](Diagramas/Diagrama_Componentes.puml)
+  - [Diagrama de Despliegue (PlantUML)](Diagramas/Diagrama_Despliegue.puml)
+  - [Diagrama de Estados del Dominio (PlantUML)](Diagramas/Diagrama_Estados_Dominio.puml)
 
 [![Memoria Técnica](https://img.shields.io/badge/PDF-Ver_Memoria_Técnica-EC1C24?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://github.com/antonioabadpro/ManDS/docs/Memoria_ManDS.pdf)
 
@@ -303,7 +356,7 @@ El desarrollo del proyecto está acompañado por un compendio de documentación 
 
 ---
 
-## 10. 👤 Autor
+## 11. 👤 Autor
 
 **Antonio Abad Hernández Gálvez** <br>
 *Proyecto realizado para la Universidad de Huelva (UHU)*
@@ -316,7 +369,7 @@ El desarrollo del proyecto está acompañado por un compendio de documentación 
 
 ---
 
-## 11. ©️ Licencia y Derechos de Autor
+## 12. ©️ Licencia y Derechos de Autor
 
 © 2026. Antonio Abad Hernández Gálvez.
 Todos los derechos reservados.
