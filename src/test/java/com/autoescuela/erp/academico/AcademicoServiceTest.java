@@ -1,5 +1,6 @@
 package com.autoescuela.erp.academico;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.email.EmailService;
+import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoMatricula;
@@ -22,7 +24,9 @@ import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -270,5 +274,162 @@ class AcademicoServiceTest
         // Segunda llamada con el mismo sessionId no debe duplicar la suma
         Matricula segunda = this.academicoService.renovarMatriculaTrasPago(alumnoId, "cs_test_idempotente_rep", 250.00f);
         assertEquals(500.00f, segunda.getPrecio());
+    }
+
+    @Test
+    @DisplayName("matricularTrasPago activa un alumno INACTIVO y asigna modalidad TEORICO_PRACTICA si es nula")
+    void testMatricularTrasPagoActivaAlumnoInactivoYModalidadNula()
+    {
+        Long alumnoId = 15L;
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setNombre("Carlos");
+        alumno.setCorreo("carlos@mands.es");
+        alumno.setEstado(EstadoUsuario.INACTIVO);
+
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.save(any(Alumno.class))).thenAnswer(i -> i.getArgument(0));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(i -> i.getArgument(0));
+
+        Matricula resultado = this.academicoService.matricularTrasPago(alumnoId, "PERMISO_A2", null, 250.0f);
+
+        assertEquals(EstadoUsuario.ACTIVO, alumno.getEstado());
+        assertEquals(ModalidadMatricula.TEORICO_PRACTICA, resultado.getModalidad());
+        assertEquals(TipoCarnet.PERMISO_A2, resultado.getPermisoCarnet());
+        verify(this.alumnoRepository).save(alumno);
+    }
+
+    @Test
+    @DisplayName("matricularTrasPago lanza ReglaNegocioException cuando el tipo de carnet es nulo o vacío")
+    void testMatricularTrasPagoCarnetNuloOVacio()
+    {
+        Long alumnoId = 16L;
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+        alumno.setEstado(EstadoUsuario.ACTIVO);
+
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
+
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.matricularTrasPago(alumnoId, null, ModalidadMatricula.PRACTICA, 250.0f));
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.matricularTrasPago(alumnoId, "   ", ModalidadMatricula.PRACTICA, 250.0f));
+    }
+
+    @Test
+    @DisplayName("recargarSaldoClasesTrasPago valida parámetros, convocatorias y alumno existente")
+    void testRecargarSaldoClasesTrasPagoValidaciones()
+    {
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.recargarSaldoClasesTrasPago(null, 5, "cs_1"));
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.recargarSaldoClasesTrasPago(1L, 0, "cs_1"));
+
+        when(this.alumnoRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.recargarSaldoClasesTrasPago(99L, 5, "cs_1"));
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 1L);
+        when(this.alumnoRepository.findById(1L)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.recargarSaldoClasesTrasPago(1L, 5, "cs_1"));
+
+        Matricula agotada = new Matricula();
+        agotada.setEstaActiva(true);
+        agotada.setConvocatorias(0);
+        agotada.setConvocatoriasGastadas(2);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(agotada));
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.recargarSaldoClasesTrasPago(1L, 5, "cs_1"));
+    }
+
+    @Test
+    @DisplayName("recargarSaldoClasesTrasPago suma saldo inicial nulo, respeta idempotencia y admite sessionId vacío")
+    void testRecargarSaldoClasesTrasPagoExitoEIdempotencia()
+    {
+        Long alumnoId = 20L;
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", alumnoId);
+
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setConvocatorias(2);
+        matricula.setConvocatoriasGastadas(0);
+        matricula.setSaldoClases(null);
+
+        when(this.alumnoRepository.findById(alumnoId)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(i -> i.getArgument(0));
+
+        Matricula primera = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, 10, "cs_recarga_unica");
+        assertEquals(10, primera.getSaldoClases());
+
+        // Reintento con mismo sessionId no duplica saldo
+        Matricula duplicada = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, 10, "cs_recarga_unica");
+        assertEquals(10, duplicada.getSaldoClases());
+
+        // Con sessionId nulo o blanco vuelve a recargar normalmente sobre saldo no nulo
+        Matricula sinSessionNula = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, 5, null);
+        assertEquals(15, sinSessionNula.getSaldoClases());
+
+        Matricula sinSessionBlanca = this.academicoService.recargarSaldoClasesTrasPago(alumnoId, 1, "  ");
+        assertEquals(16, sinSessionBlanca.getSaldoClases());
+    }
+
+    @Test
+    @DisplayName("renovarMatriculaTrasPago valida parámetros y suma sobre precio nulo sin sessionId")
+    void testRenovarMatriculaTrasPagoValidacionesYPrecioNulo()
+    {
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.renovarMatriculaTrasPago(null, "cs_ren", 250.0f));
+
+        when(this.alumnoRepository.findById(88L)).thenReturn(Optional.empty());
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.renovarMatriculaTrasPago(88L, "cs_ren", 250.0f));
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 8L);
+        when(this.alumnoRepository.findById(8L)).thenReturn(Optional.of(alumno));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        assertThrows(ReglaNegocioException.class,
+                () -> this.academicoService.renovarMatriculaTrasPago(8L, "cs_ren", 250.0f));
+
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setPrecio(null);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.save(any(Matricula.class))).thenAnswer(i -> i.getArgument(0));
+
+        Matricula renovada = this.academicoService.renovarMatriculaTrasPago(8L, null, 250.0f);
+        assertEquals(250.0f, renovada.getPrecio());
+        assertEquals(2, renovada.getConvocatorias());
+        assertEquals(TipoMatricula.RENOVACION, renovada.getTipo());
+
+        Matricula renovadaSinSessionBlanca = this.academicoService.renovarMatriculaTrasPago(8L, "  ", 100.0f);
+        assertEquals(350.0f, renovadaSinSessionBlanca.getPrecio());
+    }
+
+    @Test
+    @DisplayName("Consultas auxiliares y guardar gestionan alumno nulo y delegan en el repositorio")
+    void testConsultasAuxiliaresYGuardar()
+    {
+        assertTrue(this.academicoService.buscarMatriculaActiva(null).isEmpty());
+        assertTrue(this.academicoService.obtenerHistoricoMatriculas(null).isEmpty());
+        assertTrue(this.academicoService.obtenerUltimaMatricula(null).isEmpty());
+
+        Alumno alumno = new Alumno();
+        Matricula matricula = new Matricula();
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.findByAlumnoOrderByFechaMatriculacionDesc(alumno)).thenReturn(List.of(matricula));
+        when(this.matriculaRepository.findFirstByAlumnoOrderByIdDesc(alumno)).thenReturn(Optional.of(matricula));
+        when(this.matriculaRepository.save(matricula)).thenReturn(matricula);
+
+        assertTrue(this.academicoService.buscarMatriculaActiva(alumno).isPresent());
+        assertFalse(this.academicoService.obtenerHistoricoMatriculas(alumno).isEmpty());
+        assertTrue(this.academicoService.obtenerUltimaMatricula(alumno).isPresent());
+        assertSame(matricula, this.academicoService.guardar(matricula));
     }
 }

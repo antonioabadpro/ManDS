@@ -596,4 +596,224 @@ class StripeWebhookControllerTest
 
         verify(this.academicoService).renovarMatriculaTrasPago(205L, "cs_test_renov_recover", 250.0f);
     }
+
+    @Test
+    @DisplayName("GET /pagos/checkout valida carnet inválido/ausente y muestra tarifa de pesados")
+    void testMostrarPasarelaCheckoutCarnetPesadoYErrores() throws Exception
+    {
+        this.mockMvc.perform(get("/pagos/checkout").param("tipoCarnet", "PERMISO_C"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/checkout"))
+                .andExpect(model().attribute("esVehiculoPesado", true))
+                .andExpect(model().attribute("importeTotal", "450,00"));
+
+        this.mockMvc.perform(get("/pagos/checkout").param("tipoCarnet", "CARNET_INVENTADO"))
+                .andExpect(status().is4xxClientError());
+
+        this.mockMvc.perform(get("/pagos/checkout"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @DisplayName("GET /pagos/checkout/success recupera desde Stripe y maneja recarga sin sesión")
+    void testCheckoutSuccessRecuperacionYRecargaSinDatos() throws Exception
+    {
+        Session stripeSession = new Session();
+        stripeSession.setId("sim_mat_123");
+        stripeSession.setPaymentStatus("paid");
+        stripeSession.setAmountTotal(45000L);
+        stripeSession.setMetadata(Map.of(
+                "tipoOperacion", "MATRICULA",
+                "alumnoId", "210",
+                "tipoCarnet", "PERMISO_C",
+                "modalidad", "MODALIDAD_DESCONOCIDA"
+        ));
+
+        Alumno alumno = new Alumno();
+        alumno.setNombre("Mario");
+        Matricula matriculaMock = new Matricula();
+        matriculaMock.setAlumno(alumno);
+        matriculaMock.setPermisoCarnet(TipoCarnet.PERMISO_C);
+
+        when(this.pagoStripeService.obtenerSesionStripe("sim_mat_123")).thenReturn(stripeSession);
+        when(this.academicoService.matricularTrasPago(eq(210L), eq("PERMISO_C"), any(), eq(450.0f))).thenReturn(matriculaMock);
+
+        this.mockMvc.perform(get("/pagos/checkout/success").param("session_id", "sim_mat_123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/matricula-success"))
+                .andExpect(model().attribute("esSimulado", true))
+                .andExpect(model().attribute("importeTotal", "450,00"));
+
+        // Sin HttpSession ni session_id: valores por defecto
+        this.mockMvc.perform(get("/pagos/checkout/success"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/matricula-success"))
+                .andExpect(model().attribute("importeTotal", "250,00"));
+    }
+
+    @Test
+    @DisplayName("GET /pagos/clases/success, /renovacion/success y cancelaciones con HttpSession cubren todas las ramas")
+    void testSuccessYCancelacionesConHttpSessionYFallbacks() throws Exception
+    {
+        MockHttpSession sesionClases = new MockHttpSession();
+        sesionClases.setAttribute("pagoClases_alumnoId", 200L);
+        sesionClases.setAttribute("pagoClases_numero", 5);
+        sesionClases.setAttribute("pagoClases_importe", 150.0f);
+        sesionClases.setAttribute("pagoClases_tipoCarnet", "PERMISO_B");
+
+        Matricula matClases = new Matricula();
+        matClases.setSaldoClases(8);
+        matClases.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        when(this.academicoService.recargarSaldoClasesTrasPago(200L, 5, "sim_clases_1")).thenReturn(matClases);
+
+        this.mockMvc.perform(get("/pagos/clases/success").session(sesionClases).param("session_id", "sim_clases_1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/clases-success"))
+                .andExpect(model().attribute("saldoTotal", 8))
+                .andExpect(model().attribute("esSimulado", true));
+
+        // Metadata numérica inválida y tipoOperacion distinto al esperado
+        Session badSession = new Session();
+        badSession.setId("cs_bad_meta");
+        badSession.setPaymentStatus("paid");
+        badSession.setMetadata(Map.of(
+                "tipoOperacion", "CLASES_PRACTICAS",
+                "alumnoId", "abc",
+                "numeroClases", "xyz"
+        ));
+        when(this.pagoStripeService.obtenerSesionStripe("cs_bad_meta")).thenReturn(badSession);
+
+        this.mockMvc.perform(get("/pagos/clases/success").param("session_id", "cs_bad_meta"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("numeroClases", 0));
+
+        Session wrongOpSession = new Session();
+        wrongOpSession.setId("cs_wrong_op");
+        wrongOpSession.setPaymentStatus("paid");
+        wrongOpSession.setMetadata(Map.of("tipoOperacion", "OTRA_COSA", "alumnoId", "200"));
+        when(this.pagoStripeService.obtenerSesionStripe("cs_wrong_op")).thenReturn(wrongOpSession);
+
+        this.mockMvc.perform(get("/pagos/renovacion/success").param("session_id", "cs_wrong_op"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/renovacion-success"))
+                .andExpect(model().attribute("importeTotal", "250,00"));
+
+        // Renovación exitosa desde HttpSession
+        MockHttpSession sesionRenov = new MockHttpSession();
+        sesionRenov.setAttribute("pagoRenovacion_alumnoId", 206L);
+        sesionRenov.setAttribute("pagoRenovacion_importe", 250.0f);
+        sesionRenov.setAttribute("pagoRenovacion_tipoCarnet", "PERMISO_B");
+        Matricula matRenov = new Matricula();
+        matRenov.setConvocatorias(2);
+        matRenov.setPermisoCarnet(TipoCarnet.PERMISO_B);
+        when(this.academicoService.renovarMatriculaTrasPago(206L, "cs_renov_ok", 250.0f)).thenReturn(matRenov);
+
+        this.mockMvc.perform(get("/pagos/renovacion/success").session(sesionRenov).param("session_id", "cs_renov_ok"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/renovacion-success"))
+                .andExpect(model().attribute("convocatorias", 2));
+
+        // Cancelaciones clases y renovación + checkout sin alumnoId
+        this.mockMvc.perform(get("/pagos/checkout/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/matricula-cancel"));
+
+        this.mockMvc.perform(get("/pagos/clases/cancel").session(sesionClases))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/clases-cancel"));
+
+        this.mockMvc.perform(get("/pagos/renovacion/cancel").session(sesionRenov))
+                .andExpect(status().isOk())
+                .andExpect(view().name("pagos/renovacion-cancel"));
+    }
+
+    @Test
+    @DisplayName("POST /pagos/webhook maneja metadata corrupta, errores permanentes en clases/renovación/expiración y eventos desconocidos")
+    void testWebhookMetadataInvalidaYExcepcionesSilenciadas() throws Exception
+    {
+        doThrow(new ReglaNegocioException("Error clases")).when(this.academicoService)
+                .recargarSaldoClasesTrasPago(eq(205L), eq(10), eq("cs_err_clases"));
+        doThrow(new ReglaNegocioException("Error renov")).when(this.academicoService)
+                .renovarMatriculaTrasPago(eq(205L), eq("cs_err_renov"), anyFloat());
+        doThrow(new ReglaNegocioException("Alumno ya activo")).when(this.autenticacionService)
+                .eliminarAlumnoInactivoPorId(205L);
+
+        // Error ReglaNegocioException en CLASES_PRACTICAS
+        String payloadClases = String.format("""
+        {
+          "id": "evt_err_clases",
+          "object": "event",
+          "api_version": "%s",
+          "type": "checkout.session.completed",
+          "data": { "object": { "id": "cs_err_clases", "object": "checkout.session", "amount_total": 27000,
+            "metadata": { "tipoOperacion": "CLASES_PRACTICAS", "alumnoId": "205", "numeroClases": "10", "modalidad": "INVALIDA" } } }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", generarStripeSignatureHeader(payloadClases, "whsec_dummy_secret_for_testing"))
+                        .contentType(MediaType.APPLICATION_JSON).content(payloadClases))
+                .andExpect(status().isOk());
+
+        // Error ReglaNegocioException en RENOVACION_MATRICULA
+        String payloadRenov = String.format("""
+        {
+          "id": "evt_err_renov",
+          "object": "event",
+          "api_version": "%s",
+          "type": "checkout.session.completed",
+          "data": { "object": { "id": "cs_err_renov", "object": "checkout.session", "amount_total": 25000,
+            "metadata": { "tipoOperacion": "RENOVACION_MATRICULA", "alumnoId": "205" } } }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", generarStripeSignatureHeader(payloadRenov, "whsec_dummy_secret_for_testing"))
+                        .contentType(MediaType.APPLICATION_JSON).content(payloadRenov))
+                .andExpect(status().isOk());
+
+        // Metadata numérica no válida y operación desconocida
+        String payloadBadMeta = String.format("""
+        {
+          "id": "evt_bad_meta",
+          "object": "event",
+          "api_version": "%s",
+          "type": "checkout.session.completed",
+          "data": { "object": { "id": "cs_bad", "object": "checkout.session",
+            "metadata": { "tipoOperacion": "DESCONOCIDA", "alumnoId": "nan" } } }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", generarStripeSignatureHeader(payloadBadMeta, "whsec_dummy_secret_for_testing"))
+                        .contentType(MediaType.APPLICATION_JSON).content(payloadBadMeta))
+                .andExpect(status().isOk());
+
+        // Sesión expirada con ReglaNegocioException al purgar + evento desconocido
+        String payloadExpiredErr = String.format("""
+        {
+          "id": "evt_exp_err",
+          "object": "event",
+          "api_version": "%s",
+          "type": "checkout.session.expired",
+          "data": { "object": { "id": "cs_exp", "object": "checkout.session",
+            "metadata": { "tipoOperacion": "MATRICULA", "alumnoId": "205" } } }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", generarStripeSignatureHeader(payloadExpiredErr, "whsec_dummy_secret_for_testing"))
+                        .contentType(MediaType.APPLICATION_JSON).content(payloadExpiredErr))
+                .andExpect(status().isOk());
+
+        String payloadUnknownEvt = String.format("""
+        {
+          "id": "evt_unknown",
+          "object": "event",
+          "api_version": "%s",
+          "type": "payment_intent.created",
+          "data": { "object": { "id": "pi_1", "object": "payment_intent" } }
+        }
+        """, com.stripe.Stripe.API_VERSION);
+        this.mockMvc.perform(post("/pagos/webhook")
+                        .header("Stripe-Signature", generarStripeSignatureHeader(payloadUnknownEvt, "whsec_dummy_secret_for_testing"))
+                        .contentType(MediaType.APPLICATION_JSON).content(payloadUnknownEvt))
+                .andExpect(status().isOk());
+    }
 }

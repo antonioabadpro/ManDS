@@ -1,5 +1,6 @@
 package com.autoescuela.erp.usuarios.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -22,10 +25,17 @@ import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
+import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
+import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoResumenDTO;
+import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
 import com.autoescuela.erp.usuarios.dto.ReasignarAlumnoDTO;
 import com.autoescuela.erp.usuarios.mapper.AlumnoMapper;
 import com.autoescuela.erp.usuarios.model.Alumno;
@@ -36,11 +46,14 @@ import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -293,5 +306,161 @@ class AlumnoServiceTest
         assertEquals("Ana García", resultado.get(1).nombreCompleto());
         verify(this.clasePracticaRepository).countClasesPorAlumnoAndEstado(EstadoClase.PENDIENTE);
         verify(this.examenRepository).findAlumnoIdsConExamenAprobado(TipoExamen.TEORICO);
+    }
+
+    @Test
+    @DisplayName("obtenerAlumnoParaDetalle, puedeTenerProfesorAsignado y obtenerExpedienteAlumno gestionan nulos y detalles")
+    void testDetalleExpedienteYPuedeTenerProfesor()
+    {
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.obtenerAlumnoParaDetalle(null));
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.obtenerExpedienteAlumno(null));
+        assertFalse(this.alumnoService.puedeTenerProfesorAsignado(null));
+        assertFalse(this.alumnoService.puedeTenerProfesorAsignado(999L));
+        assertEquals(0, this.alumnoService.contarClasesPendientes(null));
+        assertEquals(0, this.alumnoService.contarClasesPendientes(999L));
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 210L);
+        Matricula mat = new Matricula();
+        mat.setEstaActiva(true);
+        alumno.setHistorialMatriculas(List.of(mat));
+
+        AlumnoDetalleDTO detalleDTO = new AlumnoDetalleDTO(210L, "Ana", "Gil", "Ana Gil", "AG", "anag",
+                EstadoUsuario.ACTIVO, "12345678Z", LocalDate.of(2000, 1, 1), 26, "Calle 1", "a@m.es", "600111222",
+                LocalDate.now(), 2026, 0, "menos de 1 año", true, TipoTurno.MATINAL, null, null, null, null, null, null, null,
+                TipoCarnet.PERMISO_B, "Permiso B");
+        AlumnoExpedienteDTO expedienteDTO = new AlumnoExpedienteDTO(210L, "Ana Gil", TipoCarnet.PERMISO_B,
+                "Permiso B", true, 5, 3L, 2, List.of(), List.of());
+
+        when(this.alumnoRepository.findWithDetallesById(210L)).thenReturn(Optional.of(alumno));
+        when(this.alumnoMapper.toAlumnoDetalleDTO(alumno, mat)).thenReturn(detalleDTO);
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(3);
+        when(this.clasePracticaRepository.findTop3ByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(new ClasePractica()));
+        when(this.examenRepository.findTop2ByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(new Examen()));
+        when(this.alumnoMapper.toAlumnoExpedienteDTO(eq(alumno), eq(mat), eq(3L), any(), any())).thenReturn(expedienteDTO);
+
+        assertSame(detalleDTO, this.alumnoService.obtenerAlumnoParaDetalle(210L));
+        assertSame(expedienteDTO, this.alumnoService.obtenerExpedienteAlumno(210L));
+    }
+
+    @Test
+    @DisplayName("reasignarProfesor valida dto nulo y mismo profesor actual")
+    void testReasignarProfesorValidacionesExtra()
+    {
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(null));
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.reasignarProfesor(new ReasignarAlumnoDTO(null, "REASIGNAR", 1L)));
+
+        Profesor actual = new Profesor();
+        ReflectionTestUtils.setField(actual, "id", 10L);
+        actual.setEstado(EstadoUsuario.ACTIVO);
+        actual.setListaTiposCarnet(List.of(TipoCarnet.PERMISO_B));
+
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 215L);
+        alumno.setEstado(EstadoUsuario.ACTIVO);
+        alumno.setProfesor(actual);
+
+        when(this.alumnoRepository.findById(215L)).thenReturn(Optional.of(alumno));
+
+        assertThrows(ReglaNegocioException.class,
+                () -> this.alumnoService.reasignarProfesor(new ReasignarAlumnoDTO(215L, "REASIGNAR", 10L)));
+    }
+
+    @Test
+    @DisplayName("Consultas auxiliares, obtenerAlumnoActual, actualizarPerfil, cambiarPassword y contactarAlumno")
+    void testConsultasPerfilPasswordYContacto()
+    {
+        Alumno alumno = new Alumno();
+        ReflectionTestUtils.setField(alumno, "id", 220L);
+        alumno.setNombre("Mario");
+        alumno.setApellidos("Sánchez");
+        alumno.setDni("12345678Z");
+        alumno.setCorreo("mario@mands.es");
+        alumno.setTelefono("600111222");
+        alumno.setNombreUsuario("marios");
+        alumno.setEstado(EstadoUsuario.ACTIVO);
+        alumno.actualizarPassword("hashActual");
+        Profesor profesor = new Profesor();
+
+        when(this.alumnoRepository.findByDni("12345678Z")).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findByNombreUsuario("marios")).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findByCorreo("mario@mands.es")).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findById(220L)).thenReturn(Optional.of(alumno));
+        when(this.alumnoRepository.findByProfesor(profesor)).thenReturn(List.of(alumno));
+        when(this.alumnoRepository.findByProfesorId(10L)).thenReturn(List.of(alumno));
+        when(this.alumnoRepository.countByEstado(EstadoUsuario.ACTIVO)).thenReturn(8L);
+        when(this.alumnoRepository.findAll()).thenReturn(List.of(alumno));
+        when(this.alumnoRepository.save(alumno)).thenReturn(alumno);
+
+        assertTrue(this.alumnoService.buscarPorDni("12345678Z").isPresent());
+        assertTrue(this.alumnoService.buscarPorNombreUsuario("marios").isPresent());
+        assertTrue(this.alumnoService.buscarPorCorreo("mario@mands.es").isPresent());
+        assertTrue(this.alumnoService.buscarPorId(220L).isPresent());
+        assertEquals(1, this.alumnoService.buscarPorProfesor(profesor).size());
+        assertEquals(1, this.alumnoService.buscarPorProfesorId(10L).size());
+        assertEquals(8L, this.alumnoService.contarPorEstado(EstadoUsuario.ACTIVO));
+        assertEquals(1, this.alumnoService.obtenerTodos().size());
+        assertSame(alumno, this.alumnoService.guardar(alumno));
+
+        // obtenerAlumnoActual
+        assertNull(this.alumnoService.obtenerAlumnoActual(new UserDetailsImpl(profesor)));
+        assertSame(alumno, this.alumnoService.obtenerAlumnoActual(new UserDetailsImpl(alumno)));
+        assertNull(this.alumnoService.obtenerAlumnoActual(new User("prof", "pw", List.of(new SimpleGrantedAuthority("ROLE_PROFESOR")))));
+        when(this.alumnoRepository.findByNombreUsuario("desconocido")).thenReturn(Optional.empty());
+        assertSame(alumno, this.alumnoService.obtenerAlumnoActual(new User("desconocido", "pw", List.of(new SimpleGrantedAuthority("ROLE_ALUMNO")))));
+        assertNull(this.alumnoService.obtenerAlumnoActual("otro"));
+
+        // actualizarPerfil
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.actualizarPerfil(null, new EditarPerfilAlumnoDTO()));
+
+        EditarPerfilAlumnoDTO dtoDniInvalido = new EditarPerfilAlumnoDTO(220L, "Mario", "Sánchez", "600111222", "Dir",
+                "mario@mands.es", LocalDate.of(2000, 1, 1), "99999999A", null, null, null, null, null, null, null, null, null, null, null, null);
+        when(this.usuarioService.esLetraDniValida("99999999A")).thenReturn(false);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.actualizarPerfil(220L, dtoDniInvalido));
+
+        when(this.usuarioService.esLetraDniValida("99999999A")).thenReturn(true);
+        when(this.personaRepository.existsByDniAndIdNot("99999999A", 220L)).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.actualizarPerfil(220L, dtoDniInvalido));
+
+        EditarPerfilAlumnoDTO dtoTelDup = new EditarPerfilAlumnoDTO(220L, "Mario", "Sánchez", "699888777", "Dir",
+                "mario@mands.es", LocalDate.of(2000, 1, 1), "12345678Z", null, null, null, null, null, null, null, null, null, null, null, null);
+        when(this.personaRepository.existsByTelefonoAndIdNot("699888777", 220L)).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.actualizarPerfil(220L, dtoTelDup));
+
+        EditarPerfilAlumnoDTO dtoCorreoDup = new EditarPerfilAlumnoDTO(220L, "Mario", "Sánchez", "600111222", "Dir",
+                "nuevo@mands.es", LocalDate.of(2000, 1, 1), "12345678Z", null, null, null, null, null, null, null, null, null, null, null, null);
+        when(this.personaRepository.existsByCorreoAndIdNot("nuevo@mands.es", 220L)).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.actualizarPerfil(220L, dtoCorreoDup));
+
+        when(this.personaRepository.existsByDniAndIdNot("87654321X", 220L)).thenReturn(false);
+        when(this.usuarioService.esLetraDniValida("87654321X")).thenReturn(true);
+        when(this.personaRepository.existsByTelefonoAndIdNot("611222333", 220L)).thenReturn(false);
+        when(this.personaRepository.existsByCorreoAndIdNot("nuevo@mands.es", 220L)).thenReturn(false);
+
+        EditarPerfilAlumnoDTO dtoOk = new EditarPerfilAlumnoDTO(220L, "Mario", "Sánchez", "611222333", "Nueva Dir",
+                "nuevo@mands.es", LocalDate.of(2000, 1, 1), "87654321X", null, null, null, null, null, null, null, null, null, null, null, null);
+        this.alumnoService.actualizarPerfil(220L, dtoOk);
+        assertEquals("87654321X", alumno.getDni());
+        assertEquals("611222333", alumno.getTelefono());
+
+        // cambiarPassword
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.cambiarPassword(null, "a", "123456", "123456"));
+        when(this.passwordEncoder.matches("mal", "hashActual")).thenReturn(false);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.cambiarPassword(220L, "mal", "123456", "123456"));
+
+        when(this.passwordEncoder.matches("ok", "hashActual")).thenReturn(true);
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.cambiarPassword(220L, "ok", "123", "123"));
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.cambiarPassword(220L, "ok", "123456", "654321"));
+
+        when(this.passwordEncoder.encode("nueva123")).thenReturn("hashNuevo");
+        this.alumnoService.cambiarPassword(220L, "ok", "nueva123", "nueva123");
+        assertEquals("hashNuevo", alumno.getPassword());
+
+        // contactarAlumno + fallback SMTP
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.contactarAlumno(null, "Asunto", "Msg"));
+        assertThrows(ReglaNegocioException.class, () -> this.alumnoService.contactarAlumno(999L, "Asunto", "Msg"));
+        doThrow(new RuntimeException("SMTP offline")).when(this.emailService)
+                .enviarNotificacionCorreo(anyString(), anyString(), anyString(), anyString(), eq(Rol.ALUMNO));
+        assertSame(alumno, this.alumnoService.contactarAlumno(220L, "Asunto", "Mensaje"));
     }
 }

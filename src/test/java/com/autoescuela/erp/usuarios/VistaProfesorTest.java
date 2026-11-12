@@ -490,4 +490,100 @@ class VistaProfesorTest extends BaseIntegrationTest
                 .andExpect(model().attributeExists("error"))
                 .andExpect(model().attribute("error", "Esta jornada ya ha sido cancelada previamente por el profesor."));
     }
+
+    @Test
+    @WithMockUser(username = "profesor1", roles = "PROFESOR")
+    @DisplayName("POST /profesor/alumnos/contactar, perfil y cambio de contraseña cubren errores y éxitos")
+    void testContactarAlumnoYPerfilProfesor() throws Exception
+    {
+        // Contactar con error de validación (sin asunto/mensaje)
+        this.mockMvc.perform(post("/profesor/alumnos/contactar")
+                        .with(csrf())
+                        .param("alumnoId", "200")
+                        .param("asunto", "")
+                        .param("mensaje", ""))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/alumnos"))
+                .andExpect(flash().attributeExists("error"));
+
+        // Contactar alumno inexistente -> ReglaNegocioException
+        this.mockMvc.perform(post("/profesor/alumnos/contactar")
+                        .with(csrf())
+                        .param("alumnoId", "99999")
+                        .param("asunto", "Recordatorio de práctica")
+                        .param("mensaje", "Recuerda llegar 10 minutos antes al punto de recogida."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/alumnos"))
+                .andExpect(flash().attributeExists("error"));
+
+        // Contactar alumno válido (id=200) -> mensajeExito
+        this.mockMvc.perform(post("/profesor/alumnos/contactar")
+                        .with(csrf())
+                        .param("alumnoId", "200")
+                        .param("asunto", "Confirmación de horario")
+                        .param("mensaje", "Confirmamos la salida desde la calle Toledo mañana."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/alumnos"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        // Perfil profesor GET y POST (error validación, ReglaNegocioException DNI duplicado y actualización válida)
+        this.mockMvc.perform(get("/profesor/perfil"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/perfil"))
+                .andExpect(model().attributeExists("perfilDTO", "vehiculo"));
+
+        this.mockMvc.perform(post("/profesor/perfil")
+                        .with(csrf())
+                        .param("nombre", "Laura")
+                        .param("apellidos", "Sánchez Romero")
+                        .param("telefono", "123"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/perfil"))
+                .andExpect(model().attributeExists("perfilDTO"));
+
+        this.mockMvc.perform(post("/profesor/perfil")
+                        .with(csrf())
+                        .param("nombre", "Laura")
+                        .param("apellidos", "Sánchez Romero")
+                        .param("dni", "23456789D")
+                        .param("fechaNacimiento", "1988-09-23")
+                        .param("correo", "laura.profesor@autoescuela.es")
+                        .param("telefono", "600333444")
+                        .param("direccion", "Avenida de América 15"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profesor/perfil"))
+                .andExpect(model().attributeExists("error"));
+
+        this.mockMvc.perform(post("/profesor/perfil")
+                        .with(csrf())
+                        .param("nombre", "Laura")
+                        .param("apellidos", "Sánchez Romero")
+                        .param("dni", "23456789D")
+                        .param("fechaNacimiento", "1988-09-23")
+                        .param("correo", "laura.profesor@autoescuela.es")
+                        .param("telefono", "600222333")
+                        .param("direccion", "Avenida de América 20, Madrid"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/perfil"))
+                .andExpect(flash().attributeExists("mensajeExito"));
+
+        // Cambio de contraseña: error validación, error contraseñas no coinciden y cambio correcto
+        this.mockMvc.perform(post("/profesor/perfil/password")
+                        .with(csrf())
+                        .param("passwordActual", "")
+                        .param("nuevaPassword", "123")
+                        .param("confirmPassword", "123"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/perfil"))
+                .andExpect(flash().attributeExists("errorPassword"));
+
+        this.mockMvc.perform(post("/profesor/perfil/password")
+                        .with(csrf())
+                        .param("passwordActual", "profesor123")
+                        .param("nuevaPassword", "NuevaClave99")
+                        .param("confirmPassword", "OtraClave88"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/profesor/perfil"))
+                .andExpect(flash().attributeExists("errorPassword"));
+    }
 }

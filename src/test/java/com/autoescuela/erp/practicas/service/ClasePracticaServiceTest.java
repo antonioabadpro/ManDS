@@ -3,10 +3,14 @@ package com.autoescuela.erp.practicas.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +27,7 @@ import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -33,6 +38,7 @@ import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
+import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
@@ -514,5 +520,256 @@ class ClasePracticaServiceTest
         assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.RECIBIDA);
         assertThat(resultado.getKmInicio()).isEqualTo(1000L);
         assertThat(resultado.getKmFin()).isEqualTo(1030L);
+    }
+
+    @Test
+    @DisplayName("reservarClase rechaza alumno sin matrícula activa y bloquea días con jornada cancelada")
+    void testReservarClaseSinMatriculaYConJornadaCancelada()
+    {
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        Alumno alumno = new Alumno();
+        LocalDateTime fechaLaborable = LocalDateTime.of(2026, 10, 14, 10, 15);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaLaborable, null, null, null);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("matrícula activo");
+
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setConvocatorias(2);
+        matricula.setConvocatoriasGastadas(0);
+        matricula.setModalidad(ModalidadMatricula.PRACTICA);
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+
+        ClasePractica cancelacionJornada = new ClasePractica();
+        cancelacionJornada.setEstadoClase(EstadoClase.CANCELADA);
+        cancelacionJornada.setIsCanceladaPorProfesor(true);
+        cancelacionJornada.setObservaciones("Cancelación de jornada por formación");
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(any(), any(), any()))
+                .thenReturn(List.of(cancelacionJornada));
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("jornada seleccionada ha sido cancelada");
+    }
+
+    @Test
+    @DisplayName("reservarClase asigna valores por defecto cuando duración, puntoRecogida u observaciones son nulos y copia km del vehículo")
+    void testReservarClaseCamposOpcionalesNulosYKmVehiculo()
+    {
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setKm(54321L);
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+        profesor.setVehiculo(vehiculo);
+
+        Alumno alumno = new Alumno();
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setConvocatorias(2);
+        matricula.setConvocatoriasGastadas(0);
+        matricula.setModalidad(ModalidadMatricula.PRACTICA);
+
+        LocalDateTime fechaLaborable = LocalDateTime.of(2026, 10, 14, 11, 0);
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaLaborable, null, null, null);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(any(), any(), any()))
+                .thenReturn(List.of());
+        when(this.clasePracticaRepository.existeClaseActivaOBloqueadaPorProfesor(profesor, fechaLaborable))
+                .thenReturn(false);
+        when(this.clasePracticaRepository.saveAndFlush(any(ClasePractica.class))).thenAnswer(i -> i.getArgument(0));
+
+        ClasePractica guardada = this.clasePracticaService.reservarClase(alumno, profesor, dto);
+
+        assertThat(guardada.getDuracion()).isEqualTo(45);
+        assertThat(guardada.getPuntoRecogida()).isEmpty();
+        assertThat(guardada.getObservaciones()).isEmpty();
+        assertThat(guardada.getKmInicio()).isEqualTo(54321L);
+        assertThat(guardada.getKmFin()).isEqualTo(54321L);
+    }
+
+    @Test
+    @DisplayName("cancelarClasePorAlumno lanza excepción si la clase es nula")
+    void testCancelarClasePorAlumnoClaseNula()
+    {
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(null, new Alumno()))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("No se ha encontrado la clase");
+    }
+
+    @Test
+    @DisplayName("completarClasePractica valida dto/kmFin y actualiza odómetro del vehículo y saldo del alumno")
+    void testCompletarClasePracticaValidacionesYActualizaciones()
+    {
+        assertThatThrownBy(() -> this.clasePracticaService.completarClasePractica(null))
+                .isInstanceOf(ReglaNegocioException.class);
+        assertThatThrownBy(() -> this.clasePracticaService.completarClasePractica(new CompletarClaseDTO(null, 10L, 20L, "")))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        Long id = 22L;
+        ClasePractica claseInvalidKm = new ClasePractica();
+        claseInvalidKm.setFechaHora(FechaHoraUtil.ahora().minusHours(2));
+        claseInvalidKm.setDuracion(45);
+        when(this.clasePracticaRepository.findById(id)).thenReturn(Optional.of(claseInvalidKm));
+
+        assertThatThrownBy(() -> this.clasePracticaService.completarClasePractica(new CompletarClaseDTO(id, 500L, 500L, "Igual km")))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("estrictamente superior");
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setKm(1000L);
+        Profesor profesor = new Profesor();
+        profesor.setVehiculo(vehiculo);
+        Alumno alumno = new Alumno();
+        Matricula matricula = new Matricula();
+        matricula.setEstaActiva(true);
+        matricula.setSaldoClases(4);
+
+        ClasePractica clase = new ClasePractica();
+        clase.setFechaHora(FechaHoraUtil.ahora().minusHours(2));
+        clase.setDuracion(null);
+        clase.setProfesor(profesor);
+        clase.setAlumno(alumno);
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+
+        when(this.clasePracticaRepository.findById(33L)).thenReturn(Optional.of(clase));
+        when(this.clasePracticaRepository.save(any(ClasePractica.class))).thenAnswer(i -> i.getArgument(0));
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+
+        this.clasePracticaService.completarClasePractica(new CompletarClaseDTO(33L, 1000L, 1045L, "Buena sesión"));
+
+        assertThat(vehiculo.getKm()).isEqualTo(1045L);
+        assertThat(matricula.getSaldoClases()).isEqualTo(3);
+        verify(this.vehiculoRepository).save(vehiculo);
+        verify(this.matriculaRepository).save(matricula);
+    }
+
+    @Test
+    @DisplayName("cancelarClasePorProfesor valida ID, cancela con motivo, notifica por email y tolera fallo de correo")
+    void testCancelarClasePorProfesorCompletoYFallbackEmail()
+    {
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorProfesor(null, "Motivo"))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        Alumno alumno = new Alumno();
+        alumno.setNombre("Elena");
+        alumno.setCorreo("elena@mands.es");
+
+        ClasePractica clase = new ClasePractica();
+        clase.setAlumno(alumno);
+        clase.setFechaHora(LocalDateTime.of(2026, 10, 14, 10, 15));
+        clase.setEstadoClase(EstadoClase.PENDIENTE);
+
+        when(this.clasePracticaRepository.findById(44L)).thenReturn(Optional.of(clase));
+        when(this.clasePracticaRepository.save(any(ClasePractica.class))).thenAnswer(i -> i.getArgument(0));
+
+        ClasePractica cancelada = this.clasePracticaService.cancelarClasePorProfesor(44L, "  Avería puntual  ");
+        assertThat(cancelada.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
+        assertThat(cancelada.getIsCanceladaPorProfesor()).isTrue();
+        assertThat(cancelada.getMotivoCancelacion()).isEqualTo("Avería puntual");
+        verify(this.emailService).enviarNotificacionCorreo(anyString(), anyString(), anyString(), anyString(), any(Rol.class));
+
+        doThrow(new RuntimeException("SMTP offline")).when(this.emailService)
+                .enviarNotificacionCorreo(anyString(), anyString(), anyString(), anyString(), any(Rol.class));
+        ClasePractica canceladaConFalloMail = this.clasePracticaService.cancelarClasePorProfesor(44L, "   ");
+        assertThat(canceladaConFalloMail.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
+    }
+
+    @Test
+    @DisplayName("cancelarJornadaProfesor valida parámetros, bloquea doble cancelación, cancela pendientes y notifica alumnos")
+    void testCancelarJornadaProfesorCompleto()
+    {
+        LocalDate fecha = LocalDate.of(2026, 10, 15);
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarJornadaProfesor(null, fecha, "Motivo"))
+                .isInstanceOf(ReglaNegocioException.class);
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarJornadaProfesor(new Profesor(), null, "Motivo"))
+                .isInstanceOf(ReglaNegocioException.class);
+
+        Profesor profesor = new Profesor();
+        profesor.setTurno(TipoTurno.MATINAL);
+
+        ClasePractica yaCanceladaJornada = new ClasePractica();
+        yaCanceladaJornada.setEstadoClase(EstadoClase.CANCELADA);
+        yaCanceladaJornada.setIsCancelacionJornada(true);
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(any(), any(), any()))
+                .thenReturn(List.of(yaCanceladaJornada));
+
+        assertThatThrownBy(() -> this.clasePracticaService.cancelarJornadaProfesor(profesor, fecha, "Repetición"))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("ya ha sido cancelada previamente");
+
+        ClasePractica pendiente = new ClasePractica();
+        pendiente.setEstadoClase(EstadoClase.PENDIENTE);
+        pendiente.setFechaHora(fecha.atTime(8, 0));
+
+        List<TramoHorarioDTO> tramos = List.of(
+                new TramoHorarioDTO(LocalTime.of(8, 0), LocalTime.of(8, 45), "08:00", "08:00 - 08:45"),
+                new TramoHorarioDTO(LocalTime.of(8, 45), LocalTime.of(9, 30), "08:45", "08:45 - 09:30")
+        );
+
+        Alumno alumnoConCorreo = new Alumno();
+        alumnoConCorreo.setNombre("Mario");
+        alumnoConCorreo.setCorreo("mario@mands.es");
+        Alumno alumnoSinCorreo = new Alumno();
+        alumnoSinCorreo.setNombre("SinCorreo");
+
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(any(), any(), any()))
+                .thenReturn(List.of(pendiente));
+        when(this.calendarioService.generarTramos(TipoTurno.MATINAL)).thenReturn(tramos);
+        when(this.alumnoRepository.findByProfesor(profesor)).thenReturn(List.of(alumnoConCorreo, alumnoSinCorreo));
+        doThrow(new RuntimeException("SMTP apagado")).when(this.emailService)
+                .enviarNotificacionCorreo(anyString(), anyString(), anyString(), anyString(), any(Rol.class));
+
+        int total = this.clasePracticaService.cancelarJornadaProfesor(profesor, fecha, "  Asunto médico ");
+
+        assertThat(total).isEqualTo(1);
+        assertThat(pendiente.getEstadoClase()).isEqualTo(EstadoClase.CANCELADA);
+        assertThat(pendiente.getIsCancelacionJornada()).isTrue();
+        // 1 pendiente actualizada + 1 tramo libre bloqueado
+        verify(this.clasePracticaRepository, org.mockito.Mockito.times(2)).save(any(ClasePractica.class));
+    }
+
+    @Test
+    @DisplayName("Métodos de consulta auxiliares gestionan nulos y delegan correctamente en el repositorio")
+    void testConsultasAuxiliaresYGuardar()
+    {
+        assertThat(this.clasePracticaService.buscarPorId(null)).isEmpty();
+        assertThat(this.clasePracticaService.contarClasesPendientesPorAlumno(null)).isZero();
+        assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(null)).isZero();
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(null)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(null)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(null, EstadoClase.CANCELADA)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(null)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(null, LocalDateTime.now(), LocalDateTime.now())).isEmpty();
+
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        ClasePractica clase = new ClasePractica();
+        LocalDateTime inicio = LocalDateTime.of(2026, 10, 1, 8, 0);
+        LocalDateTime fin = LocalDateTime.of(2026, 10, 31, 22, 0);
+
+        when(this.clasePracticaRepository.findById(5L)).thenReturn(Optional.of(clase));
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE)).thenReturn(2);
+        when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(7);
+        when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumno)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findByAlumnoAndEstadoClaseNot(alumno, EstadoClase.CANCELADA)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicio, fin)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.save(clase)).thenReturn(clase);
+
+        assertThat(this.clasePracticaService.buscarPorId(5L)).contains(clase);
+        assertThat(this.clasePracticaService.contarClasesPendientesPorAlumno(alumno)).isEqualTo(2);
+        assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(alumno)).isEqualTo(7L);
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(alumno)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(alumno, EstadoClase.CANCELADA)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(profesor, inicio, fin)).hasSize(1);
+        assertThat(this.clasePracticaService.guardar(clase)).isSameAs(clase);
     }
 }
