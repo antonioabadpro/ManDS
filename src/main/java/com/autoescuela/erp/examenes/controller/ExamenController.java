@@ -2,6 +2,7 @@ package com.autoescuela.erp.examenes.controller;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,17 @@ public class ExamenController
 
     private void cargarJornadasDgtEnModelo(LocalDate mesBase, Model model)
     {
-        LocalDate mes = (mesBase != null ? mesBase : LocalDate.now()).withDayOfMonth(1);
+        YearMonth mesObjetivo;
+        if (mesBase == null)
+        {
+            mesObjetivo = YearMonth.now(ZoneId.systemDefault());
+        }
+        else
+        {
+            mesObjetivo = YearMonth.from(mesBase);
+        }
+
+        LocalDate mes = mesObjetivo.atDay(1);
 
         Optional<FechaExamen> fechasMesOpt = this.examenService.obtenerFechasExamen(mes);
         List<CupoExamen> cuposMes = this.examenService.obtenerCuposExamen(mes);
@@ -146,9 +157,9 @@ public class ExamenController
         model.addAttribute("fechasMes", fechasMesOpt.orElse(null));
         model.addAttribute("cuposMes", cuposMes);
         model.addAttribute("mesSeleccionado", mes);
-        model.addAttribute("mesAnioDefecto", YearMonth.from(mes).toString());
-        model.addAttribute("mesSiguiente", mes.plusMonths(1));
-        model.addAttribute("mesAnterior", mes.minusMonths(1));
+        model.addAttribute("mesAnioDefecto", mesObjetivo.toString());
+        model.addAttribute("mesSiguiente", mesObjetivo.plusMonths(1).atDay(1));
+        model.addAttribute("mesAnterior", mesObjetivo.minusMonths(1).atDay(1));
     }
 
     /**

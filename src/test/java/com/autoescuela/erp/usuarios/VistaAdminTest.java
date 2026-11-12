@@ -342,9 +342,10 @@ class VistaAdminTest extends BaseIntegrationTest
                         .param("mes", "2026-11-01"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
-                .andExpect(model().attributeExists("mesSeleccionado"))
-                .andExpect(model().attributeExists("mesSiguiente"))
-                .andExpect(model().attributeExists("mesAnterior"))
+                .andExpect(model().attribute("mesSeleccionado", LocalDate.of(2026, 11, 1)))
+                .andExpect(model().attribute("mesAnioDefecto", "2026-11"))
+                .andExpect(model().attribute("mesSiguiente", LocalDate.of(2026, 12, 1)))
+                .andExpect(model().attribute("mesAnterior", LocalDate.of(2026, 10, 1)))
                 .andExpect(model().attributeExists("tiposCarnet"));
     }
 
@@ -359,6 +360,7 @@ class VistaAdminTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
                 .andExpect(model().attribute("mesSeleccionado", inicioMesActual))
+                .andExpect(model().attribute("mesAnioDefecto", java.time.YearMonth.from(inicioMesActual).toString()))
                 .andExpect(model().attribute("mesSiguiente", inicioMesActual.plusMonths(1)))
                 .andExpect(model().attribute("mesAnterior", inicioMesActual.minusMonths(1)))
                 .andExpect(model().attributeExists("tiposCarnet"));
