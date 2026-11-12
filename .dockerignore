@@ -13,3 +13,7 @@ docs/
 .env
 .env.*
 .env.local
+
+# Dependencias Node locales (se instalan de forma limpia en el contenedor)
+node_modules/
+npm-debug.log*

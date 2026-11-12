@@ -620,9 +620,9 @@ public class EstadisticaService
     }
 
     /**
-     * Tarjeta Bloque 1 (KPI 2): Distancia Recorrida.
-     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.ç
-     * Utilizado en las Estadísticas del Alumno
+     * Tarjeta Bloque 1 (KPI 2) / Tarjeta 4: Distancia Recorrida.
+     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.
+     * Utilizado en las Estadísticas del Alumno y del Profesor.
      */
     private long calcularTarjetaDistanciaRecorrida(List<ClasePractica> clasesRecibidas)
     {
@@ -793,7 +793,7 @@ public class EstadisticaService
         TiempoVolanteProfesorDTO tiempoVolanteDTO = this.calcularTarjetaTiempoVolanteProfesor(clasesRecibidas);
 
         // Tarjeta 4: Kilómetros en Prácticas
-        long distanciaRecorrida = this.calcularTarjetaDistanciaRecorridaProfesor(clasesRecibidas);
+        long distanciaRecorrida = this.calcularTarjetaDistanciaRecorrida(clasesRecibidas);
 
         // Permisos habilitados que imparte el profesor
         List<TipoCarnet> permisosHabilitados = this.obtenerPermisosHabilitadosProfesor(profesor);
@@ -913,27 +913,6 @@ public class EstadisticaService
         }
         double horasConduccion = Math.round((totalMinutos / 60.0) * 10.0) / 10.0;
         return new TiempoVolanteProfesorDTO(totalMinutos, horasConduccion);
-    }
-
-    /**
-     * Tarjeta 4: Kilómetros en Prácticas.
-     * Calcula la suma de kilómetros recorridos a partir de las fichas técnicas registradas por el profesor.
-     * Utilizado en las Estadísticas del Profesor
-     */
-    private long calcularTarjetaDistanciaRecorridaProfesor(List<ClasePractica> clasesRecibidas)
-    {
-        long kilometrosRecorridos = 0;
-        if (clasesRecibidas != null)
-        {
-            for (ClasePractica c : clasesRecibidas)
-            {
-                if (c.getKmFin() != null && c.getKmInicio() != null && c.getKmFin() >= c.getKmInicio())
-                {
-                    kilometrosRecorridos += (c.getKmFin() - c.getKmInicio());
-                }
-            }
-        }
-        return kilometrosRecorridos;
     }
 
     /**

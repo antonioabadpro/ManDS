@@ -1,4 +1,20 @@
 # -------------------------------------------------------------
+# FASE 0: Compilación estática de estilos CSS (Tailwind)
+# -------------------------------------------------------------
+FROM node:22-alpine AS frontend-build
+WORKDIR /app
+
+# 1. Copiar manifiestos Node e instalar dependencias exactas (para cachear capas)
+COPY package.json package-lock.json tailwind.config.js ./
+RUN npm ci
+
+# 2. Copiar plantillas, scripts y entrada CSS para compilar y minificar Tailwind
+COPY src/main/resources/templates ./src/main/resources/templates
+COPY src/main/resources/static/js ./src/main/resources/static/js
+COPY src/main/resources/static/css/input.css ./src/main/resources/static/css/input.css
+RUN npm run build:css
+
+# -------------------------------------------------------------
 # FASE 1: Compilación de la aplicación
 # -------------------------------------------------------------
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
@@ -8,8 +24,9 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# 2. Copiar el código fuente y empaquetar omitiendo los tests (los tests se ejecutan en CI)
+# 2. Copiar el código fuente, sobrescribir CSS compilado y empaquetar omitiendo los tests (los tests se ejecutan en CI)
 COPY src ./src
+COPY --from=frontend-build /app/src/main/resources/static/css/tailwind.min.css ./src/main/resources/static/css/tailwind.min.css
 RUN mvn clean package -DskipTests
 
 # -------------------------------------------------------------
