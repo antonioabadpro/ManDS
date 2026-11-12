@@ -9,16 +9,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
 import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
@@ -194,26 +192,7 @@ public class AuthenticationController
         String baseUrl = UrlAplicacionUtil.resolverBaseUrlDesdeRequest(request, null);
         this.autenticacionService.solicitarRecuperacionPassword(correo, baseUrl);
 
-        redirectAttributes.addFlashAttribute("mensajeEnviado", true);
-
-        if (esPeticionHtmx)
-        {
-            FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
-            if (flashMap != null)
-            {
-                flashMap.put("mensajeEnviado", true);
-                FlashMapManager flashMapManager = RequestContextUtils.getFlashMapManager(request);
-                if (flashMapManager != null)
-                {
-                    flashMapManager.saveOutputFlashMap(flashMap, request, response);
-                }
-            }
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            response.setHeader("HX-Redirect", contextPath + "/recuperar-password");
-            return null;
-        }
-
-        return "redirect:/recuperar-password";
+        return HtmxRedirectUtil.redirigirConFlash("/recuperar-password", "mensajeEnviado", true, esPeticionHtmx, request, response, redirectAttributes);
     }
 
     /**

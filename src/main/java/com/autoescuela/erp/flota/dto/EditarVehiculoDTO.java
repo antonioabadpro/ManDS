@@ -8,6 +8,7 @@ import com.autoescuela.erp.core.enums.TipoCambio;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoCombustible;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.flota.util.VehiculoValidacionUtil;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
@@ -86,12 +87,7 @@ public record EditarVehiculoDTO(
     @AssertTrue(message = "El año de matriculación debe estar comprendido entre 1990 y el año actual.")
     public boolean isFechaMatriculacionValida()
     {
-        if (this.anio == null)
-        {
-            return true;
-        }
-        int anioActual = FechaHoraUtil.hoy().getYear();
-        return this.anio >= 1990 && this.anio <= anioActual;
+        return VehiculoValidacionUtil.esAnioMatriculacionValido(this.anio);
     }
 
     /**
@@ -100,11 +96,7 @@ public record EditarVehiculoDTO(
     @AssertTrue(message = "La fecha de la próxima revisión debe ser posterior a la fecha de la última revisión.")
     public boolean isRevisionesCoherentes()
     {
-        if (this.fechaUltimaRevision == null || this.fechaProximaRevision == null)
-        {
-            return true;
-        }
-        return this.fechaProximaRevision.isAfter(this.fechaUltimaRevision);
+        return VehiculoValidacionUtil.sonRevisionesCoherentes(this.fechaUltimaRevision, this.fechaProximaRevision);
     }
 
     /**
@@ -115,12 +107,7 @@ public record EditarVehiculoDTO(
     @AssertTrue(message = "La fecha de la próxima revisión no puede superar los 10 años en el futuro, ni puede ser anterior a la fecha actual.")
     public boolean isFechaProximaRevisionValida()
     {
-        if (this.fechaProximaRevision == null)
-        {
-            return true;
-        }
-        LocalDate hoy = FechaHoraUtil.hoy();
-        return this.fechaProximaRevision.isBefore(hoy.plusYears(10)) && !this.fechaProximaRevision.isBefore(hoy);
+        return VehiculoValidacionUtil.esFechaProximaRevisionValida(this.fechaProximaRevision);
     }
 
     /**
@@ -132,12 +119,7 @@ public record EditarVehiculoDTO(
     @AssertTrue(message = "La fecha de la última revisión no puede ser anterior a hace 4 años ni posterior a hoy.")
     public boolean isFechaUltimaRevisionValida()
     {
-        if (this.fechaUltimaRevision == null)
-        {
-            return true;
-        }
-        LocalDate hoy = FechaHoraUtil.hoy();
-        return this.fechaUltimaRevision.isAfter(hoy.minusYears(4)) && !this.fechaUltimaRevision.isAfter(hoy);
+        return VehiculoValidacionUtil.esFechaUltimaRevisionValida(this.fechaUltimaRevision);
     }
 
     /**
@@ -145,15 +127,6 @@ public record EditarVehiculoDTO(
      */
     public String formatearMatricula()
     {
-        if (this.matricula == null)
-        {
-            return null;
-        }
-        String limpia = this.matricula.trim().toUpperCase().replace(" ", "").replace("-", "");
-        if (limpia.length() == 7)
-        {
-            return limpia.substring(0, 4) + "-" + limpia.substring(4);
-        }
-        return this.matricula.trim().toUpperCase();
+        return VehiculoValidacionUtil.formatearMatricula(this.matricula);
     }
 }

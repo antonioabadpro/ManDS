@@ -6,10 +6,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
-import org.springframework.web.servlet.support.SessionFlashMapManager;
 import org.springframework.web.util.WebUtils;
+
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,12 +45,7 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
         String hxRequest = request.getHeader("HX-Request");
         if (hxRequest != null && hxRequest.equalsIgnoreCase("true"))
         {
-            FlashMap flashMap = new FlashMap();
-            flashMap.setTargetRequestPath("/login");
-            flashMap.put("sesionExpirada", true);
-            FlashMapManager flashMapManager = new SessionFlashMapManager();
-            flashMapManager.saveOutputFlashMap(flashMap, request, response);
-
+            HtmxRedirectUtil.guardarFlashSesion(request, response, "sesionExpirada", true, "/login");
             response.setHeader("HX-Redirect", request.getContextPath() + "/login");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
@@ -59,11 +53,7 @@ public class HtmxAuthenticationEntryPoint implements AuthenticationEntryPoint
 
         if (WebUtils.getCookie(request, "JSESSIONID") != null && !request.isRequestedSessionIdValid())
         {
-            FlashMap flashMap = new FlashMap();
-            flashMap.setTargetRequestPath("/login");
-            flashMap.put("sesionExpirada", true);
-            FlashMapManager flashMapManager = new SessionFlashMapManager();
-            flashMapManager.saveOutputFlashMap(flashMap, request, response);
+            HtmxRedirectUtil.guardarFlashSesion(request, response, "sesionExpirada", true, "/login");
         }
 
         this.delegate.commence(request, response, authException);

@@ -7,9 +7,8 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.session.SessionInformationExpiredEvent;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.FlashMapManager;
-import org.springframework.web.servlet.support.SessionFlashMapManager;
+
+import com.autoescuela.erp.core.util.HtmxRedirectUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,20 +30,6 @@ public class FlashSessionInformationExpiredStrategy implements SessionInformatio
         HttpServletRequest request = event.getRequest();
         HttpServletResponse response = event.getResponse();
 
-        FlashMap flashMap = new FlashMap();
-        flashMap.put("sesionExpirada", true);
-        FlashMapManager flashMapManager = new SessionFlashMapManager();
-        flashMapManager.saveOutputFlashMap(flashMap, request, response);
-
-        String hxRequest = request.getHeader("HX-Request");
-        if (hxRequest != null && "true".equalsIgnoreCase(hxRequest))
-        {
-            String contextPath = request.getContextPath() != null ? request.getContextPath() : "";
-            response.setHeader("HX-Redirect", contextPath + "/login");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
-        this.redirectStrategy.sendRedirect(request, response, "/login");
+        HtmxRedirectUtil.redirigirSesionExpirada(request, response, this.redirectStrategy);
     }
 }
