@@ -1,7 +1,7 @@
 package com.autoescuela.erp.estadisticas.dto;
 
 /**
- * DTO para la agregación de métricas y estadísticas pedagógicas del Alumno (CU-037).
+ * DTO para la agregación de métricas y estadísticas pedagógicas del Alumno.
  */
 public record EstadisticasAlumnoDTO(
     long clasesRecibidas,

@@ -149,7 +149,7 @@ public class IncidenciaVehiculoController
     // =========================================================================
 
     /**
-     * Registra una nueva incidencia o avería mecánica sobre el vehículo asignado (CU-027).
+     * Registra una nueva incidencia o avería mecánica sobre el vehículo asignado.
      * Soporta peticiones tradicionales y peticiones dinámicas HTMX.
      */
     @PostMapping("/profesor/vehiculo/incidencia")

@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO para la reserva de una clase práctica por parte del Alumno (CU-034).
+ * DTO para la reserva de una clase práctica por parte del Alumno.
  */
 public record ReservaClasePracticaDTO(
     @NotNull(message = "La fecha y hora de la clase es obligatoria.")

@@ -24,8 +24,11 @@ import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
+import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
@@ -209,7 +212,7 @@ public class ClasePracticaController
     }
 
     /**
-     * Procesa la reserva transaccional de una clase práctica (CU-034).
+     * Procesa la reserva transaccional de una clase práctica.
      */
     @PostMapping("/alumno/clases/reservar")
     @Transactional
@@ -267,6 +270,28 @@ public class ClasePracticaController
         {
             msjError = "Los datos de fecha, hora o punto de recogida no son válidos.";
             return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
+        }
+
+        if (!dto.fechaHora().isAfter(FechaHoraUtil.ahora()))
+        {
+            msjError = "No es posible reservar clases prácticas en fechas u horas pasadas.";
+            return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
+        }
+
+        List<Examen> examenesAlumno = this.examenService.obtenerExamenesPorAlumno(alumno);
+        if (examenesAlumno != null)
+        {
+            for (Examen examen : examenesAlumno)
+            {
+                if (examen.getTipo() == TipoExamen.PRACTICO
+                        && examen.getFechaHora() != null
+                        && examen.getFechaHora().isAfter(FechaHoraUtil.ahora())
+                        && !dto.fechaHora().toLocalDate().isBefore(examen.getFechaHora().toLocalDate()))
+                {
+                    msjError = "No es posible reservar clases prácticas en la fecha de tu examen práctico oficial o en días posteriores.";
+                    return this.responderErrorAlumnoCalendario(msjError, hxRequest, false, response, model, redirectAttributes);
+                }
+            }
         }
 
         if (FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
@@ -418,7 +443,7 @@ public class ClasePracticaController
     }
 
     /**
-     * Procesa la cumplimentación de la ficha técnica de clase práctica (CU-024).
+     * Procesa la cumplimentación de la ficha técnica de clase práctica.
      */
     @PostMapping("/profesor/clases/completar")
     public String completarClasePractica(
@@ -462,7 +487,7 @@ public class ClasePracticaController
     }
 
     /**
-     * Cancela una clase práctica reservada notificando al alumno por correo (CU-023).
+     * Cancela una clase práctica reservada notificando al alumno por correo.
      */
     @PostMapping("/profesor/clases/cancelar")
     public String cancelarClasePracticaProfesor(

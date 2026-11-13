@@ -103,7 +103,7 @@
                                         </span>
                                     </div>
                                     <p th:if="${diagnostico?.convocatoria1?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
-                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE,')}">Jueves,</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">15 de Octubre de 2026</span>
                                         <span class="text-slate-400 dark:text-slate-500">·</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'HH:mm''h''')}">08:30h</span>
@@ -140,7 +140,7 @@
                                         </span>
                                     </div>
                                     <p th:if="${diagnostico?.convocatoria2?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
-                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE,')}">Jueves,</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">29 de Octubre de 2026</span>
                                         <span class="text-slate-400 dark:text-slate-500">·</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'HH:mm''h''')}">08:30h</span>

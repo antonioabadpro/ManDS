@@ -80,7 +80,7 @@
                         </span>
                     </div>
                     <h4 th:if="${fechasMes != null}" class="flex flex-wrap items-baseline gap-x-1.5 text-base font-extrabold text-slate-900 dark:text-white">
-                        <span class="capitalize" th:text="${#temporals.format(fechasMes.fechaHora1, 'EEEE,')}">Jueves,</span>
+                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(fechasMes.fechaHora1, 'EEEE,')}">Jueves,</span>
                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(fechasMes.fechaHora1, 'dd ''de'' MMMM ''de'' yyyy')}">15 de Octubre de 2026</span>
                     </h4>
                     <h4 th:unless="${fechasMes != null}" class="text-base font-extrabold text-slate-900 dark:text-white">
@@ -108,7 +108,7 @@
                         </span>
                     </div>
                     <h4 th:if="${fechasMes != null}" class="flex flex-wrap items-baseline gap-x-1.5 text-base font-extrabold text-slate-900 dark:text-white">
-                        <span class="capitalize" th:text="${#temporals.format(fechasMes.fechaHora2, 'EEEE,')}">Jueves,</span>
+                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(fechasMes.fechaHora2, 'EEEE,')}">Jueves,</span>
                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(fechasMes.fechaHora2, 'dd ''de'' MMMM ''de'' yyyy')}">29 de Octubre de 2026</span>
                     </h4>
                     <h4 th:unless="${fechasMes != null}" class="text-base font-extrabold text-slate-900 dark:text-white">

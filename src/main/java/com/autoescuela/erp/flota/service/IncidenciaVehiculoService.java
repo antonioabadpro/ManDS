@@ -255,7 +255,7 @@ public class IncidenciaVehiculoService
     }
 
     /**
-     * Registra una nueva avería o incidencia mecánica sobre el vehículo asignado (CU-027),
+     * Registra una nueva avería o incidencia mecánica sobre el vehículo asignado,
      * persistiendo el registro y notificando transaccionalmente a los Administradores activos.
      *
      * @param profesor Profesor que reporta la incidencia.

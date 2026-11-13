@@ -81,7 +81,7 @@ public class SolicitudExamenController
     }
 
     /**
-     * Procesa la presentación de una nueva solicitud de examen DGT (CU-038).
+     * Procesa la presentación de una nueva solicitud de examen DGT.
      */
     @PostMapping("/solicitar")
     @Transactional

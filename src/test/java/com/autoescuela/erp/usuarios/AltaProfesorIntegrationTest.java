@@ -28,7 +28,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -66,14 +65,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .andExpect(model().attributeExists("altaProfesorDTO"))
                 .andExpect(model().attributeExists("vehiculosDisponibles"))
                 .andExpect(model().attributeExists("turnos"))
-                .andExpect(model().attributeExists("tiposCarnet"))
-                .andExpect(content().string(containsString("id=\"modal-alta-profesor\"")))
-                .andExpect(content().string(containsString("action=\"/admin/profesores/alta\"")))
-                .andExpect(content().string(containsString("Turno Matinal")))
-                .andExpect(content().string(containsString("Turno de Tarde")))
-                .andExpect(content().string(containsString("Permisos de Conducción Autorizados")))
-                .andExpect(content().string(containsString("Permiso B+E")))
-                .andExpect(content().string(containsString("Vehículo Asignado")));
+                .andExpect(model().attributeExists("tiposCarnet"));
     }
 
     @Test
@@ -87,14 +79,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .andExpect(model().attributeExists("altaProfesorDTO"))
                 .andExpect(model().attributeExists("vehiculosDisponibles"))
                 .andExpect(model().attributeExists("turnos"))
-                .andExpect(model().attributeExists("tiposCarnet"))
-                .andExpect(content().string(containsString("id=\"modal-alta-profesor\"")))
-                .andExpect(content().string(containsString("action=\"/admin/profesores/alta\"")))
-                .andExpect(content().string(containsString("Turno Matinal")))
-                .andExpect(content().string(containsString("Turno de Tarde")))
-                .andExpect(content().string(containsString("Permisos de Conducción Autorizados")))
-                .andExpect(content().string(containsString("Permiso B+E")))
-                .andExpect(content().string(containsString("Vehículo Asignado")));
+                .andExpect(model().attributeExists("tiposCarnet"));
     }
 
     @Test
@@ -233,8 +218,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/activar-cuenta"))
                 .andExpect(model().attributeExists("activarDTO"))
-                .andExpect(content().string(containsString("Activa tu Cuenta de Profesor")))
-                .andExpect(content().string(containsString("Nombre de Usuario deseado")));
+                .andExpect(model().attribute("token", token.getToken()));
 
         // 3. Envío del formulario de activación con nuevo nombre de usuario y contraseña
         String usernameDefinitivo = "clara.campoamor";

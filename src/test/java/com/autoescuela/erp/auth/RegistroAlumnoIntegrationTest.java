@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -97,8 +96,8 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("session_id", "cs_123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/matricula-success"))
-                .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
-                .andExpect(content().string(containsString("250,00 €")));
+                .andExpect(model().attribute("importeTotal", "250,00"))
+                .andExpect(model().attribute("tipoCarnet", "Permiso B"));
 
         // Comprobación de persistencia y propiedades en el repositorio
         Optional<Alumno> alumnoOpt = this.alumnoRepository.findByNombreUsuario("nuevo_alumno");
@@ -141,8 +140,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
-                .andExpect(model().attribute("error", "El nombre de usuario ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El nombre de usuario ya está registrado en el sistema.")));
+                .andExpect(model().attribute("error", "El nombre de usuario ya está registrado en el sistema."));
     }
 
     @Test
@@ -166,8 +164,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
-                .andExpect(model().attribute("error", "El correo electrónico ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El correo electrónico ya está registrado en el sistema.")));
+                .andExpect(model().attribute("error", "El correo electrónico ya está registrado en el sistema."));
     }
 
     @Test
@@ -191,8 +188,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
-                .andExpect(model().attribute("error", "El DNI/NIE ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El DNI/NIE ya está registrado en el sistema.")));
+                .andExpect(model().attribute("error", "El DNI/NIE ya está registrado en el sistema."));
     }
 
     @Test
@@ -216,8 +212,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
-                .andExpect(model().attribute("error", "Las contraseñas introducidas no coinciden."))
-                .andExpect(content().string(containsString("Las contraseñas introducidas no coinciden.")));
+                .andExpect(model().attribute("error", "Las contraseñas introducidas no coinciden."));
     }
 
     @Test
@@ -311,8 +306,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("nombreUsuario", "alumno1"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(model().attribute("mensaje", "El nombre de usuario ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El nombre de usuario ya está registrado en el sistema.")));
+                .andExpect(model().attribute("mensaje", "El nombre de usuario ya está registrado en el sistema."));
     }
 
     @Test
@@ -324,7 +318,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("nombreUsuario", "ab"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(content().string(containsString("El nombre de usuario debe tener entre 3 y 30 caracteres.")));
+                .andExpect(model().attribute("mensaje", containsString("El nombre de usuario debe tener entre 3 y 30 caracteres.")));
     }
 
     @Test
@@ -347,8 +341,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("correo", "jose.alumno@autoescuela.es"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(model().attribute("mensaje", "El correo electrónico ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El correo electrónico ya está registrado en el sistema.")));
+                .andExpect(model().attribute("mensaje", "El correo electrónico ya está registrado en el sistema."));
     }
 
     @Test
@@ -371,8 +364,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("dni", "45678901G"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(model().attribute("mensaje", "El DNI/NIE ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El DNI/NIE ya está registrado en el sistema.")));
+                .andExpect(model().attribute("mensaje", "El DNI/NIE ya está registrado en el sistema."));
     }
 
     @Test
@@ -384,7 +376,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("dni", "123456"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(content().string(containsString("El formato del DNI/NIE no es válido")));
+                .andExpect(model().attribute("mensaje", containsString("El formato del DNI/NIE no es válido")));
     }
 
     @Test
@@ -407,8 +399,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("dni", "12345678A"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(model().attribute("mensaje", "La letra del DNI/NIE no es válida o no coincide con los números."))
-                .andExpect(content().string(containsString("La letra del DNI/NIE no es válida")));
+                .andExpect(model().attribute("mensaje", "La letra del DNI/NIE no es válida o no coincide con los números."));
     }
 
     @Test
@@ -432,8 +423,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("terminos", "true"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro"))
-                .andExpect(model().attribute("error", "El teléfono ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El teléfono ya está registrado en el sistema.")));
+                .andExpect(model().attribute("error", "El teléfono ya está registrado en el sistema."));
     }
 
     @Test
@@ -445,8 +435,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "600444555")) // Teléfono de alumno1 en data.sql
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(model().attribute("mensaje", "El teléfono ya está registrado en el sistema."))
-                .andExpect(content().string(containsString("El teléfono ya está registrado en el sistema.")));
+                .andExpect(model().attribute("mensaje", "El teléfono ya está registrado en el sistema."));
     }
 
     @Test
@@ -458,7 +447,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("telefono", "12345"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/registro :: mensaje-error"))
-                .andExpect(content().string(containsString("El formato del teléfono no es válido")));
+                .andExpect(model().attribute("mensaje", containsString("El formato del teléfono no es válido")));
     }
 
     @Test

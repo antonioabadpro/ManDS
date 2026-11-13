@@ -291,7 +291,7 @@ public class ExamenService
     }
 
     /**
-     * Asienta la calificación oficial de un examen práctico o teórico DGT (CU-025),
+     * Asienta la calificación oficial de un examen práctico o teórico DGT,
      * aplicando las transiciones de matrícula, desasignación de profesor y notificaciones por correo.
      *
      * @param dto DTO con identificador del examen y resultado Apto/No Apto.

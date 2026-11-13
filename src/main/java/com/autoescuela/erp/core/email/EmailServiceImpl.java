@@ -345,7 +345,7 @@ public class EmailServiceImpl implements EmailService
                 "ACTIVA",
                 "#dcfce7",
                 "#15803d",
-                "border-radius: 6px; padding: 3px 9px; font-size: 12px;"
+                "padding: 3px 9px; font-size: 12px;"
         );
 
         String filasResumen = this.construirFilaResumenClaveValor("Permiso Matriculado:", "<strong>" + carnetEscapado + "</strong>", false)
@@ -385,7 +385,7 @@ public class EmailServiceImpl implements EmailService
                 matriculaEscapada,
                 "#e2e8f0",
                 "#0f172a",
-                "border-radius: 4px; padding: 2px 8px; font-size: 13px; letter-spacing: 0.5px;"
+                "padding: 2px 8px; font-size: 13px; letter-spacing: 0.5px;"
         );
 
         String bloqueDescripcion = """
@@ -398,7 +398,7 @@ public class EmailServiceImpl implements EmailService
                             </td>
                         </tr>
                         <tr>
-                            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; font-family: %1$s; font-size: 14px; line-height: 1.5; color: #334155; font-style: italic;">
+                            <td align="left" bgcolor="#ffffff" style="background-color: #ffffff; border: 1px solid #cbd5e1; padding: 12px 14px; font-family: %1$s; font-size: 14px; line-height: 1.5; color: #334155; font-style: italic;">
                                 "%2$s"
                             </td>
                         </tr>
@@ -447,7 +447,7 @@ public class EmailServiceImpl implements EmailService
                 <td align="left" style="padding: 0 0 14px 0;">
                     <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                         <tr>
-                            <td align="left" bgcolor="#eff6ff" style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 4px 12px; font-family: %1$s; font-size: 11px; line-height: 1.3; color: #1d4ed8; letter-spacing: 0.6px;">
+                            <td align="left" bgcolor="#eff6ff" style="background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 4px 12px; font-family: %1$s; font-size: 11px; line-height: 1.3; color: #1d4ed8; letter-spacing: 0.6px;">
                                 <strong>%2$s</strong>
                             </td>
                         </tr>
@@ -496,7 +496,7 @@ public class EmailServiceImpl implements EmailService
                 ? """
                   <tr>
                       <td style="padding: 4px 0 18px 0;">
-                          <table role="presentation" width="100%%" border="0" cellpadding="0" cellspacing="0" bgcolor="#eff6ff" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px;">
+                          <table role="presentation" width="100%%" border="0" cellpadding="0" cellspacing="0" bgcolor="#eff6ff" style="background-color: #eff6ff; border-left: 4px solid #3b82f6;">
                               <tr>
                                   <td align="left" style="padding: 14px 16px; font-family: %1$s; font-size: 13px; line-height: 1.5; color: #1e40af;">
                                       %2$s
@@ -555,7 +555,7 @@ public class EmailServiceImpl implements EmailService
                                             %6$s
                                             %7$s
                                             <tr>
-                                                <td class="enlace-alternativo" align="left" bgcolor="#f1f5f9" style="background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 14px; font-family: %2$s; font-size: 12px; line-height: 1.6; color: #64748b;">
+                                                <td class="enlace-alternativo" align="left" bgcolor="#f1f5f9" style="background-color: #f1f5f9; border: 1px dashed #cbd5e1; padding: 12px 14px; font-family: %2$s; font-size: 12px; line-height: 1.6; color: #64748b;">
                                                     %8$s<br>
                                                     <a href="%4$s" target="_blank" rel="noopener noreferrer" style="color: #2563eb;">%9$s</a>
                                                 </td>

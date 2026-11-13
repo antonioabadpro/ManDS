@@ -448,7 +448,7 @@ public class ExamenController
     }
 
     /**
-     * Asienta la calificación oficial de un examen práctico DGT (CU-025).
+     * Asienta la calificación oficial de un examen práctico DGT.
      */
     @PostMapping("/profesor/examenes/calificar")
     public String calificarExamen(
