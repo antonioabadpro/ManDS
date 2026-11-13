@@ -8,7 +8,7 @@
   <a href="https://mands-mu4p.onrender.com" target="_blank">
     <img src="https://img.shields.io/badge/App_en_Vivo-Render-46E3B7?style=for-the-badge&logo=render&logoColor=0f172a" alt="Ver aplicación desplegada en Render" />
   </a>
-  <img src="https://img.shields.io/badge/Tests-619%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas: 619 tests superados" />
+  <img src="https://img.shields.io/badge/Tests-621%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas: 621 tests superados" />
   <a href="https://sonarcloud.io/project/overview?id=antonioabadpro_ManDS" target="_blank">
     <img src="https://img.shields.io/badge/SonarQube_Cloud-Quality_Gate-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Análisis en SonarQube Cloud" />
   </a>
@@ -257,7 +257,7 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 ```
 
 ### Resultados de la Batería de Pruebas:
-> 🟢 **536 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
+> 🟢 **621 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
 
 ```
 [INFO] -------------------------------------------------------
@@ -267,7 +267,7 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 [INFO]
 [INFO] Results:
 [INFO]
-[INFO] Tests run: 619, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 621, Failures: 0, Errors: 0, Skipped: 0
 [INFO] -------------------------------------------------------
 [INFO] BUILD SUCCESS
 ```

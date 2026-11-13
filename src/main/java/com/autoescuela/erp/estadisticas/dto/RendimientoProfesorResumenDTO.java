@@ -6,7 +6,6 @@ public record RendimientoProfesorResumenDTO(
     Long id,
     String nombreCompleto,
     TipoTurno turno,
-    String vehiculo,
     long clasesImpartidas,
     double horasConduccion,
     long alumnosAsignados,

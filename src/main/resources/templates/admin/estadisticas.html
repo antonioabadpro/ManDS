@@ -200,7 +200,7 @@
                 </div>
 
                 <!-- Columna Derecha: Efectividad por Tipo de Examen (DGT) -->
-                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-5">
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 flex flex-col gap-5">
                     <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div>
                             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Efectividad por Tipo de Examen</h3>
@@ -209,7 +209,7 @@
                         <span class="text-xs text-slate-400">DGT Oficial</span>
                     </div>
 
-                    <div class="space-y-5 text-xs">
+                    <div class="flex-1 flex flex-col justify-center gap-5 text-xs">
                         <!-- Examen Teórico -->
                         <div class="space-y-2">
                             <div class="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
@@ -332,12 +332,9 @@
                                 <div class="h-full rounded-full transition-all duration-500" th:classappend="${p.tasaAprobados >= 70} ? 'bg-emerald-500' : (${p.tasaAprobados >= 50} ? 'bg-blue-600' : 'bg-amber-500')" th:style="'width: ' + ${p.tasaAprobados} + '%'"></div>
                             </div>
 
-                            <div class="flex justify-between text-[11px] text-slate-400">
+                            <div class="text-[11px] text-slate-400">
                                 <span th:text="${p.clasesImpartidas} + ' clases impartidas · ' + ${p.alumnosAsignados} + ' alumnos asignados'">
                                     3 clases impartidas · 2 alumnos asignados
-                                </span>
-                                <span th:text="'Vehículo: ' + ${p.vehiculo}">
-                                    Vehículo: SEAT Ibiza (1234-LMN)
                                 </span>
                             </div>
                         </div>

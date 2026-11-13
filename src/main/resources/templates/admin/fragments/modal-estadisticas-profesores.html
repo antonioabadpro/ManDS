@@ -34,7 +34,6 @@
                 <thead class="bg-slate-50 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
                         <th scope="col" class="py-3 px-4">Profesor</th>
-                        <th scope="col" class="py-3 px-4">Vehículo</th>
                         <th scope="col" class="py-3 px-4 text-center">Alumnos</th>
                         <th scope="col" class="py-3 px-4 text-center">Clases Impartidas</th>
                         <th scope="col" class="py-3 px-4 text-center">Horas Prácticas</th>
@@ -57,11 +56,6 @@
                                     </span>
                                 </div>
                             </div>
-                        </td>
-
-                        <!-- Vehículo -->
-                        <td class="py-3 px-4 text-slate-700 dark:text-slate-300 whitespace-nowrap" th:text="${p.vehiculo}">
-                            SEAT Ibiza (1234-LMN)
                         </td>
 
                         <!-- Alumnos Asignados -->
@@ -100,7 +94,7 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(profesores)}">
-                        <td colspan="7" class="py-6 text-center text-slate-400">
+                        <td colspan="6" class="py-6 text-center text-slate-400">
                             No hay profesores registrados o activos en la autoescuela.
                         </td>
                     </tr>

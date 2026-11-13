@@ -451,17 +451,12 @@ public class EstadisticaService
                         ? Math.round(((double) aptosProf / evaluadosProf) * 1000.0) / 10.0
                         : 0.0;
 
-                String vehiculoStr = prof.getVehiculo() != null
-                        ? prof.getVehiculo().getMarca() + " " + prof.getVehiculo().getModelo() + " (" + prof.getVehiculo().getMatricula() + ")"
-                        : "Sin vehículo asignado";
-
                 String nombreCompleto = prof.getNombre() + " " + prof.getApellidos();
 
                 todosProfesores.add(new RendimientoProfesorResumenDTO(
                         prof.getId(),
                         nombreCompleto,
                         prof.getTurno(),
-                        vehiculoStr,
                         clasesImpartidas,
                         horasConduccionProf,
                         alumnosAsignados,
