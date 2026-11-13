@@ -34,7 +34,7 @@
 
         <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Estadísticas y Rendimiento Global', subtituloSeccion='Analítica de aprobados, rendimiento del profesorado, horas prácticas y facturación')}"></header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
             <!-- Encabezado de Sección en Móvil y Tablet (< lg) -->
             <div class="lg:hidden space-y-1">
@@ -408,14 +408,14 @@
                 </div>
             </div>
 
-            <!-- Contenedor dinámico HTMX para inyectar el modal de todos los profesores -->
-            <div id="contenedor-modal-profesores"></div>
-
-            <!-- Contenedor dinámico HTMX para inyectar el modal de todos los permisos de conducir -->
-            <div id="contenedor-modal-carnets"></div>
-
         </main>
     </div>
+
+    <!-- Contenedor dinámico HTMX para inyectar el modal de todos los profesores -->
+    <div id="contenedor-modal-profesores"></div>
+
+    <!-- Contenedor dinámico HTMX para inyectar el modal de todos los permisos de conducir -->
+    <div id="contenedor-modal-carnets"></div>
 
 </body>
 

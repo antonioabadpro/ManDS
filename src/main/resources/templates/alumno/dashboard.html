@@ -46,10 +46,10 @@
         <header th:replace="~{alumno/fragments/alumno-nav :: topbar(tituloSeccion='Panel de Control del Alumno', subtituloSeccion='Resumen formativo, clases reservadas y estado de convocatorias')}"></header>
 
         <!-- Contenido del Dashboard -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
             <!-- Mensajes Flash y Alertas -->
-            <div id="contenedor-alertas" class="space-y-4">
+            <div id="contenedor-alertas" class="space-y-4 [&:not(:has(*))]:hidden">
                 <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 flex items-start space-x-3 text-emerald-800 dark:text-emerald-200 shadow-sm transition" role="alert">
                     <svg class="w-5 h-5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
