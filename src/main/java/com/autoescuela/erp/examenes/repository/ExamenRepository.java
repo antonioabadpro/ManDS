@@ -22,14 +22,14 @@ public interface ExamenRepository extends JpaRepository<Examen, Long>
     /**
      * Recupera todos los exámenes oficiales del tipo especificado para los alumnos del profesor indicado.
      */
-    @EntityGraph(attributePaths = {"alumno"})
+    @EntityGraph(attributePaths = {"alumno", "solicitudExamen", "solicitudExamen.matricula"})
     List<Examen> findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(Profesor profesor, TipoExamen tipo);
 
     /**
      * Recupera todos los exámenes oficiales del tipo especificado a nivel global ordenados por fecha y hora descendente,
-     * precargando el alumno para optimizar la vista de calificaciones.
+     * precargando el alumno, la solicitud y la matrícula para optimizar la vista de calificaciones.
      */
-    @EntityGraph(attributePaths = {"alumno"})
+    @EntityGraph(attributePaths = {"alumno", "solicitudExamen", "solicitudExamen.matricula"})
     List<Examen> findByTipoOrderByFechaHoraDesc(TipoExamen tipo);
 
     /**

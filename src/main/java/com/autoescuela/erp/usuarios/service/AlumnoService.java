@@ -368,7 +368,7 @@ public class AlumnoService
      * @return Entidad Alumno actualizada en estado INACTIVO.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public Alumno darBajaAlumno(Long alumnoId)
     {
         if (alumnoId == null)

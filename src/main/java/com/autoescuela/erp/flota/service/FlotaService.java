@@ -49,9 +49,12 @@ public class FlotaService
      */
     @Cacheable(value = CacheConfig.CACHE_FLOTA, key = "'disponibles'")
     @Transactional(readOnly = true)
-    public List<Vehiculo> obtenerVehiculosDisponiblesParaProfesor()
+    public List<VehiculoResumenDTO> obtenerVehiculosDisponiblesParaProfesor()
     {
-        return this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE);
+        return this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE)
+                .stream()
+                .map(this.vehiculoMapper::toVehiculoResumenDTO)
+                .toList();
     }
 
     /**
@@ -59,7 +62,7 @@ public class FlotaService
      * más el vehículo actualmente asignado al propio profesor si posee uno.
      */
     @Transactional(readOnly = true)
-    public List<Vehiculo> obtenerVehiculosParaEdicionProfesor(Long profesorId)
+    public List<VehiculoResumenDTO> obtenerVehiculosParaEdicionProfesor(Long profesorId)
     {
         List<Vehiculo> vehiculos = new ArrayList<>(this.vehiculoRepository.findByProfesorIsNullAndEstado(EstadoVehiculo.DISPONIBLE));
         if (profesorId != null)
@@ -71,7 +74,9 @@ public class FlotaService
                 }
             });
         }
-        return vehiculos;
+        return vehiculos.stream()
+                .map(this.vehiculoMapper::toVehiculoResumenDTO)
+                .toList();
     }
 
     /**
@@ -79,9 +84,12 @@ public class FlotaService
      */
     @Cacheable(value = CacheConfig.CACHE_FLOTA, key = "'dashboard'")
     @Transactional(readOnly = true)
-    public List<Vehiculo> obtenerVehiculosDashboard()
+    public List<VehiculoResumenDTO> obtenerVehiculosDashboard()
     {
-        return this.vehiculoRepository.findTop5ByOrderByIdAsc();
+        return this.vehiculoRepository.findTop5ByOrderByIdAsc()
+                .stream()
+                .map(this.vehiculoMapper::toVehiculoResumenDTO)
+                .toList();
     }
 
     /**

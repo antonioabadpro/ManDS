@@ -22,7 +22,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
-import com.autoescuela.erp.examenes.model.Examen;
+import com.autoescuela.erp.examenes.dto.ExamenResumenDTO;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -97,11 +97,11 @@ public class ProfesorController
         Vehiculo vehiculo = profesor.getVehiculo();
 
         // Contar el número de exámenes pendientes de calificación del profesor
-        List<Examen> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+        List<ExamenResumenDTO> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         long pendientesCalificar = 0;
-        for (Examen examen : misExamenes)
+        for (ExamenResumenDTO examen : misExamenes)
         {
-            if (examen.getEsApto() == null)
+            if (examen.esApto() == null)
             {
                 pendientesCalificar++;
             }

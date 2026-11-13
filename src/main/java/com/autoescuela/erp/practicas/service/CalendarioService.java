@@ -55,7 +55,7 @@ public class CalendarioService
     /**
      * Ensambla la estructura semanal completa para la agenda del profesor autenticado.
      */
-    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().toString()) + '_' + T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().toString()")
     public CalendarioSemanalDTO obtenerCalendarioProfesor(Profesor profesor, LocalDate fechaReferencia)
     {
         LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();
@@ -113,7 +113,7 @@ public class CalendarioService
      * Ensambla la estructura semanal completa para la agenda del alumno autenticado,
      * aplicando el filtro de privacidad de datos RGPD ("Clase Práctica") y control de reservas.
      */
-    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'alum_' + (#alumno != null ? #alumno.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'alum_' + (#alumno != null ? #alumno.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().toString()) + '_' + T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().toString()")
     public CalendarioSemanalDTO obtenerCalendarioAlumno(Alumno alumno, LocalDate fechaReferencia)
     {
         LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();

@@ -765,7 +765,7 @@ public class ProfesorService
      * @return Profesor actualizado y persistido.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor actualizarPerfil(Long profesorId, EditarPerfilProfesorDTO dto)
     {
         if (profesorId == null)

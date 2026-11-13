@@ -27,7 +27,7 @@ import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
-import com.autoescuela.erp.examenes.model.Examen;
+import com.autoescuela.erp.examenes.dto.ExamenResumenDTO;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.practicas.dto.CalendarioSemanalDTO;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
@@ -204,18 +204,18 @@ public class CalendarioController
                 }
             }
 
-            List<Examen> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
-            for (Examen ex : examenesDgt)
+            List<ExamenResumenDTO> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+            for (ExamenResumenDTO ex : examenesDgt)
             {
                 Map<String, Object> props = new HashMap<>();
                 props.put("esPropia", false);
                 props.put("tipo", "EXAMEN_DGT");
 
                 eventos.add(new EventoCalendarioDTO(
-                        "examen-" + ex.getId(),
+                        "examen-" + ex.id(),
                         "Jornada Examen Oficial DGT (Bloqueado)",
-                        ex.getFechaHora().format(isoFormatter),
-                        ex.getFechaHora().plusMinutes(ex.getDuracion() != null ? ex.getDuracion() : 45).format(isoFormatter),
+                        ex.fechaHora().format(isoFormatter),
+                        ex.fechaHora().plusMinutes(ex.duracion() != null ? ex.duracion() : 45).format(isoFormatter),
                         false,
                         "#6366f1",
                         "#4f46e5",
@@ -331,18 +331,18 @@ public class CalendarioController
             ));
         }
 
-        List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
-        for (Examen examen : examenes)
+        List<ExamenResumenDTO> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+        for (ExamenResumenDTO examen : examenes)
         {
             Map<String, Object> props = new HashMap<>();
             props.put("tipo", "EXAMEN_DGT");
-            props.put("examenId", examen.getId());
+            props.put("examenId", examen.id());
 
             eventos.add(new EventoCalendarioDTO(
-                    "examen-" + examen.getId(),
+                    "examen-" + examen.id(),
                     "Jornada Oficial Examen DGT",
-                    examen.getFechaHora().format(isoFormatter),
-                    examen.getFechaHora().plusMinutes(examen.getDuracion() != null ? examen.getDuracion() : 45).format(isoFormatter),
+                    examen.fechaHora().format(isoFormatter),
+                    examen.fechaHora().plusMinutes(examen.duracion() != null ? examen.duracion() : 45).format(isoFormatter),
                     false,
                     "#6366f1",
                     "#4f46e5",
@@ -468,10 +468,10 @@ public class CalendarioController
             return this.devolverErrorCancelacion("No se puede cancelar una jornada en festivo nacional o periodo vacacional.", hxRequest, model, redirectAttributes);
         }
 
-        List<Examen> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
-        for (Examen examen : examenesDgt)
+        List<ExamenResumenDTO> examenesDgt = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+        for (ExamenResumenDTO examen : examenesDgt)
         {
-            if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
+            if (examen.fechaHora() != null && examen.fechaHora().toLocalDate().equals(fecha))
             {
                 return this.devolverErrorCancelacion("Esta fecha coincide con una convocatoria oficial de examen DGT y no admite cancelación del profesor.", hxRequest, model, redirectAttributes);
             }
@@ -578,10 +578,10 @@ public class CalendarioController
         }
         else
         {
-            List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
-            for (Examen examen : examenes)
+            List<ExamenResumenDTO> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+            for (ExamenResumenDTO examen : examenes)
             {
-                if (examen.getFechaHora() != null && examen.getFechaHora().toLocalDate().equals(fecha))
+                if (examen.fechaHora() != null && examen.fechaHora().toLocalDate().equals(fecha))
                 {
                     noCancelable = true;
                     motivoNoCancelable = "Esta fecha coincide con una convocatoria oficial de examen DGT del profesor y no admite cancelación.";

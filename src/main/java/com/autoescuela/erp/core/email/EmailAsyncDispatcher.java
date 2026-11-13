@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailAsyncDispatcher
 {
     private final JavaMailSender mailSender;
-    private HttpClient httpClient;
+    private volatile HttpClient httpClient;
 
     @Value("${brevo.api.key:${BREVO_API_KEY:}}")
     private String brevoApiKey;
@@ -108,9 +108,7 @@ public class EmailAsyncDispatcher
                     .POST(HttpRequest.BodyPublishers.ofString(jsonPayload, StandardCharsets.UTF_8))
                     .build();
 
-            HttpClient clienteHttp = (this.httpClient != null)
-                    ? this.httpClient
-                    : HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+            HttpClient clienteHttp = this.obtenerHttpClient();
 
             HttpResponse<String> response = clienteHttp.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
@@ -136,6 +134,31 @@ public class EmailAsyncDispatcher
             log.error("[EmailService-BrevoAPI] Excepción al conectar con la API de Brevo para {}: {}", destinatario, ex.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Obtiene un cliente HTTP reutilizable para las solicitudes a la API de Brevo.
+     * Si el cliente NO existe, se crea uno nuevo con un tiempo de espera de conexión de 5 segundos.
+     * @return El cliente HTTP configurado para las solicitudes a la API de Brevo.
+     */
+    private HttpClient obtenerHttpClient()
+    {
+        HttpClient cliente = this.httpClient;
+        if (cliente == null)
+        {
+            synchronized (this)
+            {
+                cliente = this.httpClient;
+                if (cliente == null)
+                {
+                    cliente = HttpClient.newBuilder()
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build();
+                    this.httpClient = cliente;
+                }
+            }
+        }
+        return cliente;
     }
 
     private void despacharConReintentos(MimeMessage mensaje, String destinatario, String tipoCorreo)

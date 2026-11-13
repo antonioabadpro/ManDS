@@ -27,8 +27,11 @@ import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.DisponibilidadConvocatoriaDTO;
+import com.autoescuela.erp.examenes.dto.ExamenResumenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenDashboardDTO;
 import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
+import com.autoescuela.erp.examenes.mapper.ExamenMapper;
 import com.autoescuela.erp.examenes.model.CupoExamen;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.FechaExamen;
@@ -60,6 +63,7 @@ public class ExamenService
     private final ClasePracticaRepository clasePracticaRepository;
     private final FechaExamenRepository fechaExamenRepository;
     private final CupoExamenRepository cupoExamenRepository;
+    private final ExamenMapper examenMapper;
     private final EmailService emailService;
 
     /**
@@ -67,9 +71,10 @@ public class ExamenService
      */
     @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'dashboard'")
     @Transactional(readOnly = true)
-    public List<SolicitudExamen> obtenerSolicitudesExamenDashboard()
+    public List<SolicitudExamenDashboardDTO> obtenerSolicitudesExamenDashboard()
     {
-        return this.solicitudExamenRepository.findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE);
+        return this.examenMapper.toSolicitudExamenDashboardDTOList(
+                this.solicitudExamenRepository.findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE));
     }
 
     /**
@@ -103,23 +108,24 @@ public class ExamenService
      */
     @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'teoricos'")
     @Transactional(readOnly = true)
-    public List<Examen> obtenerExamenesTeoricos()
+    public List<ExamenResumenDTO> obtenerExamenesTeoricos()
     {
-        return this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.TEORICO);
+        return this.examenMapper.toExamenResumenDTOList(this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.TEORICO));
     }
 
     /**
      * Recupera los exámenes prácticos asociados a los alumnos de un profesor ordenados descendentemente por fecha y hora.
      */
-    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'practicos_profesor_' + #profesor.id")
+    @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'practicos_profesor_' + (#profesor != null ? #profesor.id : 'null')", condition = "#profesor != null && #profesor.id != null")
     @Transactional(readOnly = true)
-    public List<Examen> obtenerExamenesPracticosPorProfesor(Profesor profesor)
+    public List<ExamenResumenDTO> obtenerExamenesPracticosPorProfesor(Profesor profesor)
     {
         if (profesor == null)
         {
             return List.of();
         }
-        return this.examenRepository.findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(profesor, TipoExamen.PRACTICO);
+        return this.examenMapper.toExamenResumenDTOList(
+                this.examenRepository.findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(profesor, TipoExamen.PRACTICO));
     }
 
     /**
@@ -792,7 +798,7 @@ public class ExamenService
      * Operación irreversible.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria)
     {
         return this.aceptarSolicitudExamen(solicitudId, numeroConvocatoria, null);
@@ -803,7 +809,7 @@ public class ExamenService
      * Operación irreversible.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public SolicitudExamen aceptarSolicitudExamen(Long solicitudId, int numeroConvocatoria, LocalDate mes)
     {
         if (solicitudId == null)

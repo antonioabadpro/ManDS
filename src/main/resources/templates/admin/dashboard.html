@@ -358,13 +358,13 @@
                                     <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay solicitudes de examen pendientes.</td>
                                 </tr>
                                 <tr th:each="solicitud : ${solicitudesExamen}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                    <td class="py-3 px-4 text-left font-semibold text-slate-900 dark:text-white" th:text="${solicitud.alumno != null ? (solicitud.alumno.nombre + ' ' + solicitud.alumno.apellidos) : 'Sin alumno'}">David Ruiz Gómez</td>
+                                    <td class="py-3 px-4 text-left font-semibold text-slate-900 dark:text-white" th:text="${solicitud.alumnoNombreCompleto != null ? solicitud.alumnoNombreCompleto : 'Sin alumno'}">David Ruiz Gómez</td>
                                     <td class="py-3 px-4 text-center">
-                                        <span th:if="${solicitud.profesor != null}" th:text="${solicitud.profesor.nombre + ' ' + solicitud.profesor.apellidos}">Laura Sánchez</span>
-                                        <span th:if="${solicitud.profesor == null and solicitud.tipo?.name() == 'TEORICO'}" class="text-slate-400 italic">Sin profesor (Teórico)</span>
-                                        <span th:if="${solicitud.profesor == null and solicitud.tipo?.name() != 'TEORICO'}" class="text-slate-400">Sin profesor asignado</span>
+                                        <span th:if="${solicitud.profesorNombreCompleto != null}" th:text="${solicitud.profesorNombreCompleto}">Laura Sánchez</span>
+                                        <span th:if="${solicitud.profesorNombreCompleto == null and solicitud.tipo?.name() == 'TEORICO'}" class="text-slate-400 italic">Sin profesor (Teórico)</span>
+                                        <span th:if="${solicitud.profesorNombreCompleto == null and solicitud.tipo?.name() != 'TEORICO'}" class="text-slate-400">Sin profesor asignado</span>
                                     </td>
-                                    <td class="py-3 px-4 text-center whitespace-nowrap" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: (solicitud.matricula?.permisoCarnet ?: '-')}">Permiso B</td>
+                                    <td class="py-3 px-4 text-center whitespace-nowrap" th:text="${solicitud.permisoCarnet?.descripcion ?: (solicitud.permisoCarnet ?: '-')}">Permiso B</td>
                                     <td class="py-3 px-4 text-center whitespace-nowrap">
                                         <div class="flex justify-center">
                                             <span th:if="${solicitud.tipo?.name() == 'TEORICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">TEÓRICO</span>

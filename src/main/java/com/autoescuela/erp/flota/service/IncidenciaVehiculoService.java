@@ -120,7 +120,7 @@ public class IncidenciaVehiculoService
      * @return Entidad IncidenciaVehiculo actualizada.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public IncidenciaVehiculo gestionarIncidencia(Long id, EstadoIncidencia nuevoEstado)
     {
         if (id == null)

@@ -25,8 +25,11 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
+import com.autoescuela.erp.examenes.dto.ExamenResumenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenDashboardDTO;
 import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
+import com.autoescuela.erp.examenes.mapper.ExamenMapper;
 import com.autoescuela.erp.examenes.model.CupoExamen;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.FechaExamen;
@@ -81,6 +84,9 @@ class ExamenServiceTest
 
     @Mock
     private CupoExamenRepository cupoExamenRepository;
+
+    @Mock
+    private ExamenMapper examenMapper;
 
     @Mock
     private EmailService emailService;
@@ -736,6 +742,9 @@ class ExamenServiceTest
         when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(this.alumnoEjemplo)).thenReturn(List.of(examen));
         when(this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.TEORICO)).thenReturn(List.of(examen));
         when(this.examenRepository.findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(profesor, TipoExamen.PRACTICO)).thenReturn(List.of(examen));
+        ExamenResumenDTO resumenExamenDTO = new ExamenResumenDTO(
+                1L, LocalDateTime.of(2026, 11, 10, 9, 0), 45, TipoExamen.TEORICO, null, "David Ruiz", "12345678Z", TipoCarnet.PERMISO_B);
+        when(this.examenMapper.toExamenResumenDTOList(List.of(examen))).thenReturn(List.of(resumenExamenDTO));
         when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(this.alumnoEjemplo, TipoExamen.TEORICO)).thenReturn(true);
         when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(this.alumnoEjemplo, TipoExamen.PRACTICO)).thenReturn(false);
         when(this.examenRepository.countByAlumnoAndEsAptoTrue(this.alumnoEjemplo)).thenReturn(1L);
@@ -973,13 +982,18 @@ class ExamenServiceTest
         solPendiente.setTipo(TipoExamen.PRACTICO);
         solPendiente.setAlumno(this.alumnoEjemplo);
 
+        SolicitudExamenDashboardDTO dtoPendiente = new SolicitudExamenDashboardDTO(
+                1L, "David Ruiz", "Laura Sánchez", TipoCarnet.PERMISO_B, TipoExamen.PRACTICO, EstadoSolicitud.PENDIENTE);
         when(this.solicitudExamenRepository.findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE))
                 .thenReturn(List.of(solPendiente));
+        when(this.examenMapper.toSolicitudExamenDashboardDTOList(List.of(solPendiente)))
+                .thenReturn(List.of(dtoPendiente));
 
-        List<SolicitudExamen> resultado = this.examenService.obtenerSolicitudesExamenDashboard();
+        List<SolicitudExamenDashboardDTO> resultado = this.examenService.obtenerSolicitudesExamenDashboard();
 
         assertEquals(1, resultado.size());
-        assertEquals(EstadoSolicitud.PENDIENTE, resultado.get(0).getEstado());
+        assertEquals(EstadoSolicitud.PENDIENTE, resultado.get(0).estado());
         verify(this.solicitudExamenRepository).findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE);
+        verify(this.examenMapper).toSolicitudExamenDashboardDTOList(List.of(solPendiente));
     }
 }

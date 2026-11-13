@@ -28,6 +28,7 @@ import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
+import com.autoescuela.erp.examenes.dto.ExamenResumenDTO;
 import com.autoescuela.erp.examenes.dto.FijarFechasExamenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
 import com.autoescuela.erp.examenes.model.CupoExamen;
@@ -353,7 +354,7 @@ public class ExamenController
     @GetMapping("/admin/calificaciones")
     public String mostrarCalificacionesAdmin(Model model)
     {
-        List<Examen> examenesTeoricos = this.examenService.obtenerExamenesTeoricos();
+        List<ExamenResumenDTO> examenesTeoricos = this.examenService.obtenerExamenesTeoricos();
         model.addAttribute("examenes", examenesTeoricos);
         model.addAttribute("calificarExamenDTO", new CalificarExamenDTO());
 
@@ -412,7 +413,7 @@ public class ExamenController
             return "redirect:/login";
         }
 
-        List<Examen> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+        List<ExamenResumenDTO> misExamenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
         model.addAttribute("profesor", profesor);
         model.addAttribute("examenes", misExamenes);
         model.addAttribute("calificarExamenDTO", new CalificarExamenDTO());
@@ -439,7 +440,7 @@ public class ExamenController
         }
 
         Examen examen = examenOptional.get();
-        List<Examen> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
+        List<ExamenResumenDTO> examenes = this.examenService.obtenerExamenesPracticosPorProfesor(profesor);
 
         model.addAttribute("examen", examen);
         model.addAttribute("alumnosCitados", examenes.size());

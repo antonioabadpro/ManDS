@@ -17,6 +17,13 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Long>
 {
     /**
+     * Recupera todas las clases prácticas precargando su profesor para evitar consultas N+1 en estadísticas globales.
+     */
+    @Override
+    @EntityGraph(attributePaths = {"profesor"})
+    List<ClasePractica> findAll();
+
+    /**
      * Recupera todas las clases prácticas asociadas a un profesor ordenadas ascendentemente (de más reciente a más antigua).
      */
     List<ClasePractica> findByProfesorOrderByFechaHoraAsc(Profesor profesor);
