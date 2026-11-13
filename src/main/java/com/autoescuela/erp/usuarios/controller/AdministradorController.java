@@ -23,6 +23,7 @@ import com.autoescuela.erp.core.util.UrlAplicacionUtil;
 import com.autoescuela.erp.estadisticas.service.EstadisticaService;
 import com.autoescuela.erp.examenes.service.ExamenService;
 import com.autoescuela.erp.flota.service.FlotaService;
+import com.autoescuela.erp.flota.service.IncidenciaVehiculoService;
 import com.autoescuela.erp.usuarios.dto.AltaProfesorDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoDetalleDTO;
 import com.autoescuela.erp.usuarios.dto.AlumnoExpedienteDTO;
@@ -55,6 +56,7 @@ public class AdministradorController
     private final ProfesorService profesorService;
     private final AlumnoService alumnoService;
     private final FlotaService flotaService;
+    private final IncidenciaVehiculoService incidenciaVehiculoService;
     private final ExamenService examenService;
     private final EstadisticaService estadisticaService;
 
@@ -400,7 +402,7 @@ public class AdministradorController
     private void cargarDatosDashboard(Model model)
     {
         model.addAttribute("estadisticas", this.estadisticaService.obtenerEstadisticasDashboardAdmin());
-        model.addAttribute("vehiculos", this.flotaService.obtenerVehiculosDashboard());
+        model.addAttribute("incidencias", this.incidenciaVehiculoService.obtenerIncidenciasDashboard());
         model.addAttribute("solicitudesExamen", this.examenService.obtenerSolicitudesExamenDashboard());
     }
 

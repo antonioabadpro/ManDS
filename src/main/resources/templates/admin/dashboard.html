@@ -301,35 +301,35 @@
             <!-- Tablas Responsivas Rápidas -->
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <!-- Tabla 1: Estado Rápido de Vehículos -->
+                <!-- Tabla 1: Incidencias Activas (Pendientes y En Proceso) -->
                 <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Vehículos en Circulación</h4>
-                        <a th:href="@{/admin/flota}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Ver todos</a>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Incidencias Activas</h4>
+                        <a th:href="@{/admin/incidencias}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Ver todas</a>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                            <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <table class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+                            <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                                 <tr>
-                                    <th class="py-2.5 px-3">Matrícula</th>
-                                    <th class="py-2.5 px-3">Modelo</th>
-                                    <th class="py-2.5 px-3">Tipo</th>
-                                    <th class="py-2.5 px-3">Estado</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Fecha</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Matrícula</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Vehículo</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Estado</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr th:if="${#lists.isEmpty(vehiculos)}">
-                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay vehículos registrados en la flota.</td>
+                                <tr th:if="${#lists.isEmpty(incidencias)}">
+                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay incidencias pendientes ni en proceso.</td>
                                 </tr>
-                                <tr th:each="vehiculo : ${vehiculos}">
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white" th:text="${vehiculo.matricula}">1234-LMN</td>
-                                    <td class="py-2.5 px-3" th:text="|${vehiculo.marca} ${vehiculo.modelo}|">SEAT Ibiza 1.0 TSI</td>
-                                    <td class="py-2.5 px-3" th:text="${vehiculo.tipoPermiso?.descripcion ?: vehiculo.tipoPermiso}">Permiso B</td>
-                                    <td class="py-2.5 px-3">
-                                        <span th:if="${vehiculo.estado?.name() == 'DISPONIBLE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">DISPONIBLE</span>
-                                        <span th:if="${vehiculo.estado?.name() == 'OCUPADO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400">OCUPADO</span>
-                                        <span th:if="${vehiculo.estado?.name() == 'MANTENIMIENTO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">MANTENIMIENTO</span>
-                                        <span th:if="${vehiculo.estado?.name() == 'INACTIVO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">INACTIVO</span>
+                                <tr th:each="inc : ${incidencias}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                    <td class="py-3 px-4 text-left font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">20/08/2026 09:30</td>
+                                    <td class="py-3 px-4 text-center font-semibold text-slate-900 dark:text-white whitespace-nowrap" th:text="${inc.vehiculoMatricula}">1234-LMN</td>
+                                    <td class="py-3 px-4 text-center" th:text="|${inc.vehiculoMarca} ${inc.vehiculoModelo}|">SEAT Ibiza 1.0 TSI</td>
+                                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                                        <div class="flex justify-center">
+                                            <span th:if="${inc.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">PENDIENTE</span>
+                                            <span th:if="${inc.estado?.name() == 'EN_PROCESO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">EN PROCESO</span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -337,34 +337,40 @@
                     </div>
                 </div>
 
-                <!-- Tabla 2: Solicitudes de Examen DGT Recientes -->
+                <!-- Tabla 2: Solicitudes de Examen DGT Pendientes -->
                 <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Últimas Solicitudes de Examen</h4>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Solicitudes de Examen Pendientes</h4>
                         <a th:href="@{/admin/examenes}" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">Ver todas</a>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                            <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 rounded-lg">
+                        <table class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+                            <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                                 <tr>
-                                    <th class="py-2.5 px-3">Alumno</th>
-                                    <th class="py-2.5 px-3">Profesor</th>
-                                    <th class="py-2.5 px-3">Tipo Carnet</th>
-                                    <th class="py-2.5 px-3">Estado</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Alumno</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Profesor</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Tipo Carnet</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">Tipo Examen</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                                 <tr th:if="${#lists.isEmpty(solicitudesExamen)}">
-                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay solicitudes de examen registradas.</td>
+                                    <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay solicitudes de examen pendientes.</td>
                                 </tr>
-                                <tr th:each="solicitud : ${solicitudesExamen}">
-                                    <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white" th:text="${solicitud.alumno != null ? (solicitud.alumno.nombre + ' ' + solicitud.alumno.apellidos) : 'Sin alumno'}">David Ruiz Gómez</td>
-                                    <td class="py-2.5 px-3" th:text="${solicitud.profesor != null ? (solicitud.profesor.nombre + ' ' + solicitud.profesor.apellidos) : 'Sin profesor asignado'}">Laura Sánchez</td>
-                                    <td class="py-2.5 px-3" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: (solicitud.matricula?.permisoCarnet ?: '-')}">Permiso B</td>
-                                    <td class="py-2.5 px-3">
-                                        <span th:if="${solicitud.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400">PENDIENTE</span>
-                                        <span th:if="${solicitud.estado?.name() == 'ACEPTADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">ACEPTADA</span>
-                                        <span th:if="${solicitud.estado?.name() == 'RECHAZADA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400">RECHAZADA</span>
+                                <tr th:each="solicitud : ${solicitudesExamen}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                                    <td class="py-3 px-4 text-left font-semibold text-slate-900 dark:text-white" th:text="${solicitud.alumno != null ? (solicitud.alumno.nombre + ' ' + solicitud.alumno.apellidos) : 'Sin alumno'}">David Ruiz Gómez</td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span th:if="${solicitud.profesor != null}" th:text="${solicitud.profesor.nombre + ' ' + solicitud.profesor.apellidos}">Laura Sánchez</span>
+                                        <span th:if="${solicitud.profesor == null and solicitud.tipo?.name() == 'TEORICO'}" class="text-slate-400 italic">Sin profesor (Teórico)</span>
+                                        <span th:if="${solicitud.profesor == null and solicitud.tipo?.name() != 'TEORICO'}" class="text-slate-400">Sin profesor asignado</span>
+                                    </td>
+                                    <td class="py-3 px-4 text-center whitespace-nowrap" th:text="${solicitud.matricula?.permisoCarnet?.descripcion ?: (solicitud.matricula?.permisoCarnet ?: '-')}">Permiso B</td>
+                                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                                        <div class="flex justify-center">
+                                            <span th:if="${solicitud.tipo?.name() == 'TEORICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20">TEÓRICO</span>
+                                            <span th:if="${solicitud.tipo?.name() == 'PRACTICO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">PRÁCTICO</span>
+                                            <span th:if="${solicitud.tipo == null}" class="text-slate-400">-</span>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

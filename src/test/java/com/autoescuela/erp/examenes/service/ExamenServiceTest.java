@@ -956,4 +956,23 @@ class ExamenServiceTest
         assertEquals(EstadoSolicitud.ACEPTADA, aceptada.getEstado());
         assertEquals(EstadoClase.CANCELADA, claseMismoDia.getEstadoClase());
     }
+
+    @Test
+    @DisplayName("obtenerSolicitudesExamenDashboard devuelve las 5 primeras solicitudes pendientes en orden FIFO")
+    void testObtenerSolicitudesExamenDashboard_SoloPendientesFIFO()
+    {
+        SolicitudExamen solPendiente = new SolicitudExamen();
+        solPendiente.setEstado(EstadoSolicitud.PENDIENTE);
+        solPendiente.setTipo(TipoExamen.PRACTICO);
+        solPendiente.setAlumno(this.alumnoEjemplo);
+
+        when(this.solicitudExamenRepository.findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE))
+                .thenReturn(List.of(solPendiente));
+
+        List<SolicitudExamen> resultado = this.examenService.obtenerSolicitudesExamenDashboard();
+
+        assertEquals(1, resultado.size());
+        assertEquals(EstadoSolicitud.PENDIENTE, resultado.get(0).getEstado());
+        verify(this.solicitudExamenRepository).findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE);
+    }
 }

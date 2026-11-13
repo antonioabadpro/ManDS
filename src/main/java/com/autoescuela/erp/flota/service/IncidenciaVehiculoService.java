@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +57,25 @@ public class IncidenciaVehiculoService
      * Recupera todas las incidencias de flota ordenadas por estado (PENDIENTE, EN_PROCESO, RESUELTA)
      * y de forma secundaria por fecha/hora ascendente.
      */
-    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS)
+    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS, key = "'todas'")
     @Transactional(readOnly = true)
     public List<IncidenciaResumenDTO> obtenerTodasLasIncidencias()
     {
         return this.incidenciaVehiculoRepository.findAllOrdenadasPorEstadoYFechaAsc()
+                .stream()
+                .map(this.incidenciaVehiculoMapper::toIncidenciaResumenDTO)
+                .toList();
+    }
+
+    /**
+     * Recupera hasta 5 incidencias activas (PENDIENTE o EN_PROCESO) para el resumen del Dashboard de Administración,
+     * priorizando las pendientes por orden cronológico ascendente.
+     */
+    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS, key = "'dashboard'")
+    @Transactional(readOnly = true)
+    public List<IncidenciaResumenDTO> obtenerIncidenciasDashboard()
+    {
+        return this.incidenciaVehiculoRepository.findActivasOrdenadasPorEstadoYFechaAsc(PageRequest.of(0, 5))
                 .stream()
                 .map(this.incidenciaVehiculoMapper::toIncidenciaResumenDTO)
                 .toList();

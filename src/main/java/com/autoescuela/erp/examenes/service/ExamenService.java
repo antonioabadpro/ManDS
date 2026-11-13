@@ -62,13 +62,13 @@ public class ExamenService
     private final EmailService emailService;
 
     /**
-     * Recupera las solicitudes de examen más recientes para el resumen rápido del Dashboard de Administración.
+     * Recupera hasta 5 solicitudes de examen pendientes en orden FIFO para el resumen rápido del Dashboard de Administración.
      */
     @Cacheable(value = CacheConfig.CACHE_EXAMENES, key = "'dashboard'")
     @Transactional(readOnly = true)
     public List<SolicitudExamen> obtenerSolicitudesExamenDashboard()
     {
-        return this.solicitudExamenRepository.findTop5ByOrderByIdDesc();
+        return this.solicitudExamenRepository.findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud.PENDIENTE);
     }
 
     /**

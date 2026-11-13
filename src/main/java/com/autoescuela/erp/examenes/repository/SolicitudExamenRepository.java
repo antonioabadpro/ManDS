@@ -66,6 +66,12 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
     List<SolicitudExamen> findTop5ByOrderByIdDesc();
 
     /**
+     * Recupera las 5 solicitudes de examen más antiguas en un determinado estado (orden FIFO).
+     */
+    @EntityGraph(attributePaths = {"alumno", "profesor", "matricula", "examen"})
+    List<SolicitudExamen> findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud estado);
+
+    /**
      * Recupera las solicitudes de examen en un determinado estado ordenadas cronológicamente (FIFO),
      * precargando todas sus relaciones para evitar consultas N+1 en las tablas de gestión.
      */
