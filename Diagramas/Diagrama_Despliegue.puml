@@ -1,7 +1,7 @@
-@startuml Diagrama_Despliegue_v1
+@startuml Diagrama_Despliegue_Cloud_v2
 ' ==============================================================================
 ' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
-' VISTA FÍSICA / DIAGRAMA DE DESPLIEGUE E INFRAESTRUCTURA CLOUD
+' VISTA FÍSICA / DIAGRAMA DE DESPLIEGUE EN PRODUCCIÓN CLOUD (PERFIL: deploy)
 ' ==============================================================================
 
 top to bottom direction
@@ -9,18 +9,23 @@ top to bottom direction
 skinparam nodeStyle rectangle
 skinparam roundCorner 8
 skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
-skinparam defaultFontSize 11
+skinparam defaultFontSize 10
 skinparam shadowing false
+skinparam wrapWidth 250
+skinparam nodesep 42
+skinparam ranksep 46
 
 ' Paleta de colores corporativa
+skinparam stereotypeFontStyle plain
+
 skinparam node {
   BackgroundColor #F8FAFC
   BorderColor #475569
   FontColor #0F172A
-  FontStyle bold
+  StereotypeFontStyle plain
 }
 
-skinparam component {
+skinparam artifact {
   BackgroundColor #FFFFFF
   BorderColor #2563EB
   FontColor #1E293B
@@ -33,69 +38,69 @@ skinparam database {
 }
 
 ' ------------------------------------------------------------------------------
-' 1. CLIENTE WEB Y MONITORIZACIÓN (NIVEL SUPERIOR)
+' 1. ACCESO DE CLIENTE Y MONITORIZACIÓN (NIVEL SUPERIOR)
 ' ------------------------------------------------------------------------------
-node "Dispositivo de Usuario (PC / Tablet / Smartphone)" as DispositivoCliente #EFF6FF {
-  artifact "Navegador Web Moderno\n(Google Chrome, Mozilla Firefox, Safari, Edge)" as NavegadorCliente #DBEAFE {
-    component "Capa Cliente (HTML-over-the-wire)\n• HTML5 Semántico (Renderizado en Servidor)\n• Fragmentos Reactivos HTMX\n• Tailwind CSS (Precompilado local)\n• JavaScript ES6+ No Intrusivo" as ClienteWeb #BFDBFE
+node "**Dispositivo de Usuario**" <<device>> as DispositivoCliente #EFF6FF {
+  node "**Navegador Web**" <<executionEnvironment>> as NavegadorCliente #DBEAFE {
+    artifact "**Interfaz SSR (HTML-over-the-wire)**\n• Documentos HTML5 renderizados en servidor\n• Fragmentos reactivos htmx.min.js\n• tailwind.min.css + JS ES6+ (caché 7 días)" as InterfazWeb #BFDBFE
   }
 }
 
-node "Plataforma de Monitorización Cloud (UptimeRobot)" as NodoMonitor #FEFCE8 {
-  component "Monitor de Disponibilidad (Keep-Alive)\n• Pings HTTP cada 5 min a /ping\n• Prevención de suspensión de instancia" as UptimeMonitor #FEF08A
+node "**UptimeRobot Cloud**" <<cloud>> as NodoMonitor #FEFCE8 {
+  node "**Monitor de Disponibilidad**\n(Keep-Alive)" <<executionEnvironment>> as UptimeMonitor #FEF08A
 }
+
+DispositivoCliente -[hidden]right- NodoMonitor
 
 ' ------------------------------------------------------------------------------
 ' 2. SERVIDOR DE APLICACIONES (PAAS CLOUD - RENDER)
 ' ------------------------------------------------------------------------------
-node "Plataforma PaaS Cloud (Render - Región Frankfurt, UE)" as NodoRender #F0FDF4 {
-  node "Contenedor Docker (Linux Debian / Alpine)" as ContenedorApp #DCFCE7 {
-    artifact "Entorno de Ejecución JVM (OpenJDK 21)\n[SerialGC, MaxRAMPercentage=50.0]" as RuntimeJVM #BBF7D0 {
-      component "Monolito Modular ManDS (Spring Boot 4.1.x JAR)\n• Servidor Web Apache Tomcat Embebido\n• Seguridad Perimetral (Spring Security, RBAC, CSRF, JSESSIONID)\n• Módulos Funcionales (Package-by-Feature)\n• Motor SSR (Thymeleaf) e interactividad HTMX\n• Pool de Conexiones Optimizado (HikariCP)" as AppSpring #FFFFFF
+node "**Plataforma PaaS Cloud Render (Región Frankfurt, UE)**" <<cloud>> as NodoRender #F0FDF4 {
+  node "**Proxy Inverso / Balanceador TLS**" <<executionEnvironment>> as ProxyRender #DCFCE7
+
+  node "**Instancia Contenerizada (Dockerfile con 512 MB RAM)**\neclipse-temurin:21-jre-alpine (Alpine Linux)" <<executionEnvironment>> as ContenedorApp #DCFCE7 {
+    node "**JVM OpenJDK 21 + Apache Tomcat Embebido**" <<executionEnvironment>> as RuntimeJVM #BBF7D0 {
+      artifact "**app.jar (ManDS · Spring Boot 4.1.2)**\n• Seguridad Perimetral (Spring Security, RBAC, CSRF, JSESSIONID)\n• Módulos Funcionales (Package-by-Feature)\n• Motor SSR (Thymeleaf cache=true) y Compresión GZIP\n• Pool de Conexiones HikariCP (máx. 5 conexiones)" as AppSpring #FFFFFF
     }
   }
+
+  ProxyRender -down-> RuntimeJVM : " HTTP interno (Puerto 8080)\n[Cabeceras X-Forwarded-*]"
 }
 
 ' ------------------------------------------------------------------------------
 ' 3. PERSISTENCIA Y SERVICIOS EXTERNOS CLOUD (NIVEL INFERIOR)
 ' ------------------------------------------------------------------------------
-node "Plataforma BaaS Cloud (Supabase)" as NodoSupabase #FAF5FF {
-  database "PostgreSQL 16 Engine" as MotorPostgres #EDE9FE {
-    component "Esquema Relacional ManDS\n• Integridad Referencial y Claves Foráneas\n• Restricciones Únicas (Profesor-FechaHora)\n• Transacciones ACID y Aislamiento\n• Índices de Alto Rendimiento" as EsquemaBD #DDD6FE
+node "**Supabase Cloud (BaaS)**" <<cloud>> as NodoSupabase #FAF5FF {
+  node "**Connection Pooler IPv4**" <<executionEnvironment>> as PoolerSupabase #EDE9FE
+  database "PostgreSQL 16" <<executionEnvironment>> as MotorPostgres #EDE9FE {
+    artifact "**Esquema Relacional ManDS**\n• Integridad referencial y restricciones únicas\n• Transacciones ACID e índices de consulta" as EsquemaBD #DDD6FE
   }
+  PoolerSupabase -down-> MotorPostgres : " Pool de sesiones"
 }
 
-node "Pasarela de Pagos Segura (Stripe Cloud)" as NodoStripe #F8FAFC {
-  component "Stripe API & Checkout\n• Captura segura bajo estándar PCI-DSS\n• Sesiones de Pago (Matrículas y Bonos)\n• Emisión de Webhooks Criptográficos" as ServicioStripe #E2E8F0
+node "**Stripe Cloud**" <<cloud>> as NodoStripe #F8FAFC {
+  node "**Stripe Checkout & Webhooks API**" <<executionEnvironment>> as ServicioStripe #E2E8F0
 }
 
-node "Plataforma de Mensajería Transaccional (Brevo Cloud)" as NodoBrevo #F8FAFC {
-  component "Servicio de Correo Brevo\n• Brevo REST API v3 (HTTPS 443)\n• Notificaciones transaccionales asíncronas\n• Activaciones y restablecimiento de claves" as ServicioBrevo #E2E8F0
+node "**Brevo Cloud**" <<cloud>> as NodoBrevo #F8FAFC {
+  node "**Brevo REST API v3**" <<executionEnvironment>> as ServicioBrevo #E2E8F0
 }
 
-' ------------------------------------------------------------------------------
-' 4. ENTORNO DE DESARROLLO LOCAL COMPLEMENTARIO (DOCKER COMPOSE)
-' ------------------------------------------------------------------------------
-node "Entorno de Desarrollo y Pruebas Local (Docker Compose)" as NodoDockerLocal #FFF7ED {
-  database "PostgreSQL 16 Local\n(Puerto 5432)" as PostgresLocal #FFEDD5
-  component "Servidor SMTP Mailpit\n• Puerto SMTP 1025 (Envío simulado)\n• Puerto Web 8025 (Inspección)" as MailpitLocal #FFEDD5
-}
+NodoSupabase -[hidden]right- NodoStripe
+NodoStripe -[hidden]right- NodoBrevo
 
 ' ------------------------------------------------------------------------------
 ' COMUNICACIONES Y PROTOCOLOS DE RED
 ' ------------------------------------------------------------------------------
-ClienteWeb -down-> AppSpring : " HTTPS / TLS (Puerto 443)\n[Páginas completas y fragmentos HTML]"
-UptimeMonitor -down-> AppSpring : " HTTP GET /ping (Puerto 443)"
+InterfazWeb -down-> ProxyRender : " HTTPS / TLS (Puerto 443)\n[Vistas HTML y fragmentos HTMX]"
+UptimeMonitor -down-> ProxyRender : " HTTPS GET /ping (Puerto 443)\n[Cada 5 min | evita suspensión]"
 
-AppSpring -down-> EsquemaBD : " PostgreSQL JDBC sobre SSL (Puerto 5432)\n[Consultas SQL / Transacciones ACID]"
+AppSpring -down-> PoolerSupabase : " PostgreSQL JDBC sobre SSL (Puerto 5432)\n[sslmode=require, tcpKeepAlive, batching]"
 
-AppSpring -down-> ServicioStripe : " Redirección a Checkout HTTPS (443)"
-ServicioStripe -up-> AppSpring : " Webhooks Asíncronos HTTPS (443)\n[Firma criptográfica Stripe-Signature]"
+AppSpring -down-> ServicioStripe : " HTTPS (Puerto 443)\n[Sesiones Checkout PCI-DSS]"
+ServicioStripe -up-> ProxyRender : " Webhooks HTTPS (Puerto 443)\n[Firma Stripe-Signature]"
 
-AppSpring -down-> ServicioBrevo : " Despacho Asíncrono HTTPS API REST (443)"
 
-' Relaciones del entorno de pruebas local
-AppSpring ..[#D97706,dashed]..> PostgresLocal : " Perfil dev local\n(JDBC 5432)"
-AppSpring ..[#D97706,dashed]..> MailpitLocal : " Perfil dev local\n(SMTP 1025)"
+AppSpring -down-> ServicioBrevo : " HTTPS REST API v3 (Puerto 443)\n[HttpClient nativo asíncrono]"
 
 @enduml

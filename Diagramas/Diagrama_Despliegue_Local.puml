@@ -1,0 +1,86 @@
+@startuml Diagrama_Despliegue_Local_v2
+' ==============================================================================
+' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
+' VISTA FÍSICA / ENTORNO LOCAL CONTENERIZADO (DOCKER COMPOSE · PERFIL: docker)
+' ==============================================================================
+
+top to bottom direction
+
+skinparam nodeStyle rectangle
+skinparam roundCorner 8
+skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
+skinparam defaultFontSize 10
+skinparam shadowing false
+skinparam wrapWidth 250
+skinparam nodesep 42
+skinparam ranksep 46
+
+' Paleta de colores corporativa
+skinparam stereotypeFontStyle plain
+
+skinparam node {
+  BackgroundColor #F8FAFC
+  BorderColor #475569
+  FontColor #0F172A
+  StereotypeFontStyle plain
+}
+
+skinparam artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #2563EB
+  FontColor #1E293B
+}
+
+skinparam database {
+  BackgroundColor #FAF5FF
+  BorderColor #7C3AED
+  FontColor #4C1D95
+}
+
+' ------------------------------------------------------------------------------
+' 1. ACCESO DE CLIENTE LOCAL (NIVEL SUPERIOR)
+' ------------------------------------------------------------------------------
+node "**Estación de Trabajo Local (Host)**\n(Docker Engine / Docker Desktop)" <<device>> as HostLocal #EFF6FF {
+  node "**Navegador Web**" <<executionEnvironment>> as NavegadorLocal #DBEAFE {
+    artifact "**Interfaz Web ManDS**\n(http://localhost:8080)" as WebLocal #BFDBFE
+    artifact "**Bandeja Simulada Mailpit UI**\n(http://localhost:8025)" as MailpitUI #FEF08A
+    WebLocal -[hidden]right- MailpitUI
+  }
+}
+
+' ------------------------------------------------------------------------------
+' 2. SERVIDOR DE APLICACIONES CONTENERIZADO (DOCKER COMPOSE)
+' ------------------------------------------------------------------------------
+node "**Contenedor mands_app (Red: mands_network)**\nantonioabadpro/mands:latest · eclipse-temurin:21-jre-alpine" <<executionEnvironment>> as ContenedorApp #DCFCE7 {
+  node "**JVM OpenJDK 21 + Apache Tomcat Embebido**" <<executionEnvironment>> as RuntimeJVM #BBF7D0 {
+    artifact "**app.jar (ManDS · Spring Boot 4.1.2)**\n• Perfil activo: docker (Puerto 8080:8080)\n• ddl-auto=create-drop + carga data.sql\n• thymeleaf.cache=false\n• Stripe en modo simulación (o test si existe .env)" as AppSpring #FFFFFF
+  }
+}
+
+' ------------------------------------------------------------------------------
+' 3. PERSISTENCIA Y SERVICIOS CONTENERIZADOS LOCALES (NIVEL INFERIOR)
+' ------------------------------------------------------------------------------
+node "**Contenedor postgres_tfg (Red: mands_network)**\npostgres:16-alpine (Puerto 5432:5432)" <<executionEnvironment>> as ContenedorPg #FAF5FF {
+  database "PostgreSQL 16" <<executionEnvironment>> as MotorPg #EDE9FE {
+    artifact "**Base de Datos tfg_db**\n• Esquema relacional ManDS\n• Poblado automático inicial con data.sql" as EsquemaLocal #DDD6FE
+  }
+  artifact "**Volumen Persistente pgdata_tfg**\n(/var/lib/postgresql/data)" as VolumenPg #F3E8FF
+  MotorPg -down-> VolumenPg : " Montaje de volumen"
+}
+
+node "**Contenedor mailpit_tfg (Red: mands_network)**\naxllent/mailpit:latest" <<executionEnvironment>> as ContenedorMailpit #FEFCE8 {
+  node "**Servidor Mailpit**\n(SMTP :1025 | Web UI :8025)" <<executionEnvironment>> as ServicioMailpit #FEF08A
+}
+
+ContenedorPg -[hidden]right- ContenedorMailpit
+
+' ------------------------------------------------------------------------------
+' COMUNICACIONES Y PUERTOS DE RED
+' ------------------------------------------------------------------------------
+WebLocal -down-> RuntimeJVM : " HTTP (Puerto 8080:8080)\n[Vistas HTML y fragmentos HTMX]"
+MailpitUI -down-> ServicioMailpit : " HTTP (Puerto 8025:8025)\n[Inspección visual de correos]"
+
+AppSpring -down-> MotorPg : " JDBC PostgreSQL (postgres:5432)\n[Red bridge mands_network]"
+AppSpring -down-> ServicioMailpit : " SMTP (mailpit:1025)\n[Sin TLS · Red mands_network]"
+
+@enduml
