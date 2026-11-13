@@ -1,7 +1,7 @@
-@startuml Diagrama_Componentes_v1
+@startuml Diagrama_Componentes_v3
 ' ==============================================================================
 ' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
-' VISTA LÓGICA / DIAGRAMA DE COMPONENTES DE ARQUITECTURA (FORMATO VERTICAL A4)
+' VISTA LÓGICA / DIAGRAMA DE COMPONENTES (PACKAGE-BY-FEATURE - FORMATO VERTICAL A4)
 ' ==============================================================================
 
 top to bottom direction
@@ -10,11 +10,12 @@ skinparam componentStyle uml2
 skinparam packageStyle rectangle
 skinparam roundCorner 8
 skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
-skinparam defaultFontSize 11
+skinparam defaultFontSize 10
 skinparam shadowing false
-skinparam wrapWidth 240
+skinparam wrapWidth 220
+skinparam nodesep 36
+skinparam ranksep 30
 
-' Paleta de colores corporativa
 skinparam package {
   BackgroundColor #F8FAFC
   BorderColor #64748B
@@ -34,109 +35,142 @@ skinparam interface {
   FontColor #4C1D95
 }
 
-skinparam database {
-  BackgroundColor #FAF5FF
-  BorderColor #7C3AED
-  FontColor #4C1D95
+skinparam note {
+  BackgroundColor #FEFCE8
+  BorderColor #CA8A04
+  FontColor #713F12
+  FontSize 9
 }
 
 ' ------------------------------------------------------------------------------
 ' 1. CAPA DE PRESENTACIÓN (CLIENTE WEB)
 ' ------------------------------------------------------------------------------
-package "1. Capa de Presentación (Cliente Web / Navegador)" as CapaCliente #EFF6FF {
-  component [Vistas y Plantillas SSR\n(Thymeleaf + Fragmentos Atómicos)] as CompVistas #DBEAFE
-  component [Motor de Interactividad Asíncrona\n(HTMX: hx-get, hx-post, hx-target)] as CompHTMX #DBEAFE
-  component [Diseño Adaptativo y Estilos\n(Tailwind CSS Compilado / Mobile-First)] as CompTailwind #DBEAFE
-  component [Interactividad No Intrusiva\n(JavaScript ES6+ / DOM Nativo / CSP)] as CompJS #DBEAFE
-
-  CompVistas -right- CompHTMX
-  CompTailwind -right- CompJS
-  CompVistas -down- CompTailwind
+package "1. Presentación (Cliente Web)" as CapaCliente #EFF6FF {
+  component "**Cliente Web (HTML-over-the-wire)**\n• Vistas SSR (Thymeleaf + Fragmentos)\n• Interactividad HTMX (hx-get, hx-post, hx-target)\n• Tailwind CSS precompilado + JS ES6+ (CSP)" as CompCliente #DBEAFE
 }
 
 ' ------------------------------------------------------------------------------
-' 2. CAPA DE SEGURIDAD PERIMETRAL
+' 2. CAPA DE SEGURIDAD PERIMETRAL (core/security)
 ' ------------------------------------------------------------------------------
-package "2. Capa de Seguridad Perimetral (Spring Security)" as CapaSeguridad #FEF2F2 {
-  component [Cadena de Filtros de Seguridad Web\n(SecurityFilterChain)] as FiltrosSeguridad #FEE2E2
-  component [Control de Acceso RBAC\n(ROLE_ADMIN, ROLE_PROFESOR, ROLE_ALUMNO)] as CompRBAC #FEE2E2
-  component [Protección Anti-CSRF\ny Cabeceras CSP] as CompCSRF #FEE2E2
-  component [Gestión de Sesión Única\n(Cookies JSESSIONID)] as CompSesiones #FEE2E2
-
-  FiltrosSeguridad -right- CompRBAC
-  CompCSRF -right- CompSesiones
-  FiltrosSeguridad -down- CompCSRF
+package "2. Seguridad Perimetral (core/security)" as CapaSeguridad #FEF2F2 {
+  component "**Seguridad Web y Sesión**\n• ConfiguracionSeguridad (SecurityFilterChain)\n• Control RBAC (ADMIN, PROFESOR, ALUMNO)\n• Protección CSRF, CSP y Sesión Única (JSESSIONID)\n• UserDetailsServiceImpl & HtmxAuthenticationEntryPoint" as CompSeguridad #FEE2E2
 }
 
 ' ------------------------------------------------------------------------------
-' 3. NÚCLEO MODULAR DE LA APLICACIÓN (PACKAGE-BY-FEATURE)
+' 3. NÚCLEO MODULAR DE APLICACIÓN (PACKAGE-BY-FEATURE)
 ' ------------------------------------------------------------------------------
-package "3. Núcleo de Aplicación (Patrón Package-by-Feature)" as NucleoApp #F0FDF4 {
+package "3. Núcleo Modular (com.autoescuela.erp - Package-by-Feature)" as NucleoApp #F0FDF4 {
 
-  ' Controladores Web agrupados por módulo funcional
-  package "Capa de Controladores Web (Spring MVC)" as CapaControladores #DCFCE7 {
-    component [Módulo Auth & Usuarios\n• AuthenticationController\n• AdministradorController\n• ProfesorController\n• AlumnoController] as CtrlUsuarios #FFFFFF
+  package "Módulos Funcionales de Dominio" as ModulosDominio #DCFCE7 {
+    component "**Módulo Auth (auth)**\n• AuthenticationController\n• AuthenticationService\n• TokenVerificacionService\n• TokenVerificacionRepository" as ModAuth #FFFFFF
 
-    component [Módulo Académico & Prácticas\n• ClasePracticaController\n• CalendarioController\n• FlotaController] as CtrlPracticas #FFFFFF
+    component "**Módulo Usuarios (usuarios)**\n• AdministradorController, ProfesorController,\n  AlumnoController, PerfilController, UsuarioController\n• UsuarioService, ProfesorService, AlumnoService\n• PersonaRepository, ProfesorRepository, AlumnoRepository" as ModUsuarios #FFFFFF
 
-    component [Módulo Exámenes & Pagos\n• ExamenController\n• StripeWebhookController] as CtrlExamenes #FFFFFF
+    component "**Módulo Pagos (pagos)**\n• StripeResponseController\n• StripeWebhookController\n• PagoStripeService" as ModPagos #FFFFFF
+
+    component "**Módulo Académico (academico)**\n• MatriculaController, PagoPracticasController\n• AcademicoService\n• MatriculaRepository" as ModAcademico #FFFFFF
+
+    component "**Módulo Flota (flota)**\n• VehiculoController, IncidenciaVehiculoController\n• FlotaService, IncidenciaVehiculoService\n• VehiculoRepository, IncidenciaVehiculoRepository" as ModFlota #FFFFFF
+
+    component "**Módulo Prácticas (practicas)**\n• CalendarioController, ClasePracticaController\n• CalendarioService, ClasePracticaService\n• ClasePracticaRepository" as ModPracticas #FFFFFF
+
+    component "**Módulo Exámenes (examenes)**\n• ExamenController, SolicitudExamenController\n• ExamenService\n• ExamenRepository, SolicitudExamenRepository,\n  FechaExamenRepository, CupoExamenRepository" as ModExamenes #FFFFFF
+
+    component "**Módulo Estadísticas (estadisticas)**\n• EstadisticaController\n• EstadisticaService" as ModEstadisticas #FFFFFF
+
+    ' Maquetación estricta en rejilla de 2 columnas para formato vertical A4
+    ModAuth -[hidden]right- ModUsuarios
+    ModPagos -[hidden]right- ModAcademico
+    ModFlota -[hidden]right- ModPracticas
+    ModExamenes -[hidden]right- ModEstadisticas
+
+    ModAuth -[hidden]down- ModPagos
+    ModUsuarios -[hidden]down- ModAcademico
+    ModPagos -[hidden]down- ModFlota
+    ModAcademico -[hidden]down- ModPracticas
+    ModFlota -[hidden]down- ModExamenes
+    ModPracticas -[hidden]down- ModEstadisticas
   }
 
-  ' Capa de Transferencia y Mapeo Desacoplado
-  package "Capa de Transferencia y Desacoplamiento (DTOs & Mappers)" as CapaTransferencia #F3F4F6 {
-    component [DTOs Inmutables de Transferencia\n(Java 21 Records + Bean Validation)] as CompDTOs #E5E7EB
-    component [Mappers Bidireccionales\n(MapStruct en compilación)] as CompMappers #E5E7EB
-    CompDTOs <-> CompMappers
+  package "Núcleo Transversal (core)" as ModCorePkg #FEF9C3 {
+    component "**Infraestructura Core**\n• GlobalExceptionHandler\n• CacheConfig (@Cacheable / @CacheEvict)\n• AsyncConfig, MailConfig, StripeConfig\n• PingController & Utilidades" as ModCore #FEF08A
+
+    component "**Motor de Correo (core/email)**\n• EmailService / EmailServiceImpl\n• EmailAsyncDispatcher (@Async)" as ModEmail #FEF08A
+
+    ModCore -[hidden]right- ModEmail
   }
 
-  ' Capa de Servicios de Negocio Transaccionales
-  package "Capa de Servicios de Negocio (Lógica Transaccional @Transactional)" as CapaServicios #FEF9C3 {
-    component [Servicios de Identidad y Perfiles\n• AuthenticationService\n• UsuarioService\n• ProfesorService\n• AlumnoService] as SrvUsuarios #FEF08A
+  note as NotaPatron
+    Cada módulo encapsula internamente sus subcapas:
+    Controladores MVC/HTMX, DTOs (Java Records),
+    Mappers (MapStruct), Servicios @Transactional,
+    Entidades JPA y Repositorios Spring Data.
+    Todos consumen de forma transversal Infraestructura Core
+    (caché, excepciones) y el Motor de Correo.
+  end note
 
-    component [Servicios Operativos y de Flota\n• FlotaService\n• CalendarioService\n• ClasePracticaService] as SrvOperativa #FEF08A
+  ' Anclaje vertical centrado entre módulos de dominio, núcleo transversal y nota
+  ModExamenes -[hidden]down- ModCore
+  ModEstadisticas -[hidden]down- ModEmail
+  ModCore -[hidden]down- NotaPatron
+  ModEmail -[hidden]down- NotaPatron
 
-    component [Servicios Administrativos e Integración\n• ExamenService (Cupos DGT)\n• PagoStripeService (Checkout)\n• EmailService (Despacho Asíncrono)] as SrvAdmin #FEF08A
-  }
+  ' Dependencias entre módulos respetando el sentido de la rejilla
+  ModAuth .right.> ModUsuarios : consulta perfiles
+  ModAuth .down.> ModPagos : checkout matrícula
+  ModPagos .up.> ModAuth : activa alumno
+  ModAcademico .left.> ModPagos : checkout bonos / renovación
+  ModPagos .right.> ModAcademico : activa matrícula / saldo
+  ModPracticas .left.> ModFlota : valida vehículo
+  ModExamenes .up.> ModPracticas : valida historial clases
+  ModEstadisticas .up.> ModPracticas : agrega métricas
+  ModEstadisticas .left.> ModExamenes : agrega métricas
 
-  ' Capa de Persistencia Spring Data JPA
-  package "Capa de Acceso a Datos (Spring Data JPA Repositories)" as CapaPersistencia #F5F3FF {
-    interface "PersonaRepository\nProfesorRepository\nAlumnoRepository" as RepoUsuarios
-    interface "VehiculoRepository\nIncidenciaRepository" as RepoFlota
-    interface "ClasePracticaRepository\nCalendarioRepository" as RepoPracticas
-    interface "MatriculaRepository\nExamenRepository\nSolicitudExamenRepository" as RepoAcademico
-  }
-
-  CapaControladores ..> CompDTOs : recibe y valida
-  CapaControladores ..> CompMappers : utiliza
-  CapaControladores --> CapaServicios : invoca casos de uso
-  CompMappers ..> CapaServicios : asiste mapeo
-  CapaServicios --> CapaPersistencia : operaciones CRUD y consultas
+  ModulosDominio .down.> ModCorePkg : uso transversal\n(caché, excepciones, email)
 }
 
 ' ------------------------------------------------------------------------------
-' 4. DOMINIO, PERSISTENCIA Y SERVICIOS EXTERNOS
+' 4. PERSISTENCIA ORM Y SERVICIOS EXTERNOS (CONTRATOS E INTERFACES)
 ' ------------------------------------------------------------------------------
-package "4. Persistencia Relacional y Dominio" as CapaDominio #FAF5FF {
-  component [Entidades de Dominio JPA\n(Hibernate ORM: Persona, Matricula,\nVehiculo, ClasePractica, Examen)] as CompEntidades #EDE9FE
-  database "PostgreSQL 16 Engine\n(Supabase Cloud / Transacciones ACID)" as BDPostgres #DDD6FE
+package "4. Persistencia Lógica y Servicios Externos" as CapaExterna #FAF5FF {
+  component "**Capa ORM y Pool de Conexiones**\n(Hibernate ORM / Spring Data JPA / HikariCP)" as CompORM #EDE9FE
 
-  CompEntidades --> BDPostgres : Conexión SQL (HikariCP / SSL)
+  interface "Stripe API &\nWebhooks HTTPS" as IStripe
+  interface "JDBC / SSL" as IJDBC
+  interface "Brevo REST v3 /\nSMTP" as IEmail
+
+  component "**Pasarela Stripe**\n(Checkout & Webhooks)" <<external>> as ExtStripe #E2E8F0
+  component "**PostgreSQL 16**\n(Supabase / Docker)" <<external>> as ExtPostgres #DDD6FE
+  component "**Servicio de Correo**\n(Brevo Cloud / Mailpit)" <<external>> as ExtCorreo #E2E8F0
+
+  ' Simetría y centrado: 3 columnas alineadas con sus interfaces
+  CompORM -[hidden]down- IJDBC
+  IStripe -[hidden]right- IJDBC
+  IJDBC -[hidden]right- IEmail
+  ExtStripe -[hidden]right- ExtPostgres
+  ExtPostgres -[hidden]right- ExtCorreo
+
+  IStripe -down- ExtStripe
+  IJDBC -down- ExtPostgres
+  IEmail -down- ExtCorreo
 }
 
-package "5. Servicios Externos Desacoplados" as CapaExternos #F8FAFC {
-  component [Pasarela de Pagos Stripe\n(Stripe Checkout API & Webhooks)] as ExtStripe #E2E8F0
-  component [Servicio de Correo Brevo\n(REST API v3 / HTTPS 443)] as ExtEmail #E2E8F0
-}
-
 ' ------------------------------------------------------------------------------
-' CONEXIONES ENTRE CAPAS PRINCIPALES (FLUJO VERTICAL)
+' FLUJO PRINCIPAL ENTRE CAPAS Y CONTRATOS EXTERNOS
 ' ------------------------------------------------------------------------------
-CapaCliente --> FiltrosSeguridad : Peticiones HTTP/S (GET, POST)
-FiltrosSeguridad --> CapaControladores : Peticiones Autorizadas
+interface "HTTP / HTTPS\n(HTML + HTMX)" as IHTTP
 
-CapaPersistencia --> CompEntidades : Mapeo ORM (Hibernate)
+CompCliente .down.> IHTTP : peticiones GET/POST
+IHTTP -down- CompSeguridad : intercepta
+CompSeguridad .down.> ModulosDominio : peticiones autorizadas
 
-SrvAdmin ..> ExtStripe : Checkout / Webhooks
-SrvAdmin ..> ExtEmail : Despacho Asíncrono (@Async)
+NotaPatron -[hidden]down- CompORM
+NucleoApp .down.> CompORM : persistencia entidades JPA
+CompORM .down.> IJDBC : <<use>>
+
+ModPagos .down.> IStripe : <<use>> Checkout
+ExtStripe .up.> ModPagos : Webhook HTTPS\n(Stripe-Signature)
+
+ModEmail .down.> IEmail : <<use>> asíncrono
 
 @enduml
