@@ -87,8 +87,8 @@
 
                         <!-- 5. Kilometraje -->
                         <td class="py-3 px-4 text-center whitespace-nowrap tabular-nums">
-                            <span th:if="${c.estadoClase?.name() == 'RECIBIDA'}" class="font-medium text-slate-700 dark:text-slate-300" th:text="${c.kmFormateado}">44.955 a 45.000 km (+45 km)</span>
-                            <span th:if="${c.estadoClase?.name() == 'PENDIENTE'}" class="text-[11px] text-slate-400 italic" th:text="${c.kmInicio != null && c.kmInicio > 0 ? c.kmInicio + ' km (Inicio)' : 'Pendiente de inicio'}">45.000 km (Inicio)</span>
+                            <span th:if="${c.estadoClase?.name() == 'RECIBIDA'}" class="font-medium text-slate-700 dark:text-slate-300" th:text="${((c.kmFin ?: 0) - (c.kmInicio ?: 0)) > 0 ? ((c.kmFin ?: 0) - (c.kmInicio ?: 0)) : 0} + ' km'">45 km</span>
+                            <span th:if="${c.estadoClase?.name() == 'PENDIENTE'}" class="text-xs text-slate-400">-</span>
                             <span th:if="${c.estadoClase?.name() == 'CANCELADA'}" class="text-xs text-slate-400">--</span>
                         </td>
 

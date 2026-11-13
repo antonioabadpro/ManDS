@@ -322,7 +322,7 @@
                                     <td colspan="4" class="py-4 px-3 text-center text-slate-400 dark:text-slate-500 italic">No hay incidencias pendientes ni en proceso.</td>
                                 </tr>
                                 <tr th:each="inc : ${incidencias}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                    <td class="py-3 px-4 text-left font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">20/08/2026 09:30</td>
+                                    <td class="py-3 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">20/08/2026 09:30</td>
                                     <td class="py-3 px-4 text-center font-semibold text-slate-900 dark:text-white whitespace-nowrap" th:text="${inc.vehiculoMatricula}">1234-LMN</td>
                                     <td class="py-3 px-4 text-center" th:text="|${inc.vehiculoMarca} ${inc.vehiculoModelo}|">SEAT Ibiza 1.0 TSI</td>
                                     <td class="py-3 px-4 text-center whitespace-nowrap">
