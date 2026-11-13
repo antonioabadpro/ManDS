@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -149,4 +150,10 @@ public interface ClasePracticaRepository extends JpaRepository<ClasePractica, Lo
         WHERE c.id = :id
     """)
     Optional<ClasePractica> findByIdConDetalles(@Param("id") Long id);
+
+    /**
+     * Proyección ligera de las últimas 5 clases prácticas de un alumno para su dashboard,
+     * evitando cargar asociaciones perezosas (profesor, vehículo o alumno).
+     */
+    List<ClasePracticaResumenAlumnoDTO> findTop5ByAlumnoOrderByFechaHoraDesc(Alumno alumno);
 }

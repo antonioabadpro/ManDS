@@ -37,6 +37,7 @@ import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
@@ -742,6 +743,7 @@ class ClasePracticaServiceTest
         assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(null)).isZero();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(null)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(null, EstadoClase.CANCELADA)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(null, LocalDateTime.now(), LocalDateTime.now())).isEmpty();
@@ -755,8 +757,10 @@ class ClasePracticaServiceTest
         when(this.clasePracticaRepository.findById(5L)).thenReturn(Optional.of(clase));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE)).thenReturn(2);
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(7);
+        ClasePracticaResumenAlumnoDTO resumenDTO = new ClasePracticaResumenAlumnoDTO(1L, inicio, "Calle Mayor 1", EstadoClase.RECIBIDA);
         when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumno)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findTop5ByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(resumenDTO));
         when(this.clasePracticaRepository.findByAlumnoAndEstadoClaseNot(alumno, EstadoClase.CANCELADA)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicio, fin)).thenReturn(List.of(clase));
@@ -767,6 +771,7 @@ class ClasePracticaServiceTest
         assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(alumno)).isEqualTo(7L);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(alumno)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(alumno)).containsExactly(resumenDTO);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(alumno, EstadoClase.CANCELADA)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(profesor, inicio, fin)).hasSize(1);

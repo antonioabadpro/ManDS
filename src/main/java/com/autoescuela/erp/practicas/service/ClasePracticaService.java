@@ -26,6 +26,7 @@ import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
@@ -299,6 +300,20 @@ public class ClasePracticaService
             return List.of();
         }
         return this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+    }
+
+    /**
+     * Recupera como proyección DTO las últimas 5 clases prácticas de un alumno ordenadas descendentemente,
+     * evitando consultas perezosas sobre profesor o matrícula en el dashboard del alumno.
+     */
+    @Transactional(readOnly = true)
+    public List<ClasePracticaResumenAlumnoDTO> obtenerUltimas5ClasesResumenPorAlumno(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return List.of();
+        }
+        return this.clasePracticaRepository.findTop5ByAlumnoOrderByFechaHoraDesc(alumno);
     }
 
     /**

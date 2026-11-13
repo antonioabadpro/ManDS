@@ -22,8 +22,9 @@ import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.ModalidadMatricula;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
-import com.autoescuela.erp.examenes.model.SolicitudExamen;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
 import com.autoescuela.erp.examenes.service.ExamenService;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.service.ClasePracticaService;
 import com.autoescuela.erp.usuarios.dto.EditarPerfilAlumnoDTO;
@@ -94,19 +95,11 @@ public class AlumnoController
             }
         }
 
-        // Últimas clases prácticas para el resumen
-        List<ClasePractica> clasesRecientes = this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno);
-        if (clasesRecientes.size() > 5)
-        {
-            clasesRecientes = clasesRecientes.subList(0, 5);
-        }
+        // Últimas 5 clases prácticas en proyección DTO ligera para el resumen
+        List<ClasePracticaResumenAlumnoDTO> clasesRecientes = this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(alumno);
 
-        // Solicitudes de examen recientes
-        List<SolicitudExamen> solicitudesRecientes = this.examenService.obtenerSolicitudesRecientesPorAlumno(alumno);
-        if (solicitudesRecientes.size() > 3)
-        {
-            solicitudesRecientes = solicitudesRecientes.subList(0, 3);
-        }
+        // Últimas 3 solicitudes de examen en proyección DTO ligera para el resumen
+        List<SolicitudExamenResumenAlumnoDTO> solicitudesRecientes = this.examenService.obtenerUltimas3SolicitudesResumenPorAlumno(alumno);
 
         boolean convocatoriasAgotadas = matricula != null && matricula.tieneConvocatoriasAgotadas();
         boolean esMatriculaActiva = matricula != null && Boolean.TRUE.equals(matricula.getEstaActiva());

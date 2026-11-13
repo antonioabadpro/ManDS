@@ -26,6 +26,7 @@ import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
 import com.autoescuela.erp.examenes.model.CupoExamen;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.FechaExamen;
@@ -715,6 +716,7 @@ class ExamenServiceTest
         assertTrue(this.examenService.obtenerSolicitudesPorMatriculaDesc(null).isEmpty());
         assertTrue(this.examenService.obtenerSolicitudesPorAlumnoDesc(null).isEmpty());
         assertTrue(this.examenService.obtenerSolicitudesRecientesPorAlumno(null).isEmpty());
+        assertTrue(this.examenService.obtenerUltimas3SolicitudesResumenPorAlumno(null).isEmpty());
         assertFalse(this.examenService.tieneSolicitudPendiente(null));
         assertFalse(this.examenService.tieneSolicitudAceptadaConExamenPendiente(null));
         assertTrue(this.examenService.obtenerFechasExamen(null).isEmpty());
@@ -739,9 +741,13 @@ class ExamenServiceTest
         when(this.examenRepository.countByAlumnoAndEsAptoTrue(this.alumnoEjemplo)).thenReturn(1L);
         when(this.examenRepository.countByAlumnoAndEsAptoFalse(this.alumnoEjemplo)).thenReturn(2L);
         when(this.examenRepository.save(examen)).thenReturn(examen);
+        SolicitudExamenResumenAlumnoDTO resumenSolicitudDTO = new SolicitudExamenResumenAlumnoDTO(
+                LocalDateTime.of(2026, 11, 10, 9, 0), TipoExamen.TEORICO, EstadoSolicitud.PENDIENTE);
         when(this.solicitudExamenRepository.findByMatriculaOrderByFechaHoraDesc(this.matriculaEjemplo)).thenReturn(List.of(solicitud));
         when(this.solicitudExamenRepository.findByAlumnoOrderByFechaHoraDesc(this.alumnoEjemplo)).thenReturn(List.of(solicitud));
         when(this.solicitudExamenRepository.findByAlumnoOrderByIdDesc(this.alumnoEjemplo)).thenReturn(List.of(solicitud));
+        when(this.solicitudExamenRepository.findTop3ByAlumnoOrderByIdDesc(this.alumnoEjemplo))
+                .thenReturn(List.of(resumenSolicitudDTO));
         when(this.solicitudExamenRepository.existsByAlumnoAndEstado(this.alumnoEjemplo, EstadoSolicitud.PENDIENTE)).thenReturn(true);
         when(this.solicitudExamenRepository.existeSolicitudAceptadaConExamenPendiente(eq(this.alumnoEjemplo), eq(EstadoSolicitud.ACEPTADA), any())).thenReturn(true);
         when(this.fechaExamenRepository.findByMes(mesNorm)).thenReturn(Optional.of(fechas));
@@ -762,6 +768,7 @@ class ExamenServiceTest
         assertEquals(1, this.examenService.obtenerSolicitudesPorMatriculaDesc(this.matriculaEjemplo).size());
         assertEquals(1, this.examenService.obtenerSolicitudesPorAlumnoDesc(this.alumnoEjemplo).size());
         assertEquals(1, this.examenService.obtenerSolicitudesRecientesPorAlumno(this.alumnoEjemplo).size());
+        assertEquals(List.of(resumenSolicitudDTO), this.examenService.obtenerUltimas3SolicitudesResumenPorAlumno(this.alumnoEjemplo));
         assertTrue(this.examenService.tieneSolicitudPendiente(this.alumnoEjemplo));
         assertTrue(this.examenService.tieneSolicitudAceptadaConExamenPendiente(this.alumnoEjemplo));
         assertTrue(this.examenService.obtenerFechasExamen(mes).isPresent());

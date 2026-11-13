@@ -39,7 +39,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/dashboard"))
-                .andExpect(model().attributeExists("alumno", "matricula", "esMatriculaActiva", "capacidadReserva"))
+                .andExpect(model().attributeExists("alumno", "matricula", "esMatriculaActiva", "capacidadReserva", "clasesRecientes", "solicitudesRecientes"))
                 .andExpect(model().attribute("esMatriculaActiva", true));
     }
 

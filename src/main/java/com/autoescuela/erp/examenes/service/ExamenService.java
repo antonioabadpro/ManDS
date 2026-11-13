@@ -28,6 +28,7 @@ import com.autoescuela.erp.examenes.dto.CalificarExamenDTO;
 import com.autoescuela.erp.examenes.dto.CupoExamenDTO;
 import com.autoescuela.erp.examenes.dto.DisponibilidadConvocatoriaDTO;
 import com.autoescuela.erp.examenes.dto.GestionarSolicitudExamenDTO;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
 import com.autoescuela.erp.examenes.model.CupoExamen;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.FechaExamen;
@@ -219,6 +220,20 @@ public class ExamenService
             return List.of();
         }
         return this.solicitudExamenRepository.findByAlumnoOrderByIdDesc(alumno);
+    }
+
+    /**
+     * Recupera como proyección DTO las últimas 3 solicitudes de examen de un alumno
+     * ordenadas por ID descendente, evitando cargas perezosas en el dashboard del alumno.
+     */
+    @Transactional(readOnly = true)
+    public List<SolicitudExamenResumenAlumnoDTO> obtenerUltimas3SolicitudesResumenPorAlumno(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return List.of();
+        }
+        return this.solicitudExamenRepository.findTop3ByAlumnoOrderByIdDesc(alumno);
     }
 
     /**
