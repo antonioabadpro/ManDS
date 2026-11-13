@@ -64,9 +64,8 @@ public class ClasePracticaController
      * Muestra la agenda global de prácticas de profesores y vehículos.
      */
     @GetMapping("/admin/practicas")
-    public String mostrarPracticas(Model model)
+    public String mostrarPracticas()
     {
-        model.addAttribute("profesores", this.profesorService.obtenerTodosLosProfesores());
         return "admin/practicas";
     }
 

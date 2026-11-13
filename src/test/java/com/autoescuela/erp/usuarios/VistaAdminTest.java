@@ -410,7 +410,7 @@ class VistaAdminTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/admin/practicas"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/practicas"))
-                .andExpect(model().attributeExists("profesores"));
+                .andExpect(model().attributeDoesNotExist("profesores"));
     }
 
     @Test

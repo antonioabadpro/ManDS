@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -201,6 +202,10 @@ public class ClasePracticaService
      * @param estadoClase Estado de la clase (opcional).
      * @return Lista de DTOs inmutables representativos de las clases encontradas.
      */
+    @Cacheable(
+            value = CacheConfig.CACHE_CALENDARIO,
+            key = "'admin_practicas_' + (#profesorId != null ? #profesorId : 'all') + '_' + (#estadoClase != null ? #estadoClase.name() : 'all')"
+    )
     @Transactional(readOnly = true)
     public List<ClasePracticaAdminDTO> obtenerClasesParaAdmin(Long profesorId, EstadoClase estadoClase)
     {
@@ -216,6 +221,7 @@ public class ClasePracticaService
      * @return DTO inmutable con los detalles completos de la clase.
      * @throws ReglaNegocioException si la clase no existe en el sistema.
      */
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'admin_practica_detalle_' + #id", condition = "#id != null")
     @Transactional(readOnly = true)
     public ClasePracticaAdminDTO obtenerClaseParaDetalleAdmin(Long id)
     {

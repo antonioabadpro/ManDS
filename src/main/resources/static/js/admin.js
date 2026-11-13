@@ -207,6 +207,10 @@
         const filas = table.querySelectorAll('tbody tr');
 
         filas.forEach(fila => {
+            if (fila.hasAttribute('data-no-filter')) {
+                return;
+            }
+
             // Se concatena el texto visible de la fila con posibles atributos ocultos como 'data-permisos'
             const permisosExtra = fila.getAttribute('data-permisos') || '';
             const textoCompleto = (fila.textContent + ' ' + permisosExtra).toLowerCase();
