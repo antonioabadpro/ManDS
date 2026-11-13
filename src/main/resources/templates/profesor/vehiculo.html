@@ -170,7 +170,7 @@
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Incidencias y Averías Reportadas</h3>
+                        <h3 id="titulo-incidencias-vehiculo" class="text-lg font-bold text-slate-900 dark:text-white">Incidencias y Averías Reportadas</h3>
                         <p class="text-xs text-slate-500 dark:text-slate-400">Histórico de problemas mecánicos notificados a administración</p>
                     </div>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300" th:text="${#lists.size(incidencias) + ' registradas'}">
@@ -178,37 +178,41 @@
                     </span>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                        <thead class="text-[11px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+                <div class="overflow-x-auto" tabindex="0" role="region" aria-labelledby="titulo-incidencias-vehiculo">
+                    <table class="w-full text-center text-xs text-slate-600 dark:text-slate-300">
+                        <thead class="text-[11px] text-center text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                             <tr>
-                                <th class="py-3 px-4 whitespace-nowrap">Fecha y Hora</th>
-                                <th class="py-3 px-4">Descripción de la Avería</th>
-                                <th class="py-3 px-4">Vehículo</th>
-                                <th class="py-3 px-4">Estado</th>
+                                <th scope="col" class="py-3 px-4 text-center whitespace-nowrap">Fecha y Hora</th>
+                                <th scope="col" class="py-3 px-4 text-center">Descripción de la Avería</th>
+                                <th scope="col" class="py-3 px-4 text-center whitespace-nowrap">Vehículo</th>
+                                <th scope="col" class="py-3 px-4 text-center whitespace-nowrap">Estado</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr th:each="inc : ${incidencias}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                                <td class="py-3 px-4 font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">
+                                <td class="py-3 px-4 text-center font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(inc.fechaHora, 'dd/MM/yyyy HH:mm')}">
                                     20/08/2026 09:30
                                 </td>
-                                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 max-w-md" th:text="${inc.descripcion}">
-                                    Ruido anómalo en pastillas de freno delanteras al frenar en pendiente.
+                                <td class="py-3 px-4 text-center font-medium text-slate-800 dark:text-slate-200">
+                                    <p class="max-w-md mx-auto" th:text="${inc.descripcion}">
+                                        Ruido anómalo en pastillas de freno delanteras al frenar en pendiente.
+                                    </p>
                                 </td>
-                                <td class="py-3 px-4 tabular-nums font-semibold" th:text="${inc.vehiculo?.matricula}">
+                                <td class="py-3 px-4 text-center tabular-nums font-semibold whitespace-nowrap" th:text="${inc.vehiculo?.matricula}">
                                     1234-LMN
                                 </td>
-                                <td class="py-3 px-4">
-                                    <span th:if="${inc.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                        PENDIENTE
-                                    </span>
-                                    <span th:if="${inc.estado?.name() == 'EN_PROCESO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                        EN PROCESO
-                                    </span>
-                                    <span th:if="${inc.estado?.name() == 'RESUELTA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                        RESUELTA
-                                    </span>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="flex justify-center">
+                                        <span th:if="${inc.estado?.name() == 'PENDIENTE'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                            PENDIENTE
+                                        </span>
+                                        <span th:if="${inc.estado?.name() == 'EN_PROCESO'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                            EN PROCESO
+                                        </span>
+                                        <span th:if="${inc.estado?.name() == 'RESUELTA'}" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                            RESUELTA
+                                        </span>
+                                    </div>
                                 </td>
                             </tr>
 
