@@ -170,7 +170,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .param("puntoRecogida", "Calle Alcalá 45"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
-                .andExpect(model().attribute("error", containsString("vacaciones de la autoescuela")));
+                .andExpect(model().attribute("error", containsString("periodos vacacionales")));
     }
 
     @Test

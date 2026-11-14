@@ -546,7 +546,7 @@ public class AlumnoService
      * @return Alumno actualizado y persistido.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ALUMNO, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_EXAMENES }, allEntries = true)
     public Alumno actualizarPerfil(Long alumnoId, EditarPerfilAlumnoDTO dto)
     {
         if (alumnoId == null)

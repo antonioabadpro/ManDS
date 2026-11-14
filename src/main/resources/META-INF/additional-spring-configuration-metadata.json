@@ -47,6 +47,12 @@
             "type": "java.lang.String",
             "description": "Clave API REST de Brevo (v3) sobre HTTPS (puerto 443) para sortear bloqueos de puertos SMTP en entornos cloud.",
             "defaultValue": "${BREVO_API_KEY}"
+        },
+        {
+            "name": "app.db.init-indexes",
+            "type": "java.lang.Boolean",
+            "description": "Indica si se inicializan los índices de la base de datos al arrancar la aplicación.",
+            "defaultValue": true
         }
     ]
 }

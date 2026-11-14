@@ -59,7 +59,8 @@ class CalendarioServiceTest
         this.calendarioService = new CalendarioService(
                 this.clasePracticaRepository,
                 this.examenRepository,
-                this.matriculaRepository
+                this.matriculaRepository,
+                null
         );
     }
 

@@ -1,34 +1,26 @@
 package com.autoescuela.erp.core.excepciones;
 
+import com.autoescuela.erp.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@SpringBootTest
 /**
  * Pruebas para la resolución de vistas de error globales (404, 403, 500 y Regla de Negocio).
  */
-class GlobalExceptionHandlerTest
+class GlobalExceptionHandlerTest extends BaseIntegrationTest
 {
-    @Autowired
-    private WebApplicationContext context;
-
-    private MockMvc mockMvc;
     private MockMvc standaloneMockMvc;
 
     @Controller
@@ -62,11 +54,6 @@ class GlobalExceptionHandlerTest
     @BeforeEach
     void setUp()
     {
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.context)
-                .apply(springSecurity())
-                .build();
-
         this.standaloneMockMvc = MockMvcBuilders
                 .standaloneSetup(new ControladorPruebasError())
                 .setControllerAdvice(new GlobalExceptionHandler())

@@ -14,6 +14,13 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 public interface ExamenRepository extends JpaRepository<Examen, Long>
 {
     /**
+     * Recupera todos los exámenes precargando el alumno y su profesor asignado para evitar consultas N+1 en estadísticas globales.
+     */
+    @Override
+    @EntityGraph(attributePaths = {"alumno", "alumno.profesor"})
+    List<Examen> findAll();
+
+    /**
      * Recupera todos los exámenes oficiales de los alumnos del profesor indicado por parametro.
      * @return Devuelve la lista de exámenes oficiales de los alumnos del profesor.
      */

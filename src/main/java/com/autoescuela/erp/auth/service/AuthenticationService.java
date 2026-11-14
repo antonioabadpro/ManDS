@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.autoescuela.erp.auth.dto.ActivarCuentaProfesorDTO;
@@ -18,6 +19,7 @@ import com.autoescuela.erp.auth.dto.RegistroAlumnoDTO;
 import com.autoescuela.erp.auth.dto.RestablecerPasswordDTO;
 import com.autoescuela.erp.auth.mapper.AuthenticationMapper;
 import com.autoescuela.erp.auth.model.TokenVerificacion;
+import com.autoescuela.erp.core.config.CacheConfig;
 import com.autoescuela.erp.core.email.EmailService;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
@@ -316,6 +318,7 @@ public class AuthenticationService
      * @throws ReglaNegocioException Si alguna validación de negocio falla.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS}, allEntries = true)
     public Alumno registrarAlumno(RegistroAlumnoDTO dto)
     {
         this.purgarAlumnosInactivosHuerfanos();
@@ -351,6 +354,7 @@ public class AuthenticationService
      * @param id ID del alumno a eliminar.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS}, allEntries = true)
     public void eliminarAlumnoInactivoPorId(Long id)
     {
         if (id == null)
@@ -369,6 +373,7 @@ public class AuthenticationService
     }
 
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_ALUMNOS}, allEntries = true)
     public void eliminarAlumnoInactivoPorDni(String dni)
     {
         if (dni == null || dni.isBlank())
@@ -483,6 +488,7 @@ public class AuthenticationService
      * @throws ReglaNegocioException Si el token es inválido o expirado, si las contraseñas no coinciden, o si el nombre de usuario ya está en uso.
      */
     @Transactional
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES}, allEntries = true)
     public void activarCuentaProfesor(ActivarCuentaProfesorDTO dto)
     {
         if (dto == null)

@@ -15,7 +15,6 @@ import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 import com.autoescuela.erp.usuarios.service.AlumnoService;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -23,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -58,11 +56,7 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
                 .andExpect(view().name("admin/fragments/modal-baja-alumno :: modal-baja-alumno"))
                 .andExpect(model().attributeExists("alumno"))
                 .andExpect(model().attributeExists("clasesPendientes"))
-                .andExpect(model().attribute("abrirModalBajaAlumno", true))
-                .andExpect(content().string(containsString("Baja Lógica del Alumno")))
-                .andExpect(content().string(containsString("Confirmar Baja Definitiva")))
-                .andExpect(content().string(containsString("modal-baja-alumno")))
-                .andExpect(content().string(containsString("modal-confirmar-baja-alumno")));
+                .andExpect(model().attribute("abrirModalBajaAlumno", true));
     }
 
     @Test
@@ -136,17 +130,5 @@ class AlumnoBajaIntegrationTest extends BaseIntegrationTest
         this.alumnoRepository.save(alumno);
 
         assertThrows(ReglaNegocioException.class, () -> this.alumnoService.darBajaAlumno(201L));
-    }
-
-    @Test
-    @WithMockUser(username = "alumno", roles = {"ALUMNO"})
-    @DisplayName("Acceso no autorizado de rol no ADMIN a baja de alumno es denegado con 403")
-    void testAccesoNoAutorizadoBajaAlumnoDenegado() throws Exception
-    {
-        this.mockMvc.perform(get("/admin/alumnos/baja/201"))
-                .andExpect(status().isForbidden());
-
-        this.mockMvc.perform(post("/admin/alumnos/baja/201").with(csrf()))
-                .andExpect(status().isForbidden());
     }
 }

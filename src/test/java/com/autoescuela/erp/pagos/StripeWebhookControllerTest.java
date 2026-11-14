@@ -9,19 +9,23 @@ import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.service.AcademicoService;
 import com.autoescuela.erp.auth.service.AuthenticationService;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.excepciones.GlobalExceptionHandler;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
+import com.autoescuela.erp.pagos.controller.StripeResponseController;
+import com.autoescuela.erp.pagos.controller.StripeWebhookController;
 import com.autoescuela.erp.pagos.service.PagoStripeService;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.stripe.model.checkout.Session;
@@ -35,7 +39,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -43,29 +46,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import org.springframework.test.context.TestPropertySource;
-
 /**
- * Suite de pruebas de integración para StripeWebhookController.
+ * Suite de pruebas unitarias web para StripeWebhookController y StripeResponseController.
  * Valida los endpoints públicos de la pasarela (/pagos/checkout,
  * /pagos/checkout/success, /pagos/checkout/cancel) y la verificación criptográfica de Webhooks.
  */
-@SpringBootTest
-@TestPropertySource(properties = {
-    "stripe.webhook.secret=whsec_dummy_secret_for_testing"
-})
+@ExtendWith(MockitoExtension.class)
 class StripeWebhookControllerTest
 {
-    @Autowired
-    private WebApplicationContext context;
-
-    @MockitoBean
+    @Mock
     private AcademicoService academicoService;
 
-    @MockitoBean
+    @Mock
     private PagoStripeService pagoStripeService;
 
-    @MockitoBean
+    @Mock
     private AuthenticationService autenticacionService;
 
     private MockMvc mockMvc;
@@ -73,9 +68,21 @@ class StripeWebhookControllerTest
     @BeforeEach
     void setUp()
     {
+        StripeWebhookController webhookController = new StripeWebhookController(
+                this.academicoService, this.autenticacionService);
+        ReflectionTestUtils.setField(webhookController, "webhookSecret", "whsec_dummy_secret_for_testing");
+
+        StripeResponseController responseController = new StripeResponseController(
+                this.academicoService, this.autenticacionService, this.pagoStripeService);
+
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/templates/");
+        viewResolver.setSuffix(".html");
+
         this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(this.context)
-                .apply(springSecurity())
+                .standaloneSetup(webhookController, responseController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .setViewResolvers(viewResolver)
                 .build();
     }
 
@@ -113,8 +120,9 @@ class StripeWebhookControllerTest
         this.mockMvc.perform(get("/pagos/checkout").param("tipoCarnet", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/checkout"))
-                .andExpect(content().string(containsString("250,00 €")))
-                .andExpect(content().string(containsString("Permiso B")));
+                .andExpect(model().attribute("importeTotal", "250,00"))
+                .andExpect(model().attribute("tipoCarnet", TipoCarnet.PERMISO_B))
+                .andExpect(model().attribute("descripcionCarnet", "Permiso B"));
     }
 
     @Test
@@ -140,8 +148,9 @@ class StripeWebhookControllerTest
                         .param("session_id", "cs_test_success_123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/matricula-success"))
-                .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
-                .andExpect(content().string(containsString("250,00 €")));
+                .andExpect(model().attribute("importeTotal", "250,00"))
+                .andExpect(model().attribute("nombreAlumno", "Juan"))
+                .andExpect(model().attribute("tipoCarnet", TipoCarnet.PERMISO_B.getDescripcion()));
 
         verify(this.academicoService).matricularTrasPago(eq(205L), eq("PERMISO_B"), any(), eq(250.00f));
     }
@@ -153,8 +162,8 @@ class StripeWebhookControllerTest
         this.mockMvc.perform(get("/pagos/checkout/success").param("session_id", "cs_test_success_123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/matricula-success"))
-                .andExpect(content().string(containsString("¡Pago Confirmado con Éxito!")))
-                .andExpect(content().string(containsString("Tasa de Matrícula Oficial")));
+                .andExpect(model().attribute("importeTotal", "250,00"))
+                .andExpect(model().attribute("sessionId", "cs_test_success_123"));
     }
 
     @Test
@@ -163,8 +172,7 @@ class StripeWebhookControllerTest
     {
         this.mockMvc.perform(get("/pagos/checkout/cancel"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/matricula-cancel"))
-                .andExpect(content().string(containsString("Pago No Completado")));
+                .andExpect(view().name("pagos/matricula-cancel"));
     }
 
     @Test
@@ -182,8 +190,9 @@ class StripeWebhookControllerTest
                         .param("session_id", "cs_test_clases_123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("pagos/clases-success"))
-                .andExpect(content().string(containsString("¡Clases Adquiridas con Éxito!")))
-                .andExpect(content().string(containsString("+15 clases")));
+                .andExpect(model().attribute("numeroClases", 15))
+                .andExpect(model().attribute("importeTotal", "400,00"))
+                .andExpect(model().attribute("tipoCarnet", "Permiso B"));
 
         verify(this.academicoService).recargarSaldoClasesTrasPago(eq(205L), eq(15), eq("cs_test_clases_123"));
     }
@@ -194,8 +203,7 @@ class StripeWebhookControllerTest
     {
         this.mockMvc.perform(get("/pagos/clases/cancel"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("pagos/clases-cancel"))
-                .andExpect(content().string(containsString("Pago de Clases Interrumpido")));
+                .andExpect(view().name("pagos/clases-cancel"));
     }
 
     @Test

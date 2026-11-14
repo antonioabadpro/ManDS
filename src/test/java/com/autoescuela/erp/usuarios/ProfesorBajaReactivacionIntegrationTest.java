@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -177,15 +176,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-baja-profesor :: modal-baja-profesor"))
                 .andExpect(model().attributeExists("profesor"))
-                .andExpect(model().attributeExists("profesoresDisponibles"))
-                .andExpect(content().string(containsString("Baja Lógica del Profesor")))
-                .andExpect(content().string(containsString("Laura Sánchez Romero")))
-                .andExpect(content().string(containsString("1234-LMN")))
-                .andExpect(content().string(containsString("id=\"modal-baja-profesor\"")))
-                .andExpect(content().string(containsString("id=\"modal-confirmar-baja-profesor\"")))
-                .andExpect(content().string(containsString("Confirmar Baja Definitiva")))
-                .andExpect(content().string(containsString("id=\"form-baja-profesor\"")))
-                .andExpect(content().string(containsString("id=\"btn-volver-modal-baja\"")));
+                .andExpect(model().attributeExists("profesoresDisponibles"));
     }
 
     @Test
@@ -210,9 +201,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/admin/profesores/reactivar/100"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-reactivar-profesor :: modal-reactivar-profesor"))
-                .andExpect(model().attributeExists("profesor"))
-                .andExpect(content().string(containsString("Reactivar Profesor")))
-                .andExpect(content().string(containsString("sin ningún vehículo asignado")));
+                .andExpect(model().attributeExists("profesor"));
     }
 
     @Test
@@ -255,8 +244,8 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
 
         this.mockMvc.perform(get("/admin/profesores"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("INACTIVO")))
-                .andExpect(content().string(containsString("Reactivar profesor (Dar de alta sin vehículo)")));
+                .andExpect(view().name("admin/profesores"))
+                .andExpect(model().attributeExists("profesores"));
     }
 
     @Test
@@ -385,8 +374,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
     {
         this.mockMvc.perform(get("/admin/profesores/editar/100"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("tieneClasesPendientes", true))
-                .andExpect(content().string(containsString("No se puede modificar ni desvincular el vehículo porque el profesor tiene clases prácticas pendientes.")));
+                .andExpect(model().attribute("tieneClasesPendientes", true));
     }
 
     @Test

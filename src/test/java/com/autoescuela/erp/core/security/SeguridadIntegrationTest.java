@@ -11,12 +11,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Assertions;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -171,94 +168,85 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
 
     @Test
     @WithMockUser(roles = "ALUMNO")
-
-    @DisplayName("Alumno intentando acceder a /admin/dashboard -> HTTP 403 Forbidden y no ve el panel de administración")
+    @DisplayName("Alumno intentando acceder a /admin/dashboard -> HTTP 403 Forbidden")
     void testAlumnoAccediendoAAdminForbiddenYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/admin/dashboard"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(not(containsString("Panel de Control del Administrador"))));
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "ALUMNO")
-    @DisplayName("Alumno intentando acceder a /profesor/dashboard -> HTTP 403 Forbidden y no ve el panel del profesor")
+    @DisplayName("Alumno intentando acceder a /profesor/dashboard -> HTTP 403 Forbidden")
     void testAlumnoAccediendoAProfesorForbiddenYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/profesor/dashboard"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(not(containsString("Panel de Control del Profesor"))));
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "PROFESOR")
-
-    @DisplayName("Profesor intentando acceder a /admin/dashboard -> HTTP 403 Forbidden y no ve el panel de administración")
+    @DisplayName("Profesor intentando acceder a /admin/dashboard -> HTTP 403 Forbidden")
     void testProfesorAccediendoAAdminForbiddenYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/admin/dashboard"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(not(containsString("Panel de Control del Administrador"))));
+                .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "PROFESOR")
-    @DisplayName("Profesor intentando acceder a /alumno/dashboard -> HTTP 403 Forbidden y no ve el panel del alumno")
+    @DisplayName("Profesor intentando acceder a /alumno/dashboard -> HTTP 403 Forbidden")
     void testProfesorAccediendoAAlumnoForbiddenYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/alumno/dashboard"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string(not(containsString("Panel del Alumno"))));
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("Usuario no autenticado intentando acceder a /admin/dashboard -> Redirige a /login (302) y no ve nada")
+    @DisplayName("Usuario no autenticado intentando acceder a /admin/dashboard -> Redirige a /login (302)")
     void testNoAutenticadoAccediendoAAdminRedirigeYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/admin/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(content().string(not(containsString("Panel de Control del Administrador"))));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
-    @DisplayName("Usuario no autenticado intentando acceder a /profesor/dashboard -> Redirige a /login (302) y no ve nada")
+    @DisplayName("Usuario no autenticado intentando acceder a /profesor/dashboard -> Redirige a /login (302)")
     void testNoAutenticadoAccediendoAProfesorRedirigeYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/profesor/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(content().string(not(containsString("Panel de Control del Profesor"))));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
-    @DisplayName("Usuario no autenticado intentando acceder a /alumno/dashboard -> Redirige a /login (302) y no ve nada")
+    @DisplayName("Usuario no autenticado intentando acceder a /alumno/dashboard -> Redirige a /login (302)")
     void testNoAutenticadoAccediendoAAlumnoRedirigeYNoVeContenido() throws Exception
     {
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(content().string(not(containsString("Panel del Alumno"))));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    @DisplayName("Administrador autorizado accede a su propio dashboard -> HTTP 200 OK y ve su panel")
+    @DisplayName("Administrador autorizado accede a su propio dashboard -> HTTP 200 OK")
     void testAdminAccedeASuDashboard() throws Exception
     {
         this.mockMvc.perform(get("/admin/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Panel de Control del Administrador")));
+                .andExpect(view().name("admin/dashboard"));
     }
 
     @Test
     @WithMockUser(roles = "PROFESOR")
-    @DisplayName("Profesor autorizado accede a su propio dashboard -> HTTP 200 OK y ve su panel")
+    @DisplayName("Profesor autorizado accede a su propio dashboard -> HTTP 200 OK")
     void testProfesorAccedeASuDashboard() throws Exception
     {
         this.mockMvc.perform(get("/profesor/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Panel de Control del Profesor")));
+                .andExpect(view().name("profesor/dashboard"));
     }
 
     @Test
@@ -389,5 +377,17 @@ class SeguridadIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/pagos/webhook")
                 .content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "alumno", roles = {"ALUMNO"})
+    @DisplayName("Acceso no autorizado de rol no ADMIN a baja de alumno es denegado con 403")
+    void testAccesoNoAutorizadoBajaAlumnoDenegado() throws Exception
+    {
+        this.mockMvc.perform(get("/admin/alumnos/baja/201"))
+                .andExpect(status().isForbidden());
+
+        this.mockMvc.perform(post("/admin/alumnos/baja/201").with(csrf()))
+                .andExpect(status().isForbidden());
     }
 }

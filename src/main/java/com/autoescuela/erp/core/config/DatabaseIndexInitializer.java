@@ -30,61 +30,83 @@ public class DatabaseIndexInitializer implements ApplicationRunner
     @Value("${app.db.sync-sequences:true}")
     private boolean sincronizarSecuencias;
 
+    @Value("${app.db.init-indexes:true}")
+    private boolean inicializarIndices;
+
+    @Value("${spring.jpa.hibernate.ddl-auto:none}")
+    private String ddlAuto;
+
     @Override
     public void run(ApplicationArguments args)
     {
+        boolean debeInicializarIndices = this.inicializarIndices
+                && ("create".equalsIgnoreCase(this.ddlAuto) || "create-drop".equalsIgnoreCase(this.ddlAuto));
+
+        if (!debeInicializarIndices && !this.sincronizarSecuencias)
+        {
+            log.debug("Inicialización de índices DDL y sincronización de secuencias desactivadas (ddl-auto={}).", this.ddlAuto);
+            return;
+        }
+
         try
         {
             String databaseProductName = this.jdbcTemplate.execute((ConnectionCallback<String>) conn -> conn.getMetaData().getDatabaseProductName());
 
-            log.info("Inicializando índice de concurrencia para base de datos: {}", databaseProductName);
+            log.info("Inicializador de base de datos para motor: {} (initIndexes={}, syncSequences={})",
+                    databaseProductName, debeInicializarIndices, this.sincronizarSecuencias);
 
             switch(databaseProductName)
             {
                 case "PostgreSQL":
-                    // En PostgreSQL creamos el índice único parcial nativo
-                    this.jdbcTemplate.execute(
-                            "CREATE UNIQUE INDEX IF NOT EXISTS uq_clase_profesor_fechahora_activa " +
-                            "ON clase_practica (profesor_id, fecha_hora) " +
-                            "WHERE estado_clase != 'CANCELADA'"
-                    );
-                    log.info("Índice único parcial de PostgreSQL asegurado en clase_practica.");
+                    if (debeInicializarIndices)
+                    {
+                        // En PostgreSQL creamos el índice único parcial nativo
+                        this.jdbcTemplate.execute(
+                                "CREATE UNIQUE INDEX IF NOT EXISTS uq_clase_profesor_fechahora_activa " +
+                                "ON clase_practica (profesor_id, fecha_hora) " +
+                                "WHERE estado_clase != 'CANCELADA'"
+                        );
+                        log.info("Índice único parcial de PostgreSQL asegurado en clase_practica.");
 
-                    // Sincronización de secuencias IDENTITY tras la carga de data.sql
-                    // Índices de claves foráneas y compuestos para acelerar consultas frecuentes y evitar Seq Scans
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_alumno ON clase_practica (alumno_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_profesor ON clase_practica (profesor_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_prof_estado_fecha ON clase_practica (profesor_id, estado_clase, fecha_hora)");
+                        // Sincronización de secuencias IDENTITY tras la carga de data.sql
+                        // Índices de claves foráneas y compuestos para acelerar consultas frecuentes y evitar Seq Scans
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_alumno ON clase_practica (alumno_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_profesor ON clase_practica (profesor_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_clase_practica_prof_estado_fecha ON clase_practica (profesor_id, estado_clase, fecha_hora)");
 
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno ON matricula (alumno_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno_activa ON matricula (alumno_id, esta_activa)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_alumno ON examen (alumno_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_tipo_fecha ON examen (tipo, fecha_hora)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_alumno ON solicitud_examen (alumno_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_estado_fecha ON solicitud_examen (estado, fecha_hora)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_incidencia_vehiculo_vehiculo ON incidencia_vehiculo (vehiculo_id)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_incidencia_vehiculo_estado ON incidencia_vehiculo (estado)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_token_verificacion_token_usado ON token_verificacion (token, usado)");
-                    this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_alumno_profesor ON alumno (profesor_id)");
-                    log.info("Índices de claves foráneas y compuestos PostgreSQL asegurados.");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno ON matricula (alumno_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_matricula_alumno_activa ON matricula (alumno_id, esta_activa)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_alumno ON examen (alumno_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_examen_tipo_fecha ON examen (tipo, fecha_hora)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_alumno ON solicitud_examen (alumno_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_solicitud_examen_estado_fecha ON solicitud_examen (estado, fecha_hora)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_incidencia_vehiculo_vehiculo ON incidencia_vehiculo (vehiculo_id)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_incidencia_vehiculo_estado ON incidencia_vehiculo (estado)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_token_verificacion_token_usado ON token_verificacion (token, usado)");
+                        this.jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_alumno_profesor ON alumno (profesor_id)");
+                        log.info("Índices de claves foráneas y compuestos PostgreSQL asegurados.");
+                    }
 
                     if (this.sincronizarSecuencias)
                     {
-                        sincronizarSecuenciasPostgreSQL();
+                        this.sincronizarSecuenciasPostgreSQL();
                     }
                     break;
 
                 case "H2":
-                    // En H2 emulamos el índice parcial mediante columna generada con valores NULL para CANCELADA
-                    this.jdbcTemplate.execute(
-                            "ALTER TABLE clase_practica ADD COLUMN IF NOT EXISTS profesor_activo_id BIGINT " +
-                            "GENERATED ALWAYS AS (CASE WHEN estado_clase = 'CANCELADA' THEN NULL ELSE profesor_id END)"
-                    );
-                    this.jdbcTemplate.execute(
-                            "CREATE UNIQUE INDEX IF NOT EXISTS uq_clase_profesor_activo " +
-                            "ON clase_practica (profesor_activo_id, fecha_hora)"
-                    );
-                    log.info("Columna generada e índice único de concurrencia H2 asegurados en clase_practica.");
+                    if (debeInicializarIndices)
+                    {
+                        // En H2 emulamos el índice parcial mediante columna generada con valores NULL para CANCELADA
+                        this.jdbcTemplate.execute(
+                                "ALTER TABLE clase_practica ADD COLUMN IF NOT EXISTS profesor_activo_id BIGINT " +
+                                "GENERATED ALWAYS AS (CASE WHEN estado_clase = 'CANCELADA' THEN NULL ELSE profesor_id END)"
+                        );
+                        this.jdbcTemplate.execute(
+                                "CREATE UNIQUE INDEX IF NOT EXISTS uq_clase_profesor_activo " +
+                                "ON clase_practica (profesor_activo_id, fecha_hora)"
+                        );
+                        log.info("Columna generada e índice único de concurrencia H2 asegurados en clase_practica.");
+                    }
                     break;
 
                 default:
