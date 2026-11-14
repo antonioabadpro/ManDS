@@ -1,4 +1,4 @@
-@startuml Diagrama_Componentes_v3
+@startuml Diagrama_Componentes_v7
 ' ==============================================================================
 ' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
 ' VISTA LÓGICA / DIAGRAMA DE COMPONENTES (PACKAGE-BY-FEATURE - FORMATO VERTICAL A4)
@@ -12,8 +12,8 @@ skinparam roundCorner 8
 skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
 skinparam defaultFontSize 10
 skinparam shadowing false
-skinparam wrapWidth 220
-skinparam nodesep 36
+skinparam wrapWidth 460
+skinparam nodesep 44
 skinparam ranksep 30
 
 skinparam package {
@@ -35,7 +35,7 @@ skinparam interface {
   FontColor #4C1D95
 }
 
-skinparam note {
+skinparam legend {
   BackgroundColor #FEFCE8
   BorderColor #CA8A04
   FontColor #713F12
@@ -46,14 +46,14 @@ skinparam note {
 ' 1. CAPA DE PRESENTACIÓN (CLIENTE WEB)
 ' ------------------------------------------------------------------------------
 package "1. Presentación (Cliente Web)" as CapaCliente #EFF6FF {
-  component "**Cliente Web (HTML-over-the-wire)**\n• Vistas SSR (Thymeleaf + Fragmentos)\n• Interactividad HTMX (hx-get, hx-post, hx-target)\n• Tailwind CSS precompilado + JS ES6+ (CSP)" as CompCliente #DBEAFE
+  component "**Cliente Web (HTML-over-the-wire)**\n• Vistas SSR (Thymeleaf + Fragmentos) · Interactividad HTMX (hx-get, hx-post, hx-target)\n• Tailwind CSS precompilado en local + JavaScript ES6+ no intrusivo (CSP)" as CompCliente #DBEAFE
 }
 
 ' ------------------------------------------------------------------------------
 ' 2. CAPA DE SEGURIDAD PERIMETRAL (core/security)
 ' ------------------------------------------------------------------------------
 package "2. Seguridad Perimetral (core/security)" as CapaSeguridad #FEF2F2 {
-  component "**Seguridad Web y Sesión**\n• ConfiguracionSeguridad (SecurityFilterChain)\n• Control RBAC (ADMIN, PROFESOR, ALUMNO)\n• Protección CSRF, CSP y Sesión Única (JSESSIONID)\n• UserDetailsServiceImpl & HtmxAuthenticationEntryPoint" as CompSeguridad #FEE2E2
+  component "**Seguridad Web y Sesión**\n• ConfiguracionSeguridad (SecurityFilterChain) + Control RBAC\n• Protección CSRF, CSP y Sesión Única (JSESSIONID) -> UserDetailsServiceImpl & HtmxAuthenticationEntryPoint" as CompSeguridad #FEE2E2
 }
 
 ' ------------------------------------------------------------------------------
@@ -62,115 +62,118 @@ package "2. Seguridad Perimetral (core/security)" as CapaSeguridad #FEF2F2 {
 package "3. Núcleo Modular (com.autoescuela.erp - Package-by-Feature)" as NucleoApp #F0FDF4 {
 
   package "Módulos Funcionales de Dominio" as ModulosDominio #DCFCE7 {
-    component "**Módulo Auth (auth)**\n• AuthenticationController\n• AuthenticationService\n• TokenVerificacionService\n• TokenVerificacionRepository" as ModAuth #FFFFFF
-
-    component "**Módulo Usuarios (usuarios)**\n• AdministradorController, ProfesorController,\n  AlumnoController, PerfilController, UsuarioController\n• UsuarioService, ProfesorService, AlumnoService\n• PersonaRepository, ProfesorRepository, AlumnoRepository" as ModUsuarios #FFFFFF
-
-    component "**Módulo Pagos (pagos)**\n• StripeResponseController\n• StripeWebhookController\n• PagoStripeService" as ModPagos #FFFFFF
-
-    component "**Módulo Académico (academico)**\n• MatriculaController, PagoPracticasController\n• AcademicoService\n• MatriculaRepository" as ModAcademico #FFFFFF
-
+    ' Fila 1: Flota y Prácticas
     component "**Módulo Flota (flota)**\n• VehiculoController, IncidenciaVehiculoController\n• FlotaService, IncidenciaVehiculoService\n• VehiculoRepository, IncidenciaVehiculoRepository" as ModFlota #FFFFFF
 
     component "**Módulo Prácticas (practicas)**\n• CalendarioController, ClasePracticaController\n• CalendarioService, ClasePracticaService\n• ClasePracticaRepository" as ModPracticas #FFFFFF
 
-    component "**Módulo Exámenes (examenes)**\n• ExamenController, SolicitudExamenController\n• ExamenService\n• ExamenRepository, SolicitudExamenRepository,\n  FechaExamenRepository, CupoExamenRepository" as ModExamenes #FFFFFF
-
+    ' Fila 2: Estadísticas y Exámenes
     component "**Módulo Estadísticas (estadisticas)**\n• EstadisticaController\n• EstadisticaService" as ModEstadisticas #FFFFFF
 
+    component "**Módulo Exámenes (examenes)**\n• ExamenController, SolicitudExamenController\n• ExamenService\n• ExamenRepository, SolicitudExamenRepository,\n  FechaExamenRepository, CupoExamenRepository" as ModExamenes #FFFFFF
+
+    ' Fila 3: Autenticación y Usuarios
+    component "**Módulo Auth (auth)**\n• AuthenticationController\n• AuthenticationService\n• TokenVerificacionService\n• TokenVerificacionRepository" as ModAuth #FFFFFF
+
+    component "**Módulo Usuarios (usuarios)**\n• AdministradorController, ProfesorController,\n  AlumnoController, PerfilController, UsuarioController\n• UsuarioService, ProfesorService, AlumnoService\n• PersonaRepository, ProfesorRepository, AlumnoRepository" as ModUsuarios #FFFFFF
+
+    ' Fila 4: Pagos (izquierda, alineado con Stripe) y Académico (derecha)
+    component "**Módulo Pagos (pagos)**\n• StripeResponseController\n• StripeWebhookController\n• PagoStripeService" as ModPagos #FFFFFF
+
+    component "**Módulo Académico (academico)**\n• MatriculaController, PagoPracticasController\n• AcademicoService\n• MatriculaRepository" as ModAcademico #FFFFFF
+
     ' Maquetación estricta en rejilla de 2 columnas para formato vertical A4
+    ModFlota -[hidden]right- ModPracticas
+    ModEstadisticas -[hidden]right- ModExamenes
     ModAuth -[hidden]right- ModUsuarios
     ModPagos -[hidden]right- ModAcademico
-    ModFlota -[hidden]right- ModPracticas
-    ModExamenes -[hidden]right- ModEstadisticas
 
+    ModFlota -[hidden]down- ModEstadisticas
+    ModPracticas -[hidden]down- ModExamenes
+    ModEstadisticas -[hidden]down- ModAuth
+    ModExamenes -[hidden]down- ModUsuarios
     ModAuth -[hidden]down- ModPagos
     ModUsuarios -[hidden]down- ModAcademico
-    ModPagos -[hidden]down- ModFlota
-    ModAcademico -[hidden]down- ModPracticas
-    ModFlota -[hidden]down- ModExamenes
-    ModPracticas -[hidden]down- ModEstadisticas
+
+    ' Dependencias funcionales entre módulos (grafo dirigido acíclico en vista)
+    ModPracticas .left.> ModFlota : valida vehículo
+    ModExamenes .up.> ModPracticas : valida historial clases
+    ModEstadisticas .right.> ModExamenes : agrega métricas
+    ModEstadisticas .up.> ModPracticas : agrega métricas
+    ModAuth .right.> ModUsuarios : consulta perfiles
+    ModAuth .down.> ModPagos : checkout matrícula
+    ModAcademico .left.> ModPagos : checkout bonos / renovación
   }
 
+  ' Núcleo transversal compacto en el carril derecho (sin obstaculizar salida izquierda de Pagos)
   package "Núcleo Transversal (core)" as ModCorePkg #FEF9C3 {
-    component "**Infraestructura Core**\n• GlobalExceptionHandler\n• CacheConfig (@Cacheable / @CacheEvict)\n• AsyncConfig, MailConfig, StripeConfig\n• PingController & Utilidades" as ModCore #FEF08A
+    component "**Infraestructura Core**\n• GlobalExceptionHandler · CacheConfig\n• AsyncConfig, MailConfig, StripeConfig\n• PingController & Utilidades" as ModCore #FEF08A
 
     component "**Motor de Correo (core/email)**\n• EmailService / EmailServiceImpl\n• EmailAsyncDispatcher (@Async)" as ModEmail #FEF08A
 
-    ModCore -[hidden]right- ModEmail
+    ModCore -[hidden]down- ModEmail
   }
 
-  note as NotaPatron
-    Cada módulo encapsula internamente sus subcapas:
-    Controladores MVC/HTMX, DTOs (Java Records),
-    Mappers (MapStruct), Servicios @Transactional,
-    Entidades JPA y Repositorios Spring Data.
-    Todos consumen de forma transversal Infraestructura Core
-    (caché, excepciones) y el Motor de Correo.
-  end note
-
-  ' Anclaje vertical centrado entre módulos de dominio, núcleo transversal y nota
-  ModExamenes -[hidden]down- ModCore
-  ModEstadisticas -[hidden]down- ModEmail
-  ModCore -[hidden]down- NotaPatron
-  ModEmail -[hidden]down- NotaPatron
-
-  ' Dependencias entre módulos respetando el sentido de la rejilla
-  ModAuth .right.> ModUsuarios : consulta perfiles
-  ModAuth .down.> ModPagos : checkout matrícula
-  ModPagos .up.> ModAuth : activa alumno
-  ModAcademico .left.> ModPagos : checkout bonos / renovación
-  ModPagos .right.> ModAcademico : activa matrícula / saldo
-  ModPracticas .left.> ModFlota : valida vehículo
-  ModExamenes .up.> ModPracticas : valida historial clases
-  ModEstadisticas .up.> ModPracticas : agrega métricas
-  ModEstadisticas .left.> ModExamenes : agrega métricas
-
-  ModulosDominio .down.> ModCorePkg : uso transversal\n(caché, excepciones, email)
+  ModAcademico -[hidden]down- ModCorePkg
 }
 
 ' ------------------------------------------------------------------------------
 ' 4. PERSISTENCIA ORM Y SERVICIOS EXTERNOS (CONTRATOS E INTERFACES)
 ' ------------------------------------------------------------------------------
 package "4. Persistencia Lógica y Servicios Externos" as CapaExterna #FAF5FF {
+  interface "Stripe API" as IStripe
   component "**Capa ORM y Pool de Conexiones**\n(Hibernate ORM / Spring Data JPA / HikariCP)" as CompORM #EDE9FE
 
-  interface "Stripe API &\nWebhooks HTTPS" as IStripe
+  interface "Webhook\n(HMAC)" as IWebhook
   interface "JDBC / SSL" as IJDBC
-  interface "Brevo REST v3 /\nSMTP" as IEmail
+  interface "Brevo / SMTP" as IEmail
 
   component "**Pasarela Stripe**\n(Checkout & Webhooks)" <<external>> as ExtStripe #E2E8F0
   component "**PostgreSQL 16**\n(Supabase / Docker)" <<external>> as ExtPostgres #DDD6FE
   component "**Servicio de Correo**\n(Brevo Cloud / Mailpit)" <<external>> as ExtCorreo #E2E8F0
 
-  ' Simetría y centrado: 3 columnas alineadas con sus interfaces
-  CompORM -[hidden]down- IJDBC
-  IStripe -[hidden]right- IJDBC
+  ' Rango 1 (superior): IStripe (izq) | CompORM (centro)
+  IStripe -[hidden]right- CompORM
+
+  ' Rango 2 (medio): IWebhook (izq) | IJDBC (centro) | IEmail (der) — separados sin solapamiento
+  IWebhook -[hidden]right- IJDBC
   IJDBC -[hidden]right- IEmail
+
+  ' Rango 3 (inferior): 3 sistemas externos alineados con las 3 columnas
   ExtStripe -[hidden]right- ExtPostgres
   ExtPostgres -[hidden]right- ExtCorreo
 
+  CompORM .down.> IJDBC : <<use>>
   IStripe -down- ExtStripe
   IJDBC -down- ExtPostgres
   IEmail -down- ExtCorreo
 }
 
 ' ------------------------------------------------------------------------------
-' FLUJO PRINCIPAL ENTRE CAPAS Y CONTRATOS EXTERNOS
+' FLUJO PRINCIPAL ENTRE COMPONENTES Y CONTRATOS EXTERNOS
 ' ------------------------------------------------------------------------------
-interface "HTTP / HTTPS\n(HTML + HTMX)" as IHTTP
+interface "HTTP / HTTPS (HTML + HTMX)" as IHTTP
 
 CompCliente .down.> IHTTP : peticiones GET/POST
 IHTTP -down- CompSeguridad : intercepta
-CompSeguridad .down.> ModulosDominio : peticiones autorizadas
+CompSeguridad .down.> ModulosDominio : protege rutas y RBAC
 
-NotaPatron -[hidden]down- CompORM
-NucleoApp .down.> CompORM : persistencia entidades JPA
-CompORM .down.> IJDBC : <<use>>
+ModAcademico .down.> ModCorePkg : uso transversal\n(caché, excepciones, email)
 
 ModPagos .down.> IStripe : <<use>> Checkout
-ExtStripe .up.> ModPagos : Webhook HTTPS\n(Stripe-Signature)
+ModPagos -down- IWebhook
+IWebhook <.down. ExtStripe : Webhook HTTPS
 
 ModEmail .down.> IEmail : <<use>> asíncrono
+
+' ------------------------------------------------------------------------------
+' LEYENDA CENTRADA AL PIE (FUERA DEL GRAFO PARA NO ALTERAR LA ALINEACIÓN)
+' ------------------------------------------------------------------------------
+legend bottom center
+  Cada módulo encapsula sus subcapas (Controllers, DTOs Records, Mappers MapStruct, Services @Transactional,
+  Entidades JPA y Repositories) y consume transversalmente Infraestructura Core (caché, excepciones), Motor de Correo
+  y Capa ORM. Tras el retorno o webhook de Stripe, los controladores de pagos invocan directamente a
+  AuthenticationService y AcademicoService para activar o purgar expedientes (representado en un sentido por claridad UML).
+endlegend
 
 @enduml

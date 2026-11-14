@@ -1,9 +1,9 @@
-@startuml Diagrama_Despliegue_Local_v2
+@startuml Diagrama_Despliegue_Local_v5
 ' ==============================================================================
 ' MAN-DS: APLICACIÓN WEB PARA GESTIÓN DE AUTOESCUELAS
 ' VISTA FÍSICA / ENTORNO LOCAL CONTENERIZADO (DOCKER COMPOSE · PERFIL: docker)
 ' ==============================================================================
-
+skinparam dpi 300
 top to bottom direction
 
 skinparam nodeStyle rectangle
@@ -11,11 +11,10 @@ skinparam roundCorner 8
 skinparam defaultFontName "Inter", "Segoe UI", "sans-serif"
 skinparam defaultFontSize 10
 skinparam shadowing false
-skinparam wrapWidth 250
-skinparam nodesep 42
-skinparam ranksep 46
+skinparam wrapWidth 230
+skinparam nodesep 85
+skinparam ranksep 52
 
-' Paleta de colores corporativa
 skinparam stereotypeFontStyle plain
 
 skinparam node {
@@ -38,49 +37,48 @@ skinparam database {
 }
 
 ' ------------------------------------------------------------------------------
-' 1. ACCESO DE CLIENTE LOCAL (NIVEL SUPERIOR)
+' HOST FÍSICO LOCAL (ESTACIÓN DE TRABAJO)
 ' ------------------------------------------------------------------------------
-node "**Estación de Trabajo Local (Host)**\n(Docker Engine / Docker Desktop)" <<device>> as HostLocal #EFF6FF {
+node "**Estación de Trabajo Local (Host)**" <<device>> as HostLocal #F8FAFC {
+
+  ' 1. CLIENTE WEB EN EL HOST
   node "**Navegador Web**" <<executionEnvironment>> as NavegadorLocal #DBEAFE {
     artifact "**Interfaz Web ManDS**\n(http://localhost:8080)" as WebLocal #BFDBFE
     artifact "**Bandeja Simulada Mailpit UI**\n(http://localhost:8025)" as MailpitUI #FEF08A
     WebLocal -[hidden]right- MailpitUI
   }
-}
 
-' ------------------------------------------------------------------------------
-' 2. SERVIDOR DE APLICACIONES CONTENERIZADO (DOCKER COMPOSE)
-' ------------------------------------------------------------------------------
-node "**Contenedor mands_app (Red: mands_network)**\nantonioabadpro/mands:latest · eclipse-temurin:21-jre-alpine" <<executionEnvironment>> as ContenedorApp #DCFCE7 {
-  node "**JVM OpenJDK 21 + Apache Tomcat Embebido**" <<executionEnvironment>> as RuntimeJVM #BBF7D0 {
-    artifact "**app.jar (ManDS · Spring Boot 4.1.2)**\n• Perfil activo: docker (Puerto 8080:8080)\n• ddl-auto=create-drop + carga data.sql\n• thymeleaf.cache=false\n• Stripe en modo simulación (o test si existe .env)" as AppSpring #FFFFFF
+  ' 2. ENTORNO DE EJECUCIÓN DOCKER ENGINE
+  node "**Docker Engine / Docker Desktop (Red bridge: mands_network)**" <<executionEnvironment>> as DockerEngine #F1F5F9 {
+
+    ' FILA SUPERIOR: APLICACIÓN Y CORREO SIMULADO EN PARALELO
+    node "**Contenedor mands_app**\nantonioabadpro/mands:latest · eclipse-temurin:21-jre-alpine\nJVM OpenJDK 21 + Apache Tomcat Embebido" <<executionEnvironment>> as ContenedorApp #DCFCE7 {
+      artifact "**app.jar (ManDS · Spring Boot 4.1.2)**\n• Perfil activo: docker (Puerto 8080:8080)\n• ddl-auto=create-drop + carga data.sql\n• thymeleaf.cache=false\n• Stripe en modo simulación (o test si existe .env)" as AppSpring #FFFFFF
+    }
+
+    node "**Contenedor mailpit_tfg**\naxllent/mailpit:latest\nServidor Mailpit (SMTP :1025 | Web UI :8025)" <<executionEnvironment>> as ContenedorMailpit #FEF9C3
+
+    ContenedorApp -[hidden]right- ContenedorMailpit
+
+    ' FILA INFERIOR: BASE DE DATOS Y VOLUMEN BAJO LA APLICACIÓN
+    node "**Contenedor postgres_tfg**\npostgres:16-alpine (Puerto 5432:5432)" <<executionEnvironment>> as ContenedorPg #FAF5FF {
+      database "PostgreSQL 16" <<executionEnvironment>> as MotorPg #EDE9FE {
+        artifact "**Base de Datos tfg_db**\n• Esquema relacional ManDS\n• Poblado automático con data.sql" as EsquemaLocal #DDD6FE
+      }
+      artifact "**Volumen Persistente pgdata_tfg**\n(/var/lib/postgresql/data)" as VolumenPg #F3E8FF
+      MotorPg -[hidden]right- VolumenPg
+      MotorPg .right.> VolumenPg : " <<use>>\nMontaje"
+    }
   }
 }
 
 ' ------------------------------------------------------------------------------
-' 3. PERSISTENCIA Y SERVICIOS CONTENERIZADOS LOCALES (NIVEL INFERIOR)
+' RUTAS DE COMUNICACIÓN ENTRE NODOS (LOCALHOST Y RED BRIDGE)
 ' ------------------------------------------------------------------------------
-node "**Contenedor postgres_tfg (Red: mands_network)**\npostgres:16-alpine (Puerto 5432:5432)" <<executionEnvironment>> as ContenedorPg #FAF5FF {
-  database "PostgreSQL 16" <<executionEnvironment>> as MotorPg #EDE9FE {
-    artifact "**Base de Datos tfg_db**\n• Esquema relacional ManDS\n• Poblado automático inicial con data.sql" as EsquemaLocal #DDD6FE
-  }
-  artifact "**Volumen Persistente pgdata_tfg**\n(/var/lib/postgresql/data)" as VolumenPg #F3E8FF
-  MotorPg -down-> VolumenPg : " Montaje de volumen"
-}
+WebLocal -down- ContenedorApp : " HTTP (:8080 → 8080)\n[HTML y fragmentos HTMX]"
+MailpitUI -down- ContenedorMailpit : " HTTP (:8025 → 8025)\n[Inspección de correos]"
 
-node "**Contenedor mailpit_tfg (Red: mands_network)**\naxllent/mailpit:latest" <<executionEnvironment>> as ContenedorMailpit #FEFCE8 {
-  node "**Servidor Mailpit**\n(SMTP :1025 | Web UI :8025)" <<executionEnvironment>> as ServicioMailpit #FEF08A
-}
-
-ContenedorPg -[hidden]right- ContenedorMailpit
-
-' ------------------------------------------------------------------------------
-' COMUNICACIONES Y PUERTOS DE RED
-' ------------------------------------------------------------------------------
-WebLocal -down-> RuntimeJVM : " HTTP (Puerto 8080:8080)\n[Vistas HTML y fragmentos HTMX]"
-MailpitUI -down-> ServicioMailpit : " HTTP (Puerto 8025:8025)\n[Inspección visual de correos]"
-
-AppSpring -down-> MotorPg : " JDBC PostgreSQL (postgres:5432)\n[Red bridge mands_network]"
-AppSpring -down-> ServicioMailpit : " SMTP (mailpit:1025)\n[Sin TLS · Red mands_network]"
+AppSpring -right- ContenedorMailpit : " SMTP\nmailpit:1025\n[Red bridge]"
+ContenedorApp -down- ContenedorPg : " JDBC PostgreSQL (postgres:5432)\n[Red bridge mands_network]"
 
 @enduml

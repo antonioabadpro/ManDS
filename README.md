@@ -344,7 +344,7 @@ El desarrollo del proyecto está acompañado por un compendio de documentación 
   - [Diagrama Entidad-Relación (PlantUML)](Diagramas/Diagrama_ER.puml)
   - [Diagrama de Casos de Uso (PlantUML)](Diagramas/Diagrama_CU.puml)
   - [Diagrama de Componentes (PlantUML)](Diagramas/Diagrama_Componentes.puml)
-  - [Diagrama de Despliegue Cloud (PlantUML)](Diagramas/Diagrama_Despliegue.puml)
+  - [Diagrama de Despliegue Cloud (PlantUML)](Diagramas/Diagrama_Despliegue_Cloud.puml)
   - [Diagrama de Despliegue Local Docker (PlantUML)](Diagramas/Diagrama_Despliegue_Local.puml)
   - [Diagrama de Estados del Dominio (PlantUML)](Diagramas/Diagrama_Estados_Dominio.puml)
   - [Diagrama de Secuencia — Pagar Matrícula con Stripe (PlantUML)](Diagramas/Diagrama_Secuencia_Pagar_Matrícula.puml)
