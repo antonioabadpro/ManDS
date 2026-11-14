@@ -301,7 +301,7 @@ public class ProfesorService
      * @return Entidad Profesor actualizada.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor modificarProfesor(EditarProfesorDTO dto)
     {
         if (dto == null || dto.id() == null)
@@ -444,7 +444,7 @@ public class ProfesorService
      * @return Entidad Profesor en estado INACTIVO.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor darBajaProfesor(BajaProfesorDTO dto)
     {
         if (dto == null || dto.profesorId() == null)
@@ -765,7 +765,7 @@ public class ProfesorService
      * @return Profesor actualizado y persistido.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_EXAMENES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR}, allEntries = true)
     public Profesor actualizarPerfil(Long profesorId, EditarPerfilProfesorDTO dto)
     {
         if (profesorId == null)

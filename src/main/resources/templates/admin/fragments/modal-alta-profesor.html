@@ -122,7 +122,7 @@
                     <!-- Fecha de Contratación -->
                     <div>
                         <label for="profesor-fecha" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fecha de Contratación <span class="text-rose-500 font-bold" aria-hidden="true">*</span></label>
-                        <input type="date" id="profesor-fecha" th:field="*{fechaContratacion}" th:min="${T(java.time.LocalDate).now().minusMonths(1)}" th:max="${T(java.time.LocalDate).now().plusMonths(1)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
+                        <input type="date" id="profesor-fecha" th:field="*{fechaContratacion}" th:min="${T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().minusMonths(1)}" th:max="${T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().plusMonths(1)}" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition" />
                         <p th:if="${#fields.hasErrors('fechaContratacion')}" th:errors="*{fechaContratacion}" class="text-[11px] text-red-600 dark:text-red-400 mt-0.5"></p>
                         <div id="feedback-fecha-contratacion"></div>
                     </div>

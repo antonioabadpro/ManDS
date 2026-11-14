@@ -421,9 +421,9 @@ public class EstadisticaService
                     minutosProf += cp.getDuracion() != null ? cp.getDuracion() : 45;
                 }
                 double horasConduccionProf = Math.round((minutosProf / 60.0) * 10.0) / 10.0;
-                long alumnosAsignados = (prof.getId() != null && alumnosPorProfesor.containsKey(prof.getId()))
-                        ? alumnosPorProfesor.get(prof.getId())
-                        : (prof.getListaAlumnos() != null ? prof.getListaAlumnos().size() : 0);
+                long alumnosAsignados = prof.getId() != null
+                        ? alumnosPorProfesor.getOrDefault(prof.getId(), 0L)
+                        : (prof.getListaAlumnos() != null ? prof.getListaAlumnos().size() : 0L);
 
                 List<Examen> examenesProf = new ArrayList<>();
                 if (todosExamenes != null)

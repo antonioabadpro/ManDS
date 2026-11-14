@@ -129,22 +129,22 @@
 
                 <!-- 5. Caso: Clase PENDIENTE (Formulario de Reporte Técnico con Doble Verificación) -->
                 <div th:if="${clase.estadoClase.name() == 'PENDIENTE'}" class="space-y-4">
-                    <!-- Aviso informativo si la clase aún no ha alcanzado la hora de inicio -->
-                    <div th:if="${T(java.time.LocalDateTime).now().isBefore(clase.fechaHora.plusMinutes(clase.duracion))}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 space-y-2">
+                    <!-- Aviso informativo si la clase aún no ha alcanzado la hora de finalización -->
+                    <div th:if="${T(com.autoescuela.erp.core.util.FechaHoraUtil).ahora().isBefore(clase.fechaHora.plusMinutes(clase.duracion))}" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 space-y-2">
                         <div class="flex items-start space-x-2.5 text-amber-800 dark:text-amber-200 text-xs">
                             <svg class="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div class="space-y-1">
-                                <p class="font-bold">Clase práctica programada (pendiente de inicio)</p>
+                                <p class="font-bold">Clase práctica programada (pendiente de finalización)</p>
                                 <p class="text-[11px] leading-relaxed">
-                                    Esta clase práctica aún no ha comenzado. El registro de kilometraje y reporte pedagógico para marcarla como <strong>RECIBIDA</strong> se habilitará a partir de la hora de inicio fijada (<span class="font-semibold tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'dd/MM/yyyy HH:mm')}"></span>).
+                                    Esta clase práctica aún no ha finalizado. El registro de kilometraje y reporte pedagógico para marcarla como <strong>RECIBIDA</strong> se habilitará a partir de la hora de finalización fijada (<span class="font-semibold tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora.plusMinutes(clase.duracion), 'dd/MM/yyyy HH:mm')}"></span>).
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <form th:if="${!T(java.time.LocalDateTime).now().isBefore(clase.fechaHora)}" id="form-completar-clase" hx-post="/profesor/clases/completar" hx-target="#contenedor-modal" hx-swap="innerHTML" hx-disabled-elt="#btn-guardar-ficha-clase" class="space-y-4">
+                    <form th:if="${!T(com.autoescuela.erp.core.util.FechaHoraUtil).ahora().isBefore(clase.fechaHora.plusMinutes(clase.duracion))}" id="form-completar-clase" hx-post="/profesor/clases/completar" hx-target="#contenedor-modal" hx-swap="innerHTML" hx-disabled-elt="#btn-guardar-ficha-clase" class="space-y-4">
                         <input type="hidden" id="modal-clase-id" name="claseId" th:value="${clase.id}" />
 
                         <div id="error-validacion-km" class="hidden p-3 rounded-xl bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 text-xs font-medium border border-rose-200 dark:border-rose-800"></div>
