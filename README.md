@@ -8,7 +8,7 @@
   <a href="https://mands-mu4p.onrender.com" target="_blank">
     <img src="https://img.shields.io/badge/App_en_Vivo-Render-46E3B7?style=for-the-badge&logo=render&logoColor=0f172a" alt="Ver aplicación desplegada en Render" />
   </a>
-  <img src="https://img.shields.io/badge/Tests-621%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas: 621 tests superados" />
+  <img src="https://img.shields.io/badge/Tests-630%20Passed%20%E2%9C%94-brightgreen?style=for-the-badge&logo=junit5&logoColor=white" alt="Batería de Pruebas: 630 tests superados" />
   <a href="https://sonarcloud.io/project/overview?id=antonioabadpro_ManDS" target="_blank">
     <img src="https://img.shields.io/badge/SonarQube_Cloud-Quality_Gate-4E9BCD?style=for-the-badge&logo=sonarcloud&logoColor=white" alt="Análisis en SonarQube Cloud" />
   </a>
@@ -187,6 +187,7 @@ El sistema implementa un estricto modelo de Control de Acceso Basado en Roles (R
 | **Stripe Java SDK** | `v33.4.2` | Integración de sesiones Checkout y verificación criptográfica de Webhooks |
 | **MapStruct** | `v1.6.3` | Mapeo tipado en tiempo de compilación entre entidades y DTOs |
 | **Lombok MapStruct Binding**| `v0.2.0` | Generación de código boilerplate y compatibilidad con MapStruct |
+| **Caffeine Cache** | `v3.2.3` (Spring Cache) | Caché en memoria acotada por tamaño y TTL para cuadros de mando y calendario |
 | **Tailwind CSS / HTMX** | `v3.4.17` / `v1.9.12` | Compilación estática de estilos y actualización parcial HTML-over-the-wire |
 | **JaCoCo** | `v0.8.16` | Cobertura de código integrada en Maven (`verify`) y SonarQube Cloud |
 | **Docker Desktop** | `v4.97.0` | Orquestación de contenedores locales (PostgreSQL 16 + Mailpit + ManDS App) |
@@ -249,7 +250,7 @@ En dicho documento encontrarás:
 
 ## 7. Tests Unitarios y de Integración
 
-El proyecto incorpora una exhaustiva batería de pruebas automatizadas que validan cada servicio, controlador, flujo transaccional y restricción de dominio bajo **JUnit 5**, **Mockito** y **MockMvc**.
+El proyecto incorpora una exhaustiva batería de pruebas automatizadas que validan cada servicio, controlador, flujo transaccional y restricción de dominio bajo **JUnit 6**, **Mockito** y **MockMvc**.
 
 ### Comando de Ejecución:
 ```bash
@@ -257,7 +258,7 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 ```
 
 ### Resultados de la Batería de Pruebas:
-> 🟢 **621 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
+> 🟢 **630 tests ejecutados con un 100% de éxito (0 fallos, 0 errores, 0 omitidos)**
 
 ```
 [INFO] -------------------------------------------------------
@@ -267,7 +268,7 @@ El proyecto incorpora una exhaustiva batería de pruebas automatizadas que valid
 [INFO]
 [INFO] Results:
 [INFO]
-[INFO] Tests run: 621, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 630, Failures: 0, Errors: 0, Skipped: 0
 [INFO] -------------------------------------------------------
 [INFO] BUILD SUCCESS
 ```
@@ -293,7 +294,7 @@ La aplicación se encuentra desplegada y accesible públicamente en **Render**:
 ### ⚙️ Automatización CI/CD (GitHub Actions)
 El repositorio cuenta con un pipeline unificado en [`.github/workflows/ci_cd.yaml`](.github/workflows/ci_cd.yaml) dividido en dos fases encadenadas:
 1. **Integración Continua y Calidad (`build`):**
-   - En cada `push` a `dev` ejecuta `mvn -B clean verify`, validando compilación, la batería completa de **536 tests** y el reporte de cobertura con **JaCoCo** (`0.8.16`).
+   - En cada `push` a `dev` ejecuta `mvn -B clean verify`, validando compilación, la batería completa de **630 tests** y el reporte de cobertura con **JaCoCo** (`0.8.16`).
    - En `push` a `main` y en *Pull Requests* hacia `main` ejecuta además el análisis estático de código, cobertura y seguridad en **SonarQube Cloud** (`antonioabadpro_ManDS`).
 2. **Entrega Continua (`docker-publish`):**
    - Condicionado al éxito previo de `build` (`needs: build`) y restringido exclusivamente a `push` en `main`.
@@ -322,7 +323,7 @@ El repositorio cuenta con un pipeline unificado en [`.github/workflows/ci_cd.yam
 │   │   └── resources/
 │   │       ├── static/       # CSS compilado (Tailwind), fuentes Inter, imágenes y JS por vista
 │   │       └── templates/    # Vistas y fragmentos Thymeleaf / HTMX por rol
-│   └── test/                 # Batería de pruebas unitarias y de integración (536 tests)
+│   └── test/                 # Batería de pruebas unitarias y de integración (630 tests)
 ├── Dockerfile                # Build multi-stage (Node 22 + Maven/JDK 21 + JRE 21 Alpine)
 ├── docker-compose.yaml       # Orquestación local (PostgreSQL 16, Mailpit y ManDS App)
 ├── package.json              # Scripts de compilación Tailwind CSS y activos frontend locales
@@ -343,8 +344,12 @@ El desarrollo del proyecto está acompañado por un compendio de documentación 
   - [Diagrama Entidad-Relación (PlantUML)](Diagramas/Diagrama_ER.puml)
   - [Diagrama de Casos de Uso (PlantUML)](Diagramas/Diagrama_CU.puml)
   - [Diagrama de Componentes (PlantUML)](Diagramas/Diagrama_Componentes.puml)
-  - [Diagrama de Despliegue (PlantUML)](Diagramas/Diagrama_Despliegue.puml)
+  - [Diagrama de Despliegue Cloud (PlantUML)](Diagramas/Diagrama_Despliegue.puml)
+  - [Diagrama de Despliegue Local Docker (PlantUML)](Diagramas/Diagrama_Despliegue_Local.puml)
   - [Diagrama de Estados del Dominio (PlantUML)](Diagramas/Diagrama_Estados_Dominio.puml)
+  - [Diagrama de Secuencia — Pagar Matrícula con Stripe (PlantUML)](Diagramas/Diagrama_Secuencia_Pagar_Matrícula.puml)
+  - [Diagrama de Secuencia — Reservar Clase Práctica (PlantUML)](Diagramas/Diagrama_Secuencia_Reservar_Clase.puml)
+  - [Diagrama de Secuencia — Rellenar Ficha de Clase y Odómetro (PlantUML)](Diagramas/Diagrama_Secuencia_RellenarFichaClase.puml)
 
 [![Memoria Técnica](https://img.shields.io/badge/PDF-Ver_Memoria_Técnica-EC1C24?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://github.com/antonioabadpro/ManDS/docs/Memoria_ManDS.pdf)
 
