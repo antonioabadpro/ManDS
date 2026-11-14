@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,12 @@ import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
@@ -69,8 +72,14 @@ public class ClasePracticaService
     @CacheEvict(value = {CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public ClasePractica reservarClase(Alumno alumno, Profesor profesor, ReservaClasePracticaDTO dto)
     {
+        // Barrera Preventiva de Fecha y Hora Futuras
+        if (dto.fechaHora() == null || !dto.fechaHora().isAfter(FechaHoraUtil.ahora()))
+        {
+            throw new ReglaNegocioException("No se pueden reservar clases prácticas en fechas u horas pasadas.");
+        }
+
         // Barrera Preventiva de Días No Laborables (Festivos Nacionales y Periodos Vacacionales)
-        if (dto.fechaHora() != null && FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
+        if (FestivosCalendarioUtil.esDiaNoLaborable(dto.fechaHora().toLocalDate()))
         {
             String motivo = FestivosCalendarioUtil.obtenerMotivoNoLaborable(dto.fechaHora().toLocalDate());
             throw new ReglaNegocioException("No se pueden reservar clases prácticas en días festivos nacionales ni durante vacaciones de la autoescuela (" + motivo + ").");
@@ -96,11 +105,40 @@ public class ClasePracticaService
                     throw new ReglaNegocioException("Es obligatorio haber aprobado el examen teórico oficial ante la DGT antes de reservar clases prácticas.");
                 }
             }
+
+            List<Examen> examenesAlumno = this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+            if (examenesAlumno != null)
+            {
+                LocalDateTime ahora = FechaHoraUtil.ahora();
+                for (Examen examen : examenesAlumno)
+                {
+                    if (examen.getTipo() == TipoExamen.PRACTICO
+                            && examen.getFechaHora() != null
+                            && examen.getFechaHora().isAfter(ahora)
+                            && !dto.fechaHora().toLocalDate().isBefore(examen.getFechaHora().toLocalDate()))
+                    {
+                        throw new ReglaNegocioException("No se pueden reservar clases prácticas en la fecha de tu examen práctico oficial o en días posteriores.");
+                    }
+                }
+            }
         }
 
-        // Barrera Preventiva de Jornada Cancelada por el Profesor
+        // Barrera Preventiva de Jornada con Examen Práctico DGT y Jornada Cancelada por el Profesor
         if (dto.fechaHora() != null && profesor != null)
         {
+            List<Examen> examenesProfesor = this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor);
+            if (examenesProfesor != null)
+            {
+                for (Examen examen : examenesProfesor)
+                {
+                    if (examen.getTipo() == TipoExamen.PRACTICO
+                            && examen.getFechaHora() != null
+                            && examen.getFechaHora().toLocalDate().equals(dto.fechaHora().toLocalDate()))
+                    {
+                        throw new ReglaNegocioException("El profesor tiene asignado un examen práctico oficial ante la DGT en esta fecha, por lo que no hay disponibilidad de vehículo para clases.");
+                    }
+                }
+            }
             LocalDateTime inicioDia = dto.fechaHora().toLocalDate().atStartOfDay();
             LocalDateTime finDia = dto.fechaHora().toLocalDate().atTime(23, 59, 59);
             List<ClasePractica> clasesDelDia = this.clasePracticaRepository
@@ -201,6 +239,10 @@ public class ClasePracticaService
      * @param estadoClase Estado de la clase (opcional).
      * @return Lista de DTOs inmutables representativos de las clases encontradas.
      */
+    @Cacheable(
+            value = CacheConfig.CACHE_CALENDARIO,
+            key = "'admin_practicas_' + (#profesorId != null ? #profesorId : 'all') + '_' + (#estadoClase != null ? #estadoClase.name() : 'all')"
+    )
     @Transactional(readOnly = true)
     public List<ClasePracticaAdminDTO> obtenerClasesParaAdmin(Long profesorId, EstadoClase estadoClase)
     {
@@ -216,6 +258,7 @@ public class ClasePracticaService
      * @return DTO inmutable con los detalles completos de la clase.
      * @throws ReglaNegocioException si la clase no existe en el sistema.
      */
+    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'admin_practica_detalle_' + #id", condition = "#id != null")
     @Transactional(readOnly = true)
     public ClasePracticaAdminDTO obtenerClaseParaDetalleAdmin(Long id)
     {
@@ -293,6 +336,20 @@ public class ClasePracticaService
             return List.of();
         }
         return this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno);
+    }
+
+    /**
+     * Recupera como proyección DTO las últimas 5 clases prácticas de un alumno ordenadas descendentemente,
+     * evitando consultas perezosas sobre profesor o matrícula en el dashboard del alumno.
+     */
+    @Transactional(readOnly = true)
+    public List<ClasePracticaResumenAlumnoDTO> obtenerUltimas5ClasesResumenPorAlumno(Alumno alumno)
+    {
+        if (alumno == null)
+        {
+            return List.of();
+        }
+        return this.clasePracticaRepository.findTop5ByAlumnoOrderByFechaHoraDesc(alumno);
     }
 
     /**

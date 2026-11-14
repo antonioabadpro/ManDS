@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,25 +40,30 @@ import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Servicio encargado de ensamblar la cuadrícula semanal Server-Side Rendering (SSR)
  * para los calendarios de alumno y profesor
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CalendarioService
 {
     private final ClasePracticaRepository clasePracticaRepository;
     private final ExamenRepository examenRepository;
     private final MatriculaRepository matriculaRepository;
+    private final ObjectProvider<CacheManager> cacheManagerProvider;
 
     /**
      * Ensambla la estructura semanal completa para la agenda del profesor autenticado.
      */
-    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
+    @Cacheable(
+            value = CacheConfig.CACHE_CALENDARIO,
+            key = "'prof_' + (#profesor != null ? #profesor.id : 'null') + '_' + ((#fechaReferencia != null ? #fechaReferencia : T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy()).with(T(java.time.DayOfWeek).MONDAY).toString()) + '_' + T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy().toString()",
+            condition = "#profesor != null && #profesor.id != null"
+    )
     public CalendarioSemanalDTO obtenerCalendarioProfesor(Profesor profesor, LocalDate fechaReferencia)
     {
         LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();
@@ -112,14 +120,49 @@ public class CalendarioService
     /**
      * Ensambla la estructura semanal completa para la agenda del alumno autenticado,
      * aplicando el filtro de privacidad de datos RGPD ("Clase Práctica") y control de reservas.
+     * Cachea la estructura semanal neutra normalizada al lunes y ajusta en memoria las franjas ya vencidas
+     * respecto a {@link FechaHoraUtil#ahora()} para garantizar precisión al minuto sin perder hit ratio.
      */
-    @Cacheable(value = CacheConfig.CACHE_CALENDARIO, key = "'alum_' + (#alumno != null ? #alumno.id : 'null') + '_' + (#fechaReferencia != null ? #fechaReferencia.toString() : 'hoy')")
     public CalendarioSemanalDTO obtenerCalendarioAlumno(Alumno alumno, LocalDate fechaReferencia)
     {
-        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : FechaHoraUtil.hoy();
-        LocalDate lunes = fechaBase.with(DayOfWeek.MONDAY);
-        LocalDate viernes = lunes.plusDays(4);
         LocalDate hoy = FechaHoraUtil.hoy();
+        LocalDate fechaBase = (fechaReferencia != null) ? fechaReferencia : hoy;
+        LocalDate lunes = fechaBase.with(DayOfWeek.MONDAY);
+
+        CalendarioSemanalDTO calendarioBase = null;
+        String claveCache = null;
+
+        CacheManager manager = (this.cacheManagerProvider != null)
+                ? this.cacheManagerProvider.getIfAvailable()
+                : null;
+        Cache cache = (manager != null)
+                ? manager.getCache(CacheConfig.CACHE_CALENDARIO)
+                : null;
+
+        if (cache != null && alumno != null && alumno.getId() != null)
+        {
+            claveCache = "alum_" + alumno.getId() + "_" + lunes + "_" + hoy;
+            calendarioBase = cache.get(claveCache, CalendarioSemanalDTO.class);
+        }
+
+        if (calendarioBase == null)
+        {
+            calendarioBase = this.construirCalendarioAlumnoBase(alumno, lunes, hoy);
+            if (cache != null && claveCache != null)
+            {
+                cache.put(claveCache, calendarioBase);
+            }
+        }
+
+        return this.aplicarVigenciaHorariaActual(calendarioBase, FechaHoraUtil.ahora());
+    }
+
+    /**
+     * Construye la cuadrícula semanal base del alumno sin recortar franjas por la hora exacta del instante actual.
+     */
+    private CalendarioSemanalDTO construirCalendarioAlumnoBase(Alumno alumno, LocalDate lunes, LocalDate hoy)
+    {
+        LocalDate viernes = lunes.plusDays(4);
 
         Profesor profesor = (alumno != null) ? alumno.getProfesor() : null;
         boolean tieneProfesorAsignado = (profesor != null);
@@ -153,7 +196,7 @@ public class CalendarioService
                 : new ArrayList<>();
 
         List<DiaCalendarioDTO> dias = this.construirDiasSemana(lunes, diasConExamenDgt, hoy, clasesProfesor);
-        LocalDateTime ahora = FechaHoraUtil.ahora();
+        LocalDateTime referenciaNeutra = LocalDateTime.of(1900, 1, 1, 0, 0);
 
         List<FilaCalendarioDTO> filas = new ArrayList<>();
         for (TramoHorarioDTO tramo : tramos)
@@ -162,7 +205,7 @@ public class CalendarioService
             for (DiaCalendarioDTO dia : dias)
             {
                 boolean esExamenDgt = diasConExamenDgt.contains(dia.fecha());
-                celdas.add(this.construirCeldaAlumno(dia, tramo, esExamenDgt, clasesProfesor, alumno, puedeReservar, ahora));
+                celdas.add(this.construirCeldaAlumno(dia, tramo, esExamenDgt, clasesProfesor, alumno, puedeReservar, referenciaNeutra));
             }
             filas.add(new FilaCalendarioDTO(tramo, celdas));
         }
@@ -184,6 +227,55 @@ public class CalendarioService
                 tieneProfesorAsignado,
                 puedeReservar,
                 motivoBloqueoReserva
+        );
+    }
+
+    /**
+     * Deshabilita dinámicamente en memoria las franjas libres ya pasadas respecto al instante actual.
+     */
+    private CalendarioSemanalDTO aplicarVigenciaHorariaActual(CalendarioSemanalDTO calendarioBase, LocalDateTime ahora)
+    {
+        if (calendarioBase == null || calendarioBase.filas() == null)
+        {
+            return calendarioBase;
+        }
+
+        List<FilaCalendarioDTO> filasAjustadas = new ArrayList<>(calendarioBase.filas().size());
+        for (FilaCalendarioDTO fila : calendarioBase.filas())
+        {
+            List<CeldaCalendarioDTO> celdasAjustadas = new ArrayList<>(fila.celdas().size());
+            for (CeldaCalendarioDTO celda : fila.celdas())
+            {
+                if ("LIBRE".equals(celda.estado()) && celda.esClicable() && celda.fechaHora() != null && !celda.fechaHora().isAfter(ahora))
+                {
+                    celdasAjustadas.add(celda.toBuilder()
+                            .titulo("Libre")
+                            .subtitulo("No disponible")
+                            .esClicable(false)
+                            .modalUrl(null)
+                            .build());
+                }
+                else
+                {
+                    celdasAjustadas.add(celda);
+                }
+            }
+            filasAjustadas.add(new FilaCalendarioDTO(fila.tramo(), celdasAjustadas));
+        }
+
+        return new CalendarioSemanalDTO(
+                calendarioBase.fechaInicio(),
+                calendarioBase.fechaFin(),
+                calendarioBase.rangoFechasTexto(),
+                calendarioBase.semanaAnterior(),
+                calendarioBase.semanaSiguiente(),
+                calendarioBase.hoy(),
+                calendarioBase.dias(),
+                filasAjustadas,
+                calendarioBase.turno(),
+                calendarioBase.tieneProfesorAsignado(),
+                calendarioBase.puedeReservar(),
+                calendarioBase.motivoBloqueoReserva()
         );
     }
 

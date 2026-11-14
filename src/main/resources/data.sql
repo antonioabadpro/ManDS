@@ -137,33 +137,33 @@ VALUES (114, 'Fernando', 'Méndez Blanco', '31987654J', '1987-04-14', 'profesor1
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (115, 'Sonia', 'Iglesias Pastor', '42987654X', '1991-11-20', 'profesor16', 'sonia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000115', 'Calle Princesa 88, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (116, 'Guillermo', 'Pardo Navarro', '12098765A', '1988-02-14', 'profesor17', 'guillermo.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000116', 'Calle Montera 15, Madrid', 'ACTIVO');
+VALUES (116, 'Guillermo', 'Pardo Navarro', '12098765Y', '1988-02-14', 'profesor17', 'guillermo.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000116', 'Calle Montera 15, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (117, 'Patricia', 'Herrera Campos', '22098765B', '1990-07-22', 'profesor18', 'patricia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000117', 'Calle Carretas 8, Madrid', 'ACTIVO');
+VALUES (117, 'Patricia', 'Herrera Campos', '22098765C', '1990-07-22', 'profesor18', 'patricia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000117', 'Calle Carretas 8, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (118, 'Mario', 'Vázquez Lozano', '32098765C', '1986-11-09', 'profesor19', 'mario.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000118', 'Calle Mayor 70, Madrid', 'ACTIVO');
+VALUES (118, 'Mario', 'Vázquez Lozano', '32098765B', '1986-11-09', 'profesor19', 'mario.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000118', 'Calle Mayor 70, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (119, 'Irene', 'Soler Fuentes', '42098765D', '1992-04-18', 'profesor20', 'irene.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000119', 'Plaza de España 4, Madrid', 'ACTIVO');
+VALUES (119, 'Irene', 'Soler Fuentes', '42098765W', '1992-04-18', 'profesor20', 'irene.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000119', 'Plaza de España 4, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (120, 'Roberto', 'Paredes Cano', '52098765E', '1987-10-30', 'profesor21', 'roberto.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000120', 'Avenida de Burgos 22, Madrid', 'ACTIVO');
+VALUES (120, 'Roberto', 'Paredes Cano', '52098765Q', '1987-10-30', 'profesor21', 'roberto.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000120', 'Avenida de Burgos 22, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (121, 'Silvia', 'Carrasco Rivas', '62098765F', '1991-03-12', 'profesor22', 'silvia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000121', 'Calle Arenal 18, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (122, 'Álvaro', 'Garrido Peña', '72098765G', '1985-08-25', 'profesor23', 'alvaro.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000122', 'Calle Postas 11, Madrid', 'ACTIVO');
+VALUES (122, 'Álvaro', 'Garrido Peña', '72098765K', '1985-08-25', 'profesor23', 'alvaro.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000122', 'Calle Postas 11, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (123, 'Lucía', 'Esteban Marín', '82098765H', '1989-12-05', 'profesor24', 'lucia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000123', 'Paseo de Recoletos 15, Madrid', 'ACTIVO');
+VALUES (123, 'Lucía', 'Esteban Marín', '82098765N', '1989-12-05', 'profesor24', 'lucia.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000123', 'Paseo de Recoletos 15, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (124, 'Daniel', 'Mora Beltrán', '92098765J', '1984-06-17', 'profesor25', 'daniel.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000124', 'Calle Atocha 105, Madrid', 'ACTIVO');
+VALUES (124, 'Daniel', 'Mora Beltrán', '92098765A', '1984-06-17', 'profesor25', 'daniel.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000124', 'Calle Atocha 105, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (125, 'Rosa', 'Calvo Delgado', '13098765K', '1988-09-14', 'profesor26', 'rosa.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000125', 'Calle Huertas 34, Madrid', 'ACTIVO');
+VALUES (125, 'Rosa', 'Calvo Delgado', '13098765N', '1988-09-14', 'profesor26', 'rosa.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000125', 'Calle Huertas 34, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (126, 'Hugo', 'Ibáñez Crespo', '23098765L', '1986-01-29', 'profesor27', 'hugo.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000126', 'Calle Barquillo 30, Madrid', 'ACTIVO');
+VALUES (126, 'Hugo', 'Ibáñez Crespo', '23098765A', '1986-01-29', 'profesor27', 'hugo.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000126', 'Calle Barquillo 30, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (127, 'Marta', 'Benítez Luque', '33098765M', '1993-05-20', 'profesor28', 'martab.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000127', 'Calle Conde Duque 12, Madrid', 'ACTIVO');
+VALUES (127, 'Marta', 'Benítez Luque', '33098765V', '1993-05-20', 'profesor28', 'martab.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000127', 'Calle Conde Duque 12, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (128, 'Julián', 'Pascual Roldán', '43098765N', '1983-03-10', 'profesor29', 'julian.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000128', 'Calle Princesa 20, Madrid', 'ACTIVO');
+VALUES (128, 'Julián', 'Pascual Roldán', '43098765P', '1983-03-10', 'profesor29', 'julian.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000128', 'Calle Princesa 20, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (129, 'Lorena', 'Pastor Cuesta', '53098765P', '1985-11-28', 'profesor30', 'lorena.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000129', 'Calle San Bernardo 90, Madrid', 'ACTIVO');
+VALUES (129, 'Lorena', 'Pastor Cuesta', '53098765E', '1985-11-28', 'profesor30', 'lorena.profesor@autoescuela.es', '$2a$10$dU1qgUT4dh2MvH1vQUePXOpw2syxYe.3DkjMMoHKk1Dm8vU18JenO', '600000129', 'Calle San Bernardo 90, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (200, 'Jose', 'López Martín', '45678901G', '2000-01-15', 'alumno1', 'jose.alumno@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '600444555', 'Calle Toledo 10, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
@@ -271,33 +271,33 @@ VALUES (251, 'Tomás', 'Herrera Gil', '51234524T', '1999-06-18', 'alumno52', 'to
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (252, 'Marina', 'Lozano Santos', '51234525R', '2002-10-10', 'alumno53', 'marina.alumno@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '606777888', 'Calle Chueca 14, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (253, 'Marcos', 'Prieto Ramos', '51234526A', '2001-04-12', 'alumno54', 'marcos.prieto@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607111222', 'Calle Serrano 150, Madrid', 'ACTIVO');
+VALUES (253, 'Marcos', 'Prieto Ramos', '51234526W', '2001-04-12', 'alumno54', 'marcos.prieto@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607111222', 'Calle Serrano 150, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (254, 'Irene', 'Garrido Peña', '51234527B', '2002-08-23', 'alumno55', 'irene.garrido@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607222333', 'Calle Velázquez 90, Madrid', 'ACTIVO');
+VALUES (254, 'Irene', 'Garrido Peña', '51234527A', '2002-08-23', 'alumno55', 'irene.garrido@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607222333', 'Calle Velázquez 90, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (255, 'Adrián', 'Cabrera Soler', '51234528C', '2000-12-05', 'alumno56', 'adrian.cabrera@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607333444', 'Calle Claudio Coello 75, Madrid', 'ACTIVO');
+VALUES (255, 'Adrián', 'Cabrera Soler', '51234528G', '2000-12-05', 'alumno56', 'adrian.cabrera@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607333444', 'Calle Claudio Coello 75, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (256, 'Paula', 'Castillo Mora', '51234529D', '2003-02-18', 'alumno57', 'paula.castillo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607444555', 'Calle Lagasca 40, Madrid', 'ACTIVO');
+VALUES (256, 'Paula', 'Castillo Mora', '51234529M', '2003-02-18', 'alumno57', 'paula.castillo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607444555', 'Calle Lagasca 40, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (257, 'Hugo', 'Pardo Rivas', '51234530E', '2001-09-30', 'alumno58', 'hugo.pardo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607555666', 'Calle Goya 60, Madrid', 'ACTIVO');
+VALUES (257, 'Hugo', 'Pardo Rivas', '51234530Y', '2001-09-30', 'alumno58', 'hugo.pardo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607555666', 'Calle Goya 60, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (258, 'Elena', 'Bermejo Cruz', '51234531F', '2002-06-14', 'alumno59', 'elena.bermejo@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607666777', 'Calle Hermosilla 30, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (259, 'Diego', 'Santos León', '51234532G', '2000-03-25', 'alumno60', 'diego.santos@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607777888', 'Calle Ayala 85, Madrid', 'ACTIVO');
+VALUES (259, 'Diego', 'Santos León', '51234532P', '2000-03-25', 'alumno60', 'diego.santos@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607777888', 'Calle Ayala 85, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (260, 'Sara', 'Marín Esteban', '51234533H', '2003-11-11', 'alumno61', 'sara.marin@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607888999', 'Calle Jorge Juan 50, Madrid', 'ACTIVO');
+VALUES (260, 'Sara', 'Marín Esteban', '51234533D', '2003-11-11', 'alumno61', 'sara.marin@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607888999', 'Calle Jorge Juan 50, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (261, 'Álvaro', 'Fuentes Moya', '51234534J', '1999-07-08', 'alumno62', 'alvaro.fuentes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607999000', 'Calle O Donnell 20, Madrid', 'ACTIVO');
+VALUES (261, 'Álvaro', 'Fuentes Moya', '51234534X', '1999-07-08', 'alumno62', 'alvaro.fuentes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '607999000', 'Calle O Donnell 20, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (262, 'Marta', 'Herrero Solís', '51234535K', '2002-01-27', 'alumno63', 'marta.herrero@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608111222', 'Calle Narváez 35, Madrid', 'ACTIVO');
+VALUES (262, 'Marta', 'Herrero Solís', '51234535B', '2002-01-27', 'alumno63', 'marta.herrero@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608111222', 'Calle Narváez 35, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (263, 'Javier', 'Paredes Cano', '51234536L', '2001-10-09', 'alumno64', 'javier.paredes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608222333', 'Calle Ibiza 18, Madrid', 'ACTIVO');
+VALUES (263, 'Javier', 'Paredes Cano', '51234536N', '2001-10-09', 'alumno64', 'javier.paredes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608222333', 'Calle Ibiza 18, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (264, 'Lucía', 'Giménez Vidal', '51234537M', '2003-05-16', 'alumno65', 'lucia.gimenez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608333444', 'Calle Menorca 12, Madrid', 'ACTIVO');
+VALUES (264, 'Lucía', 'Giménez Vidal', '51234537J', '2003-05-16', 'alumno65', 'lucia.gimenez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608333444', 'Calle Menorca 12, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (265, 'Manuel', 'Reyes Cortés', '51234538N', '2000-08-03', 'alumno66', 'manuel.reyes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608444555', 'Calle Sainz de Baranda 44, Madrid', 'ACTIVO');
+VALUES (265, 'Manuel', 'Reyes Cortés', '51234538Z', '2000-08-03', 'alumno66', 'manuel.reyes@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608444555', 'Calle Sainz de Baranda 44, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
-VALUES (266, 'Alba', 'Méndez Gallego', '51234539P', '2002-03-21', 'alumno67', 'alba.mendez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608555666', 'Calle Doctor Esquerdo 70, Madrid', 'ACTIVO');
+VALUES (266, 'Alba', 'Méndez Gallego', '51234539S', '2002-03-21', 'alumno67', 'alba.mendez@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608555666', 'Calle Doctor Esquerdo 70, Madrid', 'ACTIVO');
 INSERT INTO persona (id, nombre, apellidos, dni, fecha_nacimiento, nombre_usuario, correo, password, telefono, direccion, estado)
 VALUES (267, 'Daniel', 'Lara Montero', '51234540Q', '2001-12-19', 'alumno68', 'daniel.lara@autoescuela.es', '$2a$10$1SxY9AYXM.YDmvQHsyCDPe1mZhdgqhe9o5HeLF9cJOk3Bch4ecAjS', '608666777', 'Calle O Donnell 45, Madrid', 'ACTIVO');
 
@@ -1050,7 +1050,7 @@ INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio,
 VALUES (169, '2026-10-19 11:45:00', 45, 'Calle Fernando VI 19', 43782, 43805, 'Recorridos oficiales previos a examen DGT.', 'RECIBIDA', FALSE, FALSE, 219, 100);
 
 -- ------------------------------------------------------------------------------
--- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 64 Solicitudes
+-- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 62 Solicitudes
 -- ------------------------------------------------------------------------------
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (1, '2026-08-10 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 200, NULL, 1);
@@ -1173,16 +1173,12 @@ VALUES (59, '2026-10-05 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 266, NULL, 68);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (60, '2026-10-05 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 267, NULL, 69);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (61, '2026-10-23 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 258, NULL, 60);
-INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
-VALUES (62, '2026-10-24 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 259, NULL, 61);
-INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (63, '2026-10-21 09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (64, '2026-10-22 10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
 
 -- ------------------------------------------------------------------------------
--- 8. EXÁMENES DGT (examen) - 55 Exámenes (Días laborables no festivos)
+-- 8. EXÁMENES DGT (examen) - 53 Exámenes (Días laborables no festivos)
 -- ------------------------------------------------------------------------------
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (1, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 200, 1);
@@ -1282,10 +1278,6 @@ INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitu
 VALUES (48, NULL, '2026-10-29 08:30:00', 30, 'TEORICO', 256, 54);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (49, NULL, '2026-11-12 08:30:00', 30, 'TEORICO', 257, 55);
-INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (50, NULL, '2026-11-12 08:30:00', 30, 'TEORICO', 258, 61);
-INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
-VALUES (51, NULL, '2026-11-26 08:30:00', 30, 'TEORICO', 259, 62);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (52, NULL, '2026-11-12 08:30:00', 35, 'PRACTICO', 206, 63);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)

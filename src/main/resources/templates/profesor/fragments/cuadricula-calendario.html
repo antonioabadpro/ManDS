@@ -9,13 +9,13 @@
         <!-- Controles Prev / Next / Hoy -->
         <div class="inline-flex items-center space-x-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700/80 shrink-0">
             <button type="button" th:attr="hx-get=@{/profesor/calendario/cuadricula(fechaRef=${calendarioSemanal.semanaAnterior})}" hx-target="#contenedor-cuadricula-calendario" hx-swap="outerHTML" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition" title="Semana anterior">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                <svg class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
             </button>
             <button type="button" th:attr="hx-get=@{/profesor/calendario/cuadricula(fechaRef=${calendarioSemanal.semanaSiguiente})}" hx-target="#contenedor-cuadricula-calendario" hx-swap="outerHTML" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition" title="Semana siguiente">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <svg class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
             </button>
             <button type="button" th:attr="hx-get=@{/profesor/calendario/cuadricula(fechaRef=${calendarioSemanal.hoy})}" hx-target="#contenedor-cuadricula-calendario" hx-swap="outerHTML" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition">
@@ -120,7 +120,7 @@
                         <!-- 4. Celda Ocupada por Clase Práctica -->
                         <div th:if="${!celda.esExamenDgt and celda.estado != 'FESTIVO' and celda.estado != 'VACACIONES' and celda.ocupada}" class="w-full h-full">
                             <!-- Botón/Tarjeta contenida dentro de la celda -->
-                            <button type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] text-left p-2 rounded-xl border shadow-xs transition transform hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between cursor-pointer" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 hover:border-emerald-300' : (celda.estado == 'CANCELADA' ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/80 text-rose-900 dark:text-rose-100 hover:border-rose-300' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/80 text-amber-900 dark:text-amber-100 hover:border-amber-300')}">
+                            <button type="button" th:attr="hx-get=${celda.modalUrl}" hx-target="#contenedor-modal" hx-swap="innerHTML" class="w-full h-full min-h-[4.25rem] text-left p-2 rounded-xl border shadow-xs transition transform hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between cursor-pointer group" th:classappend="${celda.estado == 'RECIBIDA' ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 hover:border-emerald-300' : (celda.estado == 'CANCELADA' ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/80 text-rose-900 dark:text-rose-100 hover:border-rose-300' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/80 text-amber-900 dark:text-amber-100 hover:border-amber-300')}">
 
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center space-x-1.5">
@@ -134,8 +134,11 @@
                                     <span class="text-xs font-bold truncate block" th:text="${celda.titulo}">Nombre Alumno</span>
                                 </div>
 
-                                <div class="text-[9px] opacity-75 text-right font-medium">
-                                    Ver Ficha &rarr;
+                                <div class="w-full text-[9px] opacity-75 font-medium flex items-center justify-end gap-1">
+                                    <span>Ver Ficha</span>
+                                    <svg class="w-3 h-3 transition-transform duration-200 group-hover:translate-x-1 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
                                 </div>
                             </button>
                         </div>

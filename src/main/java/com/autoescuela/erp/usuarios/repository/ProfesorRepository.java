@@ -119,10 +119,11 @@ public interface ProfesorRepository extends JpaRepository<Profesor, Long>
     Optional<Profesor> findByCorreo(String correo);
 
     /**
-     * Busca un profesor por su nombre de usuario.
+     * Busca un profesor por su nombre de usuario precargando su vehículo y permisos habilitados.
      *
      * @param nombreUsuario Nombre de usuario.
      * @return Optional con el Profesor encontrado o vacío si no existe.
      */
+    @EntityGraph(attributePaths = {"vehiculo", "listaTiposCarnet"})
     Optional<Profesor> findByNombreUsuario(String nombreUsuario);
 }

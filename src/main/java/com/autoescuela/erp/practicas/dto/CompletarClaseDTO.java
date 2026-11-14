@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO para cumplimentar la ficha técnica de una clase práctica (CU-024).
+ * DTO para cumplimentar la ficha técnica de una clase práctica.
  * Al registrarse, la clase pasa a RECIBIDA y se descuenta el saldo automáticamente.
  */
 public record CompletarClaseDTO(

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.autoescuela.erp.core.email.EmailService;
@@ -88,6 +89,32 @@ class IncidenciaVehiculoServiceTest
         assertThat(resultado.get(0).id()).isEqualTo(1L);
         assertThat(resultado.get(0).vehiculoMatricula()).isEqualTo("1234-BBB");
         verify(this.incidenciaVehiculoRepository).findAllOrdenadasPorEstadoYFechaAsc();
+        verify(this.incidenciaVehiculoMapper).toIncidenciaResumenDTO(inc);
+    }
+
+    @Test
+    @DisplayName("obtenerIncidenciasDashboard recupera hasta 5 incidencias activas (PENDIENTE o EN_PROCESO) y las mapea a DTO")
+    void testObtenerIncidenciasDashboard()
+    {
+        IncidenciaVehiculo inc = new IncidenciaVehiculo();
+        ReflectionTestUtils.setField(inc, "id", 2L);
+        inc.setEstado(EstadoIncidencia.EN_PROCESO);
+
+        IncidenciaResumenDTO dto = new IncidenciaResumenDTO(
+                2L, LocalDateTime.now(), "Revisión embrague", EstadoIncidencia.EN_PROCESO,
+                11L, "5678-CCC", "Renault", "Clio", 21L, "Carlos López"
+        );
+
+        when(this.incidenciaVehiculoRepository.findActivasOrdenadasPorEstadoYFechaAsc(PageRequest.of(0, 5)))
+                .thenReturn(List.of(inc));
+        when(this.incidenciaVehiculoMapper.toIncidenciaResumenDTO(inc)).thenReturn(dto);
+
+        List<IncidenciaResumenDTO> resultado = this.incidenciaVehiculoService.obtenerIncidenciasDashboard();
+
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).id()).isEqualTo(2L);
+        assertThat(resultado.get(0).estado()).isEqualTo(EstadoIncidencia.EN_PROCESO);
+        verify(this.incidenciaVehiculoRepository).findActivasOrdenadasPorEstadoYFechaAsc(PageRequest.of(0, 5));
         verify(this.incidenciaVehiculoMapper).toIncidenciaResumenDTO(inc);
     }
 

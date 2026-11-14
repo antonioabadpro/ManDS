@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,16 +33,19 @@ import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
 import com.autoescuela.erp.core.excepciones.ReglaNegocioException;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
+import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.practicas.dto.CompletarClaseDTO;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.dto.ClasePracticaAdminDTO;
+import com.autoescuela.erp.practicas.dto.ClasePracticaResumenAlumnoDTO;
 import com.autoescuela.erp.practicas.dto.ReservaClasePracticaDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -101,6 +105,18 @@ class ClasePracticaServiceTest
         return matricula;
     }
 
+    private LocalDateTime obtenerFechaFuturaLaborable(int diasExtra, int hora, int minuto)
+    {
+        LocalDate fecha = FechaHoraUtil.hoy().plusDays(1 + Math.max(0, diasExtra));
+        while (fecha.getDayOfWeek() == DayOfWeek.SATURDAY
+                || fecha.getDayOfWeek() == DayOfWeek.SUNDAY
+                || FestivosCalendarioUtil.esDiaNoLaborable(fecha))
+        {
+            fecha = fecha.plusDays(1);
+        }
+        return fecha.atTime(hora, minuto);
+    }
+
     @Test
     @DisplayName("reservarClase persiste la reserva con éxito cuando la franja horaria está libre")
     void testReservarClaseExito()
@@ -115,7 +131,7 @@ class ClasePracticaServiceTest
         vehiculo.setKm(45000L);
         profesor.setVehiculo(vehiculo);
 
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", "Práctica de estacionamiento"
         );
@@ -149,7 +165,7 @@ class ClasePracticaServiceTest
     {
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", ""
         );
@@ -172,7 +188,7 @@ class ClasePracticaServiceTest
     {
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", ""
         );
@@ -195,7 +211,7 @@ class ClasePracticaServiceTest
     {
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaHora, 45, "Plaza Mayor", ""
         );
@@ -221,7 +237,7 @@ class ClasePracticaServiceTest
     {
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
 
         Matricula matricula = new Matricula();
@@ -241,7 +257,7 @@ class ClasePracticaServiceTest
     {
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
 
         Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.TEORICO_PRACTICA);
@@ -260,7 +276,7 @@ class ClasePracticaServiceTest
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
         profesor.setTurno(TipoTurno.MATINAL);
-        LocalDateTime fechaHora = LocalDateTime.of(2026, 10, 15, 9, 30);
+        LocalDateTime fechaHora = this.obtenerFechaFuturaLaborable(0, 9, 30);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaHora, 45, "Plaza Mayor", "");
 
         Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.TEORICO_PRACTICA);
@@ -273,6 +289,74 @@ class ClasePracticaServiceTest
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.getEstadoClase()).isEqualTo(EstadoClase.PENDIENTE);
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la fecha u hora es pasada")
+    void testReservarClaseFallaEnFechaPasada()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(FechaHoraUtil.ahora().minusHours(2), 45, "Plaza Mayor", "");
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("fechas u horas pasadas");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si la reserva es igual o posterior al examen práctico programado del alumno")
+    void testReservarClaseFallaEnFechaOPosteriorAExamenPractico()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        LocalDateTime fechaExamen = this.obtenerFechaFuturaLaborable(0, 8, 30);
+        LocalDateTime fechaReservaPosterior = fechaExamen.plusDays(1).withHour(10).withMinute(15);
+        while (fechaReservaPosterior.getDayOfWeek() == DayOfWeek.SATURDAY
+                || fechaReservaPosterior.getDayOfWeek() == DayOfWeek.SUNDAY
+                || FestivosCalendarioUtil.esDiaNoLaborable(fechaReservaPosterior.toLocalDate()))
+        {
+            fechaReservaPosterior = fechaReservaPosterior.plusDays(1);
+        }
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        Examen examen = new Examen();
+        examen.setAlumno(alumno);
+        examen.setTipo(TipoExamen.PRACTICO);
+        examen.setFechaHora(fechaExamen);
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(examen));
+
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaReservaPosterior, 45, "Plaza Mayor", "");
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("examen práctico oficial");
+    }
+
+    @Test
+    @DisplayName("reservarClase lanza ReglaNegocioException si el profesor tiene examen práctico DGT en esa jornada")
+    void testReservarClaseFallaEnJornadaExamenDgtProfesor()
+    {
+        Alumno alumno = new Alumno();
+        Profesor profesor = new Profesor();
+        LocalDateTime fechaReserva = this.obtenerFechaFuturaLaborable(0, 10, 15);
+
+        Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
+        Examen examenOtroAlumno = new Examen();
+        examenOtroAlumno.setTipo(TipoExamen.PRACTICO);
+        examenOtroAlumno.setFechaHora(fechaReserva.toLocalDate().atTime(8, 30));
+
+        when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
+        when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of());
+        when(this.examenRepository.findByAlumnoProfesorOrderByFechaHoraDesc(profesor)).thenReturn(List.of(examenOtroAlumno));
+
+        ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaReserva, 45, "Plaza Mayor", "");
+
+        assertThatThrownBy(() -> this.clasePracticaService.reservarClase(alumno, profesor, dto))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("examen práctico oficial ante la DGT");
     }
 
     @Test
@@ -360,8 +444,8 @@ class ClasePracticaServiceTest
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
 
-        // 12 de octubre (Fiesta Nacional de España)
-        LocalDateTime fechaFestivo = LocalDateTime.of(2026, 10, 12, 10, 0);
+        // 12 de octubre (Fiesta Nacional de España) en un año futuro
+        LocalDateTime fechaFestivo = LocalDateTime.of(FechaHoraUtil.hoy().getYear() + 1, 10, 12, 10, 0);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaFestivo, 45, "Sede Central", null
         );
@@ -379,8 +463,8 @@ class ClasePracticaServiceTest
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
 
-        // 5 de agosto (primera quincena de agosto)
-        LocalDateTime fechaAgosto = LocalDateTime.of(2026, 8, 5, 11, 0);
+        // 5 de agosto (primera quincena de agosto) en un año futuro
+        LocalDateTime fechaAgosto = LocalDateTime.of(FechaHoraUtil.hoy().getYear() + 1, 8, 5, 11, 0);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaAgosto, 45, "Sede Central", null
         );
@@ -398,8 +482,8 @@ class ClasePracticaServiceTest
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
 
-        // 28 de diciembre (periodo navideño)
-        LocalDateTime fechaNavidad = LocalDateTime.of(2026, 12, 28, 16, 0);
+        // 28 de diciembre (periodo navideño) en un año futuro
+        LocalDateTime fechaNavidad = LocalDateTime.of(FechaHoraUtil.hoy().getYear() + 1, 12, 28, 16, 0);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(
                 fechaNavidad, 45, "Sede Central", null
         );
@@ -529,7 +613,7 @@ class ClasePracticaServiceTest
         Profesor profesor = new Profesor();
         profesor.setTurno(TipoTurno.MATINAL);
         Alumno alumno = new Alumno();
-        LocalDateTime fechaLaborable = LocalDateTime.of(2026, 10, 14, 10, 15);
+        LocalDateTime fechaLaborable = this.obtenerFechaFuturaLaborable(0, 10, 15);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaLaborable, null, null, null);
 
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.empty());
@@ -573,7 +657,7 @@ class ClasePracticaServiceTest
         matricula.setConvocatoriasGastadas(0);
         matricula.setModalidad(ModalidadMatricula.PRACTICA);
 
-        LocalDateTime fechaLaborable = LocalDateTime.of(2026, 10, 14, 11, 0);
+        LocalDateTime fechaLaborable = this.obtenerFechaFuturaLaborable(0, 11, 0);
         ReservaClasePracticaDTO dto = new ReservaClasePracticaDTO(fechaLaborable, null, null, null);
 
         when(this.matriculaRepository.findByAlumnoAndEstaActivaTrue(alumno)).thenReturn(Optional.of(matricula));
@@ -742,6 +826,7 @@ class ClasePracticaServiceTest
         assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(null)).isZero();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(null)).isEmpty();
+        assertThat(this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(null, EstadoClase.CANCELADA)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(null, LocalDateTime.now(), LocalDateTime.now())).isEmpty();
@@ -755,8 +840,10 @@ class ClasePracticaServiceTest
         when(this.clasePracticaRepository.findById(5L)).thenReturn(Optional.of(clase));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE)).thenReturn(2);
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.RECIBIDA)).thenReturn(7);
+        ClasePracticaResumenAlumnoDTO resumenDTO = new ClasePracticaResumenAlumnoDTO(1L, inicio, "Calle Mayor 1", EstadoClase.RECIBIDA);
         when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraAsc(alumno)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(clase));
+        when(this.clasePracticaRepository.findTop5ByAlumnoOrderByFechaHoraDesc(alumno)).thenReturn(List.of(resumenDTO));
         when(this.clasePracticaRepository.findByAlumnoAndEstadoClaseNot(alumno, EstadoClase.CANCELADA)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByProfesorOrderByFechaHoraAsc(profesor)).thenReturn(List.of(clase));
         when(this.clasePracticaRepository.findByProfesorAndFechaHoraBetweenOrderByFechaHoraAsc(profesor, inicio, fin)).thenReturn(List.of(clase));
@@ -767,6 +854,7 @@ class ClasePracticaServiceTest
         assertThat(this.clasePracticaService.contarClasesRecibidasPorAlumno(alumno)).isEqualTo(7L);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoAsc(alumno)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoDesc(alumno)).hasSize(1);
+        assertThat(this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(alumno)).containsExactly(resumenDTO);
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(alumno, EstadoClase.CANCELADA)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(profesor)).hasSize(1);
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(profesor, inicio, fin)).hasSize(1);

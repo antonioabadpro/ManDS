@@ -14,6 +14,13 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 public interface ExamenRepository extends JpaRepository<Examen, Long>
 {
     /**
+     * Recupera todos los exámenes precargando el alumno y su profesor asignado para evitar consultas N+1 en estadísticas globales.
+     */
+    @Override
+    @EntityGraph(attributePaths = {"alumno", "alumno.profesor"})
+    List<Examen> findAll();
+
+    /**
      * Recupera todos los exámenes oficiales de los alumnos del profesor indicado por parametro.
      * @return Devuelve la lista de exámenes oficiales de los alumnos del profesor.
      */
@@ -22,14 +29,14 @@ public interface ExamenRepository extends JpaRepository<Examen, Long>
     /**
      * Recupera todos los exámenes oficiales del tipo especificado para los alumnos del profesor indicado.
      */
-    @EntityGraph(attributePaths = {"alumno"})
+    @EntityGraph(attributePaths = {"alumno", "solicitudExamen", "solicitudExamen.matricula"})
     List<Examen> findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(Profesor profesor, TipoExamen tipo);
 
     /**
      * Recupera todos los exámenes oficiales del tipo especificado a nivel global ordenados por fecha y hora descendente,
-     * precargando el alumno para optimizar la vista de calificaciones.
+     * precargando el alumno, la solicitud y la matrícula para optimizar la vista de calificaciones.
      */
-    @EntityGraph(attributePaths = {"alumno"})
+    @EntityGraph(attributePaths = {"alumno", "solicitudExamen", "solicitudExamen.matricula"})
     List<Examen> findByTipoOrderByFechaHoraDesc(TipoExamen tipo);
 
     /**

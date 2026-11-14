@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO para reportar incidencias o averías mecánicas en el vehículo asignado (CU-027).
+ * DTO para reportar incidencias o averías mecánicas en el vehículo asignado.
  */
 public record ReportarIncidenciaDTO(
     @NotNull(message = "El vehículo es obligatorio.")

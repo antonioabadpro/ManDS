@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * DTO para la adquisición de saldo de clases prácticas o bonos por parte del Alumno (CU-032).
+ * DTO para la adquisición de saldo de clases prácticas o bonos por parte del Alumno.
  */
 public record ComprarClasePracticaDTO(
     @NotNull(message = "El tipo de compra es obligatorio.")

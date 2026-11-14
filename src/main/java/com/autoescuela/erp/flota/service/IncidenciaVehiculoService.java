@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +57,25 @@ public class IncidenciaVehiculoService
      * Recupera todas las incidencias de flota ordenadas por estado (PENDIENTE, EN_PROCESO, RESUELTA)
      * y de forma secundaria por fecha/hora ascendente.
      */
-    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS)
+    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS, key = "'todas'")
     @Transactional(readOnly = true)
     public List<IncidenciaResumenDTO> obtenerTodasLasIncidencias()
     {
         return this.incidenciaVehiculoRepository.findAllOrdenadasPorEstadoYFechaAsc()
+                .stream()
+                .map(this.incidenciaVehiculoMapper::toIncidenciaResumenDTO)
+                .toList();
+    }
+
+    /**
+     * Recupera hasta 5 incidencias activas (PENDIENTE o EN_PROCESO) para el resumen del Dashboard de Administración,
+     * priorizando las pendientes por orden cronológico ascendente.
+     */
+    @Cacheable(value = CacheConfig.CACHE_INCIDENCIAS, key = "'dashboard'")
+    @Transactional(readOnly = true)
+    public List<IncidenciaResumenDTO> obtenerIncidenciasDashboard()
+    {
+        return this.incidenciaVehiculoRepository.findActivasOrdenadasPorEstadoYFechaAsc(PageRequest.of(0, 5))
                 .stream()
                 .map(this.incidenciaVehiculoMapper::toIncidenciaResumenDTO)
                 .toList();
@@ -105,7 +120,7 @@ public class IncidenciaVehiculoService
      * @return Entidad IncidenciaVehiculo actualizada.
      */
     @Transactional
-    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD}, allEntries = true)
+    @CacheEvict(value = {CacheConfig.CACHE_INCIDENCIAS, CacheConfig.CACHE_FLOTA, CacheConfig.CACHE_CALENDARIO, CacheConfig.CACHE_PROFESORES, CacheConfig.CACHE_ALUMNOS, CacheConfig.CACHE_ESTADISTICAS_ADMIN, CacheConfig.CACHE_ESTADISTICAS_DASHBOARD, CacheConfig.CACHE_ESTADISTICAS_PROFESOR, CacheConfig.CACHE_ESTADISTICAS_ALUMNO}, allEntries = true)
     public IncidenciaVehiculo gestionarIncidencia(Long id, EstadoIncidencia nuevoEstado)
     {
         if (id == null)
@@ -240,7 +255,7 @@ public class IncidenciaVehiculoService
     }
 
     /**
-     * Registra una nueva avería o incidencia mecánica sobre el vehículo asignado (CU-027),
+     * Registra una nueva avería o incidencia mecánica sobre el vehículo asignado,
      * persistiendo el registro y notificando transaccionalmente a los Administradores activos.
      *
      * @param profesor Profesor que reporta la incidencia.

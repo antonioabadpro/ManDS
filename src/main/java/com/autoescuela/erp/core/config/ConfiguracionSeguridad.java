@@ -65,7 +65,7 @@ public class ConfiguracionSeguridad
     {
         http.authorizeHttpRequests(auth -> auth
                 // Recursos estáticos públicos
-                .requestMatchers("/css/**", "/js/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/fonts/**", "/imagenes/**", "/webjars/**", "/favicon.ico").permitAll()
 
                 // Rutas públicas (Login, registro, recuperación de contraseña, activación de cuenta, validaciones reactivas de usuario)
                 .requestMatchers("/", "/login", "/login/", "/registro/**", "/recuperar-password/**", "/activar-cuenta/**", "/usuario/validar-**", "/ping").permitAll()

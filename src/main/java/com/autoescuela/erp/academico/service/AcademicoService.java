@@ -1,10 +1,10 @@
 package com.autoescuela.erp.academico.service;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CacheEvict;
@@ -34,8 +34,40 @@ public class AcademicoService
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
     private final EmailService emailService;
-    // Registro de sesiones de Stripe ya procesadas para garantizar idempotencia entre retorno y webhook
-    private final Set<String> sesionesProcesadas = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final int MAX_SESIONES_PROCESADAS = 5_000;
+
+    // Registro LRU acotado de sesiones Stripe ya procesadas para garantizar idempotencia entre retorno y webhook
+    private final Map<String, Boolean> sesionesProcesadas = Collections.synchronizedMap(
+            new LinkedHashMap<>(256, 0.75f, true)
+            {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest)
+                {
+                    return size() > MAX_SESIONES_PROCESADAS;
+                }
+            });
+
+    /**
+     * Registra una sesión Stripe si no ha sido procesada aún.
+     *
+     * @return {@code true} si es nueva (o si no hay sessionId); {@code false} si ya figuraba registrada.
+     */
+    private boolean registrarSesionNueva(String sessionId)
+    {
+        if (sessionId == null || sessionId.isBlank())
+        {
+            return true;
+        }
+        synchronized (this.sesionesProcesadas)
+        {
+            if (this.sesionesProcesadas.containsKey(sessionId))
+            {
+                return false;
+            }
+            this.sesionesProcesadas.put(sessionId, Boolean.TRUE);
+            return true;
+        }
+    }
 
     /**
      * Formaliza la matrícula de un alumno tras la confirmación del pago en Stripe utilizando su ID de alumno.
@@ -156,13 +188,10 @@ public class AcademicoService
         }
 
         // Idempotencia: si la sesión de Stripe ya fue procesada (por webhook o retorno), retornamos el estado actual sin duplicar
-        if (sessionId != null && !sessionId.isBlank())
+        if (!this.registrarSesionNueva(sessionId))
         {
-            if (!this.sesionesProcesadas.add(sessionId))
-            {
-                log.info("La sesión de Stripe {} ya fue procesada previamente para el alumno ID {}. Evitando recarga duplicada.", sessionId, idAlumno);
-                return matricula;
-            }
+            log.info("La sesión de Stripe {} ya fue procesada previamente para el alumno ID {}. Evitando recarga duplicada.", sessionId, idAlumno);
+            return matricula;
         }
 
         int saldoAnterior = matricula.getSaldoClases() != null ? matricula.getSaldoClases() : 0;
@@ -201,13 +230,10 @@ public class AcademicoService
                 .orElseThrow(() -> new ReglaNegocioException("No se encontró ningún expediente de matrícula activo para el alumno con ID: " + alumnoId));
 
         // Idempotencia: evitamos duplicar la renovación si webhook y retorno coinciden
-        if (sessionId != null && !sessionId.isBlank())
+        if (!this.registrarSesionNueva(sessionId))
         {
-            if (!this.sesionesProcesadas.add(sessionId))
-            {
-                log.info("La sesión de renovación de Stripe {} ya fue procesada previamente para el alumno ID {}. Evitando duplicación.", sessionId, alumnoId);
-                return matricula;
-            }
+            log.info("La sesión de renovación de Stripe {} ya fue procesada previamente para el alumno ID {}. Evitando duplicación.", sessionId, alumnoId);
+            return matricula;
         }
 
         float precioPrevio = matricula.getPrecio() != null ? matricula.getPrecio() : 0.0f;

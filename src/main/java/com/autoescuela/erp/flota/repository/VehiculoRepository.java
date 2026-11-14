@@ -53,6 +53,7 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long>
      * @param profesorId El ID del profesor.
      * @return Optional con el Vehículo asignado al profesor o vacío si no existe.
      */
+    @EntityGraph(attributePaths = {"profesor"})
     Optional<Vehiculo> findByProfesorId(Long profesorId);
 
     /**

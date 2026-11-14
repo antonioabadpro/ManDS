@@ -4,8 +4,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.autoescuela.erp.core.config.CacheConfig;
 
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.excepciones.RecursoNoEncontradoException;
@@ -31,6 +36,7 @@ public class UsuarioService
     private final AlumnoRepository alumnoRepository;
     private final PersonaRepository personaRepository;
     private final UsuarioMapper usuarioMapper;
+    private final ObjectProvider<CacheManager> cacheManagerProvider;
 
     /**
      * Comprueba si un alumno está en estado INACTIVO y carece de matrículas formalizadas
@@ -39,6 +45,31 @@ public class UsuarioService
     private boolean esAlumnoInactivoSinMatricula(Alumno alumno)
     {
         return alumno != null && alumno.getEstado() == EstadoUsuario.INACTIVO && (alumno.getHistorialMatriculas() == null || alumno.getHistorialMatriculas().isEmpty());
+    }
+
+    /**
+     * Purga de BD un alumno huérfano inactivo e invalida la caché de alumnos únicamente cuando ocurre borrado real.
+     */
+    private boolean purgarSiHuerfanoInactivo(Optional<Alumno> alumnoOpt)
+    {
+        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        {
+            this.alumnoRepository.delete(alumnoOpt.get());
+            this.alumnoRepository.flush();
+            CacheManager manager = (this.cacheManagerProvider != null)
+                    ? this.cacheManagerProvider.getIfAvailable()
+                    : null;
+            if (manager != null)
+            {
+                Cache cacheAlumnos = manager.getCache(CacheConfig.CACHE_ALUMNOS);
+                if (cacheAlumnos != null)
+                {
+                    cacheAlumnos.clear();
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -57,11 +88,8 @@ public class UsuarioService
             return false;
         }
         String limpio = nombreUsuario.trim();
-        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByNombreUsuario(limpio);
-        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        if (this.purgarSiHuerfanoInactivo(this.alumnoRepository.findByNombreUsuario(limpio)))
         {
-            this.alumnoRepository.delete(alumnoOpt.get());
-            this.alumnoRepository.flush();
             return false;
         }
         return this.personaRepository.existsByNombreUsuario(limpio);
@@ -83,11 +111,8 @@ public class UsuarioService
             return false;
         }
         String limpio = correo.trim().toLowerCase();
-        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByCorreo(limpio);
-        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        if (this.purgarSiHuerfanoInactivo(this.alumnoRepository.findByCorreo(limpio)))
         {
-            this.alumnoRepository.delete(alumnoOpt.get());
-            this.alumnoRepository.flush();
             return false;
         }
         return this.personaRepository.existsByCorreo(limpio);
@@ -126,11 +151,8 @@ public class UsuarioService
             return false;
         }
         String limpio = dni.trim().toUpperCase();
-        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByDni(limpio);
-        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        if (this.purgarSiHuerfanoInactivo(this.alumnoRepository.findByDni(limpio)))
         {
-            this.alumnoRepository.delete(alumnoOpt.get());
-            this.alumnoRepository.flush();
             return false;
         }
         return this.personaRepository.existsByDni(limpio);
@@ -206,11 +228,8 @@ public class UsuarioService
             return false;
         }
         String limpio = telefono.trim();
-        Optional<Alumno> alumnoOpt = this.alumnoRepository.findByTelefono(limpio);
-        if (alumnoOpt.isPresent() && this.esAlumnoInactivoSinMatricula(alumnoOpt.get()))
+        if (this.purgarSiHuerfanoInactivo(this.alumnoRepository.findByTelefono(limpio)))
         {
-            this.alumnoRepository.delete(alumnoOpt.get());
-            this.alumnoRepository.flush();
             return false;
         }
         return this.personaRepository.existsByTelefono(limpio);
@@ -281,7 +300,7 @@ public class UsuarioService
         }
 
         String dniLimpio = dto.getDni().trim().toUpperCase();
-        if (!dniLimpio.equalsIgnoreCase(persona.getDni()) && !esLetraDniValida(dniLimpio))
+        if (!dniLimpio.equalsIgnoreCase(persona.getDni()) && !this.esLetraDniValida(dniLimpio))
         {
             throw new ReglaNegocioException("La letra del DNI/NIE no es válida o no coincide con los números.");
         }

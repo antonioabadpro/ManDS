@@ -1,8 +1,10 @@
 package com.autoescuela.erp.estadisticas.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.springframework.cache.annotation.Cacheable;
@@ -392,6 +394,7 @@ public class EstadisticaService
             List<Examen> todosExamenes)
     {
         List<Profesor> listaProfesores = this.profesorRepository.findAll();
+        Map<Long, Long> alumnosPorProfesor = this.construirMapaAlumnosPorProfesor();
         List<RendimientoProfesorResumenDTO> todosProfesores = new ArrayList<>();
 
         for (Profesor prof : listaProfesores)
@@ -418,7 +421,9 @@ public class EstadisticaService
                     minutosProf += cp.getDuracion() != null ? cp.getDuracion() : 45;
                 }
                 double horasConduccionProf = Math.round((minutosProf / 60.0) * 10.0) / 10.0;
-                long alumnosAsignados = prof.getListaAlumnos() != null ? prof.getListaAlumnos().size() : 0;
+                long alumnosAsignados = prof.getId() != null
+                        ? alumnosPorProfesor.getOrDefault(prof.getId(), 0L)
+                        : (prof.getListaAlumnos() != null ? prof.getListaAlumnos().size() : 0L);
 
                 List<Examen> examenesProf = new ArrayList<>();
                 if (todosExamenes != null)
@@ -451,17 +456,12 @@ public class EstadisticaService
                         ? Math.round(((double) aptosProf / evaluadosProf) * 1000.0) / 10.0
                         : 0.0;
 
-                String vehiculoStr = prof.getVehiculo() != null
-                        ? prof.getVehiculo().getMarca() + " " + prof.getVehiculo().getModelo() + " (" + prof.getVehiculo().getMatricula() + ")"
-                        : "Sin vehículo asignado";
-
                 String nombreCompleto = prof.getNombre() + " " + prof.getApellidos();
 
                 todosProfesores.add(new RendimientoProfesorResumenDTO(
                         prof.getId(),
                         nombreCompleto,
                         prof.getTurno(),
-                        vehiculoStr,
                         clasesImpartidas,
                         horasConduccionProf,
                         alumnosAsignados,
@@ -487,6 +487,27 @@ public class EstadisticaService
         });
 
         return todosProfesores;
+    }
+
+    /**
+     * Construye un mapa indexado por ID de profesor con el número de alumnos asignados mediante una única consulta agregada.
+     */
+    private Map<Long, Long> construirMapaAlumnosPorProfesor()
+    {
+        Map<Long, Long> mapa = new HashMap<>();
+        List<Object[]> filas = this.alumnoRepository.countAlumnosPorProfesor();
+        if (filas == null)
+        {
+            return mapa;
+        }
+        for (Object[] fila : filas)
+        {
+            if (fila != null && fila.length >= 2 && fila[0] instanceof Long profesorId && fila[1] instanceof Number total)
+            {
+                mapa.put(profesorId, total.longValue());
+            }
+        }
+        return mapa;
     }
 
     /**
@@ -571,7 +592,7 @@ public class EstadisticaService
      * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_ALUMNO, key = "#alumno.id")
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_ALUMNO, key = "#alumno != null ? #alumno.id : 'null'", condition = "#alumno != null && #alumno.id != null")
     public EstadisticasAlumnoDTO obtenerEstadisticasAlumno(Alumno alumno)
     {
         if (alumno == null)
@@ -759,7 +780,7 @@ public class EstadisticaService
      * @return DTO inmutable consolidado con los datos de todas las tarjetas del panel.
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_PROFESOR, key = "#profesor.id")
+    @Cacheable(value = CacheConfig.CACHE_ESTADISTICAS_PROFESOR, key = "#profesor != null ? #profesor.id : 'null'", condition = "#profesor != null && #profesor.id != null")
     public EstadisticasProfesorDTO obtenerEstadisticasProfesor(Profesor profesor)
     {
         if (profesor == null)

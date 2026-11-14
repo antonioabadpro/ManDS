@@ -12,6 +12,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.core.enums.EstadoSolicitud;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.examenes.dto.SolicitudExamenResumenAlumnoDTO;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -64,6 +65,12 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
      */
     @EntityGraph(attributePaths = {"alumno", "profesor", "matricula", "examen"})
     List<SolicitudExamen> findTop5ByOrderByIdDesc();
+
+    /**
+     * Recupera las 5 solicitudes de examen más antiguas en un determinado estado (orden FIFO).
+     */
+    @EntityGraph(attributePaths = {"alumno", "profesor", "matricula", "examen"})
+    List<SolicitudExamen> findTop5ByEstadoOrderByFechaHoraAsc(EstadoSolicitud estado);
 
     /**
      * Recupera las solicitudes de examen en un determinado estado ordenadas cronológicamente (FIFO),
@@ -119,4 +126,10 @@ public interface SolicitudExamenRepository extends JpaRepository<SolicitudExamen
                                           @Param("tipoPermiso") TipoCarnet tipoPermiso,
                                           @Param("tipoExamen") TipoExamen tipoExamen,
                                           @Param("estado") EstadoSolicitud estado);
+
+    /**
+     * Proyección ligera de las últimas 3 solicitudes de examen de un alumno para su dashboard,
+     * evitando cargar asociaciones perezosas (matrícula, profesor o examen).
+     */
+    List<SolicitudExamenResumenAlumnoDTO> findTop3ByAlumnoOrderByIdDesc(Alumno alumno);
 }

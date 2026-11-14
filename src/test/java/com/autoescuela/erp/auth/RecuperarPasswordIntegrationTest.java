@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -118,8 +117,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .param("confirmPassword", "otraClaveDiferente"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"))
-                .andExpect(model().attributeExists("mensajeError"))
-                .andExpect(content().string(containsString("Las contraseñas introducidas no coinciden.")));
+                .andExpect(model().attribute("mensajeError", containsString("Las contraseñas introducidas no coinciden.")));
     }
 
     @Test
@@ -136,8 +134,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
                         .param("confirmPassword", "12345"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"))
-                .andExpect(model().attributeExists("mensajeError"))
-                .andExpect(content().string(containsString("debe tener al menos 6 caracteres")));
+                .andExpect(model().attribute("mensajeError", containsString("debe tener al menos 6 caracteres")));
     }
 
     @Test
@@ -164,7 +161,7 @@ class RecuperarPasswordIntegrationTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/recuperar-password?token=" + token.getToken()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("auth/recuperar-password"))
-                .andExpect(content().string(containsString("id=\"panel-restablecer\"")));
+                .andExpect(model().attribute("token", token.getToken()));
 
         // Enviamos la nueva contraseña
         this.mockMvc.perform(post("/recuperar-password/restablecer")

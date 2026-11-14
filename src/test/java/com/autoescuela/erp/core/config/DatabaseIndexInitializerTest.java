@@ -53,6 +53,8 @@ class DatabaseIndexInitializerTest
     void setUp()
     {
         ReflectionTestUtils.setField(this.databaseIndexInitializer, "sincronizarSecuencias", true);
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "inicializarIndices", true);
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "ddlAuto", "create-drop");
     }
 
     private static ConnectionCallback<String> cualquierCallbackConexion()
@@ -173,5 +175,34 @@ class DatabaseIndexInitializerTest
                 .thenThrow(new DataAccessResourceFailureException("Conexión rechazada"));
 
         assertDoesNotThrow(() -> this.databaseIndexInitializer.run(null));
+    }
+
+    @Test
+    @DisplayName("En perfil deploy (ddl-auto=none e init-indexes=false) no ejecuta ninguna sentencia DDL ni consulta de metadatos")
+    void testRun_ModoDeploy_NoEjecutaDdlNiMetadatos()
+    {
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "ddlAuto", "none");
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "inicializarIndices", false);
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "sincronizarSecuencias", false);
+
+        this.databaseIndexInitializer.run(null);
+
+        verify(this.jdbcTemplate, never()).execute(cualquierCallbackConexion());
+        verify(this.jdbcTemplate, never()).execute(anyString());
+    }
+
+    @Test
+    @DisplayName("Con ddl-auto=none aunque init-indexes sea true omite creación de índices en PostgreSQL")
+    void testRun_DdlAutoNone_OmiteIndices() throws SQLException
+    {
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "ddlAuto", "none");
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "inicializarIndices", true);
+        ReflectionTestUtils.setField(this.databaseIndexInitializer, "sincronizarSecuencias", true);
+        simularMotor("PostgreSQL");
+
+        this.databaseIndexInitializer.run(null);
+
+        verify(this.jdbcTemplate, never()).execute(argThat((String sql) -> sql != null && sql.contains("CREATE UNIQUE INDEX")));
+        verify(this.jdbcTemplate).execute(argThat((String sql) -> sql != null && sql.contains("DO $$")));
     }
 }

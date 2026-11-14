@@ -38,8 +38,8 @@ class DataSqlH2Test extends BaseIntegrationTest
         assertEquals(10, incidencias, "Debe haber 10 incidencias registradas");
         assertEquals(69, matriculas, "Debe haber 69 matrículas");
         assertEquals(169, clases, "Debe haber 169 clases prácticas");
-        assertEquals(64, solicitudes, "Debe haber 64 solicitudes de examen");
-        assertEquals(55, examenes, "Debe haber 55 exámenes registrados");
+        assertEquals(62, solicitudes, "Debe haber 62 solicitudes de examen");
+        assertEquals(53, examenes, "Debe haber 53 exámenes registrados");
         assertEquals(4, fechasExamen, "Debe haber 4 registros de fechas de examen fijadas");
         assertEquals(32, cuposExamen, "Debe haber 32 registros de cupos de examen fijados");
     }

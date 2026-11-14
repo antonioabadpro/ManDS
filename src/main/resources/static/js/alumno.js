@@ -235,8 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // 7. GESTIÓN REACTIVA DE BOTONES DE ACCIÓN POST (PAGOS STRIPE Y EXÁMENES DGT)
     // =========================================================================
-    // Formularios de compra de clases y renovación de matrícula (conexión externa Stripe)
-    document.querySelectorAll('form[action*="/alumno/pagos/comprar-clases"], form[action*="/matricula/renovar"]').forEach(form => {
+    // Formularios de compra de clases, nueva matrícula y renovación de matrícula (conexión externa Stripe)
+    document.querySelectorAll('form[action*="/alumno/pagos/comprar-clases"], form[action*="/matricula/nueva"], form[action*="/matricula/renovar"]').forEach(form => {
         form.addEventListener('submit', () => {
             const btn = form.querySelector('button[type="submit"]');
             if (btn && !btn.disabled) {

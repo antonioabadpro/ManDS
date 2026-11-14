@@ -170,7 +170,7 @@ public class GlobalModelAttributesAdvice
 
     private Alumno obtenerAlumnoRequest(Object principal, HttpServletRequest request)
     {
-        if (principal == null)
+        if (principal == null || this.esRutaSinVistasHtml(request))
         {
             return null;
         }
@@ -190,6 +190,30 @@ public class GlobalModelAttributesAdvice
             request.setAttribute(attr, alumno);
         }
         return alumno;
+    }
+
+    /**
+     * Evita consultas de contexto de vistas Thymeleaf en endpoints técnicos, webhooks o eventos SSE/JSON.
+     */
+    private boolean esRutaSinVistasHtml(HttpServletRequest request)
+    {
+        if (request == null)
+        {
+            return false;
+        }
+        String uri = request.getRequestURI();
+        if (uri == null || uri.isBlank())
+        {
+            return false;
+        }
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && uri.startsWith(contextPath))
+        {
+            uri = uri.substring(contextPath.length());
+        }
+        return "/ping".equals(uri)
+                || uri.startsWith("/pagos/webhook")
+                || uri.startsWith("/eventos");
     }
 
     private Matricula obtenerMatriculaActivaRequest(Alumno alumno, HttpServletRequest request)

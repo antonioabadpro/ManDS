@@ -68,21 +68,21 @@
                             </div>
                             <div class="flex items-center space-x-2">
                                 <button th:if="${puedeIrAtras}" type="button" th:attr="hx-get=@{/admin/examenes/{id}/editar-modal(id=${solicitud.id}, mes=${mesAnterior})}" hx-target="#modal-editar-solicitud" hx-swap="outerHTML" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes anterior">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    <svg class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                     </svg>
                                 </button>
                                 <button th:unless="${puedeIrAtras}" type="button" disabled class="p-1.5 rounded-lg text-slate-300 dark:text-slate-600 border border-slate-200/50 dark:border-slate-800 opacity-40 cursor-not-allowed" title="No es posible consultar meses anteriores al actual">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    <svg class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                     </svg>
                                 </button>
                                 <h4 class="text-sm font-bold text-slate-900 dark:text-white capitalize min-w-[120px] text-center tabular-nums whitespace-nowrap" th:text="${#temporals.format(mesSeleccionado, 'MMMM yyyy')}">
                                     Noviembre 2026
                                 </h4>
                                 <button type="button" th:attr="hx-get=@{/admin/examenes/{id}/editar-modal(id=${solicitud.id}, mes=${mesSiguiente})}" hx-target="#modal-editar-solicitud" hx-swap="outerHTML" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer" title="Mes siguiente">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    <svg class="w-4 h-4 transition-transform duration-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>
                                 </button>
                             </div>
@@ -103,7 +103,7 @@
                                         </span>
                                     </div>
                                     <p th:if="${diagnostico?.convocatoria1?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
-                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'EEEE,')}">Jueves,</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">15 de Octubre de 2026</span>
                                         <span class="text-slate-400 dark:text-slate-500">·</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria1.fechaHora, 'HH:mm''h''')}">08:30h</span>
@@ -140,7 +140,7 @@
                                         </span>
                                     </div>
                                     <p th:if="${diagnostico?.convocatoria2?.fechaHora != null}" class="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-bold text-slate-900 dark:text-white">
-                                        <span class="capitalize" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE,')}">Jueves,</span>
+                                        <span class="capitalize tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'EEEE,')}">Jueves,</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'dd ''de'' MMMM ''de'' yyyy')}">29 de Octubre de 2026</span>
                                         <span class="text-slate-400 dark:text-slate-500">·</span>
                                         <span class="tabular-nums whitespace-nowrap" th:text="${#temporals.format(diagnostico.convocatoria2.fechaHora, 'HH:mm''h''')}">08:30h</span>

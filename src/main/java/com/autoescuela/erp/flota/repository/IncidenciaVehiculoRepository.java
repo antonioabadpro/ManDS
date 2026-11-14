@@ -2,6 +2,7 @@ package com.autoescuela.erp.flota.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +36,20 @@ public interface IncidenciaVehiculoRepository extends JpaRepository<IncidenciaVe
            "WHEN com.autoescuela.erp.core.enums.EstadoIncidencia.RESUELTA THEN 3 " +
            "ELSE 4 END ASC, i.fechaHora ASC")
     List<IncidenciaVehiculo> findAllOrdenadasPorEstadoYFechaAsc();
+
+    /**
+     * Recupera las incidencias activas (PENDIENTE o EN_PROCESO) ordenadas prioritariamente por estado
+     * y secundariamente por fecha y hora ascendente, precargando vehículo y profesor.
+     */
+    @EntityGraph(attributePaths = {"vehiculo", "profesor"})
+    @Query("SELECT i FROM IncidenciaVehiculo i " +
+           "WHERE i.estado IN (com.autoescuela.erp.core.enums.EstadoIncidencia.PENDIENTE, " +
+           "com.autoescuela.erp.core.enums.EstadoIncidencia.EN_PROCESO) " +
+           "ORDER BY CASE i.estado " +
+           "WHEN com.autoescuela.erp.core.enums.EstadoIncidencia.PENDIENTE THEN 1 " +
+           "WHEN com.autoescuela.erp.core.enums.EstadoIncidencia.EN_PROCESO THEN 2 " +
+           "ELSE 3 END ASC, i.fechaHora ASC")
+    List<IncidenciaVehiculo> findActivasOrdenadasPorEstadoYFechaAsc(Pageable pageable);
 
     /**
      * Contabiliza el total de incidencias en un estado concreto.

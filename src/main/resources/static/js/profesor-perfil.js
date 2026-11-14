@@ -269,6 +269,18 @@
             if (primerInvalido) {
                 primerInvalido.focus();
             }
+            return;
+        }
+
+        const btnSubmit = document.getElementById('btn-guardar-perfil-profesor');
+        if (btnSubmit && !btnSubmit.disabled) {
+            btnSubmit.disabled = true;
+            const btnText = btnSubmit.querySelector('.btn-text');
+            const spinner = btnSubmit.querySelector('.btn-spinner');
+            const spinnerText = btnSubmit.querySelector('.btn-spinner-text');
+            if (btnText) btnText.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (spinnerText) spinnerText.classList.remove('hidden');
         }
     }
 

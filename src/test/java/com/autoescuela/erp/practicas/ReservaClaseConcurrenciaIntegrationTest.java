@@ -24,7 +24,7 @@ import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.ProfesorRepository;
 
 /**
- * Pruebas de integración para la concurrencia de reservas First-Come, First-Served (CU-034).
+ * Pruebas de integración para la concurrencia de reservas First-Come, First-Served.
  * Valida la protección contra solapamiento de horarios entre alumnos del mismo profesor,
  * y la liberación de la franja horaria para nuevas reservas tras una cancelación.
  */

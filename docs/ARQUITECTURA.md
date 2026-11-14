@@ -12,7 +12,7 @@
 | **Arquitectura** | Monolito Modular MVC | Estructurado por funcionalidades (**Package by Features**) para maximizar cohesión y minimizar acoplamiento |
 | **Backend** | Java 21 + Spring Boot 4.1.x (4.1.2 GA) | Spring Data JPA, Spring Security, Lombok, MapStruct |
 | **Frontend** | HTML-over-the-wire | Thymeleaf + HTMX + JS ES6+ (interactividad reactiva sin SPA) |
-| **Frontend (UI & Estilos)** | Tailwind CSS (JIT CDN) | Enfoque *utility-first* responsivo (*mobile-first*) con configuración corporativa centralizada (`tailwind-config.js`). Estilos mínimos en `styles.css` exclusivos para escalado tipográfico base. |
+| **Frontend (UI & Estilos)** | Tailwind CSS CLI (compilación estática) | Enfoque *utility-first* responsivo (*mobile-first*) compilado estáticamente a `static/css/tailwind.min.css` (sin CDNs externos), con tipografía corporativa Inter auto-hospedada en local y estilos mínimos en `styles.css`. |
 | **Base de Datos** | PostgreSQL (Supabase) | Base de datos relacional en la nube |
 | **Servidor Web** | Apache Tomcat | Embebido en Spring Boot |
 | **Despliegue** | Render + UptimeRobot | Plan gratuito Render (750h/mes) con pings de mantenimiento HTTP |

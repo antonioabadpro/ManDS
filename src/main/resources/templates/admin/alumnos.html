@@ -37,7 +37,7 @@
 
         <header th:replace="~{admin/fragments/admin-nav :: topbar(tituloSeccion='Gestión de Alumnos', subtituloSeccion='Supervisión de expedientes, saldos de clases, histórico y convocatorias')}"></header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
             <!-- Mensajes Flash de Feedback -->
             <div th:if="${mensajeExito}" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center space-x-3 shadow-sm transition" role="alert">

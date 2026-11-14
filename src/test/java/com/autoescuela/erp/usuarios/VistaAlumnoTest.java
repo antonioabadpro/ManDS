@@ -1,12 +1,18 @@
 package com.autoescuela.erp.usuarios;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.TipoCarnet;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -39,7 +45,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
         this.mockMvc.perform(get("/alumno/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/dashboard"))
-                .andExpect(model().attributeExists("alumno", "matricula", "esMatriculaActiva", "capacidadReserva"))
+                .andExpect(model().attributeExists("alumno", "matricula", "esMatriculaActiva", "capacidadReserva", "clasesRecientes", "solicitudesRecientes"))
                 .andExpect(model().attribute("esMatriculaActiva", true));
     }
 
@@ -100,10 +106,18 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar registra una clase práctica con HTMX")
     void testReservarClasePracticaHtmx() throws Exception
     {
+        LocalDate fechaFutura = FechaHoraUtil.hoy().plusWeeks(3).with(DayOfWeek.MONDAY);
+        while (fechaFutura.getDayOfWeek() == DayOfWeek.SATURDAY
+                || fechaFutura.getDayOfWeek() == DayOfWeek.SUNDAY
+                || FestivosCalendarioUtil.esDiaNoLaborable(fechaFutura))
+        {
+            fechaFutura = fechaFutura.plusDays(1);
+        }
+
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("fechaHora", "2026-10-15T11:00")
+                .param("fechaHora", LocalDateTime.of(fechaFutura.getYear(), fechaFutura.getMonth(), fechaFutura.getDayOfMonth(), 11, 0).toString())
                 .param("duracion", "45")
                 .param("puntoRecogida", "Calle Alcalá 45")
                 .param("observaciones", "Práctica de estacionamiento"))
@@ -130,15 +144,16 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar rechaza la reserva en festivo nacional")
     void testReservarClasePracticaFallaEnFestivoNacional() throws Exception
     {
+        LocalDateTime fechaFestivo = LocalDateTime.of(FechaHoraUtil.hoy().getYear() + 1, 10, 12, 10, 0);
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("fechaHora", "2026-10-12T10:00")
+                .param("fechaHora", fechaFestivo.toString())
                 .param("duracion", "45")
                 .param("puntoRecogida", "Calle Alcalá 45"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
-                .andExpect(model().attributeExists("error"));
+                .andExpect(model().attribute("error", containsString("días festivos nacionales")));
     }
 
     @Test
@@ -146,15 +161,16 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar rechaza la reserva durante vacaciones de agosto")
     void testReservarClasePracticaFallaEnVacacionesAgosto() throws Exception
     {
+        LocalDateTime fechaAgosto = LocalDateTime.of(FechaHoraUtil.hoy().getYear() + 1, 8, 5, 10, 0);
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("fechaHora", "2026-08-05T10:00")
+                .param("fechaHora", fechaAgosto.toString())
                 .param("duracion", "45")
                 .param("puntoRecogida", "Calle Alcalá 45"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
-                .andExpect(model().attributeExists("error"));
+                .andExpect(model().attribute("error", containsString("periodos vacacionales")));
     }
 
     @Test
