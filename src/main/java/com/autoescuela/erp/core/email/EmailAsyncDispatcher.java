@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailAsyncDispatcher
 {
     private final JavaMailSender mailSender;
-    private volatile HttpClient httpClient;
+    private HttpClient httpClient;
 
     @Value("${brevo.api.key:${BREVO_API_KEY:}}")
     private String brevoApiKey;
@@ -141,24 +141,15 @@ public class EmailAsyncDispatcher
      * Si el cliente NO existe, se crea uno nuevo con un tiempo de espera de conexión de 5 segundos.
      * @return El cliente HTTP configurado para las solicitudes a la API de Brevo.
      */
-    private HttpClient obtenerHttpClient()
+    private synchronized HttpClient obtenerHttpClient()
     {
-        HttpClient cliente = this.httpClient;
-        if (cliente == null)
+        if (this.httpClient == null)
         {
-            synchronized (this)
-            {
-                cliente = this.httpClient;
-                if (cliente == null)
-                {
-                    cliente = HttpClient.newBuilder()
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .build();
-                    this.httpClient = cliente;
-                }
-            }
+            this.httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build();
         }
-        return cliente;
+        return this.httpClient;
     }
 
     private void despacharConReintentos(MimeMessage mensaje, String destinatario, String tipoCorreo)
