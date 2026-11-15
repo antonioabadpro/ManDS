@@ -519,9 +519,6 @@
         if (!validarFormularioVehiculo('form-alta-vehiculo', '')) {
             evento.preventDefault();
             evento.stopImmediatePropagation();
-        } else {
-            const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
-            if (btnSubmit) btnSubmit.disabled = true;
         }
     }
 
@@ -529,9 +526,6 @@
         if (!validarFormularioVehiculo('form-editar-vehiculo', '-editar')) {
             evento.preventDefault();
             evento.stopImmediatePropagation();
-        } else {
-            const btnSubmit = document.getElementById('btn-submit-editar-vehiculo');
-            if (btnSubmit) btnSubmit.disabled = true;
         }
     }
 
@@ -543,16 +537,10 @@
         if (formId === 'form-alta-vehiculo') {
             if (!validarFormularioVehiculo('form-alta-vehiculo', '')) {
                 evento.preventDefault();
-            } else {
-                const btnSubmit = document.getElementById('btn-submit-alta-vehiculo');
-                if (btnSubmit) btnSubmit.disabled = true;
             }
         } else if (formId === 'form-editar-vehiculo') {
             if (!validarFormularioVehiculo('form-editar-vehiculo', '-editar')) {
                 evento.preventDefault();
-            } else {
-                const btnSubmit = document.getElementById('btn-submit-editar-vehiculo');
-                if (btnSubmit) btnSubmit.disabled = true;
             }
         }
     }

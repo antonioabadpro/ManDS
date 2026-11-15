@@ -116,4 +116,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // =========================================================================
+    // 5. RECUPERACIÓN TRAS NAVEGACIÓN ATRÁS / BFCACHE (EVENTO 'pageshow')
+    // =========================================================================
+    // Cuando el usuario vuelve con el botón "Atrás" del navegador desde una pasarela
+    // externa (Stripe) o tras un envío de formulario, el bfcache puede restaurar botones
+    // en estado 'disabled = true' con el spinner girando. Este listener restablece su estado.
+    window.addEventListener('pageshow', (event) => {
+        if (!event.persisted) return;
+
+        document.querySelectorAll('.htmx-request').forEach((el) => {
+            el.classList.remove('htmx-request');
+            if (el['htmx-internal-data']) {
+                el['htmx-internal-data'].requestCount = 0;
+            }
+        });
+
+        document.querySelectorAll('button[disabled], input[type="submit"][disabled]').forEach((btn) => {
+            const tieneSpinner = btn.querySelector('.btn-spinner, .htmx-indicator');
+            const esSubmitConTexto = btn.type === 'submit' && (btn.querySelector('.btn-text') || tieneSpinner);
+            if (!tieneSpinner && !esSubmitConTexto && !btn.hasAttribute('data-hx-disabled')) {
+                return;
+            }
+
+            btn.disabled = false;
+            btn.removeAttribute('disabled');
+
+            const btnText = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.btn-spinner');
+            const spinnerText = btn.querySelector('.btn-spinner-text');
+            const btnIcon = btn.querySelector('svg:not(.btn-spinner)');
+
+            if (btnText) btnText.classList.remove('hidden');
+            if (btnIcon) btnIcon.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+            if (spinnerText) spinnerText.classList.add('hidden');
+        });
+    });
 });
