@@ -86,21 +86,6 @@
         }
     }
 
-    /**
-     * Controla el envío del formulario de actualización de incidencia para prevenir dobles envíos.
-     * @param {SubmitEvent} evento - Evento de envío de formulario.
-     */
-    function manejarSubmitIncidencia(evento) {
-        const form = evento.target.closest('#modal-gestionar-incidencia form');
-        if (!form) return;
-
-        // Deshabilita el botón de acción para proteger la transacción en base de datos
-        const btnSubmit = form.querySelector('button[type="submit"]');
-        if (btnSubmit) {
-            btnSubmit.disabled = true;
-        }
-    }
-
     // =========================================================================
     // PUNTO DE ENTRADA DE INICIALIZACIÓN
     // =========================================================================
@@ -108,11 +93,10 @@
         const tablaIncidencias = document.getElementById('tabla-incidencias');
         if (!tablaIncidencias) return; // Guard clause: solo ejecutar en la vista de incidencias
 
-        // Registro de escuchadores
+        // Registro de escuchadores (el bloqueo de envío y spinner recaen en hx-disabled-elt de HTMX)
         document.addEventListener('keydown', manejarKeydownEscapeIncidencia);
         document.addEventListener('click', manejarClickCerrarModalIncidencia);
         document.body.addEventListener('htmx:afterSwap', manejarHtmxAfterSwapIncidencias);
-        document.addEventListener('submit', manejarSubmitIncidencia);
     }
 
     document.addEventListener('DOMContentLoaded', inicializarGestionIncidencias);
