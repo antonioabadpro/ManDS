@@ -47,15 +47,12 @@ function inicializarExamenesAdmin() {
 
     // Manejador centralizado de clics (Event Delegation)
     document.addEventListener('click', (event) => {
-        // 1. Apertura genérica de modales
+        // 1. Apertura genérica de modales (layout.js gestiona display y overflow-hidden; aquí sincronizamos pasos)
         const targetBtn = event.target.closest('[data-modal-target]');
         if (targetBtn) {
             const modalId = targetBtn.getAttribute('data-modal-target');
-            const modalEl = document.getElementById(modalId);
-            if (modalEl) {
+            if (modalId) {
                 restaurarPasosModal(modalId);
-                modalEl.classList.remove('hidden');
-                modalEl.classList.add('flex');
                 if (modalId === 'modal-fijar-fechas-dgt') {
                     limitarFechasAlMesSeleccionado();
                 }
@@ -63,15 +60,20 @@ function inicializarExamenesAdmin() {
             return;
         }
 
-        // Cierre genérico de modales
+        // Cierre genérico de modales o por backdrop (restaura pasos iniciales)
         const closeBtn = event.target.closest('[data-modal-close]');
         if (closeBtn) {
             const modalId = closeBtn.getAttribute('data-modal-close');
-            const modalEl = document.getElementById(modalId);
-            if (modalEl) {
-                modalEl.classList.add('hidden');
-                modalEl.classList.remove('flex');
+            if (modalId) {
                 restaurarPasosModal(modalId);
+            }
+            return;
+        }
+
+        if (event.target.classList.contains('modal-backdrop')) {
+            const modalPadre = event.target.closest('[role="dialog"]');
+            if (modalPadre && modalPadre.id) {
+                restaurarPasosModal(modalPadre.id);
             }
             return;
         }
@@ -252,12 +254,10 @@ function inicializarExamenesAdmin() {
         });
     }
 
-    // Cierre accesible con tecla Escape
+    // Sincronización accesible de pasos con tecla Escape (el cierre y desbloqueo de scroll lo gestiona layout.js)
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
-            document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(modal => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+            document.querySelectorAll('[role="dialog"]').forEach(modal => {
                 if (modal.id) {
                     restaurarPasosModal(modal.id);
                 }

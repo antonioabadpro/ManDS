@@ -13,8 +13,7 @@
  *    - Los modales para gestionar y consultar el detalle de averías se cargan asíncronamente
  *      mediante HTMX en los contenedores '#contenedor-modal-gestionar-incidencia' y
  *      '#contenedor-modal-detalle-incidencia'.
- *    - 'manejarSubmitIncidencia' desactiva el botón de guardar ('btnSubmit.disabled = true')
- *      al enviar la resolución para evitar dobles registros o transacciones duplicadas.
+ *    - El bloqueo de envío y activación del spinner recaen declarativamente en 'hx-disabled-elt'.
  * =====================================================================================
  */
 (function () {
@@ -23,52 +22,6 @@
     // =========================================================================
     // MANEJADORES DE EVENTOS CON NOMBRE
     // =========================================================================
-
-    /**
-     * Gestiona el cierre accesible de modales al presionar la tecla Escape.
-     * @param {KeyboardEvent} evento - Evento de teclado.
-     */
-    function manejarKeydownEscapeIncidencia(evento) {
-        if (evento.key === 'Escape') {
-            const modalesAbiertos = document.querySelectorAll('[role="dialog"]:not(.hidden)');
-            modalesAbiertos.forEach(modal => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            });
-            // Restablecer el scroll del fondo
-            document.body.classList.remove('overflow-hidden');
-        }
-    }
-
-    /**
-     * Cierra el modal cuando el usuario hace clic en botones de cierre o en el fondo oscuro translúcido.
-     * @param {MouseEvent} evento - Evento de clic.
-     */
-    function manejarClickCerrarModalIncidencia(evento) {
-        // Clic en botón de cierre explícito
-        const btnCerrar = evento.target.closest('[data-modal-close]');
-        if (btnCerrar) {
-            const modalId = btnCerrar.getAttribute('data-modal-close');
-            const modal = document.getElementById(modalId) || btnCerrar.closest('[role="dialog"]');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.classList.remove('overflow-hidden');
-            }
-            return;
-        }
-
-        // Clic en el fondo oscuro exterior (Light-Dismiss)
-        const backdrop = evento.target.closest('.modal-backdrop');
-        if (backdrop) {
-            const modal = backdrop.closest('[role="dialog"]');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.classList.remove('overflow-hidden');
-            }
-        }
-    }
 
     /**
      * Intercepta la carga asíncrona de fragmentos HTMX en la gestión de incidencias.
@@ -86,21 +39,6 @@
         }
     }
 
-    /**
-     * Controla el envío del formulario de actualización de incidencia para prevenir dobles envíos.
-     * @param {SubmitEvent} evento - Evento de envío de formulario.
-     */
-    function manejarSubmitIncidencia(evento) {
-        const form = evento.target.closest('#modal-gestionar-incidencia form');
-        if (!form) return;
-
-        // Deshabilita el botón de acción para proteger la transacción en base de datos
-        const btnSubmit = form.querySelector('button[type="submit"]');
-        if (btnSubmit) {
-            btnSubmit.disabled = true;
-        }
-    }
-
     // =========================================================================
     // PUNTO DE ENTRADA DE INICIALIZACIÓN
     // =========================================================================
@@ -108,11 +46,8 @@
         const tablaIncidencias = document.getElementById('tabla-incidencias');
         if (!tablaIncidencias) return; // Guard clause: solo ejecutar en la vista de incidencias
 
-        // Registro de escuchadores
-        document.addEventListener('keydown', manejarKeydownEscapeIncidencia);
-        document.addEventListener('click', manejarClickCerrarModalIncidencia);
+        // El cierre genérico (Escape, [data-modal-close] y .modal-backdrop) lo gestiona layout.js
         document.body.addEventListener('htmx:afterSwap', manejarHtmxAfterSwapIncidencias);
-        document.addEventListener('submit', manejarSubmitIncidencia);
     }
 
     document.addEventListener('DOMContentLoaded', inicializarGestionIncidencias);

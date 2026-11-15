@@ -384,7 +384,9 @@
     </div>
 
     <!-- Modal Reutilizable: Alta de Nuevo Profesor -->
-    <div th:replace="~{admin/fragments/modal-alta-profesor}"></div>
+    <div id="contenedor-modal-alta-profesor">
+        <div th:replace="~{admin/fragments/modal-alta-profesor :: modal-alta-profesor}"></div>
+    </div>
 
 </body>
 

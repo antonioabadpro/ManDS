@@ -6,9 +6,9 @@
     <!-- ------------------------------------------------------------- -->
     <!-- MODAL 2: Fijar Cupos por Carnet (Con Doble Paso)              -->
     <!-- ------------------------------------------------------------- -->
-    <div th:fragment="modal-fijar-cupos-dgt" id="modal-fijar-cupos-dgt" role="dialog" aria-modal="true" aria-labelledby="titulo-fijar-cupos" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div th:fragment="modal-fijar-cupos-dgt" id="modal-fijar-cupos-dgt" role="dialog" aria-modal="true" aria-labelledby="titulo-fijar-cupos" class="fixed inset-0 z-50 hidden items-center justify-center p-4 overflow-y-auto">
         <div class="modal-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" data-modal-close="modal-fijar-cupos-dgt"></div>
-        <div class="relative z-10 w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+        <div class="relative z-10 w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-5 sm:p-8 space-y-5 my-auto max-h-[90vh] overflow-y-auto">
 
             <div id="contenedor-paso-1-cupos" class="space-y-5">
                 <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -31,45 +31,57 @@
                     <input type="hidden" name="mesCupos" th:value="${mesSeleccionado}" />
 
                     <!-- Tabla de Cupos por Carnet con Encabezados y Columnas Perfectamente Alineados -->
-                    <div class="space-y-2">
-                        <!-- ENCABEZADO: Misma distribución de grid, gap y padding que las filas de datos -->
-                        <div class="grid grid-cols-12 items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1 border-b border-slate-100 dark:border-slate-800">
-                            <div class="col-span-6 text-left">Permiso de Conducción</div>
-                            <div class="col-span-3 text-center">Cupo Teórico</div>
-                            <div class="col-span-3 text-center">Cupo Práctico</div>
-                        </div>
+                    <div class="rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                        <div class="max-h-64 overflow-y-auto overflow-x-auto">
+                            <table class="w-full table-fixed border-collapse">
+                                <!-- ENCABEZADO STICKY: Comparte ancho real (descontado scrollbar) y columnas con cada fila -->
+                                <thead class="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                    <tr class="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                        <th scope="col" class="w-1/2 py-2.5 px-3 text-left">Permiso de Conducción</th>
+                                        <th scope="col" class="w-1/4 py-2.5 px-2 text-center">Cupo Teórico</th>
+                                        <th scope="col" class="w-1/4 py-2.5 px-2 text-center">Cupo Práctico</th>
+                                    </tr>
+                                </thead>
 
-                        <!-- FILAS DE CARNETS -->
-                        <div class="divide-y divide-slate-100 dark:divide-slate-800 max-h-64 overflow-y-auto pr-1">
-                            <div th:each="carnet : ${tiposCarnet}" class="grid grid-cols-12 items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                <!-- Columna Permiso con Badges Identificativos por Categoría -->
-                                <div class="col-span-6 flex items-center">
-                                    <!-- Motos y ciclomotores (AM, A1, A2, A) -> Púrpura -->
-                                    <span th:if="${carnet.name() == 'PERMISO_A' || carnet.name() == 'PERMISO_A1' || carnet.name() == 'PERMISO_A2' || carnet.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${carnet.descripcion}">Permiso A2</span>
+                                <!-- FILAS DE CARNETS -->
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    <tr th:each="carnet : ${tiposCarnet}" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                                        <!-- Columna Permiso con Badges Identificativos por Categoría -->
+                                        <td class="py-2.5 px-3 align-middle">
+                                            <div class="flex items-center">
+                                                <!-- Motos y ciclomotores (AM, A1, A2, A) -> Púrpura -->
+                                                <span th:if="${carnet.name() == 'PERMISO_A' || carnet.name() == 'PERMISO_A1' || carnet.name() == 'PERMISO_A2' || carnet.name() == 'PERMISO_AM'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" th:text="${carnet.descripcion}">Permiso A2</span>
 
-                                    <!-- Turismos y derivados (B, B1, B+E) -> Lima -->
-                                    <span th:if="${carnet.name() == 'PERMISO_B' || carnet.name() == 'PERMISO_B1' || carnet.name() == 'PERMISO_B_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${carnet.descripcion}">Permiso B</span>
+                                                <!-- Turismos y derivados (B, B1, B+E) -> Lima -->
+                                                <span th:if="${carnet.name() == 'PERMISO_B' || carnet.name() == 'PERMISO_B1' || carnet.name() == 'PERMISO_B_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-lime-500/10 text-lime-700 dark:text-lime-400 border border-lime-500/20" th:text="${carnet.descripcion}">Permiso B</span>
 
-                                    <!-- Camiones (C, C+E) -> Cian -->
-                                    <span th:if="${carnet.name() == 'PERMISO_C' || carnet.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${carnet.descripcion}">Permiso C</span>
+                                                <!-- Camiones (C, C+E) -> Cian -->
+                                                <span th:if="${carnet.name() == 'PERMISO_C' || carnet.name() == 'PERMISO_C_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-500/20" th:text="${carnet.descripcion}">Permiso C</span>
 
-                                    <!-- Autobuses (D, D+E) -> Naranja -->
-                                    <span th:if="${carnet.name() == 'PERMISO_D' || carnet.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${carnet.descripcion}">Permiso D</span>
+                                                <!-- Autobuses (D, D+E) -> Naranja -->
+                                                <span th:if="${carnet.name() == 'PERMISO_D' || carnet.name() == 'PERMISO_D_E'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20" th:text="${carnet.descripcion}">Permiso D</span>
 
-                                    <!-- Vehículos agrícolas (LVA) -> Fucsia -->
-                                    <span th:if="${carnet.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${carnet.descripcion}">Permiso LVA</span>
-                                </div>
+                                                <!-- Vehículos agrícolas (LVA) -> Fucsia -->
+                                                <span th:if="${carnet.name() == 'PERMISO_LVA'}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/20" th:text="${carnet.descripcion}">Permiso LVA</span>
+                                            </div>
+                                        </td>
 
-                                <!-- Columna Cupo Teórico (Centrado exactamente respecto a su encabezado) -->
-                                <div class="col-span-3 flex justify-center">
-                                    <input type="number" min="0" max="50" th:name="${'cupoTeorico_' + carnet.name()}" value="5" required class="w-24 px-2.5 py-1.5 text-center text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500" />
-                                </div>
+                                        <!-- Columna Cupo Teórico (Centrado exactamente respecto a su encabezado) -->
+                                        <td class="py-2.5 px-2 align-middle">
+                                            <div class="flex justify-center">
+                                                <input type="number" min="0" max="50" th:name="${'cupoTeorico_' + carnet.name()}" value="5" required class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0 w-full max-w-[5rem] sm:w-24 px-2 py-1.5 text-center tabular-nums text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500" />
+                                            </div>
+                                        </td>
 
-                                <!-- Columna Cupo Práctico (Centrado exactamente respecto a su encabezado) -->
-                                <div class="col-span-3 flex justify-center">
-                                    <input type="number" min="0" max="50" th:name="${'cupoPractico_' + carnet.name()}" value="4" required class="w-24 px-2.5 py-1.5 text-center text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500" />
-                                </div>
-                            </div>
+                                        <!-- Columna Cupo Práctico (Centrado exactamente respecto a su encabezado) -->
+                                        <td class="py-2.5 px-2 align-middle">
+                                            <div class="flex justify-center">
+                                                <input type="number" min="0" max="50" th:name="${'cupoPractico_' + carnet.name()}" value="4" required class="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0 w-full max-w-[5rem] sm:w-24 px-2 py-1.5 text-center tabular-nums text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -79,7 +91,7 @@
                         <p>• Una vez consolidados los cupos para este mes, no podrán ser modificados.</p>
                     </div>
 
-                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end space-x-3">
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap justify-end gap-2 sm:gap-3">
                         <button type="button" data-modal-close="modal-fijar-cupos-dgt" class="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">Cancelar</button>
                         <button type="button" id="btn-pre-fijar-cupos" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm cursor-pointer">Fijar Cupos del Mes</button>
                     </div>
@@ -99,7 +111,7 @@
                         Esta operación es <strong>definitiva e inmutable</strong>. Una vez fijados los cupos para este mes, <strong>NO podrán modificarse</strong> en el sistema.
                     </p>
                 </div>
-                <div class="flex space-x-3 pt-2">
+                <div class="flex flex-wrap justify-center gap-2 sm:gap-3 pt-2">
                     <button type="button" id="btn-cancelar-submodal-cupos" class="px-5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer">
                         Volver
                     </button>
