@@ -1,4 +1,4 @@
-@startgantt Diagrama_Gantt_v1
+@startgantt Diagrama_Gantt_v2
 language es
 projectscale weekly
 Project starts the 2026-08-01
@@ -23,21 +23,20 @@ ganttDiagram {
 [PT-1: Análisis y diseño inicial (75 h)] as [PT1] starts 2026-08-01 and ends 2026-09-07
 [H1: Cierre análisis] happens at 2026-09-07
 
-[PT-2: Núcleo, JPA y seguridad RBAC (95 h)] as [PT2] starts 2026-09-08 and ends 2026-09-24
-[H2: Núcleo operativo] happens at 2026-09-24
+[PT-2 (Sprint 1): Núcleo, JPA y seguridad RBAC (95 h)] as [PT2] starts 2026-09-08 and ends 2026-09-24
+[H2: Fin Sprint 1 - Núcleo operativo] happens at 2026-09-24
 
-[PT-3: Gestión operativa y flota (75 h)] as [PT3] starts 2026-09-20 and ends 2026-10-07
-[PT-4: Pasarela de pagos Stripe (45 h)] as [PT4] starts 2026-09-27 and ends 2026-10-05
-[H3: Gestión, Stripe y flota] happens at 2026-10-07
+[PT-3 (Sprint 2): Gestión operativa y flota (75 h)] as [PT3] starts 2026-09-20 and ends 2026-10-07
+[PT-4 (Sprint 2): Pasarela de pagos Stripe (45 h)] as [PT4] starts 2026-09-27 and ends 2026-10-05
+[H3: Fin Sprint 2 - Gestión, Stripe y flota] happens at 2026-10-07
 
-[PT-5: Calendario nativo y métricas (85 h)] as [PT5] starts 2026-10-08 and ends 2026-10-17
-[PT-6: Circuito DGT y auditoría global (75 h)] as [PT6] starts 2026-10-18 and ends 2026-11-01
-[H4: Dominio consolidado] happens at 2026-11-01
+[PT-5 (Sprint 3): Calendario nativo y métricas (85 h)] as [PT5] starts 2026-10-08 and ends 2026-10-17
+[PT-6 (Sprint 3): Circuito DGT y auditoría global (75 h)] as [PT6] starts 2026-10-18 and ends 2026-11-01
+[H4: Fin Sprint 3 - Dominio consolidado] happens at 2026-11-01
 
-[PT-7: Docker, Cloud, CI/CD y calidad (100 h)] as [PT7] starts 2026-11-02 and ends 2026-11-15
-[H5: Despliegue v1.0.0] happens at 2026-11-15
+[PT-7 (Sprint 4): Docker, Cloud, CI/CD y calidad (100 h)] as [PT7] starts 2026-11-02 and ends 2026-11-15
+[H5: Fin Sprint 4 - Despliegue v1.0.0] happens at 2026-11-15
 
-[PT-8: Verificación continua y memoria (100 h)] as [PT8] starts 2026-09-08 and ends 2026-11-18
-[H6: Entrega final] happens at 2026-11-18
-
+[PT-8: Verificación continua y memoria (100 h)] as [PT8] starts 2026-09-08 and ends 2026-11-19
+[H6: Entrega final] happens at 2026-11-19
 @endgantt
