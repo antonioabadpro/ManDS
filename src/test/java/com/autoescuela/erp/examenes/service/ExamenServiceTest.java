@@ -1,7 +1,9 @@
 package com.autoescuela.erp.examenes.service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 
@@ -126,9 +128,11 @@ class ExamenServiceTest
     @DisplayName("Fijar fechas de examen exitosamente cuando son laborables y fecha 2 posterior a fecha 1")
     void testFijarFechasExamen_Exito()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30); // Jueves laborable
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30); // Jueves laborable
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mes.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia1.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
 
         when(this.fechaExamenRepository.existsByMes(mes)).thenReturn(false);
         when(this.fechaExamenRepository.save(any(FechaExamen.class))).thenAnswer(i -> i.getArgument(0));
@@ -145,9 +149,11 @@ class ExamenServiceTest
     @DisplayName("Lanza excepción si fecha 2 es anterior a fecha 1")
     void testFijarFechasExamen_ErrorFecha2Anterior()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 12, 8, 30);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mes.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia2.atTime(8, 30);
+        LocalDateTime f2 = dia1.atTime(8, 30);
 
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
                 this.examenService.fijarFechasExamen(mes, f1, f2));
@@ -159,9 +165,11 @@ class ExamenServiceTest
     @DisplayName("Lanza excepción si alguna fecha coincide en fin de semana")
     void testFijarFechasExamen_ErrorFinDeSemana()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 14, 8, 30); // Sábado
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
+        LocalDate sabado = mes.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(sabado.plusDays(2));
+        LocalDateTime f1 = sabado.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
 
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
                 this.examenService.fijarFechasExamen(mes, f1, f2));
@@ -173,9 +181,10 @@ class ExamenServiceTest
     @DisplayName("Lanza excepción si alguna fecha coincide en periodo de vacaciones oficial")
     void testFijarFechasExamen_ErrorVacaciones()
     {
-        LocalDate mes = LocalDate.of(2026, 8, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 8, 6, 8, 30); // 1-14 agosto vacaciones
-        LocalDateTime f2 = LocalDateTime.of(2026, 8, 20, 8, 30);
+        int anioFuturo = FechaHoraUtil.hoy().getYear() + 1;
+        LocalDate mes = LocalDate.of(anioFuturo, 8, 1);
+        LocalDateTime f1 = LocalDate.of(anioFuturo, 8, 6).atTime(8, 30); // 1-14 agosto vacaciones
+        LocalDateTime f2 = LocalDate.of(anioFuturo, 8, 20).atTime(8, 30);
 
         ReglaNegocioException ex = assertThrows(ReglaNegocioException.class, () ->
                 this.examenService.fijarFechasExamen(mes, f1, f2));
@@ -187,9 +196,11 @@ class ExamenServiceTest
     @DisplayName("Lanza excepción si las fechas del mes ya fueron fijadas previamente (Irreversibilidad)")
     void testFijarFechasExamen_ErrorYaFijadas()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mes.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia1.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
 
         when(this.fechaExamenRepository.existsByMes(mes)).thenReturn(true);
 
@@ -207,7 +218,7 @@ class ExamenServiceTest
     @DisplayName("Fijar cupos del mes correctamente")
     void testFijarCuposExamen_Exito()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
         when(this.cupoExamenRepository.existsByMes(mes)).thenReturn(false);
         when(this.cupoExamenRepository.save(any(CupoExamen.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -227,7 +238,7 @@ class ExamenServiceTest
     @DisplayName("Lanza excepción si los cupos del mes ya fueron fijados previamente (Irreversibilidad)")
     void testFijarCuposExamen_ErrorYaFijados()
     {
-        LocalDate mes = LocalDate.of(2026, 11, 1);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
         when(this.cupoExamenRepository.existsByMes(mes)).thenReturn(true);
 
         List<CupoExamenDTO> items = List.of(new CupoExamenDTO(TipoCarnet.PERMISO_B, 5, 4));
@@ -376,14 +387,17 @@ class ExamenServiceTest
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.PRACTICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 5, 10, 0));
+        solicitud.setFechaHora(FechaHoraUtil.ahora().minusDays(5));
 
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(LocalDate.of(2026, 11, 1), f1, f2);
+        LocalDate mesActual = FechaHoraUtil.hoy().withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesActual.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia1.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
+        FechaExamen fechas = new FechaExamen(mesActual, f1, f2);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(LocalDate.of(2026, 11, 1))).thenReturn(Optional.of(fechas));
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.of(fechas));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(this.alumnoEjemplo, EstadoClase.RECIBIDA))
                 .thenReturn(0);
 
@@ -405,14 +419,17 @@ class ExamenServiceTest
         this.matriculaEjemplo.setEstaActiva(false);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.TEORICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 5, 10, 0));
+        solicitud.setFechaHora(FechaHoraUtil.ahora().minusDays(5));
 
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(LocalDate.of(2026, 11, 1), f1, f2);
+        LocalDate mesActual = FechaHoraUtil.hoy().withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesActual.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia1.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
+        FechaExamen fechas = new FechaExamen(mesActual, f1, f2);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(LocalDate.of(2026, 11, 1))).thenReturn(Optional.of(fechas));
+        when(this.fechaExamenRepository.findByMes(mesActual)).thenReturn(Optional.of(fechas));
 
         GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L);
 
@@ -521,21 +538,21 @@ class ExamenServiceTest
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.TEORICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 1, 10, 0));
+        solicitud.setFechaHora(FechaHoraUtil.ahora().minusDays(5));
 
-        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
+        LocalDate mesFuturo = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.empty());
+        when(this.fechaExamenRepository.findByMes(mesFuturo)).thenReturn(Optional.empty());
 
-        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesNoviembre);
+        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesFuturo);
 
         assertFalse(diagnostico.puedeAceptar());
         assertFalse(diagnostico.convocatoria1().disponible());
         assertEquals("Sin Fijar", diagnostico.convocatoria1().motivoNoDisponible());
         assertFalse(diagnostico.convocatoria2().disponible());
         assertEquals("Sin Fijar", diagnostico.convocatoria2().motivoNoDisponible());
-        assertEquals(mesNoviembre, diagnostico.mesSeleccionado());
+        assertEquals(mesFuturo, diagnostico.mesSeleccionado());
     }
 
     @Test
@@ -546,18 +563,20 @@ class ExamenServiceTest
         solicitud.setAlumno(this.alumnoEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.TEORICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 11, 1, 10, 0));
+        solicitud.setFechaHora(FechaHoraUtil.ahora().minusDays(5));
 
-        LocalDate mesNoviembre = LocalDate.of(2026, 11, 1);
-        LocalDateTime f1 = LocalDateTime.of(2026, 11, 12, 8, 30);
-        LocalDateTime f2 = LocalDateTime.of(2026, 11, 26, 8, 30);
-        FechaExamen fechas = new FechaExamen(mesNoviembre, f1, f2);
+        LocalDate mesFuturo = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(1);
+        LocalDate dia1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesFuturo.withDayOfMonth(3));
+        LocalDate dia2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(dia1.plusDays(10));
+        LocalDateTime f1 = dia1.atTime(8, 30);
+        LocalDateTime f2 = dia2.atTime(8, 30);
+        FechaExamen fechas = new FechaExamen(mesFuturo, f1, f2);
 
         when(this.solicitudExamenRepository.findById(1L)).thenReturn(Optional.of(solicitud));
-        when(this.fechaExamenRepository.findByMes(mesNoviembre)).thenReturn(Optional.of(fechas));
-        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesNoviembre, TipoCarnet.PERMISO_B)).thenReturn(Optional.empty());
+        when(this.fechaExamenRepository.findByMes(mesFuturo)).thenReturn(Optional.of(fechas));
+        when(this.cupoExamenRepository.findByMesAndTipoPermiso(mesFuturo, TipoCarnet.PERMISO_B)).thenReturn(Optional.empty());
 
-        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesNoviembre);
+        GestionarSolicitudExamenDTO diagnostico = this.examenService.obtenerGestionarSolicitud(1L, mesFuturo);
 
         assertFalse(diagnostico.puedeAceptar());
         assertFalse(diagnostico.convocatoria1().disponible());
@@ -596,7 +615,7 @@ class ExamenServiceTest
         solicitud.setProfesor(this.profesorEjemplo);
         solicitud.setMatricula(this.matriculaEjemplo);
         solicitud.setTipo(TipoExamen.PRACTICO);
-        solicitud.setFechaHora(LocalDateTime.of(2026, 10, 20, 10, 0));
+        solicitud.setFechaHora(FechaHoraUtil.ahora().minusDays(5));
 
         LocalDate mesFuturo = FechaHoraUtil.hoy().plusMonths(1).withDayOfMonth(1);
         LocalDateTime f1Futuro = mesFuturo.plusDays(11).atTime(8, 30);
@@ -733,17 +752,21 @@ class ExamenServiceTest
 
         Examen examen = new Examen();
         SolicitudExamen solicitud = new SolicitudExamen();
-        LocalDate mes = LocalDate.of(2026, 11, 15);
-        LocalDate mesNorm = LocalDate.of(2026, 11, 1);
+        LocalDate mes = FechaHoraUtil.hoy().plusMonths(2).withDayOfMonth(15);
+        LocalDate mesNorm = mes.withDayOfMonth(1);
         Profesor profesor = new Profesor();
-        FechaExamen fechas = new FechaExamen(mesNorm, LocalDateTime.of(2026, 11, 10, 9, 0), LocalDateTime.of(2026, 11, 20, 9, 0));
+        LocalDate d1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesNorm.withDayOfMonth(3));
+        LocalDate d2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(d1.plusDays(10));
+        LocalDateTime f1 = d1.atTime(9, 0);
+        LocalDateTime f2 = d2.atTime(9, 0);
+        FechaExamen fechas = new FechaExamen(mesNorm, f1, f2);
 
         when(this.examenRepository.findById(1L)).thenReturn(Optional.of(examen));
         when(this.examenRepository.findByAlumnoOrderByFechaHoraDesc(this.alumnoEjemplo)).thenReturn(List.of(examen));
         when(this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.TEORICO)).thenReturn(List.of(examen));
         when(this.examenRepository.findByAlumnoProfesorAndTipoOrderByFechaHoraDesc(profesor, TipoExamen.PRACTICO)).thenReturn(List.of(examen));
         ExamenResumenDTO resumenExamenDTO = new ExamenResumenDTO(
-                1L, LocalDateTime.of(2026, 11, 10, 9, 0), 45, TipoExamen.TEORICO, null, "David Ruiz", "12345678Z", TipoCarnet.PERMISO_B);
+                1L, f1, 45, TipoExamen.TEORICO, null, "David Ruiz", "12345678Z", TipoCarnet.PERMISO_B);
         when(this.examenMapper.toExamenResumenDTOList(List.of(examen))).thenReturn(List.of(resumenExamenDTO));
         when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(this.alumnoEjemplo, TipoExamen.TEORICO)).thenReturn(true);
         when(this.examenRepository.existsByAlumnoAndTipoAndEsAptoTrue(this.alumnoEjemplo, TipoExamen.PRACTICO)).thenReturn(false);
@@ -751,7 +774,7 @@ class ExamenServiceTest
         when(this.examenRepository.countByAlumnoAndEsAptoFalse(this.alumnoEjemplo)).thenReturn(2L);
         when(this.examenRepository.save(examen)).thenReturn(examen);
         SolicitudExamenResumenAlumnoDTO resumenSolicitudDTO = new SolicitudExamenResumenAlumnoDTO(
-                LocalDateTime.of(2026, 11, 10, 9, 0), TipoExamen.TEORICO, EstadoSolicitud.PENDIENTE);
+                f1, TipoExamen.TEORICO, EstadoSolicitud.PENDIENTE);
         when(this.solicitudExamenRepository.findByMatriculaOrderByFechaHoraDesc(this.matriculaEjemplo)).thenReturn(List.of(solicitud));
         when(this.solicitudExamenRepository.findByAlumnoOrderByFechaHoraDesc(this.alumnoEjemplo)).thenReturn(List.of(solicitud));
         when(this.solicitudExamenRepository.findByAlumnoOrderByIdDesc(this.alumnoEjemplo)).thenReturn(List.of(solicitud));
@@ -845,19 +868,26 @@ class ExamenServiceTest
     @DisplayName("fijarFechasExamen y fijarCuposExamen validan parámetros, meses, fines de semana, festivos y duplicados")
     void testFijarFechasYCuposValidaciones()
     {
-        LocalDate mes = LocalDate.of(2026, 10, 1);
-        LocalDateTime fechaLaboral1 = LocalDateTime.of(2026, 10, 14, 9, 0);
-        LocalDateTime fechaLaboral2 = LocalDateTime.of(2026, 10, 21, 9, 0);
+        int anioFuturo = FechaHoraUtil.hoy().getYear() + 1;
+        LocalDate mes = LocalDate.of(anioFuturo, 10, 1);
+        LocalDate diaLab1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mes.withDayOfMonth(5));
+        LocalDate diaLab2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(diaLab1.plusDays(7));
+        LocalDateTime fechaLaboral1 = diaLab1.atTime(9, 0);
+        LocalDateTime fechaLaboral2 = diaLab2.atTime(9, 0);
+
+        LocalDate mesDiferente = mes.plusMonths(1);
+        LocalDate sabado1 = diaLab1.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
+        LocalDate sabado2 = diaLab2.with(TemporalAdjusters.next(DayOfWeek.SATURDAY));
 
         assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(null, fechaLaboral1, fechaLaboral2));
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, LocalDateTime.of(2026, 11, 2, 9, 0), fechaLaboral2));
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral1, LocalDateTime.of(2026, 11, 2, 9, 0)));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, mesDiferente.atTime(9, 0), fechaLaboral2));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral1, mesDiferente.atTime(9, 0)));
         assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral2, fechaLaboral1));
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, LocalDateTime.of(2026, 10, 10, 9, 0), fechaLaboral2));
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral1, LocalDateTime.of(2026, 10, 24, 9, 0)));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, sabado1.atTime(9, 0), fechaLaboral2));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral1, sabado2.atTime(9, 0)));
         // 12 octubre es festivo nacional
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, LocalDateTime.of(2026, 10, 12, 9, 0), fechaLaboral2));
-        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(LocalDate.of(2026, 12, 1), LocalDateTime.of(2026, 12, 10, 9, 0), LocalDateTime.of(2026, 12, 25, 9, 0)));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, LocalDate.of(anioFuturo, 10, 12).atTime(9, 0), fechaLaboral2));
+        assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(LocalDate.of(anioFuturo, 12, 1), LocalDate.of(anioFuturo, 12, 10).atTime(9, 0), LocalDate.of(anioFuturo, 12, 25).atTime(9, 0)));
 
         when(this.fechaExamenRepository.existsByMes(mes)).thenReturn(true);
         assertThrows(ReglaNegocioException.class, () -> this.examenService.fijarFechasExamen(mes, fechaLaboral1, fechaLaboral2));

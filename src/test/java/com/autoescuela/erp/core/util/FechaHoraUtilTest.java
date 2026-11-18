@@ -116,4 +116,65 @@ class FechaHoraUtilTest
         assertTrue(FechaHoraUtil.esEdadRazonable(hoy.minusYears(100)));
         assertFalse(FechaHoraUtil.esEdadRazonable(hoy.minusYears(100).minusDays(1)));
     }
+
+    @Test
+    @DisplayName("esFinDeSemana y esDiaInhabil detectan correctamente fines de semana y festivos")
+    void testEsFinDeSemanaYEsDiaInhabil()
+    {
+        assertFalse(FechaHoraUtil.esFinDeSemana(null));
+        assertFalse(FechaHoraUtil.esDiaInhabil(null));
+
+        LocalDate miercolesHabil = LocalDate.of(2026, 10, 14);
+        assertFalse(FechaHoraUtil.esFinDeSemana(miercolesHabil));
+        assertFalse(FechaHoraUtil.esDiaInhabil(miercolesHabil));
+
+        LocalDate sabado = LocalDate.of(2026, 10, 17);
+        LocalDate domingo = LocalDate.of(2026, 10, 18);
+        assertTrue(FechaHoraUtil.esFinDeSemana(sabado));
+        assertTrue(FechaHoraUtil.esFinDeSemana(domingo));
+        assertTrue(FechaHoraUtil.esDiaInhabil(sabado));
+        assertTrue(FechaHoraUtil.esDiaInhabil(domingo));
+
+        LocalDate festivoNacional = LocalDate.of(2026, 10, 12);
+        assertFalse(FechaHoraUtil.esFinDeSemana(festivoNacional));
+        assertTrue(FechaHoraUtil.esDiaInhabil(festivoNacional));
+    }
+
+    @Test
+    @DisplayName("obtenerSiguienteDiaLectivo avanza correctamente saltando fines de semana y festivos")
+    void testObtenerSiguienteDiaLectivo()
+    {
+        // Desde sábado 17/10/2026 salta a lunes 19/10/2026
+        LocalDate sabado = LocalDate.of(2026, 10, 17);
+        assertEquals(LocalDate.of(2026, 10, 19), FechaHoraUtil.obtenerSiguienteDiaLectivo(sabado));
+
+        // Desde domingo festivo 01/11/2026 (traslado al lunes 2) salta al martes 03/11/2026
+        LocalDate domingoFestivo = LocalDate.of(2026, 11, 1);
+        assertEquals(LocalDate.of(2026, 11, 3), FechaHoraUtil.obtenerSiguienteDiaLectivo(domingoFestivo));
+
+        // Nulo devuelve nulo
+        assertEquals(null, FechaHoraUtil.obtenerSiguienteDiaLectivo(null));
+    }
+
+    @Test
+    @DisplayName("obtenerUltimoDiaLectivoAnterior retrocede correctamente saltando fines de semana y festivos")
+    void testObtenerUltimoDiaLectivoAnterior()
+    {
+        // Desde lunes 19/10/2026 retrocede a viernes 16/10/2026
+        LocalDate lunes = LocalDate.of(2026, 10, 19);
+        assertEquals(LocalDate.of(2026, 10, 16), FechaHoraUtil.obtenerUltimoDiaLectivoAnterior(lunes));
+
+        // Nulo devuelve nulo
+        assertEquals(null, FechaHoraUtil.obtenerUltimoDiaLectivoAnterior(null));
+    }
+
+    @Test
+    @DisplayName("obtenerDiaLectivoFuturo genera una fecha lectiva válida y hábil")
+    void testObtenerDiaLectivoFuturo()
+    {
+        LocalDate diaFuturo = FechaHoraUtil.obtenerDiaLectivoFuturo(5);
+        assertNotNull(diaFuturo);
+        assertTrue(diaFuturo.isAfter(FechaHoraUtil.hoy()));
+        assertFalse(FechaHoraUtil.esDiaInhabil(diaFuturo));
+    }
 }

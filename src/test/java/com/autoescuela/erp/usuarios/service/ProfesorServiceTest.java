@@ -397,9 +397,12 @@ class ProfesorServiceTest
         EditarProfesorDTO editarDTO = this.crearEditarProfesorDTO(activo, null);
         when(this.profesorRepository.findById(11L)).thenReturn(Optional.of(activo));
         when(this.profesorMapper.toEditarProfesorDTO(activo)).thenReturn(editarDTO);
+        LocalDate nacimiento = FechaHoraUtil.hoy().minusYears(40);
+        LocalDate contratacion = FechaHoraUtil.hoy().minusYears(1);
+        int anioContratacion = contratacion.getYear();
         when(this.profesorMapper.toProfesorDetalleDTO(activo)).thenReturn(
                 new ProfesorDetalleDTO(11L, "Carlos", "Ruiz", "Carlos Ruiz", "CR", "cruiz", "23456789D", "c@m.es", "600111222",
-                        LocalDate.of(1985, 5, 10), 40, "Calle 1", LocalDate.of(2025, 1, 15), 2025, 1,
+                        nacimiento, 40, "Calle 1", contratacion, anioContratacion, 1,
                         TipoTurno.MATINAL, 1L, "1234ABC", "Polo", TipoCarnet.PERMISO_B, "Permiso B",
                         List.of(TipoCarnet.PERMISO_B), 2, 1, EstadoUsuario.ACTIVO));
         when(this.clasePracticaRepository.countByProfesorAndEstadoClase(activo, EstadoClase.PENDIENTE)).thenReturn(1);
@@ -417,7 +420,7 @@ class ProfesorServiceTest
     {
         assertThrows(ReglaNegocioException.class, () -> this.profesorService.modificarProfesor(null));
         assertThrows(ReglaNegocioException.class, () -> this.profesorService.modificarProfesor(
-                new EditarProfesorDTO(null, "A", "B", "12345678Z", "600000000", "a@b.es", LocalDate.of(1990, 1, 1), "Dir", LocalDate.now(), TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B))));
+                new EditarProfesorDTO(null, "A", "B", "12345678Z", "600000000", "a@b.es", LocalDate.of(1990, 1, 1), "Dir", FechaHoraUtil.hoy(), TipoTurno.MATINAL, null, List.of(TipoCarnet.PERMISO_B))));
 
         Profesor profesor = this.crearProfesorBase(105L);
         profesor.setEstado(EstadoUsuario.INACTIVO);
@@ -611,7 +614,7 @@ class ProfesorServiceTest
         // actualizarPerfil
         assertThrows(ReglaNegocioException.class, () -> this.profesorService.actualizarPerfil(null, new EditarPerfilProfesorDTO()));
         EditarPerfilProfesorDTO perfilDto = new EditarPerfilProfesorDTO(120L, "Carlos", "Ruiz", "699888777", "Nueva Dir",
-                LocalDate.of(1985, 5, 10), "23456789D", "cruiz", "c@m.es", TipoTurno.MATINAL, LocalDate.now(), null, null, null);
+                LocalDate.of(1985, 5, 10), "23456789D", "cruiz", "c@m.es", TipoTurno.MATINAL, FechaHoraUtil.hoy(), null, null, null);
         when(this.personaRepository.existsByTelefonoAndIdNot("699888777", 120L)).thenReturn(true);
         assertThrows(ReglaNegocioException.class, () -> this.profesorService.actualizarPerfil(120L, perfilDto));
 

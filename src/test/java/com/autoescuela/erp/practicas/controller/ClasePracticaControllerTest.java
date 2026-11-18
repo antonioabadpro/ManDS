@@ -1,6 +1,5 @@
 package com.autoescuela.erp.practicas.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -11,6 +10,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -47,15 +47,18 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("Modales de alumno cubren preselección de fecha, 404 y 403 sobre clases ajenas")
     void testModalesAlumnoPreseleccionYAcceso() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", "2027-01-01"))
+        int proximoAnio = FechaHoraUtil.hoy().getYear() + 1;
+        String fechaAnoNuevo = proximoAnio + "-01-01";
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", fechaAnoNuevo))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-reservar-clase :: modalReservarClase"))
-                .andExpect(model().attribute("fechaPreseleccionada", "2027-01-01T10:00"))
+                .andExpect(model().attribute("fechaPreseleccionada", fechaAnoNuevo + "T10:00"))
                 .andExpect(model().attribute("esNoLaborable", true));
 
-        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", "2027-02-10T09:30:00"))
+        String fechaFutura = proximoAnio + "-02-10T09:30:00";
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", fechaFutura))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("fechaPreseleccionada", "2027-02-10T09:30"));
+                .andExpect(model().attribute("fechaPreseleccionada", proximoAnio + "-02-10T09:30"));
 
         this.mockMvc.perform(get("/alumno/clases/99999/modal"))
                 .andExpect(status().isOk())
@@ -85,11 +88,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar valida campos, festivos, turno MATINAL, mantenimiento y éxito estándar")
     void testReservarClaseValidacionesAlumnoMatinal() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.MONDAY);
-        while (habilFuturo.getMonthValue() == 8 || (habilFuturo.getMonthValue() == 12 && habilFuturo.getDayOfMonth() >= 23))
-        {
-            habilFuturo = habilFuturo.plusWeeks(3);
-        }
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
 
         // BindingResult con error (sin puntoRecogida) en HTMX y no-HTMX
         this.mockMvc.perform(post("/alumno/clases/reservar")
@@ -115,7 +114,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("fechaHora", (LocalDate.now().getYear() + 1) + "-01-01T10:15")
+                        .param("fechaHora", (FechaHoraUtil.hoy().getYear() + 1) + "-01-01T10:15")
                         .param("duracion", "45")
                         .param("puntoRecogida", "Calle Toledo 10"))
                 .andExpect(status().isOk())
@@ -177,7 +176,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar valida restricción de turno TARDE para profesor de tarde")
     void testReservarFueraDeTurnoTarde() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
@@ -197,7 +196,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
         alumno.setProfesor(null);
         this.alumnoRepository.saveAndFlush(alumno);
 
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
@@ -213,7 +212,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar rechaza alumno sin capacidad de reserva")
     void testReservarSinCapacidad() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")

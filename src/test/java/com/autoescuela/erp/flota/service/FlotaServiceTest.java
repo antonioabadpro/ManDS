@@ -3,6 +3,7 @@ package com.autoescuela.erp.flota.service;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +54,7 @@ class FlotaServiceTest
 
         VehiculoResumenDTO dto1 = new VehiculoResumenDTO(
                 1L, "1234-LMN", "1234", "SEAT", "Ibiza", "Blanco",
-                45000L, LocalDate.now().minusMonths(6), LocalDate.now().plusMonths(6),
+                45000L, FechaHoraUtil.hoy().minusMonths(6), FechaHoraUtil.hoy().plusMonths(6),
                 EstadoVehiculo.DISPONIBLE, TipoCarnet.PERMISO_B, "Permiso B",
                 null, null, null
         );
@@ -76,7 +77,7 @@ class FlotaServiceTest
     {
         VehiculoResumenDTO revisionVencida = new VehiculoResumenDTO(
                 1L, "1111-AAA", "1111", "SEAT", "Ibiza", "Blanco", 50000L,
-                LocalDate.now().minusYears(1), LocalDate.now().minusDays(5),
+                FechaHoraUtil.hoy().minusYears(1), FechaHoraUtil.hoy().minusDays(5),
                 EstadoVehiculo.DISPONIBLE, TipoCarnet.PERMISO_B, "Permiso B",
                 null, null, null
         );
@@ -86,7 +87,7 @@ class FlotaServiceTest
 
         VehiculoResumenDTO revisionProxima = new VehiculoResumenDTO(
                 2L, "2222-BBB", "2222", "Renault", "Clio", "Azul", 30000L,
-                LocalDate.now().minusMonths(11), LocalDate.now().plusDays(20),
+                FechaHoraUtil.hoy().minusMonths(11), FechaHoraUtil.hoy().plusDays(20),
                 EstadoVehiculo.OCUPADO, TipoCarnet.PERMISO_B, "Permiso B",
                 null, null, null
         );
@@ -96,7 +97,7 @@ class FlotaServiceTest
 
         VehiculoResumenDTO revisionAlDia = new VehiculoResumenDTO(
                 3L, "3333-CCC", "3333", "Yamaha", "MT-07", "Negro", 10000L,
-                LocalDate.now().minusMonths(2), LocalDate.now().plusMonths(10),
+                FechaHoraUtil.hoy().minusMonths(2), FechaHoraUtil.hoy().plusMonths(10),
                 EstadoVehiculo.DISPONIBLE, TipoCarnet.PERMISO_A2, "Permiso A2",
                 null, null, null
         );
@@ -117,7 +118,7 @@ class FlotaServiceTest
         VehiculoDetalleDTO dto = new VehiculoDetalleDTO(
                 1L, "1234-LMN", "1234", "SEAT", "Ibiza", "Blanco",
                 45000L, 110, 2022, null, "Gasolina", null, "Manual",
-                LocalDate.now().minusMonths(6), LocalDate.now().plusMonths(6),
+                FechaHoraUtil.hoy().minusMonths(6), FechaHoraUtil.hoy().plusMonths(6),
                 EstadoVehiculo.DISPONIBLE, TipoCarnet.PERMISO_B, "Permiso B",
                 null, null, null, null, 0, 0
         );
@@ -153,7 +154,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dto = new AltaVehiculoDTO(
                 "9876-XYZ", "Toyota", "Yaris", "Gris", 0L, 90, 2024,
                 TipoCombustible.HIBRIDO, TipoCambio.AUTOMATICO, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusYears(1)
+                null, FechaHoraUtil.hoy().plusYears(1)
         );
 
         Vehiculo entidadMapeada = new Vehiculo();
@@ -184,7 +185,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dto = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusYears(1)
+                null, FechaHoraUtil.hoy().plusYears(1)
         );
 
         Vehiculo existente = new Vehiculo();
@@ -246,7 +247,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dtoAnioPasado = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 1980,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusYears(1)
+                null, FechaHoraUtil.hoy().plusYears(1)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoAnioPasado))
@@ -254,9 +255,9 @@ class FlotaServiceTest
                 .hasMessageContaining("El año de matriculación debe estar comprendido entre 1990 y el año actual.");
 
         AltaVehiculoDTO dtoAnioFuturo = new AltaVehiculoDTO(
-                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, LocalDate.now().getYear() + 2,
+                "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, FechaHoraUtil.hoy().getYear() + 2,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusYears(1)
+                null, FechaHoraUtil.hoy().plusYears(1)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoAnioFuturo))
@@ -271,7 +272,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dtoMuyAntigua = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                LocalDate.now().minusYears(5), LocalDate.now().plusYears(1)
+                FechaHoraUtil.hoy().minusYears(5), FechaHoraUtil.hoy().plusYears(1)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoMuyAntigua))
@@ -281,7 +282,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dtoFutura = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                LocalDate.now().plusDays(2), LocalDate.now().plusYears(1)
+                FechaHoraUtil.hoy().plusDays(2), FechaHoraUtil.hoy().plusYears(1)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dtoFutura))
@@ -296,7 +297,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dto = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                LocalDate.now().minusMonths(6), LocalDate.now().minusMonths(7)
+                FechaHoraUtil.hoy().minusMonths(6), FechaHoraUtil.hoy().minusMonths(7)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
@@ -311,7 +312,7 @@ class FlotaServiceTest
         AltaVehiculoDTO dto = new AltaVehiculoDTO(
                 "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusYears(11)
+                null, FechaHoraUtil.hoy().plusYears(11)
         );
 
         assertThatThrownBy(() -> this.flotaService.darAltaVehiculo(dto))
@@ -358,7 +359,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -434,7 +435,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "5678-XYZ", "Toyota", "Yaris", "Rojo", 35000L, 90, 2023,
                 TipoCombustible.HIBRIDO, TipoCambio.AUTOMATICO, TipoCarnet.PERMISO_A2,
-                LocalDate.now().minusMonths(6), LocalDate.now().plusMonths(6)
+                FechaHoraUtil.hoy().minusMonths(6), FechaHoraUtil.hoy().plusMonths(6)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -464,7 +465,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza Nuevo", "Gris", 60000L, 115, 2022,
                 TipoCombustible.DIESEL, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(12)
+                null, FechaHoraUtil.hoy().plusMonths(12)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -483,9 +484,9 @@ class FlotaServiceTest
     @DisplayName("modificarVehiculo actualiza automáticamente fechaUltimaRevision al valor previo de próxima revisión al reprogramar")
     void testModificarVehiculoActualizaFechaUltimaRevisionAutomaticamenteAlCambiarProxima()
     {
-        LocalDate fechaUltimaOriginal = LocalDate.now().minusMonths(12);
-        LocalDate fechaProximaOriginal = LocalDate.now().minusMonths(1);
-        LocalDate fechaProximaNueva = LocalDate.now().plusMonths(12);
+        LocalDate fechaUltimaOriginal = FechaHoraUtil.hoy().minusMonths(12);
+        LocalDate fechaProximaOriginal = FechaHoraUtil.hoy().minusMonths(1);
+        LocalDate fechaProximaNueva = FechaHoraUtil.hoy().plusMonths(12);
 
         Vehiculo vehiculo = new Vehiculo();
         vehiculo.setMatricula("1234-LMN");
@@ -515,8 +516,8 @@ class FlotaServiceTest
     @DisplayName("modificarVehiculo preserva la fechaUltimaRevision intacta cuando la fecha de próxima revisión no cambia")
     void testModificarVehiculoConservaFechaUltimaRevisionSiProximaRevisionNoCambia()
     {
-        LocalDate fechaUltimaOriginal = LocalDate.now().minusMonths(6);
-        LocalDate fechaProximaOriginal = LocalDate.now().plusMonths(6);
+        LocalDate fechaUltimaOriginal = FechaHoraUtil.hoy().minusMonths(6);
+        LocalDate fechaProximaOriginal = FechaHoraUtil.hoy().plusMonths(6);
 
         Vehiculo vehiculo = new Vehiculo();
         vehiculo.setMatricula("1234-LMN");
@@ -557,7 +558,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_A2,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -580,7 +581,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "9999-ZZZ", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -603,7 +604,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "9999-ZZZ", "SEAT", "Ibiza", "Blanco", 50000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         when(this.vehiculoRepository.findById(1L)).thenReturn(Optional.of(vehiculo));
@@ -626,7 +627,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dtoKmNegativo = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", -10L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dtoKmNegativo))
@@ -636,7 +637,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dtoCvNegativo = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, -5, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dtoCvNegativo))
@@ -656,7 +657,7 @@ class FlotaServiceTest
         EditarVehiculoDTO dto = new EditarVehiculoDTO(
                 1L, "1234-LMN", "SEAT", "Ibiza", "Blanco", 1000L, 110, 2022,
                 TipoCombustible.GASOLINA, TipoCambio.MANUAL, TipoCarnet.PERMISO_B,
-                null, LocalDate.now().plusMonths(6)
+                null, FechaHoraUtil.hoy().plusMonths(6)
         );
 
         assertThatThrownBy(() -> this.flotaService.modificarVehiculo(dto))

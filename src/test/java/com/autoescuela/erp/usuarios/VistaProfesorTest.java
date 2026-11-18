@@ -11,6 +11,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -376,7 +377,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("GET /profesor/calendario/cancelar-dia/modal devuelve el fragmento del modal de cancelación masiva")
     void testModalCancelarDiaHtmx() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(1));
         this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal")
                 .param("fecha", fecha.toString()))
                 .andExpect(status().isOk())
@@ -392,7 +393,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases devuelve el sub-fragmento con las clases a cancelar")
     void testCalcularClasesCancelarDiaHtmx() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(1));
         this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
                 .param("fecha", fecha.toString()))
                 .andExpect(status().isOk())
@@ -407,7 +408,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases en fin de semana marca noCancelable = true")
     void testCalcularClasesFinDeSemanaNoCancelable() throws Exception
     {
-        LocalDate sabado = LocalDate.now().plusWeeks(1).with(DayOfWeek.SATURDAY);
+        LocalDate sabado = FechaHoraUtil.hoy().plusWeeks(1).with(DayOfWeek.SATURDAY);
         this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
                 .param("fecha", sabado.toString()))
                 .andExpect(status().isOk())
@@ -421,7 +422,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("POST /profesor/calendario/cancelar-dia con HTMX cancela las clases de la jornada y emite HX-Trigger")
     void testCancelarClasesDiaHtmxExito() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(1).with(DayOfWeek.WEDNESDAY);
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(2));
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
                 .with(csrf())
                 .header("HX-Request", "true")
@@ -438,7 +439,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("POST /profesor/calendario/cancelar-dia en jornada sin reservas bloquea las franjas de forma preventiva")
     void testCancelarClasesDiaSinReservasPreviasBloqueaJornada() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.TUESDAY);
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")
                 .with(csrf())
                 .header("HX-Request", "true")
@@ -469,7 +470,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("POST /profesor/calendario/cancelar-dia en fecha ya cancelada devuelve error impidiendo duplicados")
     void testCancelarClasesDiaYaCanceladaDevuelveError() throws Exception
     {
-        LocalDate fecha = LocalDate.now().plusWeeks(3).with(DayOfWeek.FRIDAY);
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4).plusDays(1));
 
         // Primera cancelación preventiva exitosa
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")

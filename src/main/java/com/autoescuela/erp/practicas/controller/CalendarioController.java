@@ -1,6 +1,5 @@
 package com.autoescuela.erp.practicas.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -387,18 +386,7 @@ public class CalendarioController
             }
             if (fechaFinal == null)
             {
-                if (hoy.getDayOfWeek() == DayOfWeek.SATURDAY)
-                {
-                    fechaFinal = hoy.plusDays(2);
-                }
-                else if (hoy.getDayOfWeek() == DayOfWeek.SUNDAY)
-                {
-                    fechaFinal = hoy.plusDays(1);
-                }
-                else
-                {
-                    fechaFinal = hoy;
-                }
+                fechaFinal = FechaHoraUtil.obtenerSiguienteDiaLectivo(hoy);
             }
         }
 
@@ -458,7 +446,7 @@ public class CalendarioController
             return this.devolverErrorCancelacion("No es posible cancelar jornadas de fechas pasadas.", hxRequest, model, redirectAttributes);
         }
 
-        if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY || fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
+        if (FechaHoraUtil.esFinDeSemana(fecha))
         {
             return this.devolverErrorCancelacion("No se pueden cancelar jornadas en fines de semana.", hxRequest, model, redirectAttributes);
         }
@@ -565,7 +553,7 @@ public class CalendarioController
             noCancelable = true;
             motivoNoCancelable = "No es posible cancelar jornadas de fechas anteriores a la actual.";
         }
-        else if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY || fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
+        else if (FechaHoraUtil.esFinDeSemana(fecha))
         {
             noCancelable = true;
             motivoNoCancelable = "La autoescuela no realiza clases prácticas en fines de semana (sábados y domingos).";

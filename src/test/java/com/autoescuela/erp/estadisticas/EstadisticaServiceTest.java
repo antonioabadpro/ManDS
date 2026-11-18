@@ -19,6 +19,7 @@ import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoMatricula;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAdminDTO;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasAutoescuelaDTO;
 import com.autoescuela.erp.estadisticas.dto.EstadisticasProfesorDTO;
@@ -318,6 +319,8 @@ class EstadisticaServiceTest
         profesor.setNombre("Marta");
         profesor.setApellidos("Díaz");
 
+        LocalDateTime base = FechaHoraUtil.ahora();
+
         // Alumno 1: Aprobado en 1ª convocatoria con 10 clases
         Alumno a1 = new Alumno();
         ReflectionTestUtils.setField(a1, "id", 1L);
@@ -327,13 +330,13 @@ class EstadisticaServiceTest
         Examen exA1 = new Examen();
         exA1.setAlumno(a1);
         exA1.setEsApto(true);
-        exA1.setFechaHora(LocalDateTime.of(2026, 10, 1, 10, 0));
+        exA1.setFechaHora(base.minusDays(5));
 
         ClasePractica cpA1 = new ClasePractica();
         cpA1.setAlumno(a1);
         cpA1.setProfesor(profesor);
         cpA1.setEstadoClase(EstadoClase.RECIBIDA);
-        cpA1.setFechaHora(LocalDateTime.of(2026, 9, 25, 10, 0));
+        cpA1.setFechaHora(base.minusDays(10));
         List<ClasePractica> clasesA1 = new ArrayList<>();
         for (int i = 0; i < 10; i++)
         {
@@ -349,18 +352,18 @@ class EstadisticaServiceTest
         Examen exA2_1 = new Examen();
         exA2_1.setAlumno(a2);
         exA2_1.setEsApto(false);
-        exA2_1.setFechaHora(LocalDateTime.of(2026, 9, 10, 10, 0));
+        exA2_1.setFechaHora(base.minusDays(20));
 
         Examen exA2_2 = new Examen();
         exA2_2.setAlumno(a2);
         exA2_2.setEsApto(true);
-        exA2_2.setFechaHora(LocalDateTime.of(2026, 10, 5, 10, 0));
+        exA2_2.setFechaHora(base.minusDays(5));
 
         ClasePractica cpA2 = new ClasePractica();
         cpA2.setAlumno(a2);
         cpA2.setProfesor(profesor);
         cpA2.setEstadoClase(EstadoClase.RECIBIDA);
-        cpA2.setFechaHora(LocalDateTime.of(2026, 9, 20, 10, 0));
+        cpA2.setFechaHora(base.minusDays(10));
         List<ClasePractica> clasesA2 = new ArrayList<>();
         for (int i = 0; i < 20; i++)
         {
@@ -376,23 +379,23 @@ class EstadisticaServiceTest
         Examen exA3_1 = new Examen();
         exA3_1.setAlumno(a3);
         exA3_1.setEsApto(false);
-        exA3_1.setFechaHora(LocalDateTime.of(2026, 8, 1, 10, 0));
+        exA3_1.setFechaHora(base.minusDays(40));
 
         Examen exA3_2 = new Examen();
         exA3_2.setAlumno(a3);
         exA3_2.setEsApto(false);
-        exA3_2.setFechaHora(LocalDateTime.of(2026, 9, 1, 10, 0));
+        exA3_2.setFechaHora(base.minusDays(20));
 
         Examen exA3_3 = new Examen();
         exA3_3.setAlumno(a3);
         exA3_3.setEsApto(true);
-        exA3_3.setFechaHora(LocalDateTime.of(2026, 10, 8, 10, 0));
+        exA3_3.setFechaHora(base.minusDays(5));
 
         ClasePractica cpA3 = new ClasePractica();
         cpA3.setAlumno(a3);
         cpA3.setProfesor(profesor);
         cpA3.setEstadoClase(EstadoClase.RECIBIDA);
-        cpA3.setFechaHora(LocalDateTime.of(2026, 9, 30, 10, 0));
+        cpA3.setFechaHora(base.minusDays(10));
         List<ClasePractica> clasesA3 = new ArrayList<>();
         for (int i = 0; i < 30; i++)
         {

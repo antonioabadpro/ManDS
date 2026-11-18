@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.EstadoClase;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
 import com.autoescuela.erp.usuarios.model.Profesor;
@@ -40,7 +42,8 @@ class ReservaClaseConcurrenciaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Concurrencia FCFS: el segundo alumno que intenta reservar el mismo tramo recibe error y no solapa horario")
     void testColisionConcurrenteMismoProfesorYTramo() throws Exception
     {
-        String fechaHoraSlot = "2026-11-20T10:15";
+        LocalDate diaLectivo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
+        String fechaHoraSlot = diaLectivo.atTime(11, 0).toString();
 
         // 1. Alumno1 (Jose López) reserva el tramo con éxito
         this.mockMvc.perform(post("/alumno/clases/reservar")
@@ -86,7 +89,8 @@ class ReservaClaseConcurrenciaIntegrationTest extends BaseIntegrationTest
     @DisplayName("Liberación de tramo: al cancelar una clase previa, otro alumno puede reservar esa misma franja horaria")
     void testCancelacionLiberaTramoParaNuevaReserva() throws Exception
     {
-        String fechaHoraSlot = "2026-11-21T09:30";
+        LocalDate diaLectivo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4).plusDays(1));
+        String fechaHoraSlot = diaLectivo.atTime(9, 30).toString();
 
         // 1. Alumno1 reserva la franja
         this.mockMvc.perform(post("/alumno/clases/reservar")

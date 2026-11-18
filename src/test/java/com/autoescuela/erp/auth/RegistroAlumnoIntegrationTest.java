@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -252,7 +253,7 @@ class RegistroAlumnoIntegrationTest extends BaseIntegrationTest
                 .param("nombre", "Lucas")
                 .param("apellidos", "Menor")
                 .param("dni", "88223344M")
-                .param("fechaNacimiento", LocalDate.now().minusYears(17).toString())
+                .param("fechaNacimiento", FechaHoraUtil.hoy().minusYears(17).toString())
                 .param("telefono", "633445566")
                 .param("direccion", "Calle Luna 2")
                 .param("tipoCarnet", "PERMISO_B")

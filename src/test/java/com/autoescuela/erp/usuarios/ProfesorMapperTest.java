@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios;
 
 import java.time.LocalDate;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -80,21 +81,21 @@ class ProfesorMapperTest
         EditarPerfilProfesorDTO dtoMenosDeUnAnio = new EditarPerfilProfesorDTO(
                 1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
                 "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
-                LocalDate.now().minusMonths(6), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+                FechaHoraUtil.hoy().minusMonths(6), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
         );
         assertThat(dtoMenosDeUnAnio.antiguedadTexto()).isEqualTo("menos de 1 año");
 
         EditarPerfilProfesorDTO dtoUnAnio = new EditarPerfilProfesorDTO(
                 1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
                 "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
-                LocalDate.now().minusYears(1).minusMonths(1), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+                FechaHoraUtil.hoy().minusYears(1).minusMonths(1), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
         );
         assertThat(dtoUnAnio.antiguedadTexto()).isEqualTo("1 año");
 
         EditarPerfilProfesorDTO dtoVariosAnios = new EditarPerfilProfesorDTO(
                 1L, "Laura", "Sánchez", "600111222", "Calle Mayor 1", LocalDate.of(1990, 1, 1),
                 "12345678Z", "laura.profesor", "laura@autoescuela.es", TipoTurno.MATINAL,
-                LocalDate.now().minusYears(3), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
+                FechaHoraUtil.hoy().minusYears(3), "1234-BBB", "SEAT Ibiza", List.of(TipoCarnet.PERMISO_B)
         );
         assertThat(dtoVariosAnios.antiguedadTexto()).isEqualTo("3 años");
     }

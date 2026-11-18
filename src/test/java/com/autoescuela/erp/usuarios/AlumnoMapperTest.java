@@ -3,6 +3,7 @@ package com.autoescuela.erp.usuarios;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class AlumnoMapperTest
         alumno.setApellidos("Blanco Gil");
         alumno.setDni("12345678A");
         alumno.setCorreo("alejandro.alumno@autoescuela.es");
-        alumno.setFechaNacimiento(LocalDate.now().minusYears(22));
+        alumno.setFechaNacimiento(FechaHoraUtil.hoy().minusYears(22));
         alumno.setEstado(EstadoUsuario.ACTIVO);
         alumno.setProfesor(profesor);
 
@@ -96,7 +97,7 @@ class AlumnoMapperTest
         alumno.setNombre("Carlos");
         alumno.setApellidos("Ibáñez Méndez");
         alumno.setDni("87654321B");
-        alumno.setFechaNacimiento(LocalDate.now().minusYears(25));
+        alumno.setFechaNacimiento(FechaHoraUtil.hoy().minusYears(25));
         alumno.setEstado(EstadoUsuario.ACTIVO);
 
         AlumnoResumenDTO dto = this.mapper.toAlumnoResumenDTO(alumno, null, 0);
@@ -128,7 +129,7 @@ class AlumnoMapperTest
         alumno.setNombre("Lucía");
         alumno.setApellidos("Gómez Ruiz");
         alumno.setDni("11223344C");
-        alumno.setFechaNacimiento(LocalDate.now().minusYears(20));
+        alumno.setFechaNacimiento(FechaHoraUtil.hoy().minusYears(20));
         alumno.setEstado(EstadoUsuario.ACTIVO);
 
         Matricula matricula = new Matricula();
@@ -253,7 +254,7 @@ class AlumnoMapperTest
         ReflectionTestUtils.setField(matricula, "id", 200L);
         matricula.setEstaActiva(true);
         matricula.setPermisoCarnet(TipoCarnet.PERMISO_B);
-        matricula.setFechaMatriculacion(LocalDate.now().minusYears(1).minusMonths(2));
+        matricula.setFechaMatriculacion(FechaHoraUtil.hoy().minusYears(1).minusMonths(2));
 
         AlumnoDetalleDTO dto = this.mapper.toAlumnoDetalleDTO(alumno, matricula);
 
@@ -396,11 +397,11 @@ class AlumnoMapperTest
         matricula.setConvocatorias(2);
 
         ClasePracticaExpedienteDTO claseDto = new ClasePracticaExpedienteDTO(
-                1L, LocalDateTime.now(), 45, "Calle Alcalá 45", 44955L, 45000L,
+                1L, FechaHoraUtil.ahora(), 45, "Calle Alcalá 45", 44955L, 45000L,
                 "Km: 44.955 a 45.000", EstadoClase.RECIBIDA, "Laura Sánchez", "OK"
         );
         ExamenExpedienteDTO examenDto = new ExamenExpedienteDTO(
-                1L, TipoExamen.TEORICO, "Examen Teórico Oficial", LocalDateTime.now(), 30, true, "Centro DGT Móstoles"
+                1L, TipoExamen.TEORICO, "Examen Teórico Oficial", FechaHoraUtil.ahora(), 30, true, "Centro DGT Móstoles"
         );
 
         AlumnoExpedienteDTO expediente = this.mapper.toAlumnoExpedienteDTO(

@@ -79,7 +79,7 @@
                         <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
                             <span>Bienvenida</span>
                         </span>
-                        <span class="text-xs text-violet-100 font-medium tabular-nums whitespace-nowrap" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                        <span class="text-xs text-violet-100 font-medium tabular-nums whitespace-nowrap" th:text="${#temporals.format(T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
                         ¡Hola, <span th:text="${profesor?.nombre ?: 'Profesor'}"></span>!
@@ -119,7 +119,7 @@
                             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Próxima Clase</p>
                             <div th:if="${proximaClase != null}" class="space-y-0.5">
                                 <h4 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate tabular-nums whitespace-nowrap" th:text="${#temporals.format(proximaClase.fechaHora, 'dd/MM/yyyy HH:mm')}"></h4>
-                                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate" th:text="${proximaClase.alumno?.nombre + ' ' + proximaClase.alumno?.apellidos}"></p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate" th:text="${proximaClase.alumno != null ? (proximaClase.alumno.nombre + ' ' + proximaClase.alumno.apellidos) : '-'}"></p>
                             </div>
                             <div th:if="${proximaClase == null}" class="space-y-0.5">
                                 <h4 class="text-sm sm:text-base font-bold text-slate-500 dark:text-slate-400 truncate">Sin clases pendientes</h4>
@@ -134,7 +134,7 @@
                         </div>
                     </div>
                     <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px]">
-                        <span class="text-slate-400 truncate" th:if="${proximaClase != null}" th:text="${proximaClase.puntoRecogida}"></span>
+                        <span class="text-slate-400 truncate" th:if="${proximaClase != null}" th:text="${proximaClase.alumno != null ? proximaClase.puntoRecogida : '-'}"></span>
                         <span class="text-slate-400 truncate" th:if="${proximaClase == null}">Agenda libre</span>
                         <a th:href="@{/profesor/calendario}" class="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors shrink-0 group">
                             <span>Ver calendario</span>
@@ -276,10 +276,13 @@
                             <tr th:each="clase : ${clasesHoy}" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
                                 <td class="py-3 px-4 text-center font-bold text-slate-900 dark:text-white tabular-nums whitespace-nowrap" th:text="${#temporals.format(clase.fechaHora, 'HH:mm')}"></td>
                                 <td class="py-3 px-4 text-center">
-                                    <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.alumno?.nombre + ' ' + clase.alumno?.apellidos}"></span>
-                                    <span class="block text-[11px] text-slate-400" th:text="${'DNI: ' + clase.alumno?.dni}"></span>
+                                    <th:block th:if="${clase.alumno != null}">
+                                        <span class="font-semibold text-slate-800 dark:text-slate-200" th:text="${clase.alumno.nombre + ' ' + clase.alumno.apellidos}"></span>
+                                        <span class="block text-[11px] text-slate-400 tabular-nums whitespace-nowrap" th:text="${'DNI: ' + clase.alumno.dni}"></span>
+                                    </th:block>
+                                    <span th:if="${clase.alumno == null}" class="text-slate-400 font-medium">-</span>
                                 </td>
-                                <td class="py-3 px-4 text-center" th:text="${clase.puntoRecogida}"></td>
+                                <td class="py-3 px-4 text-center" th:text="${clase.alumno != null ? clase.puntoRecogida : '-'}"></td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap" th:text="${clase.duracion + ' min'}"></td>
                                 <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <div class="flex justify-center">

@@ -1,6 +1,7 @@
 package com.autoescuela.erp.usuarios.service;
 
 import java.time.LocalDate;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -325,9 +326,10 @@ class AlumnoServiceTest
         mat.setEstaActiva(true);
         alumno.setHistorialMatriculas(List.of(mat));
 
+        LocalDate nacimiento = FechaHoraUtil.hoy().minusYears(26);
         AlumnoDetalleDTO detalleDTO = new AlumnoDetalleDTO(210L, "Ana", "Gil", "Ana Gil", "AG", "anag",
-                EstadoUsuario.ACTIVO, "12345678Z", LocalDate.of(2000, 1, 1), 26, "Calle 1", "a@m.es", "600111222",
-                LocalDate.now(), 2026, 0, "menos de 1 año", true, TipoTurno.MATINAL, null, null, null, null, null, null, null,
+                EstadoUsuario.ACTIVO, "12345678Z", nacimiento, 26, "Calle 1", "a@m.es", "600111222",
+                FechaHoraUtil.hoy(), FechaHoraUtil.hoy().getYear(), 0, "menos de 1 año", true, TipoTurno.MATINAL, null, null, null, null, null, null, null,
                 TipoCarnet.PERMISO_B, "Permiso B");
         AlumnoExpedienteDTO expedienteDTO = new AlumnoExpedienteDTO(210L, "Ana Gil", TipoCarnet.PERMISO_B,
                 "Permiso B", true, 5, 3L, 2, List.of(), List.of());

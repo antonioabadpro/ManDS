@@ -16,6 +16,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
@@ -76,7 +77,7 @@ class CalendarioControllerTest extends BaseIntegrationTest
     @DisplayName("GET /alumno/calendario y /cuadricula aceptan fechaRef válida o inválida y /cuadricula bloquea sin matrícula")
     void testCalendarioAlumnoFechaRefYBloqueoCuadricula() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/calendario").param("fechaRef", "2026-10-12"))
+        this.mockMvc.perform(get("/alumno/calendario").param("fechaRef", FechaHoraUtil.hoy().toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/calendario"))
                 .andExpect(model().attributeExists("calendarioSemanal"));
@@ -120,13 +121,13 @@ class CalendarioControllerTest extends BaseIntegrationTest
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
-        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases").with(user(dummyProf)).param("fecha", LocalDate.now().toString()))
+        this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases").with(user(dummyProf)).param("fecha", FechaHoraUtil.hoy().toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
 
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia").with(user(dummyProf))
                         .with(csrf())
-                        .param("fecha", LocalDate.now().plusDays(1).toString())
+                        .param("fecha", FechaHoraUtil.hoy().plusDays(1).toString())
                         .param("motivo", "Prueba"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login"));
@@ -137,9 +138,9 @@ class CalendarioControllerTest extends BaseIntegrationTest
     @DisplayName("Modal y cálculo previo de cancelación diaria cubren fechas pasadas, fin de semana y festivos")
     void testModalYCalcularCancelarDiaValidaciones() throws Exception
     {
-        LocalDate pasado = LocalDate.now().minusDays(2);
-        LocalDate sabado = LocalDate.now().plusWeeks(1).with(DayOfWeek.SATURDAY);
-        LocalDate festivoNavidad = LocalDate.of(LocalDate.now().getYear() + 1, 12, 25);
+        LocalDate pasado = FechaHoraUtil.hoy().minusDays(2);
+        LocalDate sabado = FechaHoraUtil.hoy().plusWeeks(1).with(DayOfWeek.SATURDAY);
+        LocalDate festivoNavidad = LocalDate.of(FechaHoraUtil.hoy().getYear() + 1, 12, 25);
 
         this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/modal")
                         .param("fechaRef", pasado.toString()))
@@ -169,10 +170,10 @@ class CalendarioControllerTest extends BaseIntegrationTest
     @DisplayName("POST /profesor/calendario/cancelar-dia rechaza fechas inválidas y permite flujo tradicional no-HTMX")
     void testCancelarDiaErroresYFlujoEstandar() throws Exception
     {
-        LocalDate pasado = LocalDate.now().minusDays(1);
-        LocalDate sabado = LocalDate.now().plusWeeks(2).with(DayOfWeek.SATURDAY);
-        LocalDate festivo = LocalDate.of(LocalDate.now().getYear() + 1, 1, 1);
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(4).with(DayOfWeek.WEDNESDAY);
+        LocalDate pasado = FechaHoraUtil.hoy().minusDays(1);
+        LocalDate sabado = FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.SATURDAY);
+        LocalDate festivo = LocalDate.of(FechaHoraUtil.hoy().getYear() + 1, 1, 1);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
 
         // Fecha pasada en flujo no-HTMX
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")

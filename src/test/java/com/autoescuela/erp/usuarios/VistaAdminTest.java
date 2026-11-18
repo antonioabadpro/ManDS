@@ -1,12 +1,14 @@
 package com.autoescuela.erp.usuarios;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -122,7 +124,7 @@ class VistaAdminTest extends BaseIntegrationTest
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
                         .param("tipoPermiso", "PERMISO_B")
-                        .param("fechaProximaRevision", "2027-10-01"))
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/flota"))
                 .andExpect(flash().attributeExists("mensajeExito"));
@@ -314,7 +316,8 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/examenes con parámetro mes redirige limpiando la URL con flash attribute")
     void testExamenesParametroMesRedirigeLimpio() throws Exception
     {
-        this.mockMvc.perform(get("/admin/examenes").param("mes", "2026-11-01"))
+        LocalDate mesTest = FechaHoraUtil.hoy().plusMonths(1).withDayOfMonth(1);
+        this.mockMvc.perform(get("/admin/examenes").param("mes", mesTest.toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("mes"));
@@ -325,13 +328,18 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/examenes con flash attribute mes normaliza al día 1 y carga las jornadas del mes")
     void testExamenesConFlashAttributeMes() throws Exception
     {
+        LocalDate base = FechaHoraUtil.hoy().plusMonths(1).withDayOfMonth(15);
+        LocalDate esperadoSeleccionado = base.withDayOfMonth(1);
+        LocalDate esperadoSiguiente = esperadoSeleccionado.plusMonths(1);
+        LocalDate esperadoAnterior = esperadoSeleccionado.minusMonths(1);
+
         this.mockMvc.perform(get("/admin/examenes")
-                        .flashAttr("mes", LocalDate.of(2026, 11, 15)))
+                        .flashAttr("mes", base))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/examenes"))
-                .andExpect(model().attribute("mesSeleccionado", LocalDate.of(2026, 11, 1)))
-                .andExpect(model().attribute("mesSiguiente", LocalDate.of(2026, 12, 1)))
-                .andExpect(model().attribute("mesAnterior", LocalDate.of(2026, 10, 1)));
+                .andExpect(model().attribute("mesSeleccionado", esperadoSeleccionado))
+                .andExpect(model().attribute("mesSiguiente", esperadoSiguiente))
+                .andExpect(model().attribute("mesAnterior", esperadoAnterior));
     }
 
     @Test
@@ -339,14 +347,19 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/examenes/jornadas renderiza el fragmento HTMX de jornadas y cupos del mes")
     void testJornadasDgtMesHTMX() throws Exception
     {
+        LocalDate base = FechaHoraUtil.hoy().plusMonths(1).withDayOfMonth(1);
+        LocalDate esperadoSiguiente = base.plusMonths(1);
+        LocalDate esperadoAnterior = base.minusMonths(1);
+        String mesAnioDefecto = YearMonth.from(base).toString();
+
         this.mockMvc.perform(get("/admin/examenes/jornadas")
-                        .param("mes", "2026-11-01"))
+                        .param("mes", base.toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
-                .andExpect(model().attribute("mesSeleccionado", LocalDate.of(2026, 11, 1)))
-                .andExpect(model().attribute("mesAnioDefecto", "2026-11"))
-                .andExpect(model().attribute("mesSiguiente", LocalDate.of(2026, 12, 1)))
-                .andExpect(model().attribute("mesAnterior", LocalDate.of(2026, 10, 1)))
+                .andExpect(model().attribute("mesSeleccionado", base))
+                .andExpect(model().attribute("mesAnioDefecto", mesAnioDefecto))
+                .andExpect(model().attribute("mesSiguiente", esperadoSiguiente))
+                .andExpect(model().attribute("mesAnterior", esperadoAnterior))
                 .andExpect(model().attributeExists("tiposCarnet"));
     }
 
@@ -355,7 +368,7 @@ class VistaAdminTest extends BaseIntegrationTest
     @DisplayName("GET /admin/examenes/jornadas sin parámetro mes usa el mes actual")
     void testJornadasDgtMesHTMXSinParametroMes() throws Exception
     {
-        LocalDate inicioMesActual = LocalDate.now().withDayOfMonth(1);
+        LocalDate inicioMesActual = FechaHoraUtil.hoy().withDayOfMonth(1);
 
         this.mockMvc.perform(get("/admin/examenes/jornadas"))
                 .andExpect(status().isOk())
@@ -612,7 +625,7 @@ class VistaAdminTest extends BaseIntegrationTest
                         .param("correo", "nuevo.profe@autoescuela.es")
                         .param("fechaNacimiento", "1990-01-01")
                         .param("direccion", "Calle Falsa 123")
-                        .param("fechaContratacion", LocalDate.now().toString())
+                        .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                         .param("turno", "MATINAL")
                         .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -630,7 +643,7 @@ class VistaAdminTest extends BaseIntegrationTest
                         .param("correo", "nuevo.profe@autoescuela.es")
                         .param("fechaNacimiento", "1990-01-01")
                         .param("direccion", "Calle Falsa 123")
-                        .param("fechaContratacion", LocalDate.now().toString())
+                        .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                         .param("turno", "MATINAL")
                         .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())

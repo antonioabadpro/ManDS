@@ -26,6 +26,7 @@ import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -210,7 +211,11 @@ class CalendarioServiceTest
         alumnoActual.setNombre("Carlos");
         alumnoActual.setProfesor(profesor);
 
-        LocalDate lunes = LocalDate.now().plusWeeks(2).with(DayOfWeek.MONDAY);
+        LocalDate lunes = FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.MONDAY);
+        while (FechaHoraUtil.esDiaInhabil(lunes))
+        {
+            lunes = lunes.plusWeeks(1);
+        }
 
         // Clase previa CANCELADA en lunes a las 08:00
         ClasePractica claseCancelada = new ClasePractica();

@@ -1,6 +1,6 @@
 package com.autoescuela.erp.flota.service;
 
-import java.time.LocalDateTime;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +76,7 @@ class IncidenciaVehiculoServiceTest
         inc.setEstado(EstadoIncidencia.PENDIENTE);
 
         IncidenciaResumenDTO dto = new IncidenciaResumenDTO(
-                1L, LocalDateTime.now(), "Fallo en frenos", EstadoIncidencia.PENDIENTE,
+                1L, FechaHoraUtil.ahora(), "Fallo en frenos", EstadoIncidencia.PENDIENTE,
                 10L, "1234-BBB", "SEAT", "Ibiza", 20L, "Laura Sánchez"
         );
 
@@ -101,7 +101,7 @@ class IncidenciaVehiculoServiceTest
         inc.setEstado(EstadoIncidencia.EN_PROCESO);
 
         IncidenciaResumenDTO dto = new IncidenciaResumenDTO(
-                2L, LocalDateTime.now(), "Revisión embrague", EstadoIncidencia.EN_PROCESO,
+                2L, FechaHoraUtil.ahora(), "Revisión embrague", EstadoIncidencia.EN_PROCESO,
                 11L, "5678-CCC", "Renault", "Clio", 21L, "Carlos López"
         );
 
@@ -139,7 +139,7 @@ class IncidenciaVehiculoServiceTest
         inc.setDescripcion("Avería en embrague");
 
         IncidenciaDetalleDTO dto = new IncidenciaDetalleDTO(
-                5L, LocalDateTime.now(), "Avería en embrague", EstadoIncidencia.PENDIENTE,
+                5L, FechaHoraUtil.ahora(), "Avería en embrague", EstadoIncidencia.PENDIENTE,
                 2L, "5678-CCC", "Renault", "Clio", 3L, "Carlos López"
         );
 

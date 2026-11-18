@@ -1,13 +1,12 @@
 package com.autoescuela.erp.examenes.controller;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.examenes.model.Examen;
@@ -87,7 +86,7 @@ class SolicitudExamenControllerTest extends BaseIntegrationTest
 
         // Poner fecha futura al examen práctico 3 del alumno1 para cubrir solicitud aceptada pendiente
         Examen examen3 = this.examenRepository.findById(3L).orElseThrow();
-        examen3.setFechaHora(LocalDateTime.now().plusDays(10));
+        examen3.setFechaHora(FechaHoraUtil.ahora().plusDays(10));
         this.examenRepository.saveAndFlush(examen3);
 
         this.mockMvc.perform(post("/alumno/examenes/solicitar")
@@ -98,7 +97,7 @@ class SolicitudExamenControllerTest extends BaseIntegrationTest
                 .andExpect(flash().attributeExists("error"));
 
         // Marcar examen 3 como calificado (NO APTO) para liberar convocatoria futura pendiente
-        examen3.setFechaHora(LocalDateTime.now().minusDays(3));
+        examen3.setFechaHora(FechaHoraUtil.ahora().minusDays(3));
         examen3.setEsApto(false);
         this.examenRepository.saveAndFlush(examen3);
 

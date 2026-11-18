@@ -25,7 +25,7 @@ class ValidacionFechaNacimientoDTOTest
     @DisplayName("RegistroAlumnoDTO: isMayorDeEdad valida correctamente límites y fronteras")
     void testRegistroAlumnoDTO_IsMayorDeEdad()
     {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
 
         // Exactamente 18 años hoy -> válido
         RegistroAlumnoDTO dtoExacto18 = new RegistroAlumnoDTO(
@@ -60,7 +60,7 @@ class ValidacionFechaNacimientoDTOTest
     @DisplayName("RegistroAlumnoDTO: isEdadRazonable valida límite de 100 años")
     void testRegistroAlumnoDTO_IsEdadRazonable()
     {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
 
         // Exactamente 100 años hoy -> válido
         RegistroAlumnoDTO dtoExacto100 = new RegistroAlumnoDTO(
@@ -88,7 +88,7 @@ class ValidacionFechaNacimientoDTOTest
     @DisplayName("EditarPerfilProfesorDTO: isMayorDeEdad e isEdadRazonable validan rangos")
     void testEditarPerfilProfesorDTO_ValidacionesFechaNacimiento()
     {
-        LocalDate hoy = LocalDate.now();
+        LocalDate hoy = FechaHoraUtil.hoy();
 
         // Profesor válido (30 años)
         EditarPerfilProfesorDTO dtoValido = new EditarPerfilProfesorDTO(
