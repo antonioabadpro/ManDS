@@ -1,8 +1,8 @@
 # Auditoría de Reglas del Script Semilla (`data.sql`) y Matriz Comparativa con las Reglas de Negocio
 
-> **Documento de Auditoría y Especificación de Dominio**  
-> **Fecha:** 01/11/2026 (Actualizado: 02/11/2026)  
-> **Ámbito:** `src/main/resources/data.sql` vs. `AGENTS.md` y Requisitos Operativos DGT  
+> **Documento de Auditoría y Especificación de Dominio**
+> **Fecha:** 01/11/2026 (Actualizado: 02/11/2026)
+> **Ámbito:** `src/main/resources/data.sql` vs. `AGENTS.md` y Requisitos Operativos DGT
 > **Objetivo:** Documentar exhaustivamente las reglas que modela actualmente el script de datos semilla, contrastarlas contra las reglas maestras de negocio y contra las observaciones y requerimientos señalados para el sistema.
 
 ---
@@ -58,7 +58,7 @@ El script estructura su contenido en 9 bloques principales, reflejando las sigui
 - **Bloqueo Preventivo:** Una incidencia en estado `EN_PROCESO` coloca automáticamente el vehículo asociado en estado `MANTENIMIENTO`, cancelando clases prácticas y bloqueando nuevas reservas.
 
 ### 2.6. Clases Prácticas de Conducción (`clase_practica`)
-- **Duración Canónica Estricta:** Todas las 169 clases prácticas registradas tienen una duración exacta de 45 minutos (`duracion = 45`).
+- **Duración Canónica Estricta:** Todas las 179 clases prácticas registradas tienen una duración exacta de 45 minutos (`duracion = 45`).
 - **Respeto a las Franjas Horarias Oficiales:** Las horas de inicio se alinean con las franjas de 45 minutos dentro de cada turno:
   - Turno Matinal: 08:00, 08:45, 09:30, 10:15, 11:00, 11:45, 12:30, 13:15, 14:00 (finaliza 14:45).
   - Turno Tarde: 15:00, 15:45, 16:30, 17:15, 18:00, 18:45, 19:30, 20:15, 21:00 (finaliza 21:45).
@@ -234,8 +234,8 @@ A continuación se detalla el expediente de los 68 alumnos poblados en el script
 | alumno 61 | Sara Marín Esteban | `alumno61` | 260 | No | No (Teórico pendiente) | 0 clases prácticas pendientes | 2 | `TEORICO_PRACTICA` | `PERMISO_A2` | Ninguno | `ACTIVO` |
 | alumno 62 | Álvaro Fuentes Moya | `alumno62` | 261 | No | No (Teórico pendiente) | 0 clases prácticas pendientes | 2 | `TEORICO_PRACTICA` | `PERMISO_D` | Ninguno | `ACTIVO` |
 | alumno 63 | Marta Herrero Solís | `alumno63` | 262 | No | No (Teórico pendiente) | 0 clases prácticas pendientes | 2 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |
-| alumno 64 | Javier Paredes Cano | `alumno64` | 263 | Sí | Sí | 0 clases prácticas pendientes | 1 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |
-| alumno 65 | Lucía Giménez Vidal | `alumno65` | 264 | Sí | Sí | 0 clases prácticas pendientes | 1 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |
+| alumno 64 | Javier Paredes Cano | `alumno64` | 263 | Sí | Sí | 0 clases prácticas pendientes | 2 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |
+| alumno 65 | Lucía Giménez Vidal | `alumno65` | 264 | Sí | Sí | 0 clases prácticas pendientes | 2 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |
 | alumno 66 | Manuel Reyes Cortés | `alumno66` | 265 | Sí | Sí | 0 clases prácticas pendientes | 1 | `TEORICO_PRACTICA` | `PERMISO_A2` | Ninguno | `ACTIVO` |
 | alumno 67 | Alba Méndez Gallego | `alumno67` | 266 | Sí | Sí | 0 clases prácticas pendientes | 1 | `TEORICO_PRACTICA` | `PERMISO_C` | Ninguno | `ACTIVO` |
 | alumno 68 | Daniel Lara Montero | `alumno68` | 267 | Sí | Sí | 0 clases prácticas pendientes | 1 | `TEORICO_PRACTICA` | `PERMISO_B` | Ninguno | `ACTIVO` |

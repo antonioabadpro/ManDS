@@ -673,9 +673,9 @@ VALUES (63, 261, 'PERMISO_D', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-13', 0, 2, 0
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (64, 262, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-10-14', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (65, 263, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-01', 0, 1, 1, 250, TRUE);
+VALUES (65, 263, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-01', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
-VALUES (66, 264, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-02', 0, 1, 1, 250, TRUE);
+VALUES (66, 264, 'PERMISO_B', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-02', 0, 2, 0, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
 VALUES (67, 265, 'PERMISO_A2', 'TEORICO_PRACTICA', 'NUEVA', '2026-09-03', 0, 1, 1, 250, TRUE);
 INSERT INTO matricula (id, alumno_id, permiso_carnet, modalidad, tipo, fecha_matriculacion, saldo_clases, convocatorias, convocatorias_gastadas, precio, esta_activa)
@@ -1048,6 +1048,26 @@ INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio,
 VALUES (168, '2026-10-15 11:45:00', 45, 'Calle Fernando VI 19', 43760, 43782, 'PrÃ¡ctica de perfeccionamiento y estacionamiento.', 'RECIBIDA', FALSE, FALSE, 219, 100);
 INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
 VALUES (169, '2026-10-19 11:45:00', 45, 'Calle Fernando VI 19', 43782, 43805, 'Recorridos oficiales previos a examen DGT.', 'RECIBIDA', FALSE, FALSE, 219, 100);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (170, '2026-08-04 09:30:00', 45, 'Calle Serrano 45', 37950, 37975, 'Primer contacto con el vehículo y mandos.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (171, '2026-08-11 09:30:00', 45, 'Calle Serrano 45', 37975, 38000, 'Control del embrague y cambios de marcha.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (172, '2026-08-18 09:30:00', 45, 'Calle Serrano 45', 38000, 38025, 'Circulación urbana con tráfico moderado.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (173, '2026-08-25 09:30:00', 45, 'Calle Serrano 45', 38025, 38050, 'Maniobras de estacionamiento en línea.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (174, '2026-09-01 09:30:00', 45, 'Calle Serrano 45', 38050, 38075, 'Incorporaciones y salidas en vías rápidas.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (175, '2026-09-08 09:30:00', 45, 'Calle Serrano 45', 38075, 38100, 'Prioridades de paso y pasos de peatones.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (176, '2026-09-15 09:30:00', 45, 'Calle Serrano 45', 38100, 38125, 'Conducción eficiente y anticipación.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (177, '2026-09-22 09:30:00', 45, 'Calle Serrano 45', 38125, 38150, 'Simulacro de examen práctico de circulación.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (178, '2026-09-29 09:30:00', 45, 'Calle Serrano 45', 38150, 38175, 'Maniobras de estacionamiento en batería.', 'RECIBIDA', FALSE, FALSE, 210, 114);
+INSERT INTO clase_practica (id, fecha_hora, duracion, punto_recogida, km_inicio, km_fin, observaciones, estado_clase, is_cancelada_por_profesor, is_cancelacion_jornada, alumno_id, profesor_id)
+VALUES (179, '2026-10-06 09:30:00', 45, 'Calle Serrano 45', 38175, 38200, 'Repaso general de puntos críticos de examen.', 'RECIBIDA', FALSE, FALSE, 210, 114);
 
 -- ------------------------------------------------------------------------------
 -- 7. SOLICITUDES DE EXAMEN DGT (solicitud_examen) - 62 Solicitudes
@@ -1176,9 +1196,47 @@ INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justifica
 VALUES (63, '2026-10-21 09:30:00', 'ACEPTADA', 'PRACTICO', NULL, 206, 100, 7);
 INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
 VALUES (64, '2026-10-22 10:30:00', 'ACEPTADA', 'PRACTICO', NULL, 214, 100, 17);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (61, '2026-10-22 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 211, NULL, 13);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (62, '2026-10-22 11:30:00', 'ACEPTADA', 'TEORICO', NULL, 217, NULL, 19);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (65, '2026-08-25 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 265, NULL, 67);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (66, '2026-09-12 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 266, NULL, 68);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (67, '2026-09-12 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 267, NULL, 69);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (68, '2026-07-15 09:30:00', 'ACEPTADA', 'TEORICO', NULL, 201, NULL, 2);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (69, '2026-07-15 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 204, NULL, 5);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (70, '2026-08-05 10:30:00', 'ACEPTADA', 'TEORICO', NULL, 205, NULL, 6);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (71, '2026-10-01 10:00:00', 'ACEPTADA', 'PRACTICO', NULL, 209, 102, 10);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (72, '2026-08-10 10:00:00', 'ACEPTADA', 'PRACTICO', NULL, 210, 114, 12);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (73, '2026-09-12 10:00:00', 'ACEPTADA', 'PRACTICO', NULL, 210, 114, 12);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (74, '2026-10-01 09:30:00', 'ACEPTADA', 'TEORICO', NULL, 211, NULL, 13);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (75, '2026-10-01 11:00:00', 'ACEPTADA', 'PRACTICO', NULL, 212, 102, 14);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (76, '2026-08-10 11:30:00', 'ACEPTADA', 'PRACTICO', NULL, 213, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (77, '2026-09-12 11:30:00', 'ACEPTADA', 'PRACTICO', NULL, 213, 102, 16);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (78, '2026-08-05 09:00:00', 'ACEPTADA', 'TEORICO', NULL, 214, NULL, 17);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (79, '2026-09-10 10:00:00', 'ACEPTADA', 'TEORICO', NULL, 217, NULL, 19);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (80, '2026-08-05 11:00:00', 'ACEPTADA', 'TEORICO', NULL, 222, NULL, 24);
+INSERT INTO solicitud_examen (id, fecha_hora, estado, tipo, comentario_justificacion, alumno_id, profesor_id, matricula_id)
+VALUES (81, '2026-10-01 11:30:00', 'ACEPTADA', 'PRACTICO', NULL, 226, 100, 28);
 
 -- ------------------------------------------------------------------------------
--- 8. EXÁMENES DGT (examen) - 53 Exámenes (Días laborables no festivos)
+-- 8. EXÁMENES DGT (examen) - 72 Exámenes (Días laborables no festivos)
 -- ------------------------------------------------------------------------------
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (1, TRUE, '2026-08-20 08:30:00', 30, 'TEORICO', 200, 1);
@@ -1286,6 +1344,44 @@ INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitu
 VALUES (54, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 201, 9);
 INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
 VALUES (55, NULL, '2026-10-29 08:30:00', 35, 'PRACTICO', 204, 11);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (50, NULL, '2026-11-12 08:30:00', 30, 'TEORICO', 211, 61);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (51, NULL, '2026-11-26 08:30:00', 30, 'TEORICO', 217, 62);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (56, FALSE, '2026-09-10 08:30:00', 30, 'TEORICO', 265, 65);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (57, FALSE, '2026-09-24 08:30:00', 30, 'TEORICO', 266, 66);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (58, FALSE, '2026-09-24 08:30:00', 30, 'TEORICO', 267, 67);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (59, FALSE, '2026-07-30 08:30:00', 30, 'TEORICO', 201, 68);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (60, FALSE, '2026-07-30 08:30:00', 30, 'TEORICO', 204, 69);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (61, FALSE, '2026-08-20 08:30:00', 30, 'TEORICO', 205, 70);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (62, FALSE, '2026-10-15 08:30:00', 35, 'PRACTICO', 209, 71);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (63, FALSE, '2026-08-27 08:30:00', 35, 'PRACTICO', 210, 72);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (64, FALSE, '2026-09-24 08:30:00', 35, 'PRACTICO', 210, 73);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (65, FALSE, '2026-10-15 08:30:00', 30, 'TEORICO', 211, 74);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (66, FALSE, '2026-10-15 08:30:00', 35, 'PRACTICO', 212, 75);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (67, FALSE, '2026-08-27 08:30:00', 35, 'PRACTICO', 213, 76);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (68, FALSE, '2026-09-24 08:30:00', 35, 'PRACTICO', 213, 77);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (69, FALSE, '2026-08-20 08:30:00', 30, 'TEORICO', 214, 78);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (70, FALSE, '2026-09-24 08:30:00', 30, 'TEORICO', 217, 79);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (71, FALSE, '2026-08-20 08:30:00', 30, 'TEORICO', 222, 80);
+INSERT INTO examen (id, es_apto, fecha_hora, duracion, tipo, alumno_id, solicitud_id)
+VALUES (72, FALSE, '2026-10-15 08:30:00', 35, 'PRACTICO', 226, 81);
 
 -- ------------------------------------------------------------------------------
 -- 8.2. CONVOCATORIAS OFICIALES DGT DEL MES (fecha_examen) - 4 Meses
