@@ -1,6 +1,6 @@
 package com.autoescuela.erp.flota;
 
-import java.time.LocalDate;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ class VehiculoMapperTest
         vehiculo.setKm(45000L);
         vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
         vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
-        vehiculo.setFechaProximaRevision(LocalDate.now().plusMonths(6));
+        vehiculo.setFechaProximaRevision(FechaHoraUtil.hoy().plusMonths(6));
 
         VehiculoResumenDTO dto = this.mapper.toVehiculoResumenDTO(vehiculo);
 
@@ -58,8 +58,8 @@ class VehiculoMapperTest
         vehiculo.setAnio(2022);
         vehiculo.setTipoCombustible(TipoCombustible.GASOLINA);
         vehiculo.setCajaCambios(TipoCambio.MANUAL);
-        vehiculo.setFechaUltimaRevision(LocalDate.now().minusMonths(6));
-        vehiculo.setFechaProximaRevision(LocalDate.now().plusMonths(6));
+        vehiculo.setFechaUltimaRevision(FechaHoraUtil.hoy().minusMonths(6));
+        vehiculo.setFechaProximaRevision(FechaHoraUtil.hoy().plusMonths(6));
         vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
         vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
 
@@ -93,8 +93,8 @@ class VehiculoMapperTest
                 TipoCombustible.DIESEL,
                 TipoCambio.MANUAL,
                 TipoCarnet.PERMISO_B,
-                LocalDate.now().minusMonths(1),
-                LocalDate.now().plusMonths(11)
+                FechaHoraUtil.hoy().minusMonths(1),
+                FechaHoraUtil.hoy().plusMonths(11)
         );
 
         Vehiculo entidad = this.mapper.toEntity(dto);
@@ -127,8 +127,8 @@ class VehiculoMapperTest
         vehiculo.setAnio(2022);
         vehiculo.setTipoCombustible(TipoCombustible.GASOLINA);
         vehiculo.setCajaCambios(TipoCambio.MANUAL);
-        vehiculo.setFechaUltimaRevision(LocalDate.now().minusMonths(6));
-        vehiculo.setFechaProximaRevision(LocalDate.now().plusMonths(6));
+        vehiculo.setFechaUltimaRevision(FechaHoraUtil.hoy().minusMonths(6));
+        vehiculo.setFechaProximaRevision(FechaHoraUtil.hoy().plusMonths(6));
         vehiculo.setEstado(EstadoVehiculo.DISPONIBLE);
         vehiculo.setTipoPermiso(TipoCarnet.PERMISO_B);
 

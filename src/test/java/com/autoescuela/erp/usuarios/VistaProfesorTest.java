@@ -408,7 +408,7 @@ class VistaProfesorTest extends BaseIntegrationTest
     @DisplayName("GET /profesor/calendario/cancelar-dia/calcular-clases en fin de semana marca noCancelable = true")
     void testCalcularClasesFinDeSemanaNoCancelable() throws Exception
     {
-        LocalDate sabado = LocalDate.now().plusWeeks(1).with(DayOfWeek.SATURDAY);
+        LocalDate sabado = FechaHoraUtil.hoy().plusWeeks(1).with(DayOfWeek.SATURDAY);
         this.mockMvc.perform(get("/profesor/calendario/cancelar-dia/calcular-clases")
                 .param("fecha", sabado.toString()))
                 .andExpect(status().isOk())

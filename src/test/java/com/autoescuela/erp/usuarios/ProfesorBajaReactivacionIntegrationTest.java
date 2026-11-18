@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoUsuario;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
@@ -153,7 +154,7 @@ class ProfesorBajaReactivacionIntegrationTest extends BaseIntegrationTest
                 100L, "Laura", "Sánchez Romero", "23456789D",
                 "600222333", "laura.profesor@autoescuela.es",
                 java.time.LocalDate.of(1988, 9, 23), "Calle Test",
-                java.time.LocalDate.now(),
+                FechaHoraUtil.hoy(),
                 com.autoescuela.erp.core.enums.TipoTurno.MATINAL, null,
                 List.of(com.autoescuela.erp.core.enums.TipoCarnet.PERMISO_B)
         );

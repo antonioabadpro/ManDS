@@ -1,6 +1,5 @@
 package com.autoescuela.erp.usuarios;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import com.autoescuela.erp.auth.model.TokenVerificacion;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.auth.repository.TokenVerificacionRepository;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoCarnet;
@@ -99,7 +99,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", nuevoCorreo)
                 .param("telefono", "699887766")
                 .param("direccion", "Calle de la Primavera 12, Madrid")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "TARDE")
                 .param("vehiculoId", "8")
                 .param("permisos", "PERMISO_B", "PERMISO_A2"))
@@ -115,7 +115,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
         assertEquals("Roberto", profesor.getNombre());
         assertEquals("Gómez Bolaños", profesor.getApellidos());
         assertEquals(TipoTurno.TARDE, profesor.getTurno());
-        assertEquals(LocalDate.now(), profesor.getFechaContratacion());
+        assertEquals(FechaHoraUtil.hoy(), profesor.getFechaContratacion());
         assertNotNull(profesor.getPassword(), "Debe poseer una contraseña provisional no nula.");
         assertNotNull(profesor.getNombreUsuario(), "Debe poseer un nombre de usuario provisional.");
         assertTrue(profesor.getListaTiposCarnet().contains(TipoCarnet.PERMISO_B));
@@ -152,7 +152,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "otro.correo@autoescuela.es")
                 .param("telefono", "611000111")
                 .param("direccion", "Calle Falsa 123")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -205,7 +205,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", correo)
                 .param("telefono", "654321987")
                 .param("direccion", "Calle Libertad 5, Madrid")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().is3xxRedirection());
@@ -261,7 +261,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", correo)
                 .param("telefono", "622334455")
                 .param("direccion", "Avenida Mayor 4")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().is3xxRedirection());
@@ -294,7 +294,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "anciano@autoescuela.es")
                 .param("telefono", "611222333")
                 .param("direccion", "Calle Antigua 1")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -312,11 +312,11 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("nombre", "Joven")
                 .param("apellidos", "Perez")
                 .param("dni", "98765433Y")
-                .param("fechaNacimiento", LocalDate.now().minusYears(17).toString()) // 17 años
+                .param("fechaNacimiento", FechaHoraUtil.hoy().minusYears(17).toString()) // 17 años
                 .param("correo", "joven@autoescuela.es")
                 .param("telefono", "611222335")
                 .param("direccion", "Calle Joven 1")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -338,7 +338,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "futuro@autoescuela.es")
                 .param("telefono", "611222334")
                 .param("direccion", "Calle Futura 2")
-                .param("fechaContratacion", "2027-01-01") // Meses en el futuro
+                .param("fechaContratacion", FechaHoraUtil.hoy().plusMonths(3).toString()) // Meses en el futuro
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -361,7 +361,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "incompatible@autoescuela.es")
                 .param("telefono", "611222335")
                 .param("direccion", "Calle Incompatible 3")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("vehiculoId", "8")
                 .param("permisos", "PERMISO_B"))
@@ -385,7 +385,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "antiguo@autoescuela.es")
                 .param("telefono", "611222336")
                 .param("direccion", "Calle Pasada 1")
-                .param("fechaContratacion", LocalDate.now().minusMonths(2).toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().minusMonths(2).toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -408,7 +408,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
                 .param("direccion", "Calle Gran Vía 45, Madrid")
-                .param("fechaContratacion", LocalDate.now().minusMonths(2).toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().minusMonths(2).toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -431,7 +431,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
                 .param("direccion", "Calle Gran Vía 45, Madrid")
-                .param("fechaContratacion", LocalDate.now().plusMonths(2).toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().plusMonths(2).toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -478,7 +478,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "laura.profesora@autoescuela.es")
                 .param("telefono", "622334455")
                 .param("direccion", "Calle Gran Vía 45, Madrid")
-                .param("fechaContratacion", "2026-10-01")
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())
@@ -500,7 +500,7 @@ class AltaProfesorIntegrationTest extends BaseIntegrationTest
                 .param("correo", "erroneo@autoescuela.es")
                 .param("telefono", "611222339")
                 .param("direccion", "Calle Falsa 1")
-                .param("fechaContratacion", LocalDate.now().toString())
+                .param("fechaContratacion", FechaHoraUtil.hoy().toString())
                 .param("turno", "MATINAL")
                 .param("permisos", "PERMISO_B"))
                 .andExpect(status().isOk())

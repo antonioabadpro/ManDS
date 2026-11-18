@@ -47,15 +47,18 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("Modales de alumno cubren preselección de fecha, 404 y 403 sobre clases ajenas")
     void testModalesAlumnoPreseleccionYAcceso() throws Exception
     {
-        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", "2027-01-01"))
+        int proximoAnio = FechaHoraUtil.hoy().getYear() + 1;
+        String fechaAnoNuevo = proximoAnio + "-01-01";
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", fechaAnoNuevo))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-reservar-clase :: modalReservarClase"))
-                .andExpect(model().attribute("fechaPreseleccionada", "2027-01-01T10:00"))
+                .andExpect(model().attribute("fechaPreseleccionada", fechaAnoNuevo + "T10:00"))
                 .andExpect(model().attribute("esNoLaborable", true));
 
-        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", "2027-02-10T09:30:00"))
+        String fechaFutura = proximoAnio + "-02-10T09:30:00";
+        this.mockMvc.perform(get("/alumno/clases/reservar-modal").param("fecha", fechaFutura))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("fechaPreseleccionada", "2027-02-10T09:30"));
+                .andExpect(model().attribute("fechaPreseleccionada", proximoAnio + "-02-10T09:30"));
 
         this.mockMvc.perform(get("/alumno/clases/99999/modal"))
                 .andExpect(status().isOk())
@@ -111,7 +114,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
-                        .param("fechaHora", (LocalDate.now().getYear() + 1) + "-01-01T10:15")
+                        .param("fechaHora", (FechaHoraUtil.hoy().getYear() + 1) + "-01-01T10:15")
                         .param("duracion", "45")
                         .param("puntoRecogida", "Calle Toledo 10"))
                 .andExpect(status().isOk())

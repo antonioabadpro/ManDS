@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,8 +49,8 @@ class VehiculoControllerTest extends BaseIntegrationTest
                         .param("anio", "2023")
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
-                        .param("fechaUltimaRevision", "2026-01-10")
-                        .param("fechaProximaRevision", "2027-01-10")
+                        .param("fechaUltimaRevision", FechaHoraUtil.hoy().minusMonths(6).toString())
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString())
                         .param("tipoPermiso", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-alta-vehiculo :: #modal-alta-vehiculo"))
@@ -66,8 +67,8 @@ class VehiculoControllerTest extends BaseIntegrationTest
                         .param("anio", "2023")
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
-                        .param("fechaUltimaRevision", "2026-01-10")
-                        .param("fechaProximaRevision", "2027-01-10")
+                        .param("fechaUltimaRevision", FechaHoraUtil.hoy().minusMonths(6).toString())
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString())
                         .param("tipoPermiso", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/flota"))
@@ -142,8 +143,8 @@ class VehiculoControllerTest extends BaseIntegrationTest
                         .param("anio", "2023")
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
-                        .param("fechaUltimaRevision", "2026-03-12")
-                        .param("fechaProximaRevision", "2027-03-12")
+                        .param("fechaUltimaRevision", FechaHoraUtil.hoy().minusMonths(6).toString())
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString())
                         .param("tipoPermiso", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("HX-Redirect", "/admin/flota"));
@@ -162,8 +163,8 @@ class VehiculoControllerTest extends BaseIntegrationTest
                         .param("anio", "2023")
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
-                        .param("fechaUltimaRevision", "2026-03-12")
-                        .param("fechaProximaRevision", "2027-03-12")
+                        .param("fechaUltimaRevision", FechaHoraUtil.hoy().minusMonths(6).toString())
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString())
                         .param("tipoPermiso", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-editar-vehiculo :: modal-editar-vehiculo"))
@@ -181,8 +182,8 @@ class VehiculoControllerTest extends BaseIntegrationTest
                         .param("anio", "2023")
                         .param("tipoCombustible", "GASOLINA")
                         .param("cajaCambios", "MANUAL")
-                        .param("fechaUltimaRevision", "2026-03-12")
-                        .param("fechaProximaRevision", "2027-03-12")
+                        .param("fechaUltimaRevision", FechaHoraUtil.hoy().minusMonths(6).toString())
+                        .param("fechaProximaRevision", FechaHoraUtil.hoy().plusMonths(6).toString())
                         .param("tipoPermiso", "PERMISO_B"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/flota"))

@@ -1,14 +1,14 @@
 package com.autoescuela.erp.examenes.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,7 +30,7 @@ class ExamenControllerTest extends BaseIntegrationTest
     void testVistasYModalesAdminExamenes() throws Exception
     {
         // Acceso con parámetro ?mes= redirige con flash manteniendo URL limpia
-        this.mockMvc.perform(get("/admin/examenes").param("mes", "2026-10-01"))
+        this.mockMvc.perform(get("/admin/examenes").param("mes", FechaHoraUtil.hoy().withDayOfMonth(1).toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("mes"));
@@ -47,7 +47,7 @@ class ExamenControllerTest extends BaseIntegrationTest
                 .andExpect(view().name("admin/fragments/tabla-solicitudes-admin :: tablaSolicitudesFragment"))
                 .andExpect(model().attribute("esBusquedaHtmx", true));
 
-        this.mockMvc.perform(get("/admin/examenes/jornadas").param("mes", "2026-10-01"))
+        this.mockMvc.perform(get("/admin/examenes/jornadas").param("mes", FechaHoraUtil.hoy().withDayOfMonth(1).toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-fechas-cupos-dgt :: modal-fechas-cupos-dgt"))
                 .andExpect(model().attributeExists("fechasMes", "cuposMes"));
@@ -71,7 +71,8 @@ class ExamenControllerTest extends BaseIntegrationTest
                 .andExpect(view().name("error/404"))
                 .andExpect(model().attributeExists("error"));
 
-        this.mockMvc.perform(get("/admin/examenes/47/editar-modal").param("mes", "2027-02-01"))
+        LocalDate mesFuturoModal = FechaHoraUtil.hoy().plusYears(1).withMonth(2).withDayOfMonth(1);
+        this.mockMvc.perform(get("/admin/examenes/47/editar-modal").param("mes", mesFuturoModal.toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/fragments/modal-editar-solicitud-examen :: modalEditarSolicitud"))
                 .andExpect(model().attributeExists("diagnostico", "solicitud", "mesSeleccionado"));
@@ -82,51 +83,44 @@ class ExamenControllerTest extends BaseIntegrationTest
     @DisplayName("POST fijar fechas y fijar cupos DGT validan errores de formato, inmutabilidad y registro exitoso")
     void testFijarFechasYCuposDgt() throws Exception
     {
+        LocalDate mesLimpio = FechaHoraUtil.hoy().plusYears(1).withMonth(2).withDayOfMonth(1);
+        String mesLimpioAnioMes = YearMonth.from(mesLimpio).toString();
+        LocalDate fecha1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesLimpio.withDayOfMonth(3));
+        LocalDate fecha2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(fecha1.plusDays(10));
+
         // Fijar fechas con error de validación (sin fechaHora2)
         this.mockMvc.perform(post("/admin/examenes/fijar-fechas-examen")
                         .with(csrf())
-                        .param("mes", "2027-02-01")
-                        .param("fechaHora1", "2027-02-04T09:00"))
+                        .param("mes", mesLimpio.toString())
+                        .param("fechaHora1", fecha1.atTime(9, 0).toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("error"));
 
-        // Mes ya fijado en data.sql (2026-10) -> ReglaNegocioException
-        this.mockMvc.perform(post("/admin/examenes/fijar-fechas-examen")
-                        .with(csrf())
-                        .param("mes", "2026-10-01")
-                        .param("fechaHora1", "2026-10-15T09:00")
-                        .param("fechaHora2", "2026-10-29T09:00"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/examenes"))
-                .andExpect(flash().attributeExists("error"));
-
-        // Mes futuro limpio (febrero 2027, miércoles 3 y jueves 18) -> éxito
-        LocalDate mesLimpio = LocalDate.of(2027, 2, 1);
-        LocalDate fecha1 = mesLimpio.withDayOfMonth(3);
-        while (fecha1.getDayOfWeek() == DayOfWeek.SATURDAY || fecha1.getDayOfWeek() == DayOfWeek.SUNDAY)
-        {
-            fecha1 = fecha1.plusDays(1);
-        }
-        LocalDate fecha2 = fecha1.plusDays(14);
-        while (fecha2.getDayOfWeek() == DayOfWeek.SATURDAY || fecha2.getDayOfWeek() == DayOfWeek.SUNDAY)
-        {
-            fecha2 = fecha2.plusDays(1);
-        }
-
+        // Mes futuro limpio -> éxito
         this.mockMvc.perform(post("/admin/examenes/fijar-fechas-examen")
                         .with(csrf())
                         .param("mes", mesLimpio.toString())
-                        .param("fechaHora1", LocalDateTime.of(fecha1.getYear(), fecha1.getMonth(), fecha1.getDayOfMonth(), 9, 0).toString())
-                        .param("fechaHora2", LocalDateTime.of(fecha2.getYear(), fecha2.getMonth(), fecha2.getDayOfMonth(), 9, 0).toString()))
+                        .param("fechaHora1", fecha1.atTime(9, 0).toString())
+                        .param("fechaHora2", fecha2.atTime(9, 0).toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("mensajeExito"));
 
+        // Repetir en mes ya fijado -> ReglaNegocioException
+        this.mockMvc.perform(post("/admin/examenes/fijar-fechas-examen")
+                        .with(csrf())
+                        .param("mes", mesLimpio.toString())
+                        .param("fechaHora1", fecha1.atTime(9, 0).toString())
+                        .param("fechaHora2", fecha2.atTime(9, 0).toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/examenes"))
+                .andExpect(flash().attributeExists("error"));
+
         // Cupos con formato numérico inválido -> captura Exception genérica
         this.mockMvc.perform(post("/admin/examenes/fijar-cupos-examen")
                         .with(csrf())
-                        .param("mesCupos", "2027-02")
+                        .param("mesCupos", mesLimpioAnioMes)
                         .param("cupoTeorico_PERMISO_B", "no-numero"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
@@ -135,7 +129,7 @@ class ExamenControllerTest extends BaseIntegrationTest
         // Cupos en formato YYYY-MM válido
         this.mockMvc.perform(post("/admin/examenes/fijar-cupos-examen")
                         .with(csrf())
-                        .param("mesCupos", "2027-02")
+                        .param("mesCupos", mesLimpioAnioMes)
                         .param("cupoTeorico_PERMISO_B", "10")
                         .param("cupoPractico_PERMISO_B", "8"))
                 .andExpect(status().is3xxRedirection())
@@ -145,7 +139,7 @@ class ExamenControllerTest extends BaseIntegrationTest
         // Repetir cupos en mes ya fijado -> ReglaNegocioException
         this.mockMvc.perform(post("/admin/examenes/fijar-cupos-examen")
                         .with(csrf())
-                        .param("mesCupos", "2027-02-01")
+                        .param("mesCupos", mesLimpio.toString())
                         .param("cupoTeorico_PERMISO_B", "5"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
@@ -157,27 +151,30 @@ class ExamenControllerTest extends BaseIntegrationTest
     @DisplayName("POST aceptar/rechazar solicitudes y calificar teóricos admin cubren errores y éxitos")
     void testAceptarRechazarYCalificarAdmin() throws Exception
     {
+        LocalDate mesAceptar = FechaHoraUtil.hoy().plusYears(1).withMonth(3).withDayOfMonth(1);
+        String mesAceptarAnioMes = YearMonth.from(mesAceptar).toString();
+
         // Aceptar inexistente -> error
         this.mockMvc.perform(post("/admin/examenes/99999/aceptar")
                         .with(csrf())
                         .param("numeroConvocatoria", "1")
-                        .param("mes", "2026-11-01"))
+                        .param("mes", mesAceptar.toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("error"));
+        LocalDate fechaAceptar1 = FechaHoraUtil.obtenerSiguienteDiaLectivo(mesAceptar.withDayOfMonth(3));
+        LocalDate fechaAceptar2 = FechaHoraUtil.obtenerSiguienteDiaLectivo(fechaAceptar1.plusDays(10));
 
-        // Fijar mes futuro 2027-03 con fechas y cupos para aceptar solicitud 46 (TEORICO PERMISO_B)
-        LocalDate marzo = LocalDate.of(2027, 3, 1);
         this.mockMvc.perform(post("/admin/examenes/fijar-fechas-examen")
                         .with(csrf())
-                        .param("mes", marzo.toString())
-                        .param("fechaHora1", "2027-03-04T09:00")
-                        .param("fechaHora2", "2027-03-18T09:00"))
+                        .param("mes", mesAceptar.toString())
+                        .param("fechaHora1", fechaAceptar1.atTime(9, 0).toString())
+                        .param("fechaHora2", fechaAceptar2.atTime(9, 0).toString()))
                 .andExpect(status().is3xxRedirection());
 
         this.mockMvc.perform(post("/admin/examenes/fijar-cupos-examen")
                         .with(csrf())
-                        .param("mesCupos", "2027-03")
+                        .param("mesCupos", mesAceptarAnioMes)
                         .param("cupoTeorico_PERMISO_B", "10")
                         .param("cupoPractico_PERMISO_B", "10"))
                 .andExpect(status().is3xxRedirection());
@@ -185,7 +182,7 @@ class ExamenControllerTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/admin/examenes/46/aceptar")
                         .with(csrf())
                         .param("numeroConvocatoria", "1")
-                        .param("mes", "2027-03-01"))
+                        .param("mes", mesAceptar.toString()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/examenes"))
                 .andExpect(flash().attributeExists("mensajeExito"));

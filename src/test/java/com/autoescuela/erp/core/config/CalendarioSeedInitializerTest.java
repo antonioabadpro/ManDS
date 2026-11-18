@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.TipoExamen;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.model.SolicitudExamen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
@@ -175,7 +176,7 @@ class CalendarioSeedInitializerTest
         clase.setProfesor(profesor);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
         // Sábado a las 08:00
-        LocalDate sabadoFuturo = LocalDate.now().plusWeeks(2).with(DayOfWeek.SATURDAY);
+        LocalDate sabadoFuturo = FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.SATURDAY);
         clase.setFechaHora(sabadoFuturo.atTime(LocalTime.of(8, 0)));
 
         when(this.examenRepository.findByTipoOrderByFechaHoraDesc(TipoExamen.PRACTICO)).thenReturn(Collections.emptyList());
