@@ -16,6 +16,7 @@ import com.autoescuela.erp.academico.model.Matricula;
 import com.autoescuela.erp.academico.repository.MatriculaRepository;
 import com.autoescuela.erp.core.enums.Rol;
 import com.autoescuela.erp.core.security.UserDetailsImpl;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
 
@@ -172,7 +173,7 @@ class CalendarioControllerTest extends BaseIntegrationTest
         LocalDate pasado = LocalDate.now().minusDays(1);
         LocalDate sabado = LocalDate.now().plusWeeks(2).with(DayOfWeek.SATURDAY);
         LocalDate festivo = LocalDate.of(LocalDate.now().getYear() + 1, 1, 1);
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(4).with(DayOfWeek.WEDNESDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
 
         // Fecha pasada en flujo no-HTMX
         this.mockMvc.perform(post("/profesor/calendario/cancelar-dia")

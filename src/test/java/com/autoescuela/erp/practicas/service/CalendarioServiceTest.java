@@ -26,6 +26,7 @@ import com.autoescuela.erp.core.enums.EstadoClase;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
 import com.autoescuela.erp.core.enums.TipoExamen;
 import com.autoescuela.erp.core.enums.TipoTurno;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.flota.model.Vehiculo;
@@ -35,6 +36,7 @@ import com.autoescuela.erp.practicas.dto.DiaCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
+import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -210,7 +212,11 @@ class CalendarioServiceTest
         alumnoActual.setNombre("Carlos");
         alumnoActual.setProfesor(profesor);
 
-        LocalDate lunes = LocalDate.now().plusWeeks(2).with(DayOfWeek.MONDAY);
+        LocalDate lunes = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.MONDAY));
+        while (lunes.getDayOfWeek() != DayOfWeek.MONDAY || FestivosCalendarioUtil.esDiaNoLaborable(lunes))
+        {
+            lunes = FechaHoraUtil.obtenerSiguienteDiaLectivo(lunes.plusWeeks(1).with(DayOfWeek.MONDAY));
+        }
 
         // Clase previa CANCELADA en lunes a las 08:00
         ClasePractica claseCancelada = new ClasePractica();

@@ -1,6 +1,5 @@
 package com.autoescuela.erp.core.config;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -25,7 +24,6 @@ import com.autoescuela.erp.examenes.model.Examen;
 import com.autoescuela.erp.examenes.repository.ExamenRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
-import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
 import lombok.RequiredArgsConstructor;
@@ -157,100 +155,35 @@ public class CalendarioSeedInitializer implements ApplicationRunner
     }
 
     /**
-     * Calcula el siguiente día lectivo hábil a partir de una fecha de inicio, aplicando bucle estructurado
-     * con poda de fines de semana y descartando festivos nacionales, vacaciones oficiales y jornadas de examen práctico DGT.
+     * Calcula el siguiente día lectivo hábil a partir de una fecha de inicio, delegando en {@link FechaHoraUtil}.
      */
     public LocalDate obtenerSiguienteDiaLectivo(LocalDate inicio, Set<LocalDate> diasExamenProfesor)
     {
-        LocalDate fecha = inicio;
-
-        // Poda inicial si la fecha de partida cae en fin de semana
-        if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY)
-        {
-            fecha = fecha.plusDays(2);
-        }
-        else
-        {
-            if (fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
-            {
-                fecha = fecha.plusDays(1);
-            }
-        }
-
-        // Bucle estructurado: avanza de forma continua mientras la fecha sea inhábil o coincida con examen DGT
-        while (this.esDiaInhabilOConExamen(fecha, diasExamenProfesor))
-        {
-            fecha = fecha.plusDays(1);
-
-            // Poda durante el avance: si al sumar un día cae en sábado, salta directamente al lunes
-            if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY)
-            {
-                fecha = fecha.plusDays(2);
-            }
-        }
-
-        return fecha;
+        return FechaHoraUtil.obtenerSiguienteDiaLectivo(inicio, diasExamenProfesor);
     }
 
     /**
-     * Calcula el último día lectivo hábil inmediatamente anterior a la fecha de referencia,
-     * aplicando bucle estructurado con poda inversa de fin de semana.
+     * Calcula el último día lectivo hábil inmediatamente anterior a la fecha de referencia, delegando en {@link FechaHoraUtil}.
      */
     public LocalDate obtenerUltimoDiaLectivoAnterior(LocalDate inicio, Set<LocalDate> diasExamenProfesor)
     {
-        LocalDate fecha = inicio.minusDays(1);
-
-        // Poda inversa inicial si cae en fin de semana
-        if (fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
-        {
-            fecha = fecha.minusDays(2);
-        }
-        else
-        {
-            if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY)
-            {
-                fecha = fecha.minusDays(1);
-            }
-        }
-
-        // Bucle estructurado inverso: retrocede mientras la fecha sea inhábil o coincida con examen DGT
-        while (this.esDiaInhabilOConExamen(fecha, diasExamenProfesor))
-        {
-            fecha = fecha.minusDays(1);
-
-            // Poda durante el retroceso: si al restar un día cae en domingo, salta directamente a viernes
-            if (fecha.getDayOfWeek() == DayOfWeek.SUNDAY)
-            {
-                fecha = fecha.minusDays(2);
-            }
-        }
-
-        return fecha;
+        return FechaHoraUtil.obtenerUltimoDiaLectivoAnterior(inicio, diasExamenProfesor);
     }
 
     /**
-     * Evalúa si una fecha corresponde a un día inhábil (fin de semana, festivo o periodo vacacional).
+     * Evalúa si una fecha corresponde a un día inhábil (fin de semana, festivo o periodo vacacional), delegando en {@link FechaHoraUtil}.
      */
     public boolean esDiaInhabil(LocalDate fecha)
     {
-        if (fecha == null)
-        {
-            return false;
-        }
-        DayOfWeek dia = fecha.getDayOfWeek();
-        return dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY || FestivosCalendarioUtil.esDiaNoLaborable(fecha);
+        return FechaHoraUtil.esDiaInhabil(fecha);
     }
 
     /**
-     * Evalúa si una fecha es inhábil o coincide con un examen práctico DGT reservado para el profesor.
+     * Evalúa si una fecha es inhábil o coincide con un examen práctico DGT reservado para el profesor, delegando en {@link FechaHoraUtil}.
      */
     public boolean esDiaInhabilOConExamen(LocalDate fecha, Set<LocalDate> diasExamenProfesor)
     {
-        if (this.esDiaInhabil(fecha))
-        {
-            return true;
-        }
-        return diasExamenProfesor != null && diasExamenProfesor.contains(fecha);
+        return FechaHoraUtil.esDiaInhabilOConExamen(fecha, diasExamenProfesor);
     }
 
     /**

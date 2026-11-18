@@ -1,6 +1,5 @@
 package com.autoescuela.erp.practicas.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -11,6 +10,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.EstadoVehiculo;
+import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.flota.model.Vehiculo;
 import com.autoescuela.erp.flota.repository.VehiculoRepository;
 import com.autoescuela.erp.practicas.model.ClasePractica;
@@ -85,11 +85,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar valida campos, festivos, turno MATINAL, mantenimiento y éxito estándar")
     void testReservarClaseValidacionesAlumnoMatinal() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.MONDAY);
-        while (habilFuturo.getMonthValue() == 8 || (habilFuturo.getMonthValue() == 12 && habilFuturo.getDayOfMonth() >= 23))
-        {
-            habilFuturo = habilFuturo.plusWeeks(3);
-        }
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
 
         // BindingResult con error (sin puntoRecogida) en HTMX y no-HTMX
         this.mockMvc.perform(post("/alumno/clases/reservar")
@@ -177,7 +173,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar valida restricción de turno TARDE para profesor de tarde")
     void testReservarFueraDeTurnoTarde() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
@@ -197,7 +193,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
         alumno.setProfesor(null);
         this.alumnoRepository.saveAndFlush(alumno);
 
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")
@@ -213,7 +209,7 @@ class ClasePracticaControllerTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar rechaza alumno sin capacidad de reserva")
     void testReservarSinCapacidad() throws Exception
     {
-        LocalDate habilFuturo = LocalDate.now().plusWeeks(3).with(DayOfWeek.THURSDAY);
+        LocalDate habilFuturo = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(4));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                         .with(csrf())
                         .header("HX-Request", "true")

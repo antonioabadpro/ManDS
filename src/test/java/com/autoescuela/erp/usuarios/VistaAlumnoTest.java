@@ -1,6 +1,5 @@
 package com.autoescuela.erp.usuarios;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,7 +11,6 @@ import com.autoescuela.erp.BaseIntegrationTest;
 import com.autoescuela.erp.core.enums.TipoCarnet;
 import com.autoescuela.erp.core.util.FechaHoraUtil;
 import com.autoescuela.erp.pagos.dto.SesionPagoDTO;
-import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -106,13 +104,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar registra una clase práctica con HTMX")
     void testReservarClasePracticaHtmx() throws Exception
     {
-        LocalDate fechaFutura = FechaHoraUtil.hoy().plusWeeks(3).with(DayOfWeek.MONDAY);
-        while (fechaFutura.getDayOfWeek() == DayOfWeek.SATURDAY
-                || fechaFutura.getDayOfWeek() == DayOfWeek.SUNDAY
-                || FestivosCalendarioUtil.esDiaNoLaborable(fechaFutura))
-        {
-            fechaFutura = fechaFutura.plusDays(1);
-        }
+        LocalDate fechaFutura = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(3));
 
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())

@@ -107,13 +107,7 @@ class ClasePracticaServiceTest
 
     private LocalDateTime obtenerFechaFuturaLaborable(int diasExtra, int hora, int minuto)
     {
-        LocalDate fecha = FechaHoraUtil.hoy().plusDays(1 + Math.max(0, diasExtra));
-        while (fecha.getDayOfWeek() == DayOfWeek.SATURDAY
-                || fecha.getDayOfWeek() == DayOfWeek.SUNDAY
-                || FestivosCalendarioUtil.esDiaNoLaborable(fecha))
-        {
-            fecha = fecha.plusDays(1);
-        }
+        LocalDate fecha = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusDays(1 + Math.max(0, diasExtra)));
         return fecha.atTime(hora, minuto);
     }
 
