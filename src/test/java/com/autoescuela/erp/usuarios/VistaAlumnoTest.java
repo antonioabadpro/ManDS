@@ -109,7 +109,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("fechaHora", LocalDateTime.of(fechaFutura.getYear(), fechaFutura.getMonth(), fechaFutura.getDayOfMonth(), 11, 0).toString())
+                .param("fechaHora", fechaFutura.atTime(11, 0).toString())
                 .param("duracion", "45")
                 .param("puntoRecogida", "Calle Alcalá 45")
                 .param("observaciones", "Práctica de estacionamiento"))
@@ -122,8 +122,9 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("GET /alumno/clases/reservar-modal en festivo nacional carga el modelo con esNoLaborable=true")
     void testModalReservarClaseFestivoMuestraNoLaborable() throws Exception
     {
+        LocalDate fechaFestivo = LocalDate.of(FechaHoraUtil.hoy().getYear() + 1, 10, 12);
         this.mockMvc.perform(get("/alumno/clases/reservar-modal")
-                .param("fecha", "2026-10-12T10:00"))
+                .param("fecha", fechaFestivo.toString() + "T10:00"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/modal-reservar-clase :: modalReservarClase"))
                 .andExpect(model().attribute("esNoLaborable", true))
@@ -471,7 +472,7 @@ class VistaAlumnoTest extends BaseIntegrationTest
                 .param("apellidos", "")
                 .param("telefono", "123")
                 .param("direccion", "")
-                .param("fechaNacimiento", "2025-01-01"))
+                .param("fechaNacimiento", FechaHoraUtil.hoy().minusYears(1).toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/perfil"))
                 .andExpect(model().attributeHasFieldErrors("perfilDTO", "nombre", "apellidos", "telefono", "direccion", "mayorDeEdad"));
@@ -639,15 +640,16 @@ class VistaAlumnoTest extends BaseIntegrationTest
     @DisplayName("POST /alumno/clases/reservar rechaza la reserva para alumno sin teórico aprobado")
     void testReservarClaseRechazadaPorTeoricoNoAprobado() throws Exception
     {
+        LocalDate fechaFutura = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(3));
         this.mockMvc.perform(post("/alumno/clases/reservar")
                 .with(csrf())
                 .header("HX-Request", "true")
-                .param("fechaHora", "2026-10-15T10:00")
+                .param("fechaHora", fechaFutura.atTime(10, 0).toString())
                 .param("duracion", "45")
                 .param("puntoRecogida", "Calle Alcalá 45"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("alumno/fragments/alerta-feedback :: feedbackExito"))
-                .andExpect(model().attributeExists("error"));
+                .andExpect(model().attribute("error", containsString("teórico oficial")));
     }
 
     @Test

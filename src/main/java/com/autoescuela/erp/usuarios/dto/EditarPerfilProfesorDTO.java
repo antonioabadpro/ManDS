@@ -111,11 +111,7 @@ public record EditarPerfilProfesorDTO(
     @AssertTrue(message = "El profesor debe ser mayor de edad (al menos 18 años).")
     public boolean isMayorDeEdad()
     {
-        if (this.fechaNacimiento == null)
-        {
-            return true;
-        }
-        return this.fechaNacimiento.plusYears(18).isBefore(FechaHoraUtil.hoy());
+        return FechaHoraUtil.esMayorDeEdad(this.fechaNacimiento);
     }
 
     /**
@@ -124,10 +120,6 @@ public record EditarPerfilProfesorDTO(
     @AssertTrue(message = "La fecha de nacimiento no puede ser anterior a hace 100 años.")
     public boolean isEdadRazonable()
     {
-        if (this.fechaNacimiento == null)
-        {
-            return true;
-        }
-        return this.fechaNacimiento.isAfter(FechaHoraUtil.hoy().minusYears(100));
+        return FechaHoraUtil.esEdadRazonable(this.fechaNacimiento);
     }
 }

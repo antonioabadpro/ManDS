@@ -113,7 +113,7 @@
                         <span class="inline-flex items-center space-x-1 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/20 text-white backdrop-blur-sm">
                             <span>Bienvenida</span>
                         </span>
-                        <span class="text-xs text-indigo-100 font-medium tabular-nums whitespace-nowrap" th:text="${#temporals.format(#temporals.createNow(), 'EEEE, d MMMM yyyy')}"></span>
+                        <span class="text-xs text-indigo-100 font-medium tabular-nums whitespace-nowrap" th:text="${#temporals.format(T(com.autoescuela.erp.core.util.FechaHoraUtil).hoy(), 'EEEE, d MMMM yyyy')}"></span>
                     </div>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
                         ¡Hola, <span th:text="${alumno?.nombre ?: 'Alumno'}"></span>!

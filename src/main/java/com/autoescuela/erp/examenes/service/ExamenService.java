@@ -1,6 +1,5 @@
 package com.autoescuela.erp.examenes.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -496,12 +495,12 @@ public class ExamenService
             throw new ReglaNegocioException("La 2ª fecha de examen debe ser igual o posterior a la 1ª fecha.");
         }
 
-        if (fechaHora1.getDayOfWeek() == DayOfWeek.SATURDAY || fechaHora1.getDayOfWeek() == DayOfWeek.SUNDAY)
+        if (FechaHoraUtil.esFinDeSemana(fechaHora1.toLocalDate()))
         {
             throw new ReglaNegocioException("La 1ª fecha de examen no puede celebrarse en fin de semana.");
         }
 
-        if (fechaHora2.getDayOfWeek() == DayOfWeek.SATURDAY || fechaHora2.getDayOfWeek() == DayOfWeek.SUNDAY)
+        if (FechaHoraUtil.esFinDeSemana(fechaHora2.toLocalDate()))
         {
             throw new ReglaNegocioException("La 2ª fecha de examen no puede celebrarse en fin de semana.");
         }

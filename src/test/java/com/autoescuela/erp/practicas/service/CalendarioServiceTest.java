@@ -36,7 +36,6 @@ import com.autoescuela.erp.practicas.dto.DiaCalendarioDTO;
 import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
-import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 
@@ -212,10 +211,10 @@ class CalendarioServiceTest
         alumnoActual.setNombre("Carlos");
         alumnoActual.setProfesor(profesor);
 
-        LocalDate lunes = FechaHoraUtil.obtenerSiguienteDiaLectivo(FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.MONDAY));
-        while (lunes.getDayOfWeek() != DayOfWeek.MONDAY || FestivosCalendarioUtil.esDiaNoLaborable(lunes))
+        LocalDate lunes = FechaHoraUtil.hoy().plusWeeks(2).with(DayOfWeek.MONDAY);
+        while (FechaHoraUtil.esDiaInhabil(lunes))
         {
-            lunes = FechaHoraUtil.obtenerSiguienteDiaLectivo(lunes.plusWeeks(1).with(DayOfWeek.MONDAY));
+            lunes = lunes.plusWeeks(1);
         }
 
         // Clase previa CANCELADA en lunes a las 08:00

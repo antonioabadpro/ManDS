@@ -8,7 +8,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -45,7 +44,6 @@ import com.autoescuela.erp.practicas.dto.TramoHorarioDTO;
 import com.autoescuela.erp.practicas.mapper.ClasePracticaMapper;
 import com.autoescuela.erp.practicas.model.ClasePractica;
 import com.autoescuela.erp.practicas.repository.ClasePracticaRepository;
-import com.autoescuela.erp.practicas.util.FestivosCalendarioUtil;
 import com.autoescuela.erp.usuarios.model.Alumno;
 import com.autoescuela.erp.usuarios.model.Profesor;
 import com.autoescuela.erp.usuarios.repository.AlumnoRepository;
@@ -305,13 +303,8 @@ class ClasePracticaServiceTest
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
         LocalDateTime fechaExamen = this.obtenerFechaFuturaLaborable(0, 8, 30);
-        LocalDateTime fechaReservaPosterior = fechaExamen.plusDays(1).withHour(10).withMinute(15);
-        while (fechaReservaPosterior.getDayOfWeek() == DayOfWeek.SATURDAY
-                || fechaReservaPosterior.getDayOfWeek() == DayOfWeek.SUNDAY
-                || FestivosCalendarioUtil.esDiaNoLaborable(fechaReservaPosterior.toLocalDate()))
-        {
-            fechaReservaPosterior = fechaReservaPosterior.plusDays(1);
-        }
+        LocalDate diaLectivoPosterior = FechaHoraUtil.obtenerSiguienteDiaLectivo(fechaExamen.toLocalDate().plusDays(1));
+        LocalDateTime fechaReservaPosterior = diaLectivoPosterior.atTime(10, 15);
 
         Matricula matricula = this.crearMatriculaValidaConvocatorias(alumno, ModalidadMatricula.PRACTICA);
         Examen examen = new Examen();
@@ -404,7 +397,7 @@ class ClasePracticaServiceTest
         ClasePractica clase = new ClasePractica();
         clase.setAlumno(alumno);
         clase.setEstadoClase(EstadoClase.RECIBIDA);
-        clase.setFechaHora(LocalDateTime.now().plusDays(1));
+        clase.setFechaHora(FechaHoraUtil.ahora().plusDays(1));
 
         assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno))
                 .isInstanceOf(ReglaNegocioException.class)
@@ -424,7 +417,7 @@ class ClasePracticaServiceTest
         ClasePractica clase = new ClasePractica();
         clase.setAlumno(alumno1);
         clase.setEstadoClase(EstadoClase.PENDIENTE);
-        clase.setFechaHora(LocalDateTime.now().plusDays(1));
+        clase.setFechaHora(FechaHoraUtil.ahora().plusDays(1));
 
         assertThatThrownBy(() -> this.clasePracticaService.cancelarClasePorAlumno(clase, alumno2))
                 .isInstanceOf(ReglaNegocioException.class)
@@ -498,7 +491,7 @@ class ClasePracticaServiceTest
         List<ClasePractica> listaEntidades = List.of(clase);
 
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
-                10L, LocalDateTime.now(), 45, "Sede Central", 100L, 150L, "100 a 150 km (+50 km)",
+                10L, FechaHoraUtil.ahora(), 45, "Sede Central", 100L, 150L, "100 a 150 km (+50 km)",
                 EstadoClase.RECIBIDA, 2L, "Juan Perez", "juanp", 1L, "Laura Gomez", "laurag",
                 "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, "Sin notas", null
         );
@@ -522,7 +515,7 @@ class ClasePracticaServiceTest
         Long id = 5L;
         ClasePractica clase = new ClasePractica();
         ClasePracticaAdminDTO dto = new ClasePracticaAdminDTO(
-                id, LocalDateTime.now(), 45, "Plaza Norte", 200L, 240L, "200 a 240 km (+40 km)",
+                id, FechaHoraUtil.ahora(), 45, "Plaza Norte", 200L, 240L, "200 a 240 km (+40 km)",
                 EstadoClase.RECIBIDA, 3L, "Mario Casas", "marioc", 1L, "Laura Gomez", "laurag",
                 "1234-BBB", "Seat Ibiza", "Seat Ibiza (1234-BBB)", null, null, null, null
         );
@@ -739,7 +732,7 @@ class ClasePracticaServiceTest
 
         ClasePractica clase = new ClasePractica();
         clase.setAlumno(alumno);
-        clase.setFechaHora(LocalDateTime.of(2026, 10, 14, 10, 15));
+        clase.setFechaHora(FechaHoraUtil.obtenerDiaLectivoFuturo(2).atTime(10, 15));
         clase.setEstadoClase(EstadoClase.PENDIENTE);
 
         when(this.clasePracticaRepository.findById(44L)).thenReturn(Optional.of(clase));
@@ -761,7 +754,7 @@ class ClasePracticaServiceTest
     @DisplayName("cancelarJornadaProfesor valida parámetros, bloquea doble cancelación, cancela pendientes y notifica alumnos")
     void testCancelarJornadaProfesorCompleto()
     {
-        LocalDate fecha = LocalDate.of(2026, 10, 15);
+        LocalDate fecha = FechaHoraUtil.obtenerDiaLectivoFuturo(3);
         assertThatThrownBy(() -> this.clasePracticaService.cancelarJornadaProfesor(null, fecha, "Motivo"))
                 .isInstanceOf(ReglaNegocioException.class);
         assertThatThrownBy(() -> this.clasePracticaService.cancelarJornadaProfesor(new Profesor(), null, "Motivo"))
@@ -823,13 +816,13 @@ class ClasePracticaServiceTest
         assertThat(this.clasePracticaService.obtenerUltimas5ClasesResumenPorAlumno(null)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorAlumnoExcluyendoEstado(null, EstadoClase.CANCELADA)).isEmpty();
         assertThat(this.clasePracticaService.obtenerClasesPorProfesorAsc(null)).isEmpty();
-        assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(null, LocalDateTime.now(), LocalDateTime.now())).isEmpty();
+        assertThat(this.clasePracticaService.obtenerClasesPorProfesorYRango(null, FechaHoraUtil.ahora(), FechaHoraUtil.ahora())).isEmpty();
 
         Alumno alumno = new Alumno();
         Profesor profesor = new Profesor();
         ClasePractica clase = new ClasePractica();
-        LocalDateTime inicio = LocalDateTime.of(2026, 10, 1, 8, 0);
-        LocalDateTime fin = LocalDateTime.of(2026, 10, 31, 22, 0);
+        LocalDateTime inicio = FechaHoraUtil.hoy().withDayOfMonth(1).atTime(8, 0);
+        LocalDateTime fin = FechaHoraUtil.hoy().withDayOfMonth(FechaHoraUtil.hoy().lengthOfMonth()).atTime(22, 0);
 
         when(this.clasePracticaRepository.findById(5L)).thenReturn(Optional.of(clase));
         when(this.clasePracticaRepository.countByAlumnoAndEstadoClase(alumno, EstadoClase.PENDIENTE)).thenReturn(2);
